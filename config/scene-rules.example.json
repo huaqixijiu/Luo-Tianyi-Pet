@@ -5,6 +5,15 @@
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true
   },
+  "applicationExit": {
+    "userRequestedExit": {
+      "animation": "resonance-cracked-shake",
+      "motion": "shake",
+      "loopCount": 1,
+      "maximumDurationMilliseconds": 850
+    },
+    "skipAnimationForSystemShutdownLogoffOrCrash": true
+  },
   "safety": {
     "safeGameMode": true,
     "noAdministratorPrivileges": true,
@@ -70,6 +79,8 @@
     "disableCommandsInSafeGameMode": true,
     "startPlaybackAnimation": {
       "id": "resonance-enjoy-music",
+      "selectionMode": "fixed",
+      "appliesAfterPause": true,
       "playbackRate": 0.5,
       "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif",
       "loopCount": 1

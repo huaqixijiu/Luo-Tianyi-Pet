@@ -1,5 +1,8 @@
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
+using LuoTianyiPet.Animation;
 using LuoTianyiPet.Core;
 using LuoTianyiPet.Platform.Windows;
 
@@ -33,10 +36,26 @@ public partial class App : Application
         try
         {
             AppSettings settings = await settingsStore.LoadAsync();
-            MainWindow window = new(settings, settingsStore, _logger);
+            bool simulateMissingAssets = e.Args.Contains("--qa-missing-assets", StringComparer.OrdinalIgnoreCase);
+            AnimationCatalog? animationCatalog = simulateMissingAssets ? null : LoadAnimationCatalog(_logger);
+            if (simulateMissingAssets)
+            {
+                _logger.Info("animation.catalog_qa_missing", "QA fallback mode enabled.");
+            }
+            PetVisualState initialVisualState = GetInitialVisualState(e.Args);
+            bool previewExit = e.Args.Contains("--preview-exit", StringComparer.OrdinalIgnoreCase);
+            bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
+            MainWindow window = new(
+                settings,
+                settingsStore,
+                _logger,
+                animationCatalog,
+                initialVisualState,
+                previewExit,
+                showQaTaskbar);
             MainWindow = window;
             window.Show();
-            _logger.Info("app.started", "M0 transparent window started.");
+            _logger.Info("app.started", "M1 runtime animation window started.");
         }
         catch (Exception exception)
         {
@@ -75,5 +94,37 @@ public partial class App : Application
         {
             _logger?.Error("app.domain_unhandled", exception);
         }
+    }
+
+    private static AnimationCatalog? LoadAnimationCatalog(IAppLogger logger)
+    {
+        string assetsRoot = Path.Combine(AppContext.BaseDirectory, "assets");
+        string catalogPath = Path.Combine(assetsRoot, "manifests", "animations.json");
+        try
+        {
+            AnimationCatalog catalog = AnimationCatalog.Load(assetsRoot, catalogPath);
+            logger.Info("animation.catalog_loaded", $"Loaded {catalog.Assets.Count} animations.");
+            return catalog;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
+        {
+            logger.Error("animation.catalog_failed", exception);
+            return null;
+        }
+    }
+
+    private static PetVisualState GetInitialVisualState(IReadOnlyCollection<string> arguments)
+    {
+        if (arguments.Contains("--preview-full-body", StringComparer.OrdinalIgnoreCase))
+        {
+            return new PetVisualState(PetDisplayMode.FullBodyInteractive);
+        }
+
+        if (arguments.Contains("--preview-music", StringComparer.OrdinalIgnoreCase))
+        {
+            return new PetVisualState(PetDisplayMode.Compact, IsMusicPlaying: true);
+        }
+
+        return new PetVisualState();
     }
 }

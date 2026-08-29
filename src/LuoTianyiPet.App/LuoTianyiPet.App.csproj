@@ -6,6 +6,15 @@
     <ProjectReference Include="..\LuoTianyiPet.Platform.Windows\LuoTianyiPet.Platform.Windows.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\assets\animations\runtime\**\*"
+             Link="assets\animations\runtime\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\manifests\animations.json"
+             Link="assets\manifests\animations.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>

@@ -7,5 +7,8 @@
 | 文件 | 用途 | 来源与处理 |
 |---|---|---|
 | `animations/processed/心律共鸣_享受音乐_0.5x.gif` | 开始播放动画候选 | 来自官方“享受音乐”GIF；画面与 10 帧顺序不变，播放速度调整为原来的 0.5 倍，总时长从 1 秒变为 2 秒 |
+| `animations/processed/心律共鸣_共鸣之声_倒放.gif` | 降低系统音量 | 来自官方“共鸣之声”GIF；保持帧时长并颠倒帧顺序 |
+| `animations/runtime/*.atlas.png` | WPF 实际播放图集 | 由选定 GIF、动态 WebP 或 PNG 的完整 RGBA 帧确定性生成 |
+| `manifests/animations.json` | 运行时动画清单 | 保存帧尺寸、帧时长、循环、显示尺寸、透明边界、来源与图集 SHA-256 |
 
-处理后素材同样通过 Git LFS 管理。
+运行 `tools/animation_tools/compile_animation_atlases.py` 可以根据 `config/animation-sources.json` 重建图集和清单。处理后素材同样通过 Git LFS 管理。

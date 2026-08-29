@@ -27,7 +27,7 @@ public sealed class JsonSettingsStore : ISettingsStore
 
         try
         {
-            string json = await File.ReadAllTextAsync(_paths.SettingsFile, cancellationToken);
+            string json = await File.ReadAllTextAsync(_paths.SettingsFile, cancellationToken).ConfigureAwait(false);
             AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions);
             return settings is { SchemaVersion: AppSettings.CurrentSchemaVersion }
                 ? settings
@@ -50,7 +50,7 @@ public sealed class JsonSettingsStore : ISettingsStore
             $"settings-{Guid.NewGuid():N}.tmp");
 
         string json = JsonSerializer.Serialize(settings, SerializerOptions);
-        await File.WriteAllTextAsync(temporaryFile, json, cancellationToken);
+        await File.WriteAllTextAsync(temporaryFile, json, cancellationToken).ConfigureAwait(false);
         File.Move(temporaryFile, _paths.SettingsFile, overwrite: true);
     }
 
