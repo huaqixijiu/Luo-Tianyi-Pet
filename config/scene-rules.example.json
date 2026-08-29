@@ -91,8 +91,7 @@
       "id": "afternoon",
       "start": "13:30",
       "end": "20:00",
-      "animation": null,
-      "todo": "继续挑选或寻找合适的官方下午问候动画"
+      "animation": "tenth-anniversary-slacking-float"
     },
     {
       "id": "night",
@@ -115,6 +114,39 @@
     "neverActivateWindow": true,
     "triggerOncePerProcessLifetime": true,
     "postponeOrSkipWhenExclusiveFullscreen": true
+  },
+  "genshinBackgroundCameo": {
+    "enabled": true,
+    "processNames": [
+      "YuanShen.exe",
+      "GenshinImpact.exe"
+    ],
+    "detectionMode": "windows-process-presence-and-foreground-process-only",
+    "onlyWhenGameIsRunningAndNotForeground": true,
+    "animation": "resonance-please",
+    "loopCount": 1,
+    "schedule": {
+      "mode": "one-random-trigger-per-background-active-hour",
+      "windowMinutes": 60,
+      "randomOffsetMinimumMinutes": 5,
+      "randomOffsetMaximumMinutes": 55,
+      "minimumCooldownMinutes": 45,
+      "postponeWhenGameReturnsToForegroundMinutes": [
+        5,
+        15
+      ]
+    },
+    "position": {
+      "mode": "random-within-current-monitor-work-area",
+      "safeMarginPixels": 24,
+      "keepEntirePetVisible": true,
+      "avoidTaskbar": true,
+      "restorePreviousPositionAfterPlayback": true
+    },
+    "requestTransientTopmost": true,
+    "neverActivateWindow": true,
+    "suppressWhenGameIsForegroundOrExclusiveFullscreen": true,
+    "cancelPendingOnProcessExitLockOrSleep": true
   },
   "messageNotifications": {
     "animation": "codename-curious-sway",
