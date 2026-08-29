@@ -311,7 +311,7 @@
         <h1>动画挑选器</h1>
         <p class="intro">一次规划完整桌宠：查看原生动画和程序动效预演，为日常、鼠标互动、音乐和系统事件分配动作，并选择希望实现的联动场景。</p>
       </div>
-      <div class="count-box"><strong id="visibleCount">46</strong><span>个动作候选正在显示</span></div>
+      <div class="count-box"><strong id="visibleCount">47</strong><span>个动作候选正在显示</span></div>
     </header>
 
     <section class="selection-board" aria-labelledby="selectionTitle">
@@ -436,8 +436,10 @@
     const baseEmoji = "03_官方表情包/5582-心律共鸣动态表情包/";
     const baseTheme = "02_个性装扮动画原包/";
     const baseStatic = "03_官方表情包/";
+    const baseDerived = "04_官方模型派生动画/";
 
     const items = [
+      { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["基础待机","全身","循环","官方模型"], desc:"由已下载的洛天依 V4 公式服 Q 版 PMX 模型直接渲染。约 4 秒一轮，包含轻微呼吸、身体小幅摇摆和一次自然眨眼；透明背景、脚底稳定、完整身体不会被裁切。" },
       { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","拖拽","循环"], desc:"全身 Q 版旋转动作，轮廓清晰。很适合拖拽时转圈，也可以作为活泼的音乐播放循环。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
