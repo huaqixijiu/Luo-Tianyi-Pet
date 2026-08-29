@@ -15,9 +15,12 @@
     <Grid x:Name="Root">
         <Grid x:Name="PetVisual"
               Margin="8"
-              RenderTransformOrigin="0.5,0.5">
+              RenderTransformOrigin="0.5,1">
             <Grid.RenderTransform>
-                <TranslateTransform x:Name="PetShakeTransform" />
+                <TransformGroup>
+                    <ScaleTransform x:Name="PetScaleTransform" ScaleX="1" ScaleY="1" />
+                    <TranslateTransform x:Name="PetShakeTransform" />
+                </TransformGroup>
             </Grid.RenderTransform>
 
             <Image x:Name="PetImage"
@@ -50,6 +53,29 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <Ellipse x:Name="MusicTransitionFlash"
+                 Panel.ZIndex="2"
+                 Width="150"
+                 Height="150"
+                 Margin="8"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Bottom"
+                 IsHitTestVisible="False"
+                 Opacity="0"
+                 RenderTransformOrigin="0.5,0.5">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Offset="0" Color="#F8FFFFFF" />
+                    <GradientStop Offset="0.42" Color="#D85FE7F2" />
+                    <GradientStop Offset="0.76" Color="#704ACFDF" />
+                    <GradientStop Offset="1" Color="#004ACFDF" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+            <Ellipse.RenderTransform>
+                <ScaleTransform x:Name="MusicTransitionFlashScale" ScaleX="0.35" ScaleY="0.35" />
+            </Ellipse.RenderTransform>
+        </Ellipse>
 
         <Grid.ContextMenu>
             <ContextMenu>

@@ -14,7 +14,9 @@ public partial class MainWindow : Window
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
     private readonly AnimationFramePlayer? _animationPlayer;
+    private readonly VisualSwapTransition _visualSwapTransition;
     private readonly bool _previewExit;
+    private readonly bool _previewMusicTransition;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
         AnimationCatalog? animationCatalog,
         PetVisualState initialVisualState,
         bool previewExit,
+        bool previewMusicTransition,
         bool showQaTaskbar)
     {
         _settings = settings;
@@ -34,7 +37,13 @@ public partial class MainWindow : Window
         _animationCatalog = animationCatalog;
         _stateMachine = new PetStateMachine(initialVisualState);
         _previewExit = previewExit;
+        _previewMusicTransition = previewMusicTransition;
         InitializeComponent();
+        _visualSwapTransition = new VisualSwapTransition(
+            PetVisual,
+            PetScaleTransform,
+            MusicTransitionFlash,
+            MusicTransitionFlashScale);
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -58,6 +67,11 @@ public partial class MainWindow : Window
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
+        }
+
+        if (_previewMusicTransition)
+        {
+            _ = BeginPreviewMusicTransitionAsync();
         }
     }
 
@@ -106,6 +120,11 @@ public partial class MainWindow : Window
 
     private void OnPreviewMusicStart(object sender, RoutedEventArgs e)
     {
+        StartMusicPreview();
+    }
+
+    private void StartMusicPreview()
+    {
         DateTimeOffset now = DateTimeOffset.Now;
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
@@ -121,7 +140,7 @@ public partial class MainWindow : Window
                 () =>
                 {
                     _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
-                    PlayResolvedContinuousAnimation();
+                    _ = TransitionToResolvedContinuousAnimationAsync();
                 });
         }
         else
@@ -140,7 +159,7 @@ public partial class MainWindow : Window
         _logger.Info("animation.preview_music_stopped", "Selected display mode restored.");
     }
 
-    private void PlayResolvedContinuousAnimation()
+    private void PlayResolvedContinuousAnimation(bool preserveVisualTransition = false)
     {
         PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (!plan.IsVisible || plan.AnimationId is null)
@@ -151,11 +170,35 @@ public partial class MainWindow : Window
             return;
         }
 
-        PlayAnimation(plan.AnimationId);
+        PlayAnimation(plan.AnimationId, preserveVisualTransition: preserveVisualTransition);
     }
 
-    private void PlayAnimation(string animationId, Action? completed = null)
+    private async Task TransitionToResolvedContinuousAnimationAsync()
     {
+        if (_animationPlayer is null || _animationCatalog is null || _isClosing)
+        {
+            PlayResolvedContinuousAnimation();
+            return;
+        }
+
+        bool completed = await _visualSwapTransition.PlayAsync(
+            () => PlayResolvedContinuousAnimation(preserveVisualTransition: true));
+        if (completed && !_isClosing)
+        {
+            _logger.Info("animation.music_transition_completed", "Pulse swap completed.");
+        }
+    }
+
+    private void PlayAnimation(
+        string animationId,
+        Action? completed = null,
+        bool preserveVisualTransition = false)
+    {
+        if (!preserveVisualTransition)
+        {
+            CancelVisualTransition();
+        }
+
         if (_animationPlayer is null || _animationCatalog is null)
         {
             ShowFallback("Animation catalog unavailable.");
@@ -219,6 +262,15 @@ public partial class MainWindow : Window
         await BeginUserRequestedExitAsync();
     }
 
+    private async Task BeginPreviewMusicTransitionAsync()
+    {
+        await Task.Delay(500);
+        if (!_isClosing)
+        {
+            StartMusicPreview();
+        }
+    }
+
     private async Task BeginUserRequestedExitAsync()
     {
         if (_isClosing)
@@ -243,6 +295,7 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        CancelVisualTransition();
         _animationPlayer?.Dispose();
         _settings = _settings with
         {
@@ -267,4 +320,9 @@ public partial class MainWindow : Window
 
     private static double Clamp(double value, double minimum, double maximum) =>
         Math.Clamp(value, minimum, Math.Max(minimum, maximum));
+
+    private void CancelVisualTransition()
+    {
+        _visualSwapTransition.Cancel();
+    }
 }

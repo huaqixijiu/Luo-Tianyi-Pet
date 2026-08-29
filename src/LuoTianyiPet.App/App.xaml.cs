@@ -44,6 +44,9 @@ public partial class App : Application
             }
             PetVisualState initialVisualState = GetInitialVisualState(e.Args);
             bool previewExit = e.Args.Contains("--preview-exit", StringComparer.OrdinalIgnoreCase);
+            bool previewMusicTransition = e.Args.Contains(
+                "--preview-music-transition",
+                StringComparer.OrdinalIgnoreCase);
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
             MainWindow window = new(
                 settings,
@@ -52,6 +55,7 @@ public partial class App : Application
                 animationCatalog,
                 initialVisualState,
                 previewExit,
+                previewMusicTransition,
                 showQaTaskbar);
             MainWindow = window;
             window.Show();
