@@ -22,10 +22,26 @@
     "shortIdleAfterSeconds": 45,
     "sleepAfterSeconds": 900,
     "keepDancingWhileMusicIsPlaying": true,
-    "silentDesktopIdleAnimation": "resonance-hehe",
+    "defaultDisplayMode": "compact",
+    "rememberLastDisplayModeOnRestart": false,
+    "restoreSelectedDisplayModeAfterTransientAnimation": true,
+    "displayModeToggle": {
+      "gesture": "double-left-click",
+      "maximumIntervalMilliseconds": 300,
+      "suppressPendingSingleClickWhenToggled": true
+    },
+    "displayModes": {
+      "compact": {
+        "idleAnimation": "resonance-hehe",
+        "bodyRegionInteractionsEnabled": false
+      },
+      "fullBodyInteractive": {
+        "idleAnimation": "official-v4-chibi-full-body-idle",
+        "bodyRegionInteractionsEnabled": true
+      }
+    },
     "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
-    "sleepAnimation": "tenth-anniversary-goodnight-float",
-    "futureFullBodyIdleTodo": "使用官方Q版模型制作完整全身呼吸、眨眼与重心摆动循环"
+    "sleepAnimation": "tenth-anniversary-goodnight-float"
   },
   "volume": {
     "controlMethods": [
@@ -70,6 +86,9 @@
       ]
     },
     "bodyRegions": {
+      "enabledInDisplayModes": [
+        "fullBodyInteractive"
+      ],
       "faceAndMouth": {
         "gesture": "short-left-click",
         "animation": "resonance-kiss",
@@ -93,31 +112,50 @@
         "animation": "tenth-anniversary-high-five-bounce",
         "loopCount": 1
       },
-      "sensitiveRegions": {
+      "chestAndLowerBodySensitiveRegions": {
         "regions": [
           "chest",
-          "left-foot",
-          "right-foot"
+          "lower-body-sensitive-area"
         ],
-        "firstClickAnimation": "resonance-soft-heart",
+        "firstClickAnimation": "resonance-guilty",
         "repeatClickAnimation": "resonance-dark",
         "repeatWithinMilliseconds": 4000,
         "cooldownAfterRepeatMilliseconds": 10000,
         "shareRepeatWindowAcrossRegions": true
+      },
+      "feet": {
+        "regions": [
+          "left-foot",
+          "right-foot"
+        ],
+        "animation": "resonance-soft-heart",
+        "loopCount": 1,
+        "escalateOnRepeat": false
       }
     },
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
-      "animation": "resonance-expand",
-      "loopWhileDragging": true,
+      "behaviorByDisplayMode": {
+        "compact": {
+          "animation": "resonance-expand",
+          "replaceCurrentAnimation": true,
+          "loopWhileDragging": true
+        },
+        "fullBodyInteractive": {
+          "animation": "keep-current-full-body-animation",
+          "replaceCurrentAnimation": false,
+          "loopWhileDragging": true
+        }
+      },
       "allowWindowTiltAndShadow": true
     },
     "drop": {
       "animation": "codename-landing-bounce",
       "loopCount": 1,
       "addSpringMotion": true,
-      "returnToResolvedContinuousState": true
+      "returnToResolvedContinuousState": true,
+      "returnToSelectedDisplayMode": true
     },
     "desktopFileDrop": {
       "enabled": true,
