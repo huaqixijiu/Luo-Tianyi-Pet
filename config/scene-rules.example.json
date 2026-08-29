@@ -22,7 +22,10 @@
     "shortIdleAfterSeconds": 45,
     "sleepAfterSeconds": 900,
     "keepDancingWhileMusicIsPlaying": true,
-    "sleepAnimation": "tenth-anniversary-goodnight-float"
+    "silentDesktopIdleAnimation": "resonance-hehe",
+    "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
+    "sleepAnimation": "tenth-anniversary-goodnight-float",
+    "futureFullBodyIdleTodo": "使用官方Q版模型制作完整全身呼吸、眨眼与重心摆动循环"
   },
   "volume": {
     "controlMethods": [
@@ -41,18 +44,13 @@
     "detectAudioWithCoreAudio": true,
     "silenceGraceMilliseconds": 1500,
     "disableCommandsInSafeGameMode": true,
-    "startPlaybackSelection": "uniform-random",
-    "startPlaybackAnimations": [
-      {
-        "id": "ninth-anniversary-music-sway",
-        "playbackRate": 1.0
-      },
-      {
-        "id": "resonance-enjoy-music",
-        "playbackRate": 0.5,
-        "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif"
-      }
-    ],
+    "startPlaybackAnimation": {
+      "id": "resonance-enjoy-music",
+      "playbackRate": 0.5,
+      "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif",
+      "loopCount": 1
+    },
+    "playingIdleAnimation": "ninth-anniversary-music-sway",
     "loadingAnimation": "resonance-loading-sway",
     "showLoadingAfterMilliseconds": 400,
     "loadingTimeoutMilliseconds": 15000,
@@ -60,6 +58,21 @@
     "pauseAnimation": "ninth-anniversary-not-awake-breathing",
     "pauseAnimationDurationMilliseconds": 5000,
     "resumeInterruptsPauseAnimation": true
+  },
+  "pointerInteractions": {
+    "drag": {
+      "button": "left",
+      "startAfterPixels": 6,
+      "animation": "resonance-expand",
+      "loopWhileDragging": true,
+      "allowWindowTiltAndShadow": true
+    },
+    "drop": {
+      "animation": "codename-landing-bounce",
+      "loopCount": 1,
+      "addSpringMotion": true,
+      "returnToResolvedContinuousState": true
+    }
   },
   "startupTimeScenes": [
     {

@@ -24,6 +24,7 @@
 - [`docs/需求与场景设计.md`](docs/需求与场景设计.md)
 - [`docs/安全与兼容性约束.md`](docs/安全与兼容性约束.md)
 - [`docs/动画状态映射.md`](docs/动画状态映射.md)
+- [`docs/全身基础待机动画调研.md`](docs/全身基础待机动画调研.md)
 - [`config/scene-rules.example.json`](config/scene-rules.example.json)
 
 ## 目录
