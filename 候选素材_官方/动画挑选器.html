@@ -412,7 +412,7 @@
       { id:"beat", group:"music", title:"随音量和节拍改变动作", desc:"WASAPI 回环采样，响时加速、安静时放缓；可选低频节拍检测。", level:"推荐", recommended:true },
       { id:"mediaKeys", group:"music", title:"上一首/下一首/暂停继续", desc:"继续使用网易云全局快捷键，桌宠播放对应反馈。", level:"推荐", recommended:true },
       { id:"trackChange", group:"music", title:"歌曲切换反应", desc:"由桌宠发起切歌时可靠；也可尝试 Windows 媒体会话识别外部切歌。", level:"可选", recommended:false },
-      { id:"volume", group:"music", title:"静音和音量变化", desc:"系统静音时做安静动作，音量突然升高时惊讶。", level:"推荐", recommended:true },
+      { id:"volume", group:"music", title:"音量变化", desc:"调高音量播放原版“共鸣之声”，调低音量播放倒放版；静音和解除静音暂不播放动画。", level:"已确定", recommended:true },
 
       { id:"pointer", group:"desktop", title:"悬停、点击与连续戳", desc:"悬停看向鼠标；点击卖萌；连续点击触发生气彩蛋。", level:"推荐", recommended:true },
       { id:"dragPhysics", group:"desktop", title:"拖拽、惯性和落地", desc:"拖动时换动作，松手后轻微抛物线、回弹或降落。", level:"推荐", recommended:true },
@@ -440,19 +440,19 @@
 
     const items = [
       { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","拖拽保持","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身动画，不切换为“膨胀”；再次双击切回“嘿嘿”。" },
-      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","拖拽","循环"], desc:"全身 Q 版旋转动作，轮廓清晰。很适合拖拽时转圈，也可以作为活泼的音乐播放循环。" },
+      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["普通部位随机","循环"], desc:"已加入完整全身模式的普通部位点击随机池；只在没有命中更具体身体区域时播放。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
 
-      { id:"thumb8", title:"八周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:true, src:baseQuick+"11_八周年_点赞动作.webp", source:baseTheme+"2156_洛天依8周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机","一次播放"], desc:"已将 SVGA 的原始 74 帧转换为可直接预览的循环动画。适合偶发待机、点击桌宠或操作成功后的奖励反馈。" },
+      { id:"thumb8", title:"八周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:true, src:baseQuick+"11_八周年_点赞动作.webp", source:baseTheme+"2156_洛天依8周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","普通部位随机","一次播放"], desc:"已将 SVGA 的原始 74 帧转换为可直接预览的循环动画，并加入普通部位点击随机池。" },
       { id:"thumb10", title:"十周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:true, src:baseQuick+"12_十周年_点赞动作.webp", source:baseTheme+"35789_洛天依十周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机","一次播放"], desc:"十周年装扮中的完整点赞动画。角色比例适合作为桌宠，可用于点击反应或随机待机。" },
       { id:"thumbCode", title:"代号洛天依 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:false, src:baseQuick+"13_代号洛天依_点赞动作.webp", source:baseTheme+"54182_代号洛天依/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","操作反馈"], desc:"代号洛天依主题的完整点赞动画，适合与全息操作搭配，整体风格更偏科技感。" },
-      { id:"thumb9", title:"九周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:false, src:baseQuick+"14_九周年_点赞动作.webp", source:baseTheme+"5766_洛天依9周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机"], desc:"九周年主题完整点赞动画，可以和音乐摇摆保持同一套周年视觉风格。" },
+      { id:"thumb9", title:"九周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:false, src:baseQuick+"14_九周年_点赞动作.webp", source:baseTheme+"5766_洛天依9周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","普通部位随机"], desc:"九周年主题完整点赞动画，已加入普通部位点击随机池。" },
 
       { id:"e_baituo", title:"心律共鸣 · 拜托", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_拜托.gif", source:baseEmoji+"心律共鸣动态表情包_拜托.gif", tags:["原神后台","随机彩蛋","低频"], desc:"已确定为原神后台运行彩蛋：大约每小时在安全随机位置播放一次；原神位于前台或全屏时暂停，播放后恢复原位置。" },
       { id:"e_success", title:"心律共鸣 · 大成功", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_大成功.gif", source:baseEmoji+"心律共鸣动态表情包_大成功.gif", tags:["成功","操作反馈"], desc:"情绪明确，适合切歌成功、恢复播放或完成设置后播放一次。" },
       { id:"e_give", title:"心律共鸣 · 给我", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_给我.gif", source:baseEmoji+"心律共鸣动态表情包_给我.gif", tags:["文件拖入","回收站","接收提示"], desc:"已确定为桌面文件拖近桌宠时的接收反馈；文件进入扩展投放区后播放，离开投放区即恢复。" },
-      { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["音乐","随机待机"], desc:"与音乐主题契合，可作为歌曲开始播放时的一次性过渡表情。" },
+      { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["音量提高","音量降低","倒放"], desc:"已确定：调高音量播放原版；调低音量播放派生的倒放版。静音与解除静音暂不播放动画。" },
       { id:"e_great", title:"心律共鸣 · 好厉害", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_好厉害.gif", source:baseEmoji+"心律共鸣动态表情包_好厉害.gif", tags:["夸奖","操作反馈"], desc:"正向反馈感明显，适合操作成功、恢复播放或用户连续互动之后播放。" },
       { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["胸部","下体","重复点击"], desc:"已确定为胸部或下体敏感区域在 4 秒内被再次点击时的反馈；双脚不触发黑化。" },
       { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["默认待机","迷你模式","双击切换"], desc:"已确定为每次启动时的迷你默认待机；双击进入完整全身互动模式，拖拽时自动切换为“膨胀”。" },
@@ -463,10 +463,10 @@
       { id:"e_expand", title:"心律共鸣 · 膨胀", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_膨胀.gif", source:baseEmoji+"心律共鸣动态表情包_膨胀.gif", tags:["嘿嘿模式","拖拽中","循环"], desc:"已确定为“嘿嘿”迷你模式进入拖拽后的替换动画；完整全身模式拖拽时不使用它。" },
       { id:"e_poor", title:"心律共鸣 · 贫穷", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_贫穷.gif", source:baseEmoji+"心律共鸣动态表情包_贫穷.gif", tags:["委屈","彩蛋"], desc:"个性较强，更适合作为隐藏互动，而不是第一版固定状态。" },
       { id:"e_omg", title:"心律共鸣 · 天哪", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_天哪.gif", source:baseEmoji+"心律共鸣动态表情包_天哪.gif", tags:["惊讶","切歌反馈"], desc:"适合快速切歌、操作失败或意外状态时播放一次。" },
-      { id:"e_oshi", title:"心律共鸣 · 我推", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_我推.gif", source:baseEmoji+"心律共鸣动态表情包_我推.gif", tags:["支持","随机待机"], desc:"可以作为低概率随机动作，表达支持和开心的情绪。" },
+      { id:"e_oshi", title:"心律共鸣 · 我推", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_我推.gif", source:baseEmoji+"心律共鸣动态表情包_我推.gif", tags:["支持","普通部位随机"], desc:"已加入完整全身模式的普通部位点击随机池。" },
       { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["音乐","播放反馈"], desc:"与音乐播放语义完全匹配，适合作为开始播放时的一次性反馈或小尺寸舞蹈。" },
-      { id:"e_soft", title:"心律共鸣 · 心软软", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_心软软.gif", source:baseEmoji+"心律共鸣动态表情包_心软软.gif", tags:["左脚","右脚","点击互动"], desc:"已确定为点击左脚或右脚时的固定反馈；重复点击双脚也只播放“心软软”，不会升级成黑化。" },
-      { id:"e_nice", title:"心律共鸣 · 真好", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_真好.gif", source:baseEmoji+"心律共鸣动态表情包_真好.gif", tags:["满足","播放反馈"], desc:"可用于恢复播放、歌曲切换后的一次性正向反馈。" },
+      { id:"e_soft", title:"心律共鸣 · 心软软", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_心软软.gif", source:baseEmoji+"心律共鸣动态表情包_心软软.gif", tags:["左眼","右眼","点击互动"], desc:"已从脚部移到眼睛：完整全身模式点击左眼或右眼时播放，眼睛命中优先于脸部区域。" },
+      { id:"e_nice", title:"心律共鸣 · 真好", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_真好.gif", source:baseEmoji+"心律共鸣动态表情包_真好.gif", tags:["满足","普通部位随机"], desc:"已加入完整全身模式的普通部位点击随机池。" },
       { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["胸部","下体","首次点击"], desc:"已确定为完整全身模式下首次点击胸部或下体敏感区域时的反馈，并开启 4 秒重复点击窗口。" },
       { id:"e_ok", title:"心律共鸣 · OK", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_OK.gif", source:baseEmoji+"心律共鸣动态表情包_OK.gif", tags:["确认","操作反馈"], desc:"含义最清楚的通用操作反馈，上一首、下一首、暂停和继续都能复用。" },
 
@@ -484,9 +484,9 @@
       { id:"p_sing", title:"九周年 · 一起唱摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", tags:["音乐","跟唱"], desc:"静态表情配合节奏摇摆，可以作为另一套音乐舞蹈，避免长期重复同一个动作。" },
       { id:"p_energy", title:"九周年 · 精神抖擞弹跳", category:"procedural", kind:"程序动效预演", priority:false, motion:"bounce", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", tags:["强节拍","充电完成"], desc:"适合强节拍段落、电脑唤醒、充电完成或专注计时开始。" },
       { id:"p_goodjob", title:"八周年 · Good Job 回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"101-洛天依8th生日纪念/洛天依_goodjob.png", source:baseStatic+"101-洛天依8th生日纪念/洛天依_goodjob.png", tags:["成功","完成"], desc:"适合设置保存、番茄钟完成、网络恢复或用户完成目标。" },
-      { id:"p_warning", title:"十周年 · 糟了晃动", category:"procedural", kind:"程序动效预演", priority:true, motion:"shake", src:baseStatic+"340-洛天依十周年/洛天依_糟了.png", source:baseStatic+"340-洛天依十周年/洛天依_糟了.png", tags:["警告","错误"], desc:"短促左右晃动用于快捷键发送失败、播放器未启动或系统出现异常。" },
+      { id:"p_warning", title:"十周年 · 糟了晃动", category:"procedural", kind:"程序动效预演", priority:true, motion:"shake", src:baseStatic+"340-洛天依十周年/洛天依_糟了.png", source:baseStatic+"340-洛天依十周年/洛天依_糟了.png", tags:["左脚","右脚","点击互动"], desc:"已确定为完整全身模式点击左脚或右脚时的固定晃动反馈。" },
       { id:"p_network", title:"心律共鸣 · 裂开晃动", category:"procedural", kind:"程序动效预演", priority:false, motion:"shake", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png", tags:["断网","失败"], desc:"可以作为网络断开、连续快捷键无响应或其它失败状态的夸张彩蛋。" },
-      { id:"p_lowbattery", title:"心律共鸣 · 呜呜晃动", category:"procedural", kind:"程序动效预演", priority:false, motion:"shake", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", tags:["低电量","委屈"], desc:"笔记本低电量或音乐播放失败时使用；可搭配气泡文字提醒。" },
+      { id:"p_lowbattery", title:"心律共鸣 · 呜呜晃动", category:"procedural", kind:"程序动效预演", priority:true, motion:"shake", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", tags:["操作失败","超时","气泡提醒"], desc:"已确定为所有普通操作失败或超时的统一反馈，并搭配原因明确、不会误报成功的气泡文字。" },
       { id:"p_food", title:"十周年 · 干饭弹跳", category:"procedural", kind:"程序动效预演", priority:false, motion:"bounce", src:baseStatic+"340-洛天依十周年/洛天依_干饭.png", source:baseStatic+"340-洛天依十周年/洛天依_干饭.png", tags:["吃饭提醒","整点"], desc:"适合午饭、晚饭时间提醒，也可以在长时间工作后提醒休息。" },
       { id:"p_highfive", title:"十周年 · 击掌回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"340-洛天依十周年/洛天依_击掌.png", source:baseStatic+"340-洛天依十周年/洛天依_击掌.png", tags:["左手","右手","击掌"], desc:"已确定为点击左手或右手时的一次性回弹反馈；也可以继续用于计时完成后的击掌庆祝。" }
     ];

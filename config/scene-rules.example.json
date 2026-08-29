@@ -51,6 +51,13 @@
       "external-system-volume-events"
     ],
     "increaseAnimation": "resonance-voice",
+    "decreaseAnimation": {
+      "id": "resonance-voice-reversed",
+      "asset": "assets/animations/processed/心律共鸣_共鸣之声_倒放.gif",
+      "transformation": "reverse-frame-order"
+    },
+    "muteAnimation": null,
+    "unmuteAnimation": null,
     "mergeChangesWithinMilliseconds": 500,
     "cooldownMilliseconds": 2000,
     "showPercentageBubble": true
@@ -71,6 +78,7 @@
     "loadingAnimation": "resonance-loading-sway",
     "showLoadingAfterMilliseconds": 400,
     "loadingTimeoutMilliseconds": 15000,
+    "timeoutFeedback": "failureOrTimeout",
     "confirmedSuccessAnimation": "resonance-ok",
     "pauseAnimation": "ninth-anniversary-not-awake-breathing",
     "pauseAnimationDurationMilliseconds": 5000,
@@ -94,6 +102,15 @@
         "gesture": "short-left-click",
         "animation": "resonance-kiss",
         "loopCount": 1
+      },
+      "eyes": {
+        "regions": [
+          "left-eye",
+          "right-eye"
+        ],
+        "animation": "resonance-soft-heart",
+        "loopCount": 1,
+        "takePriorityOverFaceRegion": true
       },
       "headPetting": {
         "regions": [
@@ -129,9 +146,25 @@
           "left-foot",
           "right-foot"
         ],
-        "animation": "resonance-soft-heart",
+        "animation": "tenth-anniversary-oops-shake",
+        "motion": "shake",
         "loopCount": 1,
         "escalateOnRepeat": false
+      },
+      "ordinaryBody": {
+        "matchWhenNoSmallerRegionMatches": true,
+        "selectionMode": "random-no-immediate-repeat",
+        "animationPool": [
+          "tenth-anniversary-spin-dance",
+          "ninth-anniversary-thumb-up",
+          "eighth-anniversary-thumb-up",
+          "resonance-my-pick",
+          "resonance-really-good"
+        ],
+        "excludedBecauseAlreadyAssigned": [
+          "resonance-cute"
+        ],
+        "loopCount": 1
       }
     },
     "drag": {
@@ -171,12 +204,27 @@
       "loadingAnimationAfterMilliseconds": 400,
       "loadingAnimation": "resonance-loading-sway",
       "successAnimation": "resonance-ok",
+      "failureFeedback": "failureOrTimeout",
       "neverPermanentlyDelete": true,
       "cancelIfRecycleBinUnsupported": true,
       "confirmFolders": true,
       "confirmWhenItemCountExceeds": 10,
       "disableWhileProtectedAppForeground": true,
       "firstUseExplanation": true
+    }
+  },
+  "operationFeedback": {
+    "failureOrTimeout": {
+      "animation": "resonance-cry-shake",
+      "motion": "shake",
+      "loopCount": 1,
+      "bubbleMessages": {
+        "operationFailure": "操作失败，请再试一次",
+        "timeout": "等太久了，再试一次吧",
+        "mediaNoResponse": "网易云没有响应",
+        "recycleFailure": "没有放进回收站，文件还在原处"
+      },
+      "returnToResolvedContinuousState": true
     }
   },
   "startupTimeScenes": [

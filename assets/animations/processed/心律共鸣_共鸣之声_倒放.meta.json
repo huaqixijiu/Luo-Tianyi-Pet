@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_共鸣之声.gif",
+  "sourceSha256": "3f085e4c60a672befd84b503e61ab48c37a554bdecb9fdb77ced8007e379ae93",
+  "output": "assets/animations/processed/心律共鸣_共鸣之声_倒放.gif",
+  "outputSha256": "4647148cc02ad259da1ed236d382baabd329d881e979e58ce77f957ea21a2270",
+  "transformation": "reverse-frame-order",
+  "frameCount": 10,
+  "canvasWidth": 162,
+  "canvasHeight": 162,
+  "frameDurationsMilliseconds": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+  ],
+  "loop": 0
+}
