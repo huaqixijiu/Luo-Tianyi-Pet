@@ -60,6 +60,52 @@
     "resumeInterruptsPauseAnimation": true
   },
   "pointerInteractions": {
+    "hitTesting": {
+      "mode": "alpha-mask-and-normalized-body-regions",
+      "clickMaximumMovementPixels": 6,
+      "priority": [
+        "pet-window-drag",
+        "head-petting-gesture",
+        "smallest-body-hit-region"
+      ]
+    },
+    "bodyRegions": {
+      "faceAndMouth": {
+        "gesture": "short-left-click",
+        "animation": "resonance-kiss",
+        "loopCount": 1
+      },
+      "headPetting": {
+        "regions": [
+          "hair",
+          "top-of-head"
+        ],
+        "gesture": "hold-and-stroke",
+        "minimumDurationMilliseconds": 600,
+        "animation": "resonance-cute",
+        "loopCount": 1
+      },
+      "hands": {
+        "regions": [
+          "left-hand",
+          "right-hand"
+        ],
+        "animation": "tenth-anniversary-high-five-bounce",
+        "loopCount": 1
+      },
+      "sensitiveRegions": {
+        "regions": [
+          "chest",
+          "left-foot",
+          "right-foot"
+        ],
+        "firstClickAnimation": "resonance-soft-heart",
+        "repeatClickAnimation": "resonance-dark",
+        "repeatWithinMilliseconds": 4000,
+        "cooldownAfterRepeatMilliseconds": 10000,
+        "shareRepeatWindowAcrossRegions": true
+      }
+    },
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
@@ -72,6 +118,26 @@
       "loopCount": 1,
       "addSpringMotion": true,
       "returnToResolvedContinuousState": true
+    },
+    "desktopFileDrop": {
+      "enabled": true,
+      "detectionMode": "window-ole-drop-target-only",
+      "acceptedDataFormat": "CF_HDROP-real-filesystem-items-only",
+      "proximityPaddingPixels": 72,
+      "minimumHoverBeforeDropMilliseconds": 400,
+      "dragEnterAnimation": "resonance-give-me",
+      "showRecycleDropHighlight": true,
+      "dropAction": "move-to-windows-recycle-bin",
+      "shellOperation": "IFileOperation-with-allow-undo-and-recycle-on-delete",
+      "loadingAnimationAfterMilliseconds": 400,
+      "loadingAnimation": "resonance-loading-sway",
+      "successAnimation": "resonance-ok",
+      "neverPermanentlyDelete": true,
+      "cancelIfRecycleBinUnsupported": true,
+      "confirmFolders": true,
+      "confirmWhenItemCountExceeds": 10,
+      "disableWhileProtectedAppForeground": true,
+      "firstUseExplanation": true
     }
   },
   "startupTimeScenes": [
