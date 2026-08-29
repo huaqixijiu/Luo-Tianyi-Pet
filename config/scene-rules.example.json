@@ -40,8 +40,55 @@
     "commandMode": "user-configured-global-shortcuts",
     "detectAudioWithCoreAudio": true,
     "silenceGraceMilliseconds": 1500,
-    "disableCommandsInSafeGameMode": true
+    "disableCommandsInSafeGameMode": true,
+    "startPlaybackSelection": "uniform-random",
+    "startPlaybackAnimations": [
+      {
+        "id": "ninth-anniversary-music-sway",
+        "playbackRate": 1.0
+      },
+      {
+        "id": "resonance-enjoy-music",
+        "playbackRate": 0.5,
+        "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif"
+      }
+    ],
+    "loadingAnimation": "resonance-loading-sway",
+    "showLoadingAfterMilliseconds": 400,
+    "loadingTimeoutMilliseconds": 15000,
+    "confirmedSuccessAnimation": "resonance-ok",
+    "pauseAnimation": "ninth-anniversary-not-awake-breathing",
+    "pauseAnimationDurationMilliseconds": 5000,
+    "resumeInterruptsPauseAnimation": true
   },
+  "startupTimeScenes": [
+    {
+      "id": "morning",
+      "start": "06:00",
+      "end": "12:00",
+      "animation": "collection-good-morning-float"
+    },
+    {
+      "id": "lunch",
+      "start": "12:00",
+      "end": "13:30",
+      "animation": "tenth-anniversary-meal-bounce"
+    },
+    {
+      "id": "afternoon",
+      "start": "13:30",
+      "end": "20:00",
+      "animation": null,
+      "todo": "继续挑选或寻找合适的官方下午问候动画"
+    },
+    {
+      "id": "night",
+      "start": "20:00",
+      "end": "06:00",
+      "spansMidnight": true,
+      "animation": "codename-sleeping-breathing"
+    }
+  ],
   "genshinLaunch": {
     "enabled": true,
     "processNames": [
