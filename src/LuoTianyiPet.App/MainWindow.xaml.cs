@@ -1,6 +1,11 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.Windows.Threading;
 using LuoTianyiPet.Animation;
 using LuoTianyiPet.Core;
 
@@ -10,16 +15,29 @@ public partial class MainWindow : Window
 {
     private const string EnjoyMusicAnimation = "resonance-enjoy-music";
     private const string CloseAnimation = "resonance-cracked-shake";
+    private const string LandingAnimation = "codename-landing-bounce";
+    private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
     private readonly AnimationFramePlayer? _animationPlayer;
     private readonly VisualSwapTransition _visualSwapTransition;
+    private readonly LandingBounceMotion _landingBounceMotion;
+    private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
+    private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
+    private readonly DispatcherTimer _singleClickTimer;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
+    private readonly bool _previewBodyHitDebug;
+    private readonly bool _previewDragCycle;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
+    private bool _isWindowDragging;
+    private Point _dragPressScreenPoint;
+    private double _dragStartLeft;
+    private double _dragStartTop;
+    private BodyRegionId? _lastDebugHitRegion;
 
     public MainWindow(
         AppSettings settings,
@@ -29,6 +47,8 @@ public partial class MainWindow : Window
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
+        bool previewBodyHitDebug,
+        bool previewDragCycle,
         bool showQaTaskbar)
     {
         _settings = settings;
@@ -38,12 +58,20 @@ public partial class MainWindow : Window
         _stateMachine = new PetStateMachine(initialVisualState);
         _previewExit = previewExit;
         _previewMusicTransition = previewMusicTransition;
+        _previewBodyHitDebug = previewBodyHitDebug;
+        _previewDragCycle = previewDragCycle;
         InitializeComponent();
         _visualSwapTransition = new VisualSwapTransition(
             PetVisual,
             PetScaleTransform,
             MusicTransitionFlash,
             MusicTransitionFlashScale);
+        _landingBounceMotion = new LandingBounceMotion(PetShakeTransform);
+        _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
+        {
+            Interval = DoubleClickInterval,
+        };
+        _singleClickTimer.Tick += OnSingleClickTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -56,6 +84,7 @@ public partial class MainWindow : Window
         TopmostMenuItem.IsChecked = Topmost;
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
+        BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -64,6 +93,7 @@ public partial class MainWindow : Window
         Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
+        UpdateBodyHitDebugOverlay();
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
@@ -72,6 +102,11 @@ public partial class MainWindow : Window
         if (_previewMusicTransition)
         {
             _ = BeginPreviewMusicTransitionAsync();
+        }
+
+        if (_previewDragCycle)
+        {
+            _ = BeginPreviewDragCycleAsync();
         }
     }
 
@@ -82,21 +117,60 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (e.ClickCount == 2)
+        Point position = e.GetPosition(this);
+        _dragPressScreenPoint = GetPointerScreenPositionInDips(e);
+        _dragStartLeft = Left;
+        _dragStartTop = Top;
+        Mouse.Capture(this);
+        HandlePointerAction(_pointerGesture.Press(ToPointerPoint(position), e.ClickCount, DateTimeOffset.Now));
+        SyncSingleClickTimer();
+        e.Handled = true;
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_isClosing || e.LeftButton != MouseButtonState.Pressed)
         {
-            ToggleDisplayMode();
-            e.Handled = true;
             return;
         }
 
-        try
+        HandlePointerAction(_pointerGesture.Move(ToPointerPoint(e.GetPosition(this))));
+        if (_isWindowDragging)
         {
-            DragMove();
+            MoveWindowWithPointer(GetPointerScreenPositionInDips(e));
         }
-        catch (InvalidOperationException exception)
+
+        e.Handled = true;
+    }
+
+    private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || _isClosing)
         {
-            _logger.Error("window.drag_failed", exception);
+            return;
         }
+
+        HandlePointerAction(_pointerGesture.Release(
+            ToPointerPoint(e.GetPosition(this)),
+            DateTimeOffset.Now));
+        if (IsMouseCaptured)
+        {
+            ReleaseMouseCapture();
+        }
+
+        SyncSingleClickTimer();
+        e.Handled = true;
+    }
+
+    private void OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_isClosing || !_isWindowDragging)
+        {
+            return;
+        }
+
+        _pointerGesture.Cancel();
+        EndWindowDrag();
     }
 
     private void OnToggleDisplayMode(object sender, RoutedEventArgs e) => ToggleDisplayMode();
@@ -116,7 +190,273 @@ public partial class MainWindow : Window
         }
 
         _logger.Info("display.mode_changed", nextMode.ToString());
+        UpdateBodyHitDebugOverlay();
     }
+
+    private void OnSingleClickTimerTick(object? sender, EventArgs e)
+    {
+        PointerGestureAction action = _pointerGesture.FlushPendingSingleClick(DateTimeOffset.Now);
+        if (action.Type == PointerGestureActionType.None)
+        {
+            SyncSingleClickTimer();
+            return;
+        }
+
+        _singleClickTimer.Stop();
+        HandlePointerAction(action);
+    }
+
+    private void HandlePointerAction(PointerGestureAction action)
+    {
+        switch (action.Type)
+        {
+            case PointerGestureActionType.None:
+                break;
+            case PointerGestureActionType.DispatchSingleClick:
+                if (action.Position is PointerPoint clickPosition)
+                {
+                    HandleSingleClick(clickPosition);
+                }
+                break;
+            case PointerGestureActionType.ToggleDisplayMode:
+                _singleClickTimer.Stop();
+                ToggleDisplayMode();
+                break;
+            case PointerGestureActionType.BeginDrag:
+                BeginWindowDrag();
+                break;
+            case PointerGestureActionType.EndDrag:
+                EndWindowDrag();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action));
+        }
+    }
+
+    private void BeginWindowDrag()
+    {
+        _singleClickTimer.Stop();
+        if (!_stateMachine.BeginDrag())
+        {
+            return;
+        }
+
+        _isWindowDragging = true;
+        string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
+        if (_animationPlayer?.CurrentAnimationId != dragAnimation)
+        {
+            PlayResolvedContinuousAnimation();
+        }
+
+        _dragStartLeft = Left;
+        _dragStartTop = Top;
+
+        UpdateBodyHitDebugOverlay();
+        _logger.Info("interaction.drag_started", _stateMachine.VisualState.SelectedDisplayMode.ToString());
+    }
+
+    private void MoveWindowWithPointer(Point currentScreenPoint)
+    {
+        double desiredLeft = _dragStartLeft + currentScreenPoint.X - _dragPressScreenPoint.X;
+        double desiredTop = _dragStartTop + currentScreenPoint.Y - _dragPressScreenPoint.Y;
+        Left = Clamp(
+            desiredLeft,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - ActualWidth);
+        Top = Clamp(
+            desiredTop,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight);
+    }
+
+    private void EndWindowDrag()
+    {
+        if (!_isWindowDragging)
+        {
+            return;
+        }
+
+        _isWindowDragging = false;
+        if (_stateMachine.EndDrag())
+        {
+            PlayLandingFeedback();
+        }
+
+        _logger.Info("interaction.drag_ended", "Landing feedback requested.");
+    }
+
+    private void PlayLandingFeedback()
+    {
+        DateTimeOffset now = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                LandingAnimation,
+                ReactionPriority.UserInteraction,
+                now.AddSeconds(3)),
+            now);
+        if (outcome.Token is not Guid token)
+        {
+            PlayResolvedContinuousAnimation();
+            return;
+        }
+
+        PlayAnimation(
+            LandingAnimation,
+            () =>
+            {
+                _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
+                _landingBounceMotion.Cancel();
+                PlayResolvedContinuousAnimation();
+            });
+        _landingBounceMotion.Play();
+    }
+
+    private void HandleSingleClick(PointerPoint windowPoint)
+    {
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (!plan.BodyRegionInteractionsEnabled)
+        {
+            return;
+        }
+
+        PointerPoint? normalizedPoint = NormalizeToPetImage(windowPoint);
+        if (normalizedPoint is null || !IsOpaquePetPixel(normalizedPoint.Value))
+        {
+            _lastDebugHitRegion = null;
+            UpdateBodyHitDebugOverlay();
+            return;
+        }
+
+        _lastDebugHitRegion = _bodyHitMap.HitTest(normalizedPoint.Value);
+        UpdateBodyHitDebugOverlay();
+        if (_lastDebugHitRegion is BodyRegionId region)
+        {
+            _logger.Info("interaction.body_hit", region.ToString());
+        }
+    }
+
+    private PointerPoint? NormalizeToPetImage(PointerPoint windowPoint)
+    {
+        if (PetImage.ActualWidth <= 0 || PetImage.ActualHeight <= 0)
+        {
+            return null;
+        }
+
+        Point imageOrigin = PetImage.TranslatePoint(new Point(0, 0), this);
+        double x = (windowPoint.X - imageOrigin.X) / PetImage.ActualWidth;
+        double y = (windowPoint.Y - imageOrigin.Y) / PetImage.ActualHeight;
+        return x is >= 0 and <= 1 && y is >= 0 and <= 1
+            ? new PointerPoint(x, y)
+            : null;
+    }
+
+    private bool IsOpaquePetPixel(PointerPoint normalizedPoint)
+    {
+        if (PetImage.Source is not BitmapSource source)
+        {
+            return false;
+        }
+
+        if (source.Format != PixelFormats.Bgra32 && source.Format != PixelFormats.Pbgra32)
+        {
+            return true;
+        }
+
+        int x = Math.Clamp((int)(normalizedPoint.X * source.PixelWidth), 0, source.PixelWidth - 1);
+        int y = Math.Clamp((int)(normalizedPoint.Y * source.PixelHeight), 0, source.PixelHeight - 1);
+        byte[] pixel = new byte[4];
+        source.CopyPixels(new Int32Rect(x, y, 1, 1), pixel, 4, 0);
+        return pixel[3] >= 24;
+    }
+
+    private void OnToggleBodyHitDebug(object sender, RoutedEventArgs e) =>
+        UpdateBodyHitDebugOverlay();
+
+    private void OnPetImageSizeChanged(object sender, SizeChangedEventArgs e) =>
+        UpdateBodyHitDebugOverlay();
+
+    private void UpdateBodyHitDebugOverlay()
+    {
+        bool isEnabled = BodyHitDebugMenuItem.IsChecked &&
+            _stateMachine.Resolve(DateTimeOffset.Now).BodyRegionInteractionsEnabled &&
+            PetImage.ActualWidth > 0 &&
+            PetImage.ActualHeight > 0;
+        BodyHitDebugOverlay.Visibility = isEnabled ? Visibility.Visible : Visibility.Collapsed;
+        BodyHitDebugOverlay.Children.Clear();
+        if (!isEnabled)
+        {
+            return;
+        }
+
+        foreach (BodyHitRegion region in _bodyHitMap.Regions.Reverse())
+        {
+            NormalizedRectangle bounds = region.Bounds;
+            bool selected = region.Id == _lastDebugHitRegion;
+            Rectangle rectangle = new()
+            {
+                Width = bounds.Width * PetImage.ActualWidth,
+                Height = bounds.Height * PetImage.ActualHeight,
+                Fill = new SolidColorBrush(Color.FromArgb(selected ? (byte)105 : (byte)42, 43, 220, 235)),
+                Stroke = selected ? Brushes.Yellow : Brushes.White,
+                StrokeThickness = selected ? 3 : 1,
+            };
+            Canvas.SetLeft(rectangle, bounds.X * PetImage.ActualWidth);
+            Canvas.SetTop(rectangle, bounds.Y * PetImage.ActualHeight);
+            BodyHitDebugOverlay.Children.Add(rectangle);
+
+            TextBlock label = new()
+            {
+                Text = GetBodyRegionLabel(region.Id),
+                Foreground = selected ? Brushes.Yellow : Brushes.White,
+                Background = new SolidColorBrush(Color.FromArgb(150, 0, 55, 65)),
+                FontSize = 8,
+                Padding = new Thickness(2, 0, 2, 0),
+            };
+            Canvas.SetLeft(label, bounds.X * PetImage.ActualWidth + 2);
+            Canvas.SetTop(label, bounds.Y * PetImage.ActualHeight + 2);
+            BodyHitDebugOverlay.Children.Add(label);
+        }
+    }
+
+    private void SyncSingleClickTimer()
+    {
+        _singleClickTimer.Stop();
+        TimeSpan? remaining = _pointerGesture.TimeUntilPendingSingleClick(DateTimeOffset.Now);
+        if (remaining is TimeSpan delay)
+        {
+            _singleClickTimer.Interval = delay < TimeSpan.FromMilliseconds(1)
+                ? TimeSpan.FromMilliseconds(1)
+                : delay;
+            _singleClickTimer.Start();
+        }
+    }
+
+    private Point GetPointerScreenPositionInDips(MouseEventArgs e)
+    {
+        Point physicalPoint = PointToScreen(e.GetPosition(this));
+        PresentationSource? source = PresentationSource.FromVisual(this);
+        return source?.CompositionTarget is null
+            ? physicalPoint
+            : source.CompositionTarget.TransformFromDevice.Transform(physicalPoint);
+    }
+
+    private static PointerPoint ToPointerPoint(Point point) => new(point.X, point.Y);
+
+    private static string GetBodyRegionLabel(BodyRegionId region) => region switch
+    {
+        BodyRegionId.LeftEye => "左眼",
+        BodyRegionId.RightEye => "右眼",
+        BodyRegionId.FaceAndMouth => "脸/嘴",
+        BodyRegionId.LeftHand => "左手",
+        BodyRegionId.RightHand => "右手",
+        BodyRegionId.Chest => "胸部",
+        BodyRegionId.LowerBodySensitiveArea => "下体",
+        BodyRegionId.LeftFoot => "左脚",
+        BodyRegionId.RightFoot => "右脚",
+        BodyRegionId.HeadAndHair => "头发",
+        BodyRegionId.OtherBody => "普通部位",
+        _ => throw new ArgumentOutOfRangeException(nameof(region)),
+    };
 
     private void OnPreviewMusicStart(object sender, RoutedEventArgs e)
     {
@@ -194,6 +534,7 @@ public partial class MainWindow : Window
         Action? completed = null,
         bool preserveVisualTransition = false)
     {
+        _landingBounceMotion.Cancel();
         if (!preserveVisualTransition)
         {
             CancelVisualTransition();
@@ -213,6 +554,7 @@ public partial class MainWindow : Window
             PetImage.Visibility = Visibility.Visible;
             FallbackSurface.Visibility = Visibility.Collapsed;
             ResizeAroundBottomCenter(manifest.DisplayWidth + 16, manifest.DisplayHeight + 16);
+            UpdateBodyHitDebugOverlay();
         }
         catch (Exception exception) when (
             exception is IOException or InvalidDataException or ArgumentException or KeyNotFoundException or NotSupportedException)
@@ -227,6 +569,7 @@ public partial class MainWindow : Window
         _animationPlayer?.Stop();
         PetImage.Visibility = Visibility.Collapsed;
         FallbackSurface.Visibility = Visibility.Visible;
+        BodyHitDebugOverlay.Visibility = Visibility.Collapsed;
         ResizeAroundBottomCenter(196, 196);
         _logger.Info("animation.fallback_shown", logMessage);
     }
@@ -271,6 +614,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task BeginPreviewDragCycleAsync()
+    {
+        await Task.Delay(500);
+        if (_isClosing)
+        {
+            return;
+        }
+
+        BeginWindowDrag();
+        await Task.Delay(900);
+        if (!_isClosing)
+        {
+            EndWindowDrag();
+        }
+    }
+
     private async Task BeginUserRequestedExitAsync()
     {
         if (_isClosing)
@@ -295,6 +654,10 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _singleClickTimer.Stop();
+        _singleClickTimer.Tick -= OnSingleClickTimerTick;
+        _pointerGesture.Cancel();
+        _landingBounceMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         _settings = _settings with

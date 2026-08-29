@@ -29,6 +29,8 @@ internal sealed class AnimationFramePlayer : IDisposable
         _timer.Tick += OnTick;
     }
 
+    public string? CurrentAnimationId => _current?.Manifest.Id;
+
     public AnimationAssetManifest Play(string animationId, Action? completed = null)
     {
         CachedAnimation animation = GetOrLoad(animationId);

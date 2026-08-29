@@ -36,6 +36,65 @@
       ]
     },
     {
+      "id": "resonance-expand",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
+      "sourceSha256": "b08b99453d45ea96d6ac2a46107ffafedc9490de6e4ddef1c61bd2c6fabcd718",
+      "atlasPath": "animations/runtime/resonance-expand.atlas.png",
+      "atlasSha256": "42df8ac2f69a6959cd2eb7b61cb69a472c05174f6975cdfff1915be1073f8ed0",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
+      "id": "codename-landing-bounce",
+      "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
+      "sourceSha256": "2e4ab6a8da3fe972f4731efe4932e5664b8636486b267698976b00d882f2bcff",
+      "atlasPath": "animations/runtime/codename-landing-bounce.atlas.png",
+      "atlasSha256": "cc78c1c1453471f6ea61f1f5a494600d6944e699f2d68f76b8e4e897f20700d0",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        420
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        16,
+        162,
+        162
+      ]
+    },
+    {
       "id": "official-v4-chibi-full-body-idle",
       "sourcePath": "候选素材_官方/04_官方模型派生动画/洛天依V4公式服Q版_完整全身待机.webp",
       "sourceSha256": "fe2fa3d216a289372091800d4de72a6d80a73443a9e64700f5a4c1adf69bcf7a",

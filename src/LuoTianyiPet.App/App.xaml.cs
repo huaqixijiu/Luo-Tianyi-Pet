@@ -47,6 +47,12 @@ public partial class App : Application
             bool previewMusicTransition = e.Args.Contains(
                 "--preview-music-transition",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewBodyHitDebug = e.Args.Contains(
+                "--preview-body-hit-debug",
+                StringComparer.OrdinalIgnoreCase);
+            bool previewDragCycle = e.Args.Contains(
+                "--preview-drag-cycle",
+                StringComparer.OrdinalIgnoreCase);
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
             MainWindow window = new(
                 settings,
@@ -56,6 +62,8 @@ public partial class App : Application
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
+                previewBodyHitDebug,
+                previewDragCycle,
                 showQaTaskbar);
             MainWindow = window;
             window.Show();
@@ -119,7 +127,8 @@ public partial class App : Application
 
     private static PetVisualState GetInitialVisualState(IReadOnlyCollection<string> arguments)
     {
-        if (arguments.Contains("--preview-full-body", StringComparer.OrdinalIgnoreCase))
+        if (arguments.Contains("--preview-full-body", StringComparer.OrdinalIgnoreCase) ||
+            arguments.Contains("--preview-body-hit-debug", StringComparer.OrdinalIgnoreCase))
         {
             return new PetVisualState(PetDisplayMode.FullBodyInteractive);
         }

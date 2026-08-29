@@ -13,6 +13,27 @@
       "anchorY": 1.0
     },
     {
+      "id": "resonance-expand",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
+      "atlas": "assets/animations/runtime/resonance-expand.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "codename-landing-bounce",
+      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
+      "atlas": "assets/animations/runtime/codename-landing-bounce.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 420,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "official-v4-chibi-full-body-idle",
       "source": "候选素材_官方/04_官方模型派生动画/洛天依V4公式服Q版_完整全身待机.webp",
       "atlas": "assets/animations/runtime/official-v4-chibi-full-body-idle.atlas.png",

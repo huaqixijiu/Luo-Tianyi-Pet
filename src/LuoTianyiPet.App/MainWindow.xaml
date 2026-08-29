@@ -11,7 +11,10 @@
         WindowStyle="None"
         Loaded="OnLoaded"
         Closed="OnClosed"
-        MouseLeftButtonDown="OnMouseLeftButtonDown">
+        LostMouseCapture="OnLostMouseCapture"
+        MouseLeftButtonDown="OnMouseLeftButtonDown"
+        MouseLeftButtonUp="OnMouseLeftButtonUp"
+        MouseMove="OnMouseMove">
     <Grid x:Name="Root">
         <Grid x:Name="PetVisual"
               Margin="8"
@@ -27,6 +30,7 @@
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
                    RenderOptions.BitmapScalingMode="HighQuality"
+                   SizeChanged="OnPetImageSizeChanged"
                    SnapsToDevicePixels="True"
                    Stretch="Fill" />
 
@@ -52,6 +56,15 @@
                                Text="动画素材暂时不可用" />
                 </StackPanel>
             </Border>
+
+            <Canvas x:Name="BodyHitDebugOverlay"
+                    Panel.ZIndex="3"
+                    Width="{Binding ActualWidth, ElementName=PetImage}"
+                    Height="{Binding ActualHeight, ElementName=PetImage}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed" />
         </Grid>
 
         <Ellipse x:Name="MusicTransitionFlash"
@@ -86,6 +99,10 @@
                 <MenuItem Header="动画与状态验证">
                     <MenuItem Header="模拟开始播放音乐" Click="OnPreviewMusicStart" />
                     <MenuItem Header="模拟停止音乐" Click="OnPreviewMusicStop" />
+                    <MenuItem x:Name="BodyHitDebugMenuItem"
+                              Header="显示身体区域调试层"
+                              IsCheckable="True"
+                              Click="OnToggleBodyHitDebug" />
                 </MenuItem>
                 <Separator />
                 <MenuItem x:Name="TopmostMenuItem"
