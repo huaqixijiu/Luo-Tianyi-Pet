@@ -23,11 +23,18 @@
 
 完整规则见：
 
+- [`docs/项目总控.md`](docs/项目总控.md)
 - [`docs/需求与场景设计.md`](docs/需求与场景设计.md)
 - [`docs/安全与兼容性约束.md`](docs/安全与兼容性约束.md)
 - [`docs/动画状态映射.md`](docs/动画状态映射.md)
+- [`docs/技术架构.md`](docs/技术架构.md)
+- [`docs/开发路线图.md`](docs/开发路线图.md)
+- [`docs/决策记录.md`](docs/决策记录.md)
+- [`docs/开发日志.md`](docs/开发日志.md)
 - [`docs/全身基础待机动画调研.md`](docs/全身基础待机动画调研.md)
 - [`config/scene-rules.example.json`](config/scene-rules.example.json)
+
+Codex 在任何新任务开始前都必须先阅读根目录的 [`AGENTS.md`](AGENTS.md) 和项目总控，以仓库内容恢复上下文，不依赖聊天历史。
 
 ## 目录
 

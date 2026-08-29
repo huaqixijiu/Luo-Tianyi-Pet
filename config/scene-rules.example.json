@@ -22,6 +22,7 @@
     "shortIdleAfterSeconds": 45,
     "sleepAfterSeconds": 900,
     "keepDancingWhileMusicIsPlaying": true,
+    "musicTemporarilyOverridesSelectedDisplayMode": true,
     "defaultDisplayMode": "compact",
     "rememberLastDisplayModeOnRestart": false,
     "restoreSelectedDisplayModeAfterTransientAnimation": true,
