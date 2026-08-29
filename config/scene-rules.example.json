@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "window": {
+    "userTopmostDefault": false,
+    "neverActivateForTransientEvents": true,
+    "suppressTransientTopmostInFullscreen": true
+  },
+  "safety": {
+    "safeGameMode": true,
+    "noAdministratorPrivileges": true,
+    "noProcessMemoryAccess": true,
+    "noDllInjection": true,
+    "noGraphicsHooks": true,
+    "noNetworkInspection": true,
+    "disableSyntheticInputWhileProtectedAppForeground": true,
+    "protectedProcesses": [
+      "YuanShen.exe",
+      "GenshinImpact.exe"
+    ]
+  },
+  "idle": {
+    "shortIdleAfterSeconds": 45,
+    "sleepAfterSeconds": 900,
+    "keepDancingWhileMusicIsPlaying": true,
+    "sleepAnimation": "tenth-anniversary-goodnight-float"
+  },
+  "volume": {
+    "controlMethods": [
+      "pet-mouse-wheel",
+      "pet-menu-slider",
+      "external-system-volume-events"
+    ],
+    "increaseAnimation": "resonance-voice",
+    "mergeChangesWithinMilliseconds": 500,
+    "cooldownMilliseconds": 2000,
+    "showPercentageBubble": true
+  },
+  "media": {
+    "targetProcess": "cloudmusic.exe",
+    "commandMode": "user-configured-global-shortcuts",
+    "detectAudioWithCoreAudio": true,
+    "silenceGraceMilliseconds": 1500,
+    "disableCommandsInSafeGameMode": true
+  },
+  "genshinLaunch": {
+    "enabled": true,
+    "processNames": [
+      "YuanShen.exe",
+      "GenshinImpact.exe"
+    ],
+    "detectionMode": "windows-process-lifecycle-event-only",
+    "animation": "resonance-no-playing",
+    "loopCount": 3,
+    "requestTransientTopmost": true,
+    "neverActivateWindow": true,
+    "triggerOncePerProcessLifetime": true,
+    "postponeOrSkipWhenExclusiveFullscreen": true
+  },
+  "messageNotifications": {
+    "animation": "codename-curious-sway",
+    "loopCount": 1,
+    "bubbleContent": "application-name-only",
+    "deduplicateWithinMilliseconds": 3000,
+    "suppressWhenSourceIsForeground": true,
+    "requestTransientTopmostOnDesktop": true,
+    "transientTopmostMilliseconds": 2000,
+    "suppressTransientTopmostInFullscreen": true,
+    "providers": [
+      {
+        "id": "qq",
+        "displayName": "QQ",
+        "processNames": [
+          "QQ.exe"
+        ]
+      },
+      {
+        "id": "wechat",
+        "displayName": "微信",
+        "processNames": [
+          "WeChat.exe",
+          "Weixin.exe"
+        ]
+      }
+    ]
+  }
+}
