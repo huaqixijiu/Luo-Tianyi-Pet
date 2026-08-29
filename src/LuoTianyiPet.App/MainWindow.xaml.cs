@@ -16,7 +16,7 @@ public partial class MainWindow : Window
     private readonly AnimationFramePlayer? _animationPlayer;
     private readonly bool _previewExit;
     private AppSettings _settings;
-    private PetVisualState _visualState;
+    private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
 
     public MainWindow(
@@ -32,7 +32,7 @@ public partial class MainWindow : Window
         _settingsStore = settingsStore;
         _logger = logger;
         _animationCatalog = animationCatalog;
-        _visualState = initialVisualState;
+        _stateMachine = new PetStateMachine(initialVisualState);
         _previewExit = previewExit;
         InitializeComponent();
         ShowInTaskbar = showQaTaskbar;
@@ -45,7 +45,8 @@ public partial class MainWindow : Window
     {
         Topmost = _settings.Window.AlwaysOnTop;
         TopmostMenuItem.IsChecked = Topmost;
-        FullBodyModeMenuItem.IsChecked = _visualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
+        FullBodyModeMenuItem.IsChecked =
+            _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -88,13 +89,14 @@ public partial class MainWindow : Window
 
     private void ToggleDisplayMode()
     {
-        PetDisplayMode nextMode = _visualState.SelectedDisplayMode == PetDisplayMode.Compact
+        PetDisplayMode nextMode = _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact
             ? PetDisplayMode.FullBodyInteractive
             : PetDisplayMode.Compact;
-        _visualState = _visualState with { SelectedDisplayMode = nextMode };
+        _stateMachine.SetDisplayMode(nextMode);
         FullBodyModeMenuItem.IsChecked = nextMode == PetDisplayMode.FullBodyInteractive;
 
-        if (!_visualState.IsMusicPlaying)
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle)
         {
             PlayResolvedContinuousAnimation();
         }
@@ -104,20 +106,53 @@ public partial class MainWindow : Window
 
     private void OnPreviewMusicStart(object sender, RoutedEventArgs e)
     {
-        _visualState = _visualState with { IsMusicPlaying = true };
-        PlayAnimation(EnjoyMusicAnimation, PlayResolvedContinuousAnimation);
-        _logger.Info("animation.preview_music_started", "M1 preview only.");
+        DateTimeOffset now = DateTimeOffset.Now;
+        _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                EnjoyMusicAnimation,
+                ReactionPriority.MediaOrVolume,
+                now.AddSeconds(10)),
+            now);
+        if (outcome.Token is Guid token)
+        {
+            PlayAnimation(
+                EnjoyMusicAnimation,
+                () =>
+                {
+                    _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
+                    PlayResolvedContinuousAnimation();
+                });
+        }
+        else
+        {
+            PlayResolvedContinuousAnimation();
+        }
+
+        _logger.Info("animation.preview_music_started", "State-machine preview only.");
     }
 
     private void OnPreviewMusicStop(object sender, RoutedEventArgs e)
     {
-        _visualState = _visualState with { IsMusicPlaying = false };
+        _stateMachine.CancelActiveReaction();
+        _stateMachine.SetContinuousState(PetContinuousState.Idle);
         PlayResolvedContinuousAnimation();
         _logger.Info("animation.preview_music_stopped", "Selected display mode restored.");
     }
 
-    private void PlayResolvedContinuousAnimation() =>
-        PlayAnimation(_visualState.ResolveContinuousAnimation());
+    private void PlayResolvedContinuousAnimation()
+    {
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (!plan.IsVisible || plan.AnimationId is null)
+        {
+            _animationPlayer?.Stop();
+            PetImage.Visibility = Visibility.Collapsed;
+            FallbackSurface.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        PlayAnimation(plan.AnimationId);
+    }
 
     private void PlayAnimation(string animationId, Action? completed = null)
     {

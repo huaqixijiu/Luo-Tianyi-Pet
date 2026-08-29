@@ -7,12 +7,12 @@ public sealed class PetVisualStateTests
     [Fact]
     public void MusicTemporarilyOverridesButDoesNotChangeSelectedMode()
     {
-        PetVisualState state = new(PetDisplayMode.FullBodyInteractive, IsMusicPlaying: true);
+        PetVisualState state = new(PetDisplayMode.FullBodyInteractive, PetContinuousState.MusicPlaying);
 
         Assert.Equal(PetVisualState.MusicPlayingAnimation, state.ResolveContinuousAnimation());
         Assert.Equal(PetDisplayMode.FullBodyInteractive, state.SelectedDisplayMode);
 
-        PetVisualState stopped = state with { IsMusicPlaying = false };
+        PetVisualState stopped = state with { ContinuousState = PetContinuousState.Idle };
         Assert.Equal(PetVisualState.FullBodyIdleAnimation, stopped.ResolveContinuousAnimation());
     }
 

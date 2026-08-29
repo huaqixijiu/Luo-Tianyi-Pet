@@ -55,7 +55,7 @@ public partial class App : Application
                 showQaTaskbar);
             MainWindow = window;
             window.Show();
-            _logger.Info("app.started", "M1 runtime animation window started.");
+            _logger.Info("app.started", "Runtime animation window started.");
         }
         catch (Exception exception)
         {
@@ -122,7 +122,7 @@ public partial class App : Application
 
         if (arguments.Contains("--preview-music", StringComparer.OrdinalIgnoreCase))
         {
-            return new PetVisualState(PetDisplayMode.Compact, IsMusicPlaying: true);
+            return new PetVisualState(PetDisplayMode.Compact, PetContinuousState.MusicPlaying);
         }
 
         return new PetVisualState();
