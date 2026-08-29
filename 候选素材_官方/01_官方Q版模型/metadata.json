@@ -1,0 +1,32 @@
+{
+  "name": "【洛天依】V4公式服Q版",
+  "character": "洛天依",
+  "copyright_owner": "上海禾念",
+  "model_creators": [
+    "Nanoda",
+    "Kinsama"
+  ],
+  "format": "MMD",
+  "official_vsinger_page": "https://vsinger.com/vsinger",
+  "official_vsinger_api": "https://vsinger.com/api/vsinger",
+  "official_download_url": "https://res.vsinger.com/files/9e86f1506e140320e8b887ba29761c7b.zip",
+  "official_team_mirror_page": "https://www.aplaybox.com/details/model/LaGvYWNEyNYd",
+  "aplaybox_work_uuid": "LaGvYWNEyNYd",
+  "aplaybox_publisher": "Vsinger团队",
+  "aplaybox_publisher_authentication": "Vsinger经纪团队",
+  "aplaybox_cover_url": "https://oss.aplaybox.com/uploads/works/covers/20220428/12be634260f4f3fbd430e3d2416ab36c.jpg",
+  "saved_cover": {
+    "filename": "cover_aplaybox_洛天依V4公式服Q版.jpg",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 262582,
+    "sha256": "5D4BAA2873F9B1CC90522A84EB65AA7C6CE98A90833D56B942E8CDE6859900F9"
+  },
+  "download_status": {
+    "checked_at": "2026-08-29",
+    "zip_obtained": false,
+    "official_zip_http_status": 403,
+    "aplaybox_unauthenticated_download_http_status": 401,
+    "blocker": "Vsinger resource endpoint returns 403; APlayBox requires an authenticated account before the download endpoint can be used."
+  }
+}

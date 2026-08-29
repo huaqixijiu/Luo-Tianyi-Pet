@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>洛天依桌宠 · 动画挑选器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071418;
+      --panel: rgba(12, 34, 39, .86);
+      --panel-strong: #0e292f;
+      --line: rgba(104, 226, 221, .18);
+      --cyan: #63e1dc;
+      --cyan-strong: #24c7c2;
+      --blue: #87b9ff;
+      --text: #f1fbfa;
+      --muted: #9bb8b8;
+      --warm: #ffd6a1;
+      --danger: #ff9ba9;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 4%, rgba(62, 215, 207, .14), transparent 29rem),
+        radial-gradient(circle at 91% 12%, rgba(104, 158, 255, .13), transparent 25rem),
+        linear-gradient(145deg, #061215 0%, #091b20 55%, #071418 100%);
+    }
+
+    button, input, select { font: inherit; }
+
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(99, 225, 220, .6);
+      outline-offset: 2px;
+    }
+
+    .shell { width: min(1500px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 70px; }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: clamp(30px, 5vw, 52px); line-height: 1.06; letter-spacing: -.04em; }
+    .intro { max-width: 760px; margin: 13px 0 0; color: var(--muted); line-height: 1.75; }
+
+    .count-box {
+      min-width: 185px;
+      padding: 16px 19px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(99, 225, 220, .10), rgba(135, 185, 255, .05));
+      box-shadow: var(--shadow);
+    }
+
+    .count-box strong { display: block; font-size: 30px; color: var(--cyan); }
+    .count-box span { color: var(--muted); font-size: 13px; }
+
+    .selection-board {
+      position: relative;
+      z-index: 20;
+      padding: 18px;
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(8, 25, 29, .92);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .board-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 13px; }
+    .board-head h2 { margin: 0; font-size: 17px; }
+    .board-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .slot-groups { display: grid; gap: 12px; }
+    .slot-group { padding: 12px; border: 1px solid rgba(99,225,220,.10); border-radius: 16px; background: rgba(255,255,255,.018); }
+    .slot-group h3 { margin: 0 0 9px; color: var(--muted); font-size: 12px; letter-spacing: .08em; }
+    .slots { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 9px; }
+    .slot {
+      position: relative;
+      min-height: 76px;
+      padding: 12px 38px 12px 13px;
+      border: 1px dashed rgba(99, 225, 220, .26);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .025);
+    }
+    .slot.filled { border-style: solid; background: rgba(99, 225, 220, .075); }
+    .slot-label { display: block; margin-bottom: 6px; color: var(--cyan); font-size: 12px; font-weight: 800; }
+    .slot-value { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .slot.filled .slot-value { color: var(--text); }
+    .slot-clear {
+      position: absolute; top: 9px; right: 9px; width: 25px; height: 25px; padding: 0;
+      border: 0; border-radius: 50%; color: var(--muted); background: transparent; cursor: pointer;
+    }
+    .slot-clear:hover { color: var(--text); background: rgba(255, 255, 255, .08); }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(230px, 1fr) 200px auto auto;
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0;
+    }
+
+    .search, .filter {
+      width: 100%; height: 44px; padding: 0 14px;
+      border: 1px solid var(--line); border-radius: 13px;
+      color: var(--text); background: var(--panel-strong);
+    }
+
+    .quiet-button, .primary-button {
+      min-height: 40px; padding: 0 14px;
+      border-radius: 11px; cursor: pointer; font-weight: 750;
+    }
+    .quiet-button { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.04); }
+    .quiet-button:hover { background: rgba(255,255,255,.08); }
+    .primary-button { border: 1px solid rgba(99,225,220,.35); color: #031719; background: var(--cyan); }
+    .primary-button:hover { background: #88eeea; }
+
+    .help {
+      margin: 0 0 18px;
+      padding: 13px 15px;
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 12px 12px 0;
+      color: var(--muted);
+      background: rgba(99, 225, 220, .055);
+      line-height: 1.65;
+      font-size: 13px;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      box-shadow: 0 14px 36px rgba(0,0,0,.20);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(99,225,220,.42); box-shadow: 0 22px 48px rgba(0,0,0,.30); }
+    .card.chosen { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(99,225,220,.25), 0 22px 48px rgba(0,0,0,.30); }
+    .card.kept { border-color: rgba(255,214,161,.72); box-shadow: 0 0 0 1px rgba(255,214,161,.18), 0 22px 48px rgba(0,0,0,.30); }
+
+    .preview {
+      position: relative;
+      display: grid;
+      place-items: center;
+      height: 310px;
+      overflow: hidden;
+      background-color: #d9f3f0;
+      background-image:
+        linear-gradient(45deg, rgba(57,130,128,.10) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(57,130,128,.10) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(57,130,128,.10) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(57,130,128,.10) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+
+    .preview { cursor: zoom-in; }
+    .preview img { display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; image-rendering: auto; }
+    .zoom-hint { position: absolute; right: 10px; bottom: 10px; padding: 5px 8px; border-radius: 8px; color: #082125; background: rgba(239,255,253,.88); font-size: 11px; font-weight: 800; }
+    .preview-badge {
+      position: absolute; top: 10px; left: 10px;
+      padding: 5px 8px; border-radius: 8px;
+      color: #082125; background: rgba(239,255,253,.88);
+      font-size: 11px; font-weight: 900; backdrop-filter: blur(8px);
+    }
+
+    .card-body { padding: 15px; }
+    .keep-row { display: flex; align-items: center; gap: 9px; width: max-content; margin: 0 0 11px; padding: 7px 10px; border: 1px solid rgba(255,214,161,.22); border-radius: 9px; color: var(--warm); background: rgba(255,214,161,.055); cursor: pointer; font-size: 12px; font-weight: 850; }
+    .keep-row:hover { background: rgba(255,214,161,.11); }
+    .keep-row input { width: 17px; height: 17px; margin: 0; accent-color: #f5b966; }
+    .keep-count { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid rgba(255,214,161,.18); border-radius: 11px; color: var(--muted); background: rgba(255,214,161,.045); font-size: 12px; }
+    .keep-count strong { margin: 0 4px; color: var(--warm); font-size: 17px; }
+    .card h3 { margin: 0 0 8px; font-size: 17px; line-height: 1.35; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .tag { padding: 4px 7px; border-radius: 7px; color: var(--muted); background: rgba(255,255,255,.05); font-size: 11px; }
+    .tag.recommended { color: var(--warm); background: rgba(255, 205, 137, .09); }
+    .desc { min-height: 58px; margin: 0 0 13px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+
+    .assign-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .role-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+    .role-button {
+      padding: 6px 8px; border: 1px solid rgba(99,225,220,.16); border-radius: 8px;
+      color: var(--text); background: rgba(99,225,220,.05); cursor: pointer; font-size: 11px;
+    }
+    .role-button:hover { border-color: var(--cyan); background: rgba(99,225,220,.12); }
+    .role-button.active { color: #051719; border-color: var(--cyan); background: var(--cyan); font-weight: 900; }
+
+    .assign-panel { margin-top: 3px; border: 1px solid rgba(99,225,220,.12); border-radius: 10px; background: rgba(255,255,255,.02); }
+    .assign-panel summary { padding: 9px 10px; color: var(--cyan); cursor: pointer; font-size: 12px; font-weight: 800; }
+    .assign-panel .role-buttons { padding: 0 10px 10px; }
+
+    .planner { margin: 18px 0 24px; padding: 20px; border: 1px solid var(--line); border-radius: 22px; background: var(--panel); box-shadow: var(--shadow); }
+    .planner-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; margin-bottom: 15px; }
+    .planner h2 { margin: 0 0 7px; font-size: 21px; }
+    .planner p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .detector-note { margin-bottom: 15px; padding: 14px 16px; border: 1px solid rgba(99,225,220,.18); border-radius: 14px; background: linear-gradient(135deg, rgba(99,225,220,.09), rgba(135,185,255,.05)); }
+    .detector-note strong { display: block; margin-bottom: 5px; color: var(--cyan); }
+    .scenario-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .scenario-group { padding: 14px; border: 1px solid rgba(99,225,220,.10); border-radius: 14px; background: rgba(255,255,255,.02); }
+    .scenario-group h3 { margin: 0 0 10px; font-size: 14px; }
+    .scenario-list { display: grid; gap: 8px; }
+    .scenario-item { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; padding: 8px; border-radius: 9px; cursor: pointer; }
+    .scenario-item:hover { background: rgba(255,255,255,.035); }
+    .scenario-item input { margin-top: 3px; accent-color: var(--cyan-strong); }
+    .scenario-item strong { display: block; margin-bottom: 2px; font-size: 12px; }
+    .scenario-item span { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .scenario-level { display: inline-block !important; width: max-content; margin-top: 4px; padding: 2px 5px; border-radius: 5px; color: var(--warm) !important; background: rgba(255,205,137,.08); font-size: 10px !important; }
+
+    .motion-float { animation: motion-float 2.6s ease-in-out infinite; }
+    .motion-sway { animation: motion-sway 1.8s ease-in-out infinite; transform-origin: 50% 85%; }
+    .motion-bounce { animation: motion-bounce 1.25s ease-in-out infinite; }
+    .motion-pop { animation: motion-pop 1.6s ease-in-out infinite; }
+    .motion-shake { animation: motion-shake 1.2s ease-in-out infinite; }
+    .motion-sleep { animation: motion-sleep 3.2s ease-in-out infinite; transform-origin: 50% 80%; }
+    @keyframes motion-float { 0%,100%{transform:translateY(6px)} 50%{transform:translateY(-8px)} }
+    @keyframes motion-sway { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+    @keyframes motion-bounce { 0%,100%{transform:translateY(4px) scale(1)} 45%{transform:translateY(-13px) scale(1.02)} 60%{transform:translateY(-8px)} }
+    @keyframes motion-pop { 0%,70%,100%{transform:scale(1)} 82%{transform:scale(1.08)} 90%{transform:scale(.98)} }
+    @keyframes motion-shake { 0%,65%,100%{transform:translateX(0)} 72%{transform:translateX(-5px) rotate(-2deg)} 79%{transform:translateX(5px) rotate(2deg)} 86%{transform:translateX(-3px)} 93%{transform:translateX(3px)} }
+    @keyframes motion-sleep { 0%,100%{transform:translateY(3px) rotate(-1deg) scale(1)} 50%{transform:translateY(8px) rotate(1deg) scale(.97)} }
+
+    #previewDialog { width: min(820px, calc(100vw - 30px)); max-width: none; overflow: hidden; }
+    .preview-dialog-body { display: grid; grid-template-rows: auto minmax(0, 1fr); width: 100%; height: min(780px, calc(100vh - 30px)); min-width: 0; padding: 15px; overflow: hidden; }
+    .preview-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .preview-dialog-head h2 { margin: 0; font-size: 17px; }
+    .large-preview { display: grid; place-items: center; min-width: 0; min-height: 0; margin-top: 12px; overflow: hidden; border-radius: 15px; background-color: #d9f3f0; background-image: linear-gradient(45deg,rgba(57,130,128,.10) 25%,transparent 25%),linear-gradient(-45deg,rgba(57,130,128,.10) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(57,130,128,.10) 75%),linear-gradient(-45deg,transparent 75%,rgba(57,130,128,.10) 75%); background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0; }
+    .large-preview img { display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; }
+
+    .source-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; }
+    .source-row a { color: var(--blue); font-size: 12px; text-decoration: none; }
+    .source-row a:hover { text-decoration: underline; }
+    .source-note { color: var(--muted); font-size: 11px; }
+
+    .empty { display: none; padding: 50px 20px; text-align: center; color: var(--muted); }
+    .toast {
+      position: fixed; right: 22px; bottom: 22px; z-index: 50;
+      max-width: 360px; padding: 13px 16px; border: 1px solid rgba(99,225,220,.35); border-radius: 13px;
+      color: var(--text); background: #102c31; box-shadow: var(--shadow);
+      opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    dialog {
+      width: min(720px, calc(100% - 30px));
+      border: 1px solid var(--line); border-radius: 20px; padding: 0;
+      color: var(--text); background: #0b2227; box-shadow: var(--shadow);
+    }
+    dialog::backdrop { background: rgba(0,0,0,.70); backdrop-filter: blur(4px); }
+    .dialog-body { padding: 22px; }
+    .dialog-body h2 { margin-top: 0; }
+    textarea {
+      width: 100%; min-height: 270px; resize: vertical; padding: 13px;
+      border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: #06171b;
+      font: 13px/1.65 Consolas, "Microsoft YaHei UI", monospace;
+    }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+    @media (max-width: 1120px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .slots { grid-template-columns: repeat(3, 1fr); }
+      .scenario-groups { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 820px) {
+      header { grid-template-columns: 1fr; }
+      .count-box { display: none; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .toolbar .quiet-button { grid-column: span 2; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .slots { grid-template-columns: repeat(2, minmax(150px,1fr)); }
+      .selection-board { position: relative; top: auto; }
+      .scenario-groups { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 1500px); padding-top: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      .toolbar .quiet-button { grid-column: auto; }
+      .preview { height: 330px; }
+      .board-head { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">LUO TIANYI DESKTOP PET</p>
+        <h1>动画挑选器</h1>
+        <p class="intro">一次规划完整桌宠：查看原生动画和程序动效预演，为日常、鼠标互动、音乐和系统事件分配动作，并选择希望实现的联动场景。</p>
+      </div>
+      <div class="count-box"><strong id="visibleCount">46</strong><span>个动作候选正在显示</span></div>
+    </header>
+
+    <section class="selection-board" aria-labelledby="selectionTitle">
+      <div class="board-head">
+        <h2 id="selectionTitle">完整动画状态表</h2>
+        <div class="board-actions">
+          <span class="keep-count">已保留 <strong id="keptCount">0</strong> 个动画</span>
+          <button class="quiet-button" id="clearAll" type="button">清空选择</button>
+          <button class="primary-button" id="showSummary" type="button">查看 / 导出结果</button>
+        </div>
+      </div>
+      <div class="slot-groups" id="slots"></div>
+    </section>
+
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="搜索动作，例如：音乐、点赞、可爱……" aria-label="搜索动作" />
+      <select class="filter" id="category" aria-label="按类别筛选">
+        <option value="all">全部类别</option>
+        <option value="body">全身动作</option>
+        <option value="feedback">操作反馈</option>
+        <option value="expression">表情互动</option>
+        <option value="procedural">程序动效预演</option>
+      </select>
+      <button class="quiet-button" id="recommendedOnly" type="button" aria-pressed="false">只看优先推荐</button>
+      <button class="quiet-button" id="keptOnly" type="button" aria-pressed="false">只看已保留</button>
+    </div>
+
+    <p class="help"><strong>说明：</strong>四套点赞动画已按原始 360×360 画布重新生成，不会再只显示脑袋。点击任意预览可以放大观看。“程序动效预演”是对官方静态表情加入浮动、摇摆、弹跳等程序动画，实际桌宠中可以直接实现。</p>
+
+    <section class="grid" id="grid" aria-live="polite"></section>
+    <div class="empty" id="empty">没有符合当前条件的动作，请换个关键词或筛选条件。</div>
+
+    <section class="planner" aria-labelledby="plannerTitle">
+      <div class="planner-head">
+        <div>
+          <h2 id="plannerTitle">联动场景规划</h2>
+          <p>不用局限于网易云快捷键。勾选你想要的场景，导出结果时会和动画选择一起保存。</p>
+        </div>
+        <button class="quiet-button" id="toggleRecommendedScenarios" type="button">勾选推荐场景</button>
+      </div>
+      <div class="detector-note">
+        <strong>怎么知道音乐正在播放？</strong>
+        推荐读取 Windows Core Audio 的网易云音频会话：检测到 <code>cloudmusic.exe</code> 正在实际输出声音后进入跳舞；连续约 1.5 秒无声再回待机，避免歌曲中的短暂静音误判。进一步可用 WASAPI 回环采样计算音量和低频节拍，让动作速度、幅度随音乐变化，全程不调用网易云接口。
+      </div>
+      <div class="scenario-groups" id="scenarioGroups"></div>
+    </section>
+  </main>
+
+  <dialog id="summaryDialog">
+    <div class="dialog-body">
+      <h2>动画选择结果</h2>
+      <p class="intro">结果会自动保存在这个浏览器中。可以复制文字发给我，或者下载成文本文件。</p>
+      <textarea id="summaryText" readonly></textarea>
+      <div class="dialog-actions">
+        <button class="quiet-button" id="closeDialog" type="button">关闭</button>
+        <button class="quiet-button" id="downloadSummary" type="button">下载文本</button>
+        <button class="primary-button" id="copySummary" type="button">复制结果</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="previewDialog">
+    <div class="preview-dialog-body">
+      <div class="preview-dialog-head">
+        <h2 id="largePreviewTitle">动画放大预览</h2>
+        <button class="quiet-button" id="closePreview" type="button">关闭</button>
+      </div>
+      <div class="large-preview"><img id="largePreviewImage" alt="放大动画预览" /></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const roles = [
+      { id: "idle", group:"daily", label: "基础待机", short: "待机" },
+      { id: "randomIdle", group:"daily", label: "随机待机", short: "随机" },
+      { id: "greet", group:"daily", label: "启动/问候", short: "问候" },
+      { id: "sleep", group:"daily", label: "夜间/睡眠", short: "睡眠" },
+      { id: "hover", group:"mouse", label: "鼠标悬停", short: "悬停" },
+      { id: "click", group:"mouse", label: "点击/摸头", short: "点击" },
+      { id: "drag", group:"mouse", label: "拖拽中", short: "拖拽" },
+      { id: "drop", group:"mouse", label: "松手/落地", short: "落地" },
+      { id: "musicStart", group:"music", label: "开始播放", short: "开播" },
+      { id: "dance", group:"music", label: "普通音乐舞蹈", short: "跳舞" },
+      { id: "danceStrong", group:"music", label: "强节拍舞蹈", short: "强拍" },
+      { id: "pause", group:"music", label: "暂停/静音", short: "暂停" },
+      { id: "track", group:"music", label: "切歌反馈", short: "切歌" },
+      { id: "success", group:"system", label: "成功/完成", short: "成功" },
+      { id: "warning", group:"system", label: "提醒/警告", short: "提醒" },
+      { id: "surprise", group:"system", label: "错误/意外", short: "意外" }
+    ];
+
+    const roleGroupNames = { daily:"日常状态", mouse:"鼠标互动", music:"音乐状态", system:"系统与提醒" };
+
+    const scenarios = [
+      { id:"audioSession", group:"music", title:"识别网易云实际出声", desc:"按 cloudmusic.exe 音频会话状态与峰值判断播放/暂停。", level:"推荐", recommended:true },
+      { id:"beat", group:"music", title:"随音量和节拍改变动作", desc:"WASAPI 回环采样，响时加速、安静时放缓；可选低频节拍检测。", level:"推荐", recommended:true },
+      { id:"mediaKeys", group:"music", title:"上一首/下一首/暂停继续", desc:"继续使用网易云全局快捷键，桌宠播放对应反馈。", level:"推荐", recommended:true },
+      { id:"trackChange", group:"music", title:"歌曲切换反应", desc:"由桌宠发起切歌时可靠；也可尝试 Windows 媒体会话识别外部切歌。", level:"可选", recommended:false },
+      { id:"volume", group:"music", title:"静音和音量变化", desc:"系统静音时做安静动作，音量突然升高时惊讶。", level:"推荐", recommended:true },
+
+      { id:"pointer", group:"desktop", title:"悬停、点击与连续戳", desc:"悬停看向鼠标；点击卖萌；连续点击触发生气彩蛋。", level:"推荐", recommended:true },
+      { id:"dragPhysics", group:"desktop", title:"拖拽、惯性和落地", desc:"拖动时换动作，松手后轻微抛物线、回弹或降落。", level:"推荐", recommended:true },
+      { id:"idleEvents", group:"desktop", title:"随机待机与发呆", desc:"按无操作时间随机卖萌、摸鱼、打瞌睡，音乐时暂停随机动作。", level:"推荐", recommended:true },
+      { id:"screenEdge", group:"desktop", title:"屏幕边缘探头/吸附", desc:"靠近边缘自动吸附，从屏幕侧边探头或坐在任务栏上。", level:"可选", recommended:false },
+      { id:"fullscreen", group:"desktop", title:"全屏应用自动避让", desc:"游戏或视频全屏时降低置顶层级、隐藏或移动到副屏。", level:"推荐", recommended:true },
+      { id:"appPresence", group:"desktop", title:"应用场景反应", desc:"打开游戏时加油，打开开发工具时陪伴，启动播放器时戴耳机。", level:"可选", recommended:false },
+
+      { id:"startup", group:"system", title:"开机/登录问候", desc:"随 Windows 启动，按早中晚选择不同问候。", level:"推荐", recommended:true },
+      { id:"sleepWake", group:"system", title:"锁屏、睡眠与唤醒", desc:"锁屏前进入睡眠，恢复桌面后播放苏醒动画。", level:"推荐", recommended:true },
+      { id:"clock", group:"system", title:"早安、晚安和整点", desc:"根据本地时间切换气氛；深夜降低动画频率。", level:"推荐", recommended:true },
+      { id:"pomodoro", group:"system", title:"专注计时和休息提醒", desc:"桌宠自带轻量番茄钟，完成后击掌或点赞。", level:"推荐", recommended:true },
+      { id:"battery", group:"system", title:"低电量/充电完成", desc:"笔记本低电量时委屈，连接电源或充满后恢复精神。", level:"可选", recommended:false },
+      { id:"network", group:"system", title:"断网与恢复连接", desc:"网络断开时疑惑或裂开，恢复时播放 OK。", level:"可选", recommended:false },
+      { id:"weather", group:"system", title:"天气联动", desc:"雨雪、温度和日落场景；需要额外天气服务或系统天气来源。", level:"外部数据", recommended:false }
+    ];
+
+    const scenarioGroupNames = { music:"音乐与声音", desktop:"桌面与应用", system:"时间与系统" };
+
+    const baseQuick = "00_快速预览/";
+    const baseEmoji = "03_官方表情包/5582-心律共鸣动态表情包/";
+    const baseTheme = "02_个性装扮动画原包/";
+    const baseStatic = "03_官方表情包/";
+
+    const items = [
+      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","拖拽","循环"], desc:"全身 Q 版旋转动作，轮廓清晰。很适合拖拽时转圈，也可以作为活泼的音乐播放循环。" },
+      { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
+      { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
+
+      { id:"thumb8", title:"八周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:true, src:baseQuick+"11_八周年_点赞动作.webp", source:baseTheme+"2156_洛天依8周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机","一次播放"], desc:"已将 SVGA 的原始 74 帧转换为可直接预览的循环动画。适合偶发待机、点击桌宠或操作成功后的奖励反馈。" },
+      { id:"thumb10", title:"十周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:true, src:baseQuick+"12_十周年_点赞动作.webp", source:baseTheme+"35789_洛天依十周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机","一次播放"], desc:"十周年装扮中的完整点赞动画。角色比例适合作为桌宠，可用于点击反应或随机待机。" },
+      { id:"thumbCode", title:"代号洛天依 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:false, src:baseQuick+"13_代号洛天依_点赞动作.webp", source:baseTheme+"54182_代号洛天依/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","操作反馈"], desc:"代号洛天依主题的完整点赞动画，适合与全息操作搭配，整体风格更偏科技感。" },
+      { id:"thumb9", title:"九周年 · 点赞动作", category:"feedback", kind:"74 帧动态 WebP", priority:false, src:baseQuick+"14_九周年_点赞动作.webp", source:baseTheme+"5766_洛天依9周年/suit_items.thumbup.0.properties.image_ani_cut.svga", tags:["点赞","随机待机"], desc:"九周年主题完整点赞动画，可以和音乐摇摆保持同一套周年视觉风格。" },
+
+      { id:"e_baituo", title:"心律共鸣 · 拜托", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_拜托.gif", source:baseEmoji+"心律共鸣动态表情包_拜托.gif", tags:["卖萌","点击互动"], desc:"适合被点击、请求操作或随机卖萌，不建议作为持续循环的基础待机。" },
+      { id:"e_success", title:"心律共鸣 · 大成功", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_大成功.gif", source:baseEmoji+"心律共鸣动态表情包_大成功.gif", tags:["成功","操作反馈"], desc:"情绪明确，适合切歌成功、恢复播放或完成设置后播放一次。" },
+      { id:"e_give", title:"心律共鸣 · 给我", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_给我.gif", source:baseEmoji+"心律共鸣动态表情包_给我.gif", tags:["伸手","点击互动"], desc:"可作为鼠标悬停或点击反应，也适合作为长时间没有互动时的随机动作。" },
+      { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["音乐","随机待机"], desc:"与音乐主题契合，可作为歌曲开始播放时的一次性过渡表情。" },
+      { id:"e_great", title:"心律共鸣 · 好厉害", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_好厉害.gif", source:baseEmoji+"心律共鸣动态表情包_好厉害.gif", tags:["夸奖","操作反馈"], desc:"正向反馈感明显，适合操作成功、恢复播放或用户连续互动之后播放。" },
+      { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["生气","彩蛋"], desc:"适合作为连续戳桌宠后的隐藏彩蛋，不建议放入第一版核心状态。" },
+      { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["开心","随机待机"], desc:"表情轻松，可以隔一段时间随机播放一次，让普通待机显得更有生命感。" },
+      { id:"e_join", title:"心律共鸣 · 加入我们", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_加入我们.gif", source:baseEmoji+"心律共鸣动态表情包_加入我们.gif", tags:["招手","随机待机"], desc:"适合首次启动或桌宠主动招手，不太适合频繁的按键反馈。" },
+      { id:"e_kiss", title:"心律共鸣 · 啾啾", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_啾啾.gif", source:baseEmoji+"心律共鸣动态表情包_啾啾.gif", tags:["亲亲","点击互动"], desc:"适合点击桌宠后的亲密互动，也可以作为低概率随机动作。" },
+      { id:"e_cute", title:"心律共鸣 · 可爱", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_可爱.gif", source:baseEmoji+"心律共鸣动态表情包_可爱.gif", tags:["卖萌","随机待机"], desc:"动作语义通用、氛围轻松，是随机待机和被点击反馈的稳妥候选。" },
+      { id:"e_noPlay", title:"心律共鸣 · 你不许玩", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", source:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", tags:["阻止","暂停"], desc:"可以在暂停音乐或连续点击时作为有性格的特殊反馈。" },
+      { id:"e_expand", title:"心律共鸣 · 膨胀", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_膨胀.gif", source:baseEmoji+"心律共鸣动态表情包_膨胀.gif", tags:["得意","彩蛋"], desc:"适合作为播放多首歌曲或完成操作后的低概率彩蛋。" },
+      { id:"e_poor", title:"心律共鸣 · 贫穷", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_贫穷.gif", source:baseEmoji+"心律共鸣动态表情包_贫穷.gif", tags:["委屈","彩蛋"], desc:"个性较强，更适合作为隐藏互动，而不是第一版固定状态。" },
+      { id:"e_omg", title:"心律共鸣 · 天哪", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_天哪.gif", source:baseEmoji+"心律共鸣动态表情包_天哪.gif", tags:["惊讶","切歌反馈"], desc:"适合快速切歌、操作失败或意外状态时播放一次。" },
+      { id:"e_oshi", title:"心律共鸣 · 我推", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_我推.gif", source:baseEmoji+"心律共鸣动态表情包_我推.gif", tags:["支持","随机待机"], desc:"可以作为低概率随机动作，表达支持和开心的情绪。" },
+      { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["音乐","播放反馈"], desc:"与音乐播放语义完全匹配，适合作为开始播放时的一次性反馈或小尺寸舞蹈。" },
+      { id:"e_soft", title:"心律共鸣 · 心软软", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_心软软.gif", source:baseEmoji+"心律共鸣动态表情包_心软软.gif", tags:["开心","点击互动"], desc:"适合作为被点击后的温和反馈，或者长时间播放音乐后的随机表情。" },
+      { id:"e_nice", title:"心律共鸣 · 真好", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_真好.gif", source:baseEmoji+"心律共鸣动态表情包_真好.gif", tags:["满足","播放反馈"], desc:"可用于恢复播放、歌曲切换后的一次性正向反馈。" },
+      { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["吐槽","彩蛋"], desc:"情绪强烈，建议留作连续戳桌宠或特殊操作的隐藏彩蛋。" },
+      { id:"e_ok", title:"心律共鸣 · OK", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_OK.gif", source:baseEmoji+"心律共鸣动态表情包_OK.gif", tags:["确认","操作反馈"], desc:"含义最清楚的通用操作反馈，上一首、下一首、暂停和继续都能复用。" },
+
+      { id:"p_morning", title:"收藏集 · 早安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", tags:["早安","启动问候"], desc:"官方静态表情加入缓慢上下浮动，适合早晨启动桌宠或解锁电脑后的问候。" },
+      { id:"p_wake", title:"心律共鸣 · 苏醒弹出", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", tags:["苏醒","解锁"], desc:"轻微放大回弹，适合系统从睡眠或锁屏状态恢复。" },
+      { id:"p_launch", title:"代号洛天依 · 起航弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", source:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", tags:["启动","出场"], desc:"以弹跳方式出场，可用于桌宠首次启动或音乐软件刚刚开启。" },
+      { id:"p_sleep", title:"代号洛天依 · 眠了呼吸", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", source:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", tags:["睡眠","深夜"], desc:"缓慢缩放和轻微倾斜模拟呼吸，适合深夜、锁屏前或长时间无操作。" },
+      { id:"p_goodnight", title:"十周年 · 晚安浮动", category:"procedural", kind:"程序动效预演", priority:false, motion:"sleep", src:baseStatic+"340-洛天依十周年/洛天依_晚安.png", source:baseStatic+"340-洛天依十周年/洛天依_晚安.png", tags:["晚安","退出"], desc:"可作为关闭桌宠、系统准备睡眠或夜间模式切换时的告别动作。" },
+      { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["悬停","看鼠标"], desc:"鼠标靠近时轻微左右倾斜，适合悬停观察或窗口边缘探头。" },
+      { id:"p_wink", title:"代号洛天依 · Wink 回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"1842-代号洛天依/代号洛天依_wink.png", source:baseStatic+"1842-代号洛天依/代号洛天依_wink.png", tags:["点击","摸头"], desc:"点击或摸头时短促回弹，既可以作互动反馈，也适合开机问候。" },
+      { id:"p_land", title:"代号洛天依 · 降落弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"1842-代号洛天依/代号洛天依_降落.png", source:baseStatic+"1842-代号洛天依/代号洛天依_降落.png", tags:["松手","落地"], desc:"专门补足拖拽结束状态；程序中可配合重力、惯性和一次回弹。" },
+      { id:"p_idle", title:"十周年 · 摸鱼漂浮", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", source:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", tags:["待机","发呆"], desc:"适合作为无操作一段时间后的随机待机，让桌宠看起来有自己的生活。" },
+      { id:"p_loading", title:"心律共鸣 · 加载中摇摆", category:"procedural", kind:"程序动效预演", priority:false, motion:"sway", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", tags:["加载","等待"], desc:"可用于播放器正在启动、配置保存或桌宠正在处理任务时。" },
+      { id:"p_pause", title:"九周年 · 没睡醒呼吸", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", tags:["暂停","静音"], desc:"暂停音乐或系统静音时变得困倦，与播放中的舞蹈形成明显反差。" },
+      { id:"p_sing", title:"九周年 · 一起唱摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", tags:["音乐","跟唱"], desc:"静态表情配合节奏摇摆，可以作为另一套音乐舞蹈，避免长期重复同一个动作。" },
+      { id:"p_energy", title:"九周年 · 精神抖擞弹跳", category:"procedural", kind:"程序动效预演", priority:false, motion:"bounce", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", tags:["强节拍","充电完成"], desc:"适合强节拍段落、电脑唤醒、充电完成或专注计时开始。" },
+      { id:"p_goodjob", title:"八周年 · Good Job 回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"101-洛天依8th生日纪念/洛天依_goodjob.png", source:baseStatic+"101-洛天依8th生日纪念/洛天依_goodjob.png", tags:["成功","完成"], desc:"适合设置保存、番茄钟完成、网络恢复或用户完成目标。" },
+      { id:"p_warning", title:"十周年 · 糟了晃动", category:"procedural", kind:"程序动效预演", priority:true, motion:"shake", src:baseStatic+"340-洛天依十周年/洛天依_糟了.png", source:baseStatic+"340-洛天依十周年/洛天依_糟了.png", tags:["警告","错误"], desc:"短促左右晃动用于快捷键发送失败、播放器未启动或系统出现异常。" },
+      { id:"p_network", title:"心律共鸣 · 裂开晃动", category:"procedural", kind:"程序动效预演", priority:false, motion:"shake", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png", tags:["断网","失败"], desc:"可以作为网络断开、连续快捷键无响应或其它失败状态的夸张彩蛋。" },
+      { id:"p_lowbattery", title:"心律共鸣 · 呜呜晃动", category:"procedural", kind:"程序动效预演", priority:false, motion:"shake", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png", tags:["低电量","委屈"], desc:"笔记本低电量或音乐播放失败时使用；可搭配气泡文字提醒。" },
+      { id:"p_food", title:"十周年 · 干饭弹跳", category:"procedural", kind:"程序动效预演", priority:false, motion:"bounce", src:baseStatic+"340-洛天依十周年/洛天依_干饭.png", source:baseStatic+"340-洛天依十周年/洛天依_干饭.png", tags:["吃饭提醒","整点"], desc:"适合午饭、晚饭时间提醒，也可以在长时间工作后提醒休息。" },
+      { id:"p_highfive", title:"十周年 · 击掌回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"340-洛天依十周年/洛天依_击掌.png", source:baseStatic+"340-洛天依十周年/洛天依_击掌.png", tags:["计时完成","成功"], desc:"番茄钟结束、完成一次专注或用户双击桌宠时用于击掌庆祝。" }
+    ];
+
+    const categoryNames = { body:"全身动作", feedback:"操作反馈", expression:"表情互动", procedural:"程序动效" };
+    const storageKey = "luotianyi-pet-animation-picks-v2";
+    const scenarioStorageKey = "luotianyi-pet-scenarios-v1";
+    const keepStorageKey = "luotianyi-pet-kept-animations-v1";
+    let choices = {};
+    let scenarioChoices = [];
+    let keptItems = [];
+    let priorityOnly = false;
+    let keptOnly = false;
+
+    try { choices = JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { choices = {}; }
+    try { scenarioChoices = JSON.parse(localStorage.getItem(scenarioStorageKey) || "[]"); } catch { scenarioChoices = []; }
+    try { keptItems = JSON.parse(localStorage.getItem(keepStorageKey) || "[]"); } catch { keptItems = []; }
+
+    const grid = document.getElementById("grid");
+    const slots = document.getElementById("slots");
+    const search = document.getElementById("search");
+    const category = document.getElementById("category");
+    const empty = document.getElementById("empty");
+    const visibleCount = document.getElementById("visibleCount");
+    const toast = document.getElementById("toast");
+    const dialog = document.getElementById("summaryDialog");
+    const summaryText = document.getElementById("summaryText");
+    const scenarioGroups = document.getElementById("scenarioGroups");
+    const previewDialog = document.getElementById("previewDialog");
+    const largePreviewImage = document.getElementById("largePreviewImage");
+    const largePreviewTitle = document.getElementById("largePreviewTitle");
+    const keptCount = document.getElementById("keptCount");
+
+    function esc(value) {
+      return String(value).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[ch]);
+    }
+
+    function save() {
+      localStorage.setItem(storageKey, JSON.stringify(choices));
+      localStorage.setItem(scenarioStorageKey, JSON.stringify(scenarioChoices));
+      localStorage.setItem(keepStorageKey, JSON.stringify(keptItems));
+    }
+
+    function notify(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(notify.timer);
+      notify.timer = setTimeout(() => toast.classList.remove("show"), 1900);
+    }
+
+    function itemById(id) { return items.find(item => item.id === id); }
+
+    function renderSlots() {
+      slots.innerHTML = Object.entries(roleGroupNames).map(([groupId, groupName]) => `<section class="slot-group">
+        <h3>${groupName}</h3>
+        <div class="slots">${roles.filter(role => role.group === groupId).map(role => {
+          const item = itemById(choices[role.id]);
+          return `<div class="slot ${item ? "filled" : ""}">
+            <span class="slot-label">${role.label}</span>
+            <span class="slot-value">${item ? esc(item.title) : "尚未选择"}</span>
+            ${item ? `<button class="slot-clear" type="button" data-clear="${role.id}" aria-label="清除${role.label}">×</button>` : ""}
+          </div>`;
+        }).join("")}</div>
+      </section>`).join("");
+      slots.querySelectorAll("[data-clear]").forEach(button => button.addEventListener("click", () => {
+        delete choices[button.dataset.clear]; save(); renderAll();
+      }));
+    }
+
+    function cardTemplate(item) {
+      const selectedRoles = roles.filter(role => choices[role.id] === item.id);
+      const kept = keptItems.includes(item.id);
+      return `<article class="card ${selectedRoles.length ? "chosen" : ""} ${kept ? "kept" : ""}" data-id="${item.id}">
+        <div class="preview" data-preview="${item.id}" title="点击放大预览">
+          <img class="${item.motion ? `motion-${item.motion}` : ""}" src="${esc(item.src)}" alt="${esc(item.title)}动画预览" loading="lazy" />
+          <span class="preview-badge">${esc(item.kind)}</span>
+          <span class="zoom-hint">点击放大</span>
+        </div>
+        <div class="card-body">
+          <label class="keep-row"><input type="checkbox" data-keep="${item.id}" ${kept ? "checked" : ""} /><span>保留这个动画</span></label>
+          <h3>${esc(item.title)}</h3>
+          <div class="meta">
+            <span class="tag">${categoryNames[item.category]}</span>
+            ${item.priority ? '<span class="tag recommended">优先推荐</span>' : ""}
+            ${item.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join("")}
+          </div>
+          <p class="desc">${esc(item.desc)}</p>
+          <details class="assign-panel" ${selectedRoles.length ? "open" : ""}>
+            <summary>分配用途${selectedRoles.length ? ` · 已选 ${selectedRoles.map(role => role.short).join("、")}` : ""}</summary>
+            <div class="role-buttons">${roles.map(role => `<button class="role-button ${choices[role.id] === item.id ? "active" : ""}" type="button" data-role="${role.id}" data-item="${item.id}">${role.short}</button>`).join("")}</div>
+          </details>
+          <div class="source-row">
+            <a href="${esc(item.source)}" target="_blank">打开原文件</a>
+            <span class="source-note">选择自动保存</span>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function filteredItems() {
+      const term = search.value.trim().toLowerCase();
+      return items.filter(item => {
+        const matchesCategory = category.value === "all" || item.category === category.value;
+        const matchesPriority = !priorityOnly || item.priority;
+        const matchesKept = !keptOnly || keptItems.includes(item.id);
+        const haystack = [item.title, item.kind, item.desc, ...item.tags].join(" ").toLowerCase();
+        return matchesCategory && matchesPriority && matchesKept && (!term || haystack.includes(term));
+      });
+    }
+
+    function renderGrid() {
+      const shown = filteredItems();
+      grid.innerHTML = shown.map(cardTemplate).join("");
+      visibleCount.textContent = shown.length;
+      empty.style.display = shown.length ? "none" : "block";
+      grid.querySelectorAll("[data-role]").forEach(button => button.addEventListener("click", () => {
+        const role = roles.find(role => role.id === button.dataset.role);
+        const item = itemById(button.dataset.item);
+        if (choices[role.id] === item.id) delete choices[role.id];
+        else choices[role.id] = item.id;
+        save(); renderAll(); notify(`${role.label}：${choices[role.id] ? item.title : "已清除"}`);
+      }));
+      grid.querySelectorAll("[data-keep]").forEach(input => input.addEventListener("change", () => {
+        if (input.checked && !keptItems.includes(input.dataset.keep)) keptItems.push(input.dataset.keep);
+        if (!input.checked) keptItems = keptItems.filter(id => id !== input.dataset.keep);
+        save(); renderAll(); notify(input.checked ? "已加入保留列表" : "已从保留列表移除");
+      }));
+      grid.querySelectorAll("[data-preview]").forEach(preview => preview.addEventListener("click", () => {
+        const item = itemById(preview.dataset.preview);
+        largePreviewTitle.textContent = item.title;
+        largePreviewImage.className = item.motion ? `motion-${item.motion}` : "";
+        largePreviewImage.src = item.src;
+        previewDialog.showModal();
+      }));
+    }
+
+    function renderScenarios() {
+      scenarioGroups.innerHTML = Object.entries(scenarioGroupNames).map(([groupId, groupName]) => `<section class="scenario-group">
+        <h3>${groupName}</h3>
+        <div class="scenario-list">${scenarios.filter(item => item.group === groupId).map(item => `<label class="scenario-item">
+          <input type="checkbox" data-scenario="${item.id}" ${scenarioChoices.includes(item.id) ? "checked" : ""} />
+          <span><strong>${item.title}</strong><span>${item.desc}</span><span class="scenario-level">${item.level}</span></span>
+        </label>`).join("")}</div>
+      </section>`).join("");
+      scenarioGroups.querySelectorAll("[data-scenario]").forEach(input => input.addEventListener("change", () => {
+        if (input.checked && !scenarioChoices.includes(input.dataset.scenario)) scenarioChoices.push(input.dataset.scenario);
+        if (!input.checked) scenarioChoices = scenarioChoices.filter(id => id !== input.dataset.scenario);
+        save();
+      }));
+    }
+
+    function renderAll() { renderSlots(); renderGrid(); renderScenarios(); keptCount.textContent = keptItems.length; }
+
+    function buildSummary() {
+      const lines = ["洛天依桌宠 · 动画选择结果", ""];
+      lines.push(`勾选保留的动画（${keptItems.length} 个）`, "");
+      const keptAnimations = items.filter(item => keptItems.includes(item.id));
+      if (!keptAnimations.length) lines.push("- 尚未勾选");
+      keptAnimations.forEach(item => {
+        lines.push(`- ${item.title}`);
+        lines.push(`  类型：${item.kind}`);
+        lines.push(`  文件：${item.source.replaceAll("/", "\\")}`);
+      });
+      lines.push("", "动画状态分配", "");
+      roles.forEach((role, index) => {
+        const item = itemById(choices[role.id]);
+        lines.push(`${index + 1}. ${role.label}`);
+        if (item) {
+          lines.push(`   动作：${item.title}`);
+          lines.push(`   类型：${item.kind}`);
+          lines.push(`   文件：${item.source.replaceAll("/", "\\")}`);
+        } else {
+          lines.push("   尚未选择");
+        }
+        lines.push("");
+      });
+      lines.push("已选择的联动场景", "");
+      const selectedScenarios = scenarios.filter(item => scenarioChoices.includes(item.id));
+      if (!selectedScenarios.length) lines.push("- 尚未选择");
+      selectedScenarios.forEach(item => lines.push(`- ${item.title}：${item.desc}`));
+      lines.push("", "音乐检测建议", "- Core Audio 锁定 cloudmusic.exe 音频会话并读取峰值；连续有声进入跳舞，约 1.5 秒无声后回待机。", "- 可选 WASAPI 回环采样，让动画速度和幅度随音量、低频节拍变化。", "- 网易云控制仍使用全局快捷键，不依赖网易云接口。", "");
+      return lines.join("\n");
+    }
+
+    search.addEventListener("input", renderGrid);
+    category.addEventListener("change", renderGrid);
+    document.getElementById("recommendedOnly").addEventListener("click", event => {
+      priorityOnly = !priorityOnly;
+      event.currentTarget.setAttribute("aria-pressed", String(priorityOnly));
+      event.currentTarget.textContent = priorityOnly ? "显示全部候选" : "只看优先推荐";
+      renderGrid();
+    });
+    document.getElementById("keptOnly").addEventListener("click", event => {
+      keptOnly = !keptOnly;
+      event.currentTarget.setAttribute("aria-pressed", String(keptOnly));
+      event.currentTarget.textContent = keptOnly ? "显示全部候选" : "只看已保留";
+      renderGrid();
+    });
+    document.getElementById("clearAll").addEventListener("click", () => {
+      choices = {}; scenarioChoices = []; keptItems = []; save(); renderAll(); notify("保留、动画和场景选择已清空");
+    });
+    document.getElementById("toggleRecommendedScenarios").addEventListener("click", () => {
+      const recommended = scenarios.filter(item => item.recommended).map(item => item.id);
+      const allSelected = recommended.every(id => scenarioChoices.includes(id));
+      scenarioChoices = allSelected ? scenarioChoices.filter(id => !recommended.includes(id)) : [...new Set([...scenarioChoices, ...recommended])];
+      save(); renderScenarios(); notify(allSelected ? "已取消推荐场景" : "已勾选推荐场景");
+    });
+    document.getElementById("showSummary").addEventListener("click", () => {
+      summaryText.value = buildSummary(); dialog.showModal();
+    });
+    document.getElementById("closeDialog").addEventListener("click", () => dialog.close());
+    document.getElementById("copySummary").addEventListener("click", async () => {
+      const value = buildSummary();
+      try { await navigator.clipboard.writeText(value); }
+      catch { summaryText.focus(); summaryText.select(); document.execCommand("copy"); }
+      notify("选择结果已复制");
+    });
+    document.getElementById("downloadSummary").addEventListener("click", () => {
+      const blob = new Blob([buildSummary()], {type:"text/plain;charset=utf-8"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "洛天依桌宠_动画选择结果.txt";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+    dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+    document.getElementById("closePreview").addEventListener("click", () => previewDialog.close());
+    previewDialog.addEventListener("click", event => { if (event.target === previewDialog) previewDialog.close(); });
+
+    renderAll();
+  </script>
+</body>
+</html>
