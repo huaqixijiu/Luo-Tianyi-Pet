@@ -1,6 +1,6 @@
 # 洛天依桌宠
 
-一个面向 Windows 的洛天依 Q 版桌面宠物项目。项目目前处于需求、动画挑选和技术验证阶段。
+一个面向 Windows 的洛天依 Q 版桌面宠物项目。M0 工程骨架已经完成：项目现在可以编译、测试并启动透明 WPF 桌宠窗口，正在进入真实动画播放器阶段。
 
 计划功能包括透明桌宠窗口、待机与鼠标区域互动、网易云音乐全局快捷键控制、系统音量联动、音乐播放状态检测、QQ/微信简要提醒，以及可配置的应用启动反应。
 
@@ -40,6 +40,9 @@ Codex 在任何新任务开始前都必须先阅读根目录的 [`AGENTS.md`](AG
 
 ```text
 洛天依桌宠/
+├─ src/                WPF 应用、核心逻辑、动画和 Windows 平台适配
+├─ tests/              自动化测试
+├─ tools/              资产编译等开发工具
 ├─ config/             可编辑的场景规则与默认设置
 ├─ docs/               需求、安全约束和动画映射
 ├─ assets/             已确认用于运行时的处理后素材
@@ -48,7 +51,18 @@ Codex 在任何新任务开始前都必须先阅读根目录的 [`AGENTS.md`](AG
 └─ .gitignore          构建产物和本地临时文件忽略规则
 ```
 
-源代码目录会在技术方案确定后建立，避免现在提前固定框架结构。
+## 开发与验证
+
+需要 .NET 10 SDK。仓库使用 `global.json` 固定 SDK 功能带：
+
+```powershell
+dotnet restore LuoTianyiPet.sln
+dotnet build LuoTianyiPet.sln --configuration Release
+dotnet test LuoTianyiPet.sln --configuration Release --no-build
+dotnet run --project src/LuoTianyiPet.App/LuoTianyiPet.App.csproj --configuration Release
+```
+
+当前运行窗口中的“M0 · 透明窗口验证”角色仅用于窗口骨架验证，M1 会用已确认的真实素材替换。
 
 ## 资源管理
 

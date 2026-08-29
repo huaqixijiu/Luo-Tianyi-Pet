@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LuoTianyiPet.Core\LuoTianyiPet.Core.csproj" />
+    <ProjectReference Include="..\LuoTianyiPet.Animation\LuoTianyiPet.Animation.csproj" />
+    <ProjectReference Include="..\LuoTianyiPet.Platform.Windows\LuoTianyiPet.Platform.Windows.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>LuoTianyiPet</AssemblyName>
+    <RootNamespace>LuoTianyiPet.App</RootNamespace>
+  </PropertyGroup>
+
+</Project>
