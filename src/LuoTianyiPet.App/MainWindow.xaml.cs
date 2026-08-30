@@ -111,6 +111,7 @@ public partial class MainWindow : Window
     private bool _externalVolumeFeedbackSubscribed;
     private CancellationTokenSource? _trackSwitchCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
+    private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
     private EdgeDockSide _edgeDockSide;
     private bool _edgeDockRevealed;
@@ -317,7 +318,6 @@ public partial class MainWindow : Window
         PreviousTrackButton.ToolTip = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
         TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
         NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
-        FavoriteTrackButton.ToolTip = $"喜欢歌曲（{_settings.Media.FavoriteTrackShortcut}）";
         UpdatePlayPauseGlyph();
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
@@ -1449,13 +1449,17 @@ public partial class MainWindow : Window
     {
         _musicPreviewOverride = true;
         _musicActivityDetector.Reset();
-        StartMusicPlayback("manual-preview");
+        StartMusicPlayback("manual-preview", "洛天依");
     }
 
-    private void StartMusicPlayback(string source)
+    private void StartMusicPlayback(string source, string? artistOverride = null)
     {
         DateTimeOffset now = DateTimeOffset.Now;
-        string selectedAnimation = _musicAnimationSelector.Select();
+        string artist = artistOverride ?? _lastTrackSnapshot.Artist;
+        string selectedAnimation = _musicAnimationSelector.SelectForArtist(artist);
+        _musicAnimationTrackIdentity = artistOverride is null
+            ? _lastTrackIdentity
+            : "preview-luo-tianyi";
         _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
         UpdatePlayPauseGlyph();
@@ -1466,7 +1470,9 @@ public partial class MainWindow : Window
             _ = TransitionToResolvedContinuousAnimationAsync("animation.music_selection_transition_completed");
         }
 
-        _logger.Info("media.playback_started", $"Source={source}; Animation={selectedAnimation}.");
+        _logger.Info(
+            "media.playback_started",
+            $"Source={source}; Animation={selectedAnimation}; ArtistClass={GetArtistClass(artist)}.");
     }
 
     private void OnPreviewMusicStop(object sender, RoutedEventArgs e)
@@ -1478,6 +1484,7 @@ public partial class MainWindow : Window
 
     private void StopMusicPlayback(string source)
     {
+        _musicAnimationTrackIdentity = string.Empty;
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
         UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
@@ -2151,9 +2158,6 @@ public partial class MainWindow : Window
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
 
-    private void OnFavoriteTrackClick(object sender, RoutedEventArgs e) =>
-        TrySendMediaCommand(MediaCommand.FavoriteTrack);
-
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (_systemVolumeService is null || _isClosing || e.Delta == 0)
@@ -2495,6 +2499,13 @@ public partial class MainWindow : Window
             _lastTrackSnapshot = snapshot;
             _lastTrackIdentity = identity;
 
+            if (snapshot.HasTrack &&
+                _musicActivityDetector.IsPlaying &&
+                !identity.Equals(_musicAnimationTrackIdentity, StringComparison.Ordinal))
+            {
+                UpdateMusicAnimationForTrack(snapshot, identity);
+            }
+
             if (snapshot.HasTrack)
             {
                 bool confirmsPendingSwitch = _showNextTrackChange &&
@@ -2561,6 +2572,31 @@ public partial class MainWindow : Window
         {
         }
     }
+
+    private void UpdateMusicAnimationForTrack(MediaTrackSnapshot snapshot, string identity)
+    {
+        _musicAnimationTrackIdentity = identity;
+        string selectedAnimation = _musicAnimationSelector.SelectForArtist(snapshot.Artist);
+        bool animationChanged = !string.Equals(
+            selectedAnimation,
+            _stateMachine.VisualState.MusicAnimationId,
+            StringComparison.Ordinal);
+        _stateMachine.SetMusicAnimation(selectedAnimation);
+        _logger.Info(
+            "media.companion_animation_selected",
+            $"Animation={selectedAnimation}; ArtistClass={GetArtistClass(snapshot.Artist)}.");
+
+        if (animationChanged &&
+            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "animation.music_artist_transition_completed");
+        }
+    }
+
+    private static string GetArtistClass(string? artist) =>
+        MusicArtistMatcher.IsLuoTianyi(artist) ? "LuoTianyi" : "OtherOrUnknown";
 
     private void ConfirmTrackSwitch(string source)
     {
@@ -2648,7 +2684,7 @@ public partial class MainWindow : Window
         {
             _musicPreviewOverride = true;
             _musicActivityDetector.Reset();
-            StartMusicPlayback("automatic-preview");
+            StartMusicPlayback("automatic-preview", "洛天依");
         }
     }
 

@@ -22,7 +22,6 @@ public sealed class AppSettingsTests
         Assert.Equal("Ctrl+Alt+Left", settings.Media.PreviousTrackShortcut);
         Assert.Equal("Ctrl+Alt+P", settings.Media.TogglePlayPauseShortcut);
         Assert.Equal("Ctrl+Alt+Right", settings.Media.NextTrackShortcut);
-        Assert.Equal("Ctrl+Alt+L", settings.Media.FavoriteTrackShortcut);
         Assert.Equal(350, settings.Media.CommandCooldownMilliseconds);
         Assert.True(settings.Volume.EnableMouseWheelControl);
         Assert.True(settings.Volume.EnableExternalChangeFeedback);

@@ -241,7 +241,7 @@
 
         <Border x:Name="MediaControls"
                 Panel.ZIndex="5"
-                Width="174"
+                Width="136"
                 Height="46"
                 Margin="0,0,0,7"
                 Padding="5,4"
@@ -272,7 +272,6 @@
             </Border.RenderTransform>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -328,19 +327,6 @@
                     </Viewbox>
                 </Button>
 
-                <Button x:Name="FavoriteTrackButton"
-                        Grid.Column="3"
-                        Style="{StaticResource MediaIconButtonStyle}"
-                        Click="OnFavoriteTrackClick"
-                        AutomationProperties.Name="喜欢歌曲"
-                        ToolTip="喜欢歌曲（Ctrl+Alt+L）">
-                    <Viewbox Width="20" Height="20">
-                        <Canvas Width="24" Height="24">
-                            <Path Data="M12,20.6 L10.55,19.28 C5.4,14.62 2,11.54 2,7.75 C2,4.67 4.42,2.25 7.5,2.25 C9.24,2.25 10.91,3.06 12,4.34 C13.09,3.06 14.76,2.25 16.5,2.25 C19.58,2.25 22,4.67 22,7.75 C22,11.54 18.6,14.62 13.45,19.29 Z"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
-                        </Canvas>
-                    </Viewbox>
-                </Button>
             </Grid>
         </Border>
 

@@ -27,19 +27,6 @@ public sealed class WindowsMediaCommandSenderTests
             backend.LastStrokes);
     }
 
-    [Fact]
-    public void TrySend_DefaultFavoriteTrack_UsesCloudMusicDefaultShortcut()
-    {
-        FakeShortcutInputBackend backend = new();
-        WindowsMediaCommandSender sender = CreateSender(backend);
-
-        MediaCommandSendResult result = sender.TrySend(MediaCommand.FavoriteTrack, Now);
-
-        Assert.Equal(MediaCommandSendStatus.Sent, result.Status);
-        Assert.Contains(new ShortcutKeyStroke(0x4C, false), backend.LastStrokes!);
-        Assert.Contains(new ShortcutKeyStroke(0x4C, true), backend.LastStrokes!);
-    }
-
     [Theory]
     [InlineData("YuanShen")]
     [InlineData("genshinimpact.exe")]
