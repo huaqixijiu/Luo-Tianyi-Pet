@@ -14,13 +14,18 @@ public partial class SettingsWindow : Window
     public SettingsWindow(
         VolumePreferences preferences,
         MessageNotificationPreferences notificationPreferences,
+        WindowPreferences windowPreferences,
+        bool startupRegistrationEnabled,
         ISystemVolumeService? systemVolumeService,
         IMessageNotificationSource? messageNotificationSource)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         ArgumentNullException.ThrowIfNull(notificationPreferences);
+        ArgumentNullException.ThrowIfNull(windowPreferences);
         SelectedPreferences = preferences;
         SelectedNotificationPreferences = notificationPreferences;
+        SelectedWindowPreferences = windowPreferences;
+        StartWithWindowsSelected = startupRegistrationEnabled;
         _systemVolumeService = systemVolumeService;
         _messageNotificationSource = messageNotificationSource;
         InitializeComponent();
@@ -28,12 +33,18 @@ public partial class SettingsWindow : Window
         MouseWheelControlCheckBox.IsChecked = preferences.EnableMouseWheelControl;
         ExternalFeedbackCheckBox.IsChecked = preferences.EnableExternalChangeFeedback;
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
+        StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
+        AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
         SelectWheelStep(preferences.MouseWheelStepPercent);
     }
 
     public VolumePreferences SelectedPreferences { get; private set; }
 
     public MessageNotificationPreferences SelectedNotificationPreferences { get; private set; }
+
+    public WindowPreferences SelectedWindowPreferences { get; private set; }
+
+    public bool StartWithWindowsSelected { get; private set; }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -128,6 +139,12 @@ public partial class SettingsWindow : Window
         SelectedNotificationPreferences = SelectedNotificationPreferences with
         {
             EnableMessageReminders = MessageReminderCheckBox.IsChecked == true,
+        };
+        StartWithWindowsSelected = StartWithWindowsCheckBox.IsChecked == true;
+        SelectedWindowPreferences = SelectedWindowPreferences with
+        {
+            AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true,
+            StartWithWindows = StartWithWindowsSelected,
         };
         DialogResult = true;
     }

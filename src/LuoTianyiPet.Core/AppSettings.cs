@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 7;
+    public const int CurrentSchemaVersion = 8;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -55,7 +55,7 @@ public sealed record GenshinPreferences
 public sealed record VolumePreferences
 {
     public const int DefaultMouseWheelStepPercent = 2;
-    public const int DefaultMergeChangesWithinMilliseconds = 500;
+    public const int DefaultMergeChangesWithinMilliseconds = 1800;
     public const int DefaultAnimationCooldownMilliseconds = 2000;
     public const int DefaultExternalPollIntervalMilliseconds = 250;
 
@@ -78,6 +78,8 @@ public sealed record VolumePreferences
 public sealed record WindowPreferences
 {
     public bool AlwaysOnTop { get; init; }
+
+    public bool StartWithWindows { get; init; }
 
     public double? Left { get; init; }
 

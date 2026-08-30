@@ -78,6 +78,9 @@ public partial class App : Application
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewTray = e.Args.Contains(
+                "--qa-tray",
+                StringComparer.OrdinalIgnoreCase);
             bool previewSystemResume = e.Args.Contains(
                 "--qa-system-resume",
                 StringComparer.OrdinalIgnoreCase);
@@ -91,6 +94,7 @@ public partial class App : Application
                 "--qa-genshin-cameo",
                 StringComparer.OrdinalIgnoreCase);
             MessageProvider? previewMessageNotification = ParseMessageNotificationPreview(e.Args);
+            EdgeDockSide? previewEdgeDock = ParseEdgeDockPreview(e.Args);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -108,6 +112,16 @@ public partial class App : Application
             ISystemVolumeService? systemVolumeService = !isPreviewOrQaRun || liveSystemVolumeQa
                 ? CreateSystemVolumeService(settings, _logger)
                 : null;
+            IApplicationVolumeService? applicationVolumeService = !isPreviewOrQaRun
+                ? CreateApplicationVolumeService(settings, _logger)
+                : null;
+            IStartupRegistrationService? startupRegistrationService = !isPreviewOrQaRun &&
+                Environment.ProcessPath is string executablePath
+                    ? new WindowsStartupRegistrationService(
+                        executablePath,
+                        isPortable,
+                        TryGetPackageFamilyName())
+                    : null;
             IMediaTrackInfoSource? mediaTrackInfoSource = !isPreviewOrQaRun || liveTrackInfoQa
                 ? new SystemMediaTrackInfoSource()
                 : null;
@@ -142,6 +156,8 @@ public partial class App : Application
                 audioSessionProbe,
                 mediaCommandSender,
                 systemVolumeService,
+                applicationVolumeService,
+                startupRegistrationService,
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
                 systemResumeSource,
@@ -158,11 +174,13 @@ public partial class App : Application
                 previewTrackInfo,
                 liveTrackInfoQa,
                 previewSettings,
+                previewTray,
                 previewSystemResume,
                 previewLongIdle,
                 previewGenshinLaunch,
                 previewGenshinCameo,
                 previewMessageNotification,
+                previewEdgeDock,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);
@@ -195,6 +213,35 @@ public partial class App : Application
             "wechat" or "weixin" => MessageProvider.WeChat,
             _ => null,
         };
+    }
+
+    private static EdgeDockSide? ParseEdgeDockPreview(IEnumerable<string> arguments)
+    {
+        string? value = arguments
+            .FirstOrDefault(argument => argument.StartsWith(
+                "--qa-edge-dock=",
+                StringComparison.OrdinalIgnoreCase))?
+            .Split('=', 2)[1];
+        return value?.ToLowerInvariant() switch
+        {
+            "left" => EdgeDockSide.Left,
+            "right" => EdgeDockSide.Right,
+            "bottom" => EdgeDockSide.Bottom,
+            _ => null,
+        };
+    }
+
+    private static string? TryGetPackageFamilyName()
+    {
+        try
+        {
+            return global::Windows.ApplicationModel.Package.Current.Id.FamilyName;
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            return null;
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -258,6 +305,25 @@ public partial class App : Application
             UnauthorizedAccessException)
         {
             logger.Error("volume.endpoint_initialization_failed", exception);
+            return null;
+        }
+    }
+
+    private static IApplicationVolumeService? CreateApplicationVolumeService(
+        AppSettings settings,
+        IAppLogger logger)
+    {
+        try
+        {
+            return new CoreAudioApplicationVolumeService(
+                settings.Media.TargetProcessName,
+                settings.Safety);
+        }
+        catch (Exception exception) when (
+            exception is System.Runtime.InteropServices.COMException or
+            InvalidOperationException or ArgumentException or UnauthorizedAccessException)
+        {
+            logger.Error("volume.application_session_initialization_failed", exception);
             return null;
         }
     }

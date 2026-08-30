@@ -78,6 +78,10 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
     atlas_path = root / entry["atlas"]
     default_duration = int(entry.get("defaultFrameDurationMilliseconds", 100))
     frames, durations = read_frames(source, default_duration)
+    duration_scale = float(entry.get("durationScale", 1.0))
+    if not math.isfinite(duration_scale) or duration_scale <= 0:
+        raise ValueError(f"Invalid durationScale for {entry['id']}")
+    durations = [max(1, round(duration * duration_scale)) for duration in durations]
     maximum_frames = int(entry.get("maximumFrames", 0))
     if maximum_frames > 0:
         frames = frames[:maximum_frames]

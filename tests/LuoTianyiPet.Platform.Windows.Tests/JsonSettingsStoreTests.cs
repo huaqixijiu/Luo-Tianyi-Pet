@@ -341,6 +341,51 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Fact]
+    public async Task Load_Version7_PreservesPreferencesAndExtendsOldVolumeFeedbackDefault()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 7,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "left": 321.5
+                  },
+                  "volume": {
+                    "enableMouseWheelControl": false,
+                    "enableExternalChangeFeedback": true,
+                    "mouseWheelStepPercent": 5,
+                    "mergeChangesWithinMilliseconds": 500,
+                    "animationCooldownMilliseconds": 2000,
+                    "externalPollIntervalMilliseconds": 250
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(321.5, actual.Window.Left);
+            Assert.False(actual.Window.StartWithWindows);
+            Assert.False(actual.Volume.EnableMouseWheelControl);
+            Assert.Equal(5, actual.Volume.MouseWheelStepPercent);
+            Assert.Equal(1800, actual.Volume.MergeChangesWithinMilliseconds);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveAsync_CanBeSynchronouslyWaitedDuringWindowClose()
     {
         string testDirectory = CreateTestDirectory();

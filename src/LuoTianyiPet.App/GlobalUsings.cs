@@ -1,0 +1,10 @@
+global using Application = System.Windows.Application;
+global using Image = System.Windows.Controls.Image;
+global using MessageBox = System.Windows.MessageBox;
+global using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+global using Point = System.Windows.Point;
+global using Rectangle = System.Windows.Shapes.Rectangle;
+global using Color = System.Windows.Media.Color;
+global using Brushes = System.Windows.Media.Brushes;
+global using Orientation = System.Windows.Controls.Orientation;
+global using WpfHorizontalAlignment = System.Windows.HorizontalAlignment;

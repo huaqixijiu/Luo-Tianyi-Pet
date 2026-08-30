@@ -43,10 +43,10 @@ public partial class MainWindow : Window
     private readonly MediaControlsVisibilityMotion _trackInfoMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
     private readonly PettingGestureRecognizer _pettingGesture = new(
-        TimeSpan.FromMilliseconds(600),
-        40,
-        2,
-        30);
+        TimeSpan.FromMilliseconds(350),
+        24,
+        1,
+        24);
     private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
@@ -64,6 +64,8 @@ public partial class MainWindow : Window
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly ISystemVolumeService? _systemVolumeService;
+    private readonly IApplicationVolumeService? _applicationVolumeService;
+    private readonly IStartupRegistrationService? _startupRegistrationService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly IUserIdleTimeSource _userIdleTimeSource;
     private readonly ISystemResumeSource? _systemResumeSource;
@@ -89,11 +91,13 @@ public partial class MainWindow : Window
     private readonly bool _previewTrackInfo;
     private readonly bool _previewLiveTrackInfo;
     private readonly bool _previewSettings;
+    private readonly bool _previewTray;
     private readonly bool _previewSystemResume;
     private readonly bool _previewLongIdle;
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
     private readonly MessageProvider? _previewMessageNotification;
+    private readonly EdgeDockSide? _previewEdgeDock;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -109,11 +113,16 @@ public partial class MainWindow : Window
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
     private bool _externalVolumeFeedbackSubscribed;
+    private bool _permanentTopmost;
+    private bool _isCloudMusicVolumeDragging;
+    private bool _isUpdatingCloudMusicVolumeSlider;
+    private float? _lastCloudMusicVolumeLevel;
     private CancellationTokenSource? _trackSwitchCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
     private EdgeDockSide _edgeDockSide;
+    private EdgeDockSide _dragEdgeCandidate;
     private bool _edgeDockRevealed;
     private int _edgeDockAnimationGeneration;
     private MediaTrackSnapshot _lastTrackSnapshot = MediaTrackSnapshot.Unavailable;
@@ -135,6 +144,7 @@ public partial class MainWindow : Window
     private Guid? _messageNotificationReactionToken;
     private Guid? _messageNotificationTopmostToken;
     private MessageProvider? _activeMessageProvider;
+    private TrayIconController? _trayIcon;
 
     public MainWindow(
         AppSettings settings,
@@ -144,6 +154,8 @@ public partial class MainWindow : Window
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
         ISystemVolumeService? systemVolumeService,
+        IApplicationVolumeService? applicationVolumeService,
+        IStartupRegistrationService? startupRegistrationService,
         IMediaTrackInfoSource? mediaTrackInfoSource,
         IUserIdleTimeSource userIdleTimeSource,
         ISystemResumeSource? systemResumeSource,
@@ -160,22 +172,27 @@ public partial class MainWindow : Window
         bool previewTrackInfo,
         bool previewLiveTrackInfo,
         bool previewSettings,
+        bool previewTray,
         bool previewSystemResume,
         bool previewLongIdle,
         bool previewGenshinLaunch,
         bool previewGenshinCameo,
         MessageProvider? previewMessageNotification,
+        EdgeDockSide? previewEdgeDock,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
     {
         _settings = settings;
+        _permanentTopmost = settings.Window.AlwaysOnTop;
         _settingsStore = settingsStore;
         _logger = logger;
         _animationCatalog = animationCatalog;
         _audioSessionProbe = audioSessionProbe;
         _mediaCommandSender = mediaCommandSender;
         _systemVolumeService = systemVolumeService;
+        _applicationVolumeService = applicationVolumeService;
+        _startupRegistrationService = startupRegistrationService;
         _mediaTrackInfoSource = mediaTrackInfoSource;
         _userIdleTimeSource = userIdleTimeSource;
         _systemResumeSource = systemResumeSource;
@@ -213,11 +230,13 @@ public partial class MainWindow : Window
         _previewTrackInfo = previewTrackInfo;
         _previewLiveTrackInfo = previewLiveTrackInfo;
         _previewSettings = previewSettings;
+        _previewTray = previewTray;
         _previewSystemResume = previewSystemResume;
         _previewLongIdle = previewLongIdle;
         _previewGenshinLaunch = previewGenshinLaunch;
         _previewGenshinCameo = previewGenshinCameo;
         _previewMessageNotification = previewMessageNotification;
+        _previewEdgeDock = previewEdgeDock;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -310,7 +329,6 @@ public partial class MainWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        TopmostMenuItem.IsChecked = _settings.Window.AlwaysOnTop;
         ApplyEffectiveTopmost();
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
@@ -319,6 +337,7 @@ public partial class MainWindow : Window
         TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
         NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
         UpdatePlayPauseGlyph();
+        RefreshCloudMusicVolumeControl();
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
 
@@ -369,6 +388,10 @@ public partial class MainWindow : Window
         }
 
         UpdateBodyHitDebugOverlay();
+        if (_persistSettings || _previewTray)
+        {
+            CreateTrayIcon();
+        }
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
@@ -382,6 +405,10 @@ public partial class MainWindow : Window
         if (_previewDragCycle)
         {
             _ = BeginPreviewDragCycleAsync();
+        }
+        if (_previewEdgeDock is EdgeDockSide edgeDockSide)
+        {
+            _ = BeginEdgeDockPreviewAsync(edgeDockSide);
         }
 
         if (_previewBodyReaction is not null)
@@ -1093,7 +1120,10 @@ public partial class MainWindow : Window
             _edgeDockSide = EdgeDockSide.None;
             _edgeDockRevealed = false;
             SetEdgeMirror(false);
+            EdgeDockHandle.Visibility = Visibility.Collapsed;
         }
+
+        _dragEdgeCandidate = EdgeDockSide.None;
 
         if (!_stateMachine.BeginDrag())
         {
@@ -1126,6 +1156,7 @@ public partial class MainWindow : Window
             desiredTop,
             SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight);
+        UpdateDragEdgePreview();
     }
 
     private void EndWindowDrag()
@@ -1143,6 +1174,9 @@ public partial class MainWindow : Window
                 _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
                 return;
             }
+
+            _dragEdgeCandidate = EdgeDockSide.None;
+            SetEdgeMirror(false);
 
             if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
             {
@@ -1243,6 +1277,11 @@ public partial class MainWindow : Window
                 decision.AnimationId is string animationId)
             {
                 _ = PlayBodyReactionAsync(animationId);
+            }
+            else if (decision.Kind == BodyInteractionDecisionKind.PettingGestureRequired &&
+                _bodyInteractionResolver.ResolvePetting().AnimationId is string headPatAnimation)
+            {
+                _ = PlayBodyReactionAsync(headPatAnimation);
             }
             else
             {
@@ -1542,6 +1581,36 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UpdateDragEdgePreview()
+    {
+        EdgeDockSide candidate = ResolveCurrentEdgeDockSide();
+        if (candidate == _dragEdgeCandidate)
+        {
+            return;
+        }
+
+        _dragEdgeCandidate = candidate;
+        if (candidate == EdgeDockSide.None)
+        {
+            SetEdgeMirror(false);
+            PlayResolvedContinuousAnimation();
+            return;
+        }
+
+        SetEdgeMirror(candidate == EdgeDockSide.Left);
+        PlayAnimation(GetEdgeDockAnimation(candidate));
+        _logger.Info("interaction.drag_edge_preview", candidate.ToString());
+    }
+
+    private EdgeDockSide ResolveCurrentEdgeDockSide()
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        return EdgeDockResolver.Resolve(
+            new DesktopRectangle(Left, Top, ActualWidth, ActualHeight),
+            workArea,
+            EdgeDockThreshold);
+    }
+
     private void OnIdleSceneTimerTick(object? sender, EventArgs e)
     {
         if (_isClosing || _edgeDockSide != EdgeDockSide.None || _isWindowDragging)
@@ -1729,16 +1798,15 @@ public partial class MainWindow : Window
 
     private bool TryEnterEdgeDock()
     {
-        Rect workArea = SystemParameters.WorkArea;
-        EdgeDockSide side = EdgeDockResolver.Resolve(
-            new DesktopRectangle(Left, Top, ActualWidth, ActualHeight),
-            new DesktopRectangle(workArea.Left, workArea.Top, workArea.Width, workArea.Height),
-            EdgeDockThreshold);
+        EdgeDockSide side = _dragEdgeCandidate != EdgeDockSide.None
+            ? _dragEdgeCandidate
+            : ResolveCurrentEdgeDockSide();
         if (side == EdgeDockSide.None)
         {
             return false;
         }
 
+        _dragEdgeCandidate = EdgeDockSide.None;
         _edgeDockSide = side;
         _edgeDockRevealed = false;
         int generation = ++_edgeDockAnimationGeneration;
@@ -1806,7 +1874,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        Rect workArea = SystemParameters.WorkArea;
+        DesktopRectangle workArea = GetCurrentWorkArea();
         switch (_edgeDockSide)
         {
             case EdgeDockSide.Left:
@@ -1824,6 +1892,36 @@ public partial class MainWindow : Window
             default:
                 throw new ArgumentOutOfRangeException();
         }
+        ConfigureEdgeDockHandle(hidden);
+    }
+
+    private void ConfigureEdgeDockHandle(bool hidden)
+    {
+        if (!hidden || _edgeDockSide == EdgeDockSide.None)
+        {
+            EdgeDockHandle.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        EdgeDockHandle.Visibility = Visibility.Visible;
+        if (_edgeDockSide == EdgeDockSide.Bottom)
+        {
+            EdgeDockHandle.Width = 78;
+            EdgeDockHandle.Height = EdgeDockVisibleStrip;
+            EdgeDockHandle.HorizontalAlignment = WpfHorizontalAlignment.Center;
+            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Top;
+            EdgeDockHandleDots.Orientation = Orientation.Horizontal;
+        }
+        else
+        {
+            EdgeDockHandle.Width = EdgeDockVisibleStrip;
+            EdgeDockHandle.Height = 78;
+            EdgeDockHandle.HorizontalAlignment = _edgeDockSide == EdgeDockSide.Left
+                ? WpfHorizontalAlignment.Right
+                : WpfHorizontalAlignment.Left;
+            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Center;
+            EdgeDockHandleDots.Orientation = Orientation.Vertical;
+        }
     }
 
     private void SetEdgeMirror(bool mirrored)
@@ -1839,12 +1937,67 @@ public partial class MainWindow : Window
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
 
-    private void OnToggleTopmost(object sender, RoutedEventArgs e)
+    private void CreateTrayIcon()
     {
+        try
+        {
+            _trayIcon = new TrayIconController(
+                () => Dispatcher.BeginInvoke(ShowSettingsDialog),
+                () => _permanentTopmost,
+                enabled => Dispatcher.BeginInvoke(() => SetPermanentTopmost(enabled, save: true)),
+                () => _startupRegistrationService?.IsEnabled ?? false,
+                enabled => Dispatcher.BeginInvoke(() => SetStartupEnabled(enabled, save: true)),
+                () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()));
+            _logger.Info("tray.ready", "System tray controls are available.");
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or System.ComponentModel.Win32Exception or
+            ArgumentException)
+        {
+            _logger.Error("tray.initialization_failed", exception);
+        }
+    }
+
+    private void SetPermanentTopmost(bool enabled, bool save)
+    {
+        _permanentTopmost = enabled;
+        _settings = _settings with
+        {
+            Window = _settings.Window with { AlwaysOnTop = enabled },
+        };
         ApplyEffectiveTopmost();
-        _logger.Info(
-            "window.topmost_changed",
-            TopmostMenuItem.IsChecked ? "Enabled." : "Disabled.");
+        _trayIcon?.RefreshChecks();
+        _logger.Info("window.topmost_changed", enabled ? "Enabled." : "Disabled.");
+        if (save && _persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.topmost_saved", "Topmost preference saved.");
+        }
+    }
+
+    private void SetStartupEnabled(bool enabled, bool save)
+    {
+        StartupRegistrationResult result = _startupRegistrationService?.TrySetEnabled(enabled) ??
+            new StartupRegistrationResult(StartupRegistrationStatus.Unavailable, false);
+        bool actual = result.IsEnabled;
+        _settings = _settings with
+        {
+            Window = _settings.Window with { StartWithWindows = actual },
+        };
+        _trayIcon?.RefreshChecks();
+        if (result.Status is StartupRegistrationStatus.Succeeded or StartupRegistrationStatus.Unchanged)
+        {
+            ShowFeedbackBubble(actual ? "已开启开机自启动" : "已关闭开机自启动");
+            _logger.Info("startup.registration_changed", actual ? "Enabled." : "Disabled.");
+            if (save && _persistSettings)
+            {
+                _ = SaveSettingsAsync("settings.startup_saved", "Startup preference saved.");
+            }
+        }
+        else
+        {
+            ShowFeedbackBubble("开机自启动设置没有成功，请稍后再试");
+            _logger.Info("startup.registration_rejected", result.Status.ToString());
+        }
     }
 
     private Guid AcquireTransientTopmost()
@@ -1865,7 +2018,7 @@ public partial class MainWindow : Window
 
     private void ApplyEffectiveTopmost()
     {
-        bool permanentTopmost = TopmostMenuItem.IsChecked;
+        bool permanentTopmost = _permanentTopmost;
         bool effectiveTopmost = permanentTopmost || _transientTopmostRequests.Count > 0;
         Topmost = effectiveTopmost;
         nint handle = new WindowInteropHelper(this).Handle;
@@ -2024,8 +2177,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnOpenSettings(object sender, RoutedEventArgs e) => ShowSettingsDialog();
-
     private void ShowSettingsDialog()
     {
         if (_isClosing)
@@ -2036,6 +2187,8 @@ public partial class MainWindow : Window
         SettingsWindow settingsWindow = new(
             _settings.Volume,
             _settings.Notifications,
+            _settings.Window,
+            _startupRegistrationService?.IsEnabled ?? false,
             _systemVolumeService,
             _messageNotificationSource)
         {
@@ -2045,6 +2198,31 @@ public partial class MainWindow : Window
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
             ApplyVolumePreferences(settingsWindow.SelectedPreferences);
+            ApplyWindowPreferences(
+                settingsWindow.SelectedWindowPreferences,
+                settingsWindow.StartWithWindowsSelected);
+        }
+    }
+
+    private void ApplyWindowPreferences(
+        WindowPreferences preferences,
+        bool startWithWindows)
+    {
+        SetPermanentTopmost(preferences.AlwaysOnTop, save: false);
+        SetStartupEnabled(startWithWindows, save: false);
+        _settings = _settings with
+        {
+            Window = _settings.Window with
+            {
+                AlwaysOnTop = _permanentTopmost,
+                StartWithWindows = _startupRegistrationService?.IsEnabled ?? false,
+                Left = Left,
+                Top = Top,
+            },
+        };
+        if (_persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.window_saved", "Window preferences saved.");
         }
     }
 
@@ -2078,11 +2256,11 @@ public partial class MainWindow : Window
         WindowPreferences currentWindow = _edgeDockSide == EdgeDockSide.None
             ? _settings.Window with
             {
-                AlwaysOnTop = TopmostMenuItem.IsChecked,
+                AlwaysOnTop = _permanentTopmost,
                 Left = Left,
                 Top = Top,
             }
-            : _settings.Window with { AlwaysOnTop = TopmostMenuItem.IsChecked };
+            : _settings.Window with { AlwaysOnTop = _permanentTopmost };
         _settings = _settings with
         {
             Volume = preferences,
@@ -2157,6 +2335,103 @@ public partial class MainWindow : Window
 
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
+
+    private void OnCloudMusicVolumeSliderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || _applicationVolumeService is null)
+        {
+            return;
+        }
+
+        RefreshCloudMusicVolumeControl();
+        _isCloudMusicVolumeDragging = true;
+    }
+
+    private void OnCloudMusicVolumeSliderValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_isCloudMusicVolumeDragging || _isUpdatingCloudMusicVolumeSlider)
+        {
+            return;
+        }
+
+        SetCloudMusicVolume((float)(e.NewValue / 100));
+    }
+
+    private void OnCloudMusicVolumeSliderMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left)
+        {
+            return;
+        }
+
+        _isCloudMusicVolumeDragging = false;
+    }
+
+    private void SetCloudMusicVolume(float requestedLevel)
+    {
+        if (_applicationVolumeService is null)
+        {
+            return;
+        }
+
+        float? previousLevel = _lastCloudMusicVolumeLevel;
+        ApplicationVolumeAdjustmentResult result =
+            _applicationVolumeService.TrySetLevel(requestedLevel);
+        if (result.Status is ApplicationVolumeAdjustmentStatus.Succeeded or
+            ApplicationVolumeAdjustmentStatus.AtLimit)
+        {
+            UpdateCloudMusicVolumeDisplay(result.Snapshot);
+            ShowFeedbackBubble($"🔊 网易云音量 {result.Snapshot.Percentage}%");
+            if (result.Status == ApplicationVolumeAdjustmentStatus.Succeeded &&
+                previousLevel is float previous &&
+                Math.Abs(result.Snapshot.Level - previous) >= 0.0005f)
+            {
+                StartOrMergeVolumeReaction(
+                    result.Snapshot.Level > previous
+                        ? SystemVolumeChangeKind.Increased
+                        : SystemVolumeChangeKind.Decreased);
+            }
+            return;
+        }
+
+        string message = result.Status switch
+        {
+            ApplicationVolumeAdjustmentStatus.TargetSessionMissing =>
+                "网易云当前没有可调节的播放会话",
+            ApplicationVolumeAdjustmentStatus.ProtectedApplicationForeground =>
+                "游戏安全模式：没有调整网易云音量",
+            ApplicationVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
+                "暂时无法确认前台程序，没有调整音量",
+            _ => "暂时无法调整网易云独立音量",
+        };
+        ShowFeedbackBubble(message);
+        RefreshCloudMusicVolumeControl();
+    }
+
+    private void RefreshCloudMusicVolumeControl()
+    {
+        ApplicationVolumeSnapshot snapshot =
+            _applicationVolumeService?.Read() ?? ApplicationVolumeSnapshot.Unavailable;
+        UpdateCloudMusicVolumeDisplay(snapshot);
+    }
+
+    private void UpdateCloudMusicVolumeDisplay(ApplicationVolumeSnapshot snapshot)
+    {
+        bool available = snapshot.IsAvailable;
+        CloudMusicVolumeSlider.Opacity = available ? 1 : 0.48;
+        CloudMusicVolumeSlider.ToolTip = available
+            ? $"网易云独立音量 {snapshot.Percentage}% · 左右滑动调整"
+            : "网易云开始播放后可左右滑动调整独立音量";
+        _isUpdatingCloudMusicVolumeSlider = true;
+        CloudMusicVolumeSlider.Value = available ? snapshot.Percentage : 0;
+        _isUpdatingCloudMusicVolumeSlider = false;
+        System.Windows.Automation.AutomationProperties.SetName(
+            CloudMusicVolumeSlider,
+            available ? $"网易云独立音量 {snapshot.Percentage}%" : "网易云独立音量不可用");
+        _lastCloudMusicVolumeLevel = available ? snapshot.Level : null;
+    }
 
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
@@ -2333,6 +2608,7 @@ public partial class MainWindow : Window
 
         if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
         {
+            RefreshCloudMusicVolumeControl();
             _mediaControlsHideTimer.Stop();
             _mediaControlsMotion.Show();
         }
@@ -2346,6 +2622,15 @@ public partial class MainWindow : Window
             }
 
             _ = RefreshTrackInfoAsync(showWhenFound: true);
+        }
+    }
+
+    private void OnEdgeDockHandleMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            RevealEdgeDock();
+            e.Handled = true;
         }
     }
 
@@ -2442,6 +2727,10 @@ public partial class MainWindow : Window
 
     private async void OnTrackInfoRefreshTimerTick(object? sender, EventArgs e)
     {
+        if (IsMouseOver && !_isCloudMusicVolumeDragging)
+        {
+            RefreshCloudMusicVolumeControl();
+        }
         await RefreshTrackInfoAsync(showWhenFound: false);
     }
 
@@ -2761,6 +3050,8 @@ public partial class MainWindow : Window
     private void OnClosed(object? sender, EventArgs e)
     {
         _isClosing = true;
+        _trayIcon?.Dispose();
+        _trayIcon = null;
         _trackSwitchCancellation?.Cancel();
         _trackSwitchCancellation?.Dispose();
         _musicDetectionTimer.Stop();
@@ -2824,6 +3115,7 @@ public partial class MainWindow : Window
             }
             _systemVolumeService.Dispose();
         }
+        _applicationVolumeService?.Dispose();
         if (!_persistSettings)
         {
             return;
@@ -2838,7 +3130,8 @@ public partial class MainWindow : Window
         {
             Window = _settings.Window with
             {
-                AlwaysOnTop = TopmostMenuItem.IsChecked,
+                AlwaysOnTop = _permanentTopmost,
+                StartWithWindows = _startupRegistrationService?.IsEnabled ?? false,
                 Left = Left,
                 Top = Top,
             },
@@ -2852,6 +3145,39 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             _logger.Error("window.state_save_failed", exception);
+        }
+    }
+
+    private async Task BeginEdgeDockPreviewAsync(EdgeDockSide side)
+    {
+        await Task.Delay(500);
+        if (_isClosing)
+        {
+            return;
+        }
+
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        switch (side)
+        {
+            case EdgeDockSide.Left:
+                Left = workArea.Left;
+                break;
+            case EdgeDockSide.Right:
+                Left = workArea.Right - ActualWidth;
+                break;
+            case EdgeDockSide.Bottom:
+                Top = workArea.Bottom - ActualHeight;
+                break;
+            default:
+                return;
+        }
+
+        BeginWindowDrag();
+        UpdateDragEdgePreview();
+        await Task.Delay(900);
+        if (!_isClosing)
+        {
+            EndWindowDrag();
         }
     }
 

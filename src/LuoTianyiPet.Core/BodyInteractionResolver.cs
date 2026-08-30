@@ -21,16 +21,26 @@ public sealed class BodyInteractionResolver
     public const string GuiltyAnimation = "resonance-guilty";
     public const string DarkAnimation = "resonance-dark";
     public const string OopsAnimation = "tenth-anniversary-oops-shake";
-    public const string OrdinaryBodyAnimation = "twelfth-anniversary-hug";
+    public static IReadOnlyList<string> OrdinaryBodyAnimations { get; } =
+    [
+        "twelfth-anniversary-hug",
+        "tenth-anniversary-spin-dance",
+        "ninth-anniversary-thumbup",
+        "eighth-anniversary-thumbup",
+        "resonance-my-pick",
+        "resonance-so-good",
+    ];
 
     private static readonly TimeSpan SensitiveRepeatWindow = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan SensitiveCooldown = TimeSpan.FromSeconds(10);
     private DateTimeOffset? _sensitiveRepeatUntil;
     private DateTimeOffset? _sensitiveCooldownUntil;
+    private readonly Func<int, int> _selectIndex;
+    private int? _lastOrdinaryIndex;
 
     public BodyInteractionResolver(Func<int, int>? selectIndex = null)
     {
-        _ = selectIndex;
+        _selectIndex = selectIndex ?? Random.Shared.Next;
     }
 
     public BodyInteractionDecision Resolve(BodyRegionId region, DateTimeOffset now) => region switch
@@ -42,11 +52,29 @@ public sealed class BodyInteractionResolver
         BodyRegionId.Chest or BodyRegionId.LowerBodySensitiveArea => ResolveSensitiveRegion(now),
         BodyRegionId.LeftFoot or BodyRegionId.RightFoot => Play(OopsAnimation),
         BodyRegionId.HeadAndHair => new(BodyInteractionDecisionKind.PettingGestureRequired),
-        BodyRegionId.OtherBody => Play(OrdinaryBodyAnimation),
+        BodyRegionId.OtherBody => ResolveOrdinaryBody(),
         _ => throw new ArgumentOutOfRangeException(nameof(region)),
     };
 
     public BodyInteractionDecision ResolvePetting() => Play(HeadPatAnimation);
+
+    private BodyInteractionDecision ResolveOrdinaryBody()
+    {
+        int selectableCount = OrdinaryBodyAnimations.Count - (_lastOrdinaryIndex.HasValue ? 1 : 0);
+        int selected = _selectIndex(selectableCount);
+        if (selected < 0 || selected >= selectableCount)
+        {
+            throw new InvalidOperationException("The ordinary body animation selector returned an invalid index.");
+        }
+
+        if (_lastOrdinaryIndex is int previous && selected >= previous)
+        {
+            selected++;
+        }
+
+        _lastOrdinaryIndex = selected;
+        return Play(OrdinaryBodyAnimations[selected]);
+    }
 
     private BodyInteractionDecision ResolveSensitiveRegion(DateTimeOffset now)
     {

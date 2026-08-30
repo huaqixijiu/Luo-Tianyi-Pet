@@ -57,8 +57,8 @@
       "id": "official-v4-chibi-full-body-idle",
       "source": "候选素材_官方/04_官方模型派生动画/洛天依V4公式服Q版_完整全身待机.webp",
       "atlas": "assets/animations/runtime/official-v4-chibi-full-body-idle.atlas.png",
-      "displayWidth": 240,
-      "displayHeight": 260,
+      "displayWidth": 220,
+      "displayHeight": 238,
       "loopCount": 0,
       "anchorX": 0.5,
       "anchorY": 1.0
@@ -121,6 +121,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
+      "durationScale": 1.25,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -141,6 +142,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
+      "durationScale": 1.2,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -162,6 +164,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
+      "durationScale": 1.25,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -172,6 +175,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
+      "durationScale": 1.25,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -330,6 +334,7 @@
       "displayWidth": 190,
       "displayHeight": 190,
       "loopCount": 1,
+      "durationScale": 1.4,
       "maximumFrames": 16,
       "resizeWidth": 240,
       "resizeHeight": 240,
@@ -343,6 +348,7 @@
       "displayWidth": 190,
       "displayHeight": 190,
       "loopCount": 1,
+      "durationScale": 1.4,
       "maximumFrames": 20,
       "resizeWidth": 240,
       "resizeHeight": 240,

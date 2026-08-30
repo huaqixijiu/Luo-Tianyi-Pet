@@ -27,4 +27,21 @@ public sealed class EdgeDockResolverTests
             EdgeDockSide.None,
             EdgeDockResolver.Resolve(new DesktopRectangle(800, 400, 200, 200), WorkArea, 18));
     }
+
+    [Theory]
+    [InlineData(-40, 300, EdgeDockSide.Left)]
+    [InlineData(1800, 300, EdgeDockSide.Right)]
+    [InlineData(800, 900, EdgeDockSide.Bottom)]
+    public void CrossingAWorkAreaEdgeStillDocks(
+        double left,
+        double top,
+        EdgeDockSide expected)
+    {
+        Assert.Equal(
+            expected,
+            EdgeDockResolver.Resolve(
+                new DesktopRectangle(left, top, 200, 200),
+                WorkArea,
+                18));
+    }
 }

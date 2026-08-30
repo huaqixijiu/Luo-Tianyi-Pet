@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="洛天依桌宠设置"
         Width="430"
+        MaxHeight="760"
         SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -38,8 +39,11 @@
         </Style>
     </Window.Resources>
 
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="22">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -48,11 +52,11 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,2,16">
-            <TextBlock FontSize="23" FontWeight="Bold" Text="声音与反馈" />
+            <TextBlock FontSize="23" FontWeight="Bold" Text="洛天依桌宠设置" />
             <TextBlock Margin="0,5,0,0"
                        Foreground="#B3174E68"
                        FontSize="12"
-                       Text="调整 Windows 系统音量，以及桌宠对音量变化的响应方式。" />
+                       Text="管理声音反馈、桌面行为和消息提醒。" />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource SettingCardStyle}">
@@ -140,6 +144,26 @@
 
         <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
+                <TextBlock Margin="0,0,0,5"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="桌面行为" />
+                <CheckBox x:Name="StartWithWindowsCheckBox"
+                          AutomationProperties.Name="登录 Windows 后自动启动洛天依桌宠"
+                          Content="登录 Windows 后自动启动桌宠" />
+                <CheckBox x:Name="AlwaysOnTopCheckBox"
+                          AutomationProperties.Name="桌宠始终置顶"
+                          Content="桌宠始终置顶" />
+                <TextBlock Margin="0,4,0,0"
+                           Foreground="#A8174E68"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Text="这两项也可以直接从 Windows 右下角的洛天依托盘图标切换。" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
+            <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
                            Text="QQ / 微信消息提醒" />
@@ -175,7 +199,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="4" Margin="2,2,2,0">
+        <Grid Grid.Row="5" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -194,4 +218,5 @@
                     Content="保存并关闭" />
         </Grid>
     </Grid>
+    </ScrollViewer>
 </Window>

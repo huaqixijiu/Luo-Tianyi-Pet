@@ -11,6 +11,7 @@ public sealed class AppSettingsTests
 
         Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
         Assert.False(settings.Window.AlwaysOnTop);
+        Assert.False(settings.Window.StartWithWindows);
         Assert.Null(settings.Window.Left);
         Assert.Null(settings.Window.Top);
         Assert.True(settings.Media.EnableCloudMusicDetection);
@@ -26,7 +27,7 @@ public sealed class AppSettingsTests
         Assert.True(settings.Volume.EnableMouseWheelControl);
         Assert.True(settings.Volume.EnableExternalChangeFeedback);
         Assert.Equal(2, settings.Volume.MouseWheelStepPercent);
-        Assert.Equal(500, settings.Volume.MergeChangesWithinMilliseconds);
+        Assert.Equal(1800, settings.Volume.MergeChangesWithinMilliseconds);
         Assert.Equal(2000, settings.Volume.AnimationCooldownMilliseconds);
         Assert.Equal(250, settings.Volume.ExternalPollIntervalMilliseconds);
         Assert.True(settings.Genshin.EnableIntegration);

@@ -29,9 +29,9 @@ public static class EdgeDockResolver
 
         (EdgeDockSide Side, double Distance)[] candidates =
         [
-            (EdgeDockSide.Left, Math.Abs(window.Left - workArea.Left)),
-            (EdgeDockSide.Right, Math.Abs(window.Right - workArea.Right)),
-            (EdgeDockSide.Bottom, Math.Abs(window.Bottom - workArea.Bottom)),
+            (EdgeDockSide.Left, Math.Max(0, window.Left - workArea.Left)),
+            (EdgeDockSide.Right, Math.Max(0, workArea.Right - window.Right)),
+            (EdgeDockSide.Bottom, Math.Max(0, workArea.Bottom - window.Bottom)),
         ];
         (EdgeDockSide side, double distance) = candidates.MinBy(candidate => candidate.Distance);
         return distance <= threshold ? side : EdgeDockSide.None;

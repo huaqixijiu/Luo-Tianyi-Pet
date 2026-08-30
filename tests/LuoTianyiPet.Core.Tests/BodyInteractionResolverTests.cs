@@ -66,12 +66,24 @@ public sealed class BodyInteractionResolverTests
     }
 
     [Fact]
-    public void OrdinaryBodyUsesConfirmedHugAnimation()
+    public void OrdinaryBodyUsesPoolWithoutImmediateRepeat()
     {
-        BodyInteractionResolver resolver = new();
+        BodyInteractionResolver resolver = new(_ => 0);
 
         Assert.Equal(
-            BodyInteractionResolver.OrdinaryBodyAnimation,
+            BodyInteractionResolver.OrdinaryBodyAnimations[0],
             resolver.Resolve(BodyRegionId.OtherBody, Now).AnimationId);
+        Assert.Equal(
+            BodyInteractionResolver.OrdinaryBodyAnimations[1],
+            resolver.Resolve(BodyRegionId.OtherBody, Now).AnimationId);
+    }
+
+    [Fact]
+    public void OrdinaryBodyRejectsInvalidRandomIndex()
+    {
+        BodyInteractionResolver resolver = new(count => count);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            resolver.Resolve(BodyRegionId.OtherBody, Now));
     }
 }

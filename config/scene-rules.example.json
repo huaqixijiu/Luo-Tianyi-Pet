@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "window": {
     "userTopmostDefault": false,
+    "startWithWindowsDefault": false,
+    "settingsEntryPoint": "windows-system-tray",
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true
   },
@@ -72,6 +74,7 @@
     "controlMethods": [
       "pet-mouse-wheel",
       "settings-window-slider",
+      "cloudmusic-session-horizontal-slider",
       "external-system-volume-events"
     ],
     "increaseAnimation": "resonance-voice",
@@ -84,7 +87,7 @@
     "unmuteAnimation": null,
     "mouseWheelStepPercent": 2,
     "externalSystemVolumePollIntervalMilliseconds": 250,
-    "mergeChangesWithinMilliseconds": 500,
+    "mergeChangesWithinMilliseconds": 1800,
     "cooldownMilliseconds": 2000,
     "showPercentageBubble": true
   },
@@ -131,7 +134,8 @@
       "buttons": [
         "previousTrack",
         "togglePlayPause",
-        "nextTrack"
+        "nextTrack",
+        "cloudMusicSessionVolume"
       ],
       "showCurrentShortcutInTooltip": true
     },
@@ -227,8 +231,10 @@
           "hair",
           "top-of-head"
         ],
-        "gesture": "hold-and-stroke",
-        "minimumDurationMilliseconds": 600,
+        "gesture": "short-click-or-hold-and-stroke",
+        "minimumDurationMilliseconds": 350,
+        "minimumStrokeDistanceDips": 24,
+        "minimumDirectionChanges": 1,
         "animation": "guoyue-headpat",
         "loopCount": 1
       },
@@ -263,7 +269,15 @@
       },
       "ordinaryBody": {
         "matchWhenNoSmallerRegionMatches": true,
-        "animation": "twelfth-anniversary-hug",
+        "selectionMode": "random-without-immediate-repeat",
+        "animations": [
+          "twelfth-anniversary-hug",
+          "tenth-anniversary-spin-dance",
+          "ninth-anniversary-thumbup",
+          "eighth-anniversary-thumbup",
+          "resonance-my-pick",
+          "resonance-so-good"
+        ],
         "loopCount": 1
       }
     },
@@ -293,6 +307,8 @@
       "snapThresholdDips": 18,
       "visibleTriggerStripDips": 12,
       "supportedEdges": ["left", "right", "bottom"],
+      "previewAnimationImmediatelyWhileDraggingAtEdge": true,
+      "visibleWallHandle": true,
       "left": {
         "animation": "twelfth-anniversary-peek",
         "mirrorHorizontally": true

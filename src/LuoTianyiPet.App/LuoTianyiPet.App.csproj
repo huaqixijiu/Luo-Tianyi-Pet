@@ -19,6 +19,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>LuoTianyiPet</AssemblyName>
     <RootNamespace>LuoTianyiPet.App</RootNamespace>
