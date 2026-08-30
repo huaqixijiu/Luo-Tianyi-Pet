@@ -35,13 +35,16 @@ public partial class MainWindow : Window
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
+    private readonly DispatcherTimer _feedbackBubbleTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
+    private readonly IMediaCommandSender _mediaCommandSender;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly string _musicTargetProcessName;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
     private readonly bool _previewBodyHitDebug;
     private readonly bool _previewDragCycle;
+    private readonly bool _previewShortcutMenu;
     private readonly string? _previewBodyReaction;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
@@ -61,11 +64,13 @@ public partial class MainWindow : Window
         IAppLogger logger,
         AnimationCatalog? animationCatalog,
         IAudioSessionProbe? audioSessionProbe,
+        IMediaCommandSender mediaCommandSender,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
         bool previewBodyHitDebug,
         bool previewDragCycle,
+        bool previewShortcutMenu,
         string? previewBodyReaction,
         bool showQaTaskbar)
     {
@@ -74,6 +79,7 @@ public partial class MainWindow : Window
         _logger = logger;
         _animationCatalog = animationCatalog;
         _audioSessionProbe = audioSessionProbe;
+        _mediaCommandSender = mediaCommandSender;
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -92,6 +98,7 @@ public partial class MainWindow : Window
         _previewMusicTransition = previewMusicTransition;
         _previewBodyHitDebug = previewBodyHitDebug;
         _previewDragCycle = previewDragCycle;
+        _previewShortcutMenu = previewShortcutMenu;
         _previewBodyReaction = previewBodyReaction;
         InitializeComponent();
         _visualSwapTransition = new VisualSwapTransition(
@@ -114,6 +121,11 @@ public partial class MainWindow : Window
                     : MediaPreferences.DefaultPollIntervalMilliseconds),
         };
         _musicDetectionTimer.Tick += OnMusicDetectionTimerTick;
+        _feedbackBubbleTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(2.4),
+        };
+        _feedbackBubbleTimer.Tick += OnFeedbackBubbleTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -127,6 +139,10 @@ public partial class MainWindow : Window
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
         BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
+        MediaCommandMenuItem.IsEnabled = _settings.Media.EnableCloudMusicShortcutControl;
+        PreviousTrackMenuItem.Header = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
+        TogglePlayPauseMenuItem.Header = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
+        NextTrackMenuItem.Header = $"下一首（{_settings.Media.NextTrackShortcut}）";
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -160,6 +176,11 @@ public partial class MainWindow : Window
         if (_previewBodyReaction is not null)
         {
             _ = BeginPreviewBodyReactionAsync(_previewBodyReaction);
+        }
+
+        if (_previewShortcutMenu)
+        {
+            _ = BeginShortcutMenuPreviewAsync();
         }
     }
 
@@ -858,6 +879,54 @@ public partial class MainWindow : Window
         _logger.Info("window.topmost_changed", Topmost ? "Enabled." : "Disabled.");
     }
 
+    private void OnPreviousTrackClick(object sender, RoutedEventArgs e) =>
+        TrySendMediaCommand(MediaCommand.PreviousTrack);
+
+    private void OnTogglePlayPauseClick(object sender, RoutedEventArgs e) =>
+        TrySendMediaCommand(MediaCommand.TogglePlayPause);
+
+    private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
+        TrySendMediaCommand(MediaCommand.NextTrack);
+
+    private void TrySendMediaCommand(MediaCommand command)
+    {
+        MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
+        _logger.Info("media.command_result", $"Command={command}; Status={result.Status}.");
+
+        string message = result.Status switch
+        {
+            MediaCommandSendStatus.Sent => "快捷键已发送，等待播放器响应",
+            MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
+            MediaCommandSendStatus.InvalidShortcut => "快捷键设置无效，请检查配置",
+            MediaCommandSendStatus.ProtectedApplicationForeground => "游戏安全模式：这次没有发送快捷键",
+            MediaCommandSendStatus.ForegroundCheckUnavailable => "暂时无法确认前台程序，请稍后再试",
+            MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
+            MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
+            MediaCommandSendStatus.SystemRejected => "系统没有接受快捷键，请再试一次",
+            _ => "没有发送快捷键",
+        };
+        ShowFeedbackBubble(message);
+
+        if (!result.WasSent && result.Status is not MediaCommandSendStatus.RateLimited)
+        {
+            _ = PlayBodyReactionAsync("resonance-cry-shake");
+        }
+    }
+
+    private void ShowFeedbackBubble(string message)
+    {
+        FeedbackBubbleText.Text = message;
+        FeedbackBubble.Visibility = Visibility.Visible;
+        _feedbackBubbleTimer.Stop();
+        _feedbackBubbleTimer.Start();
+    }
+
+    private void OnFeedbackBubbleTimerTick(object? sender, EventArgs e)
+    {
+        _feedbackBubbleTimer.Stop();
+        FeedbackBubble.Visibility = Visibility.Collapsed;
+    }
+
     private async void OnExitClick(object sender, RoutedEventArgs e)
     {
         await BeginUserRequestedExitAsync();
@@ -905,6 +974,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task BeginShortcutMenuPreviewAsync()
+    {
+        await Task.Delay(500);
+        if (_isClosing)
+        {
+            return;
+        }
+
+        Rect workArea = SystemParameters.WorkArea;
+        Top = Clamp(Top + 300, workArea.Top, workArea.Bottom - ActualHeight);
+        _feedbackBubbleTimer.Interval = TimeSpan.FromSeconds(10);
+        ShowFeedbackBubble("游戏安全模式：这次没有发送快捷键");
+        if (Root.ContextMenu is not null)
+        {
+            Root.ContextMenu.PlacementTarget = Root;
+            Root.ContextMenu.IsOpen = true;
+            await Task.Delay(100);
+            MediaCommandMenuItem.IsSubmenuOpen = true;
+            await Task.Delay(2000);
+            MediaCommandMenuItem.IsSubmenuOpen = false;
+            Root.ContextMenu.IsOpen = false;
+        }
+    }
+
     private async Task BeginUserRequestedExitAsync()
     {
         if (_isClosing)
@@ -931,6 +1024,8 @@ public partial class MainWindow : Window
     {
         _musicDetectionTimer.Stop();
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
+        _feedbackBubbleTimer.Stop();
+        _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();

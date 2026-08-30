@@ -48,6 +48,7 @@ public sealed class JsonSettingsStore : ISettingsStore
     {
         Window = settings.Window ?? new WindowPreferences(),
         Media = settings.Media ?? new MediaPreferences(),
+        Safety = settings.Safety ?? new SafetyPreferences(),
     };
 
     private static AppSettings MigrateFromPreviousVersion(
@@ -68,6 +69,7 @@ public sealed class JsonSettingsStore : ISettingsStore
             SchemaVersion = AppSettings.CurrentSchemaVersion,
             Window = settings.Window ?? new WindowPreferences(),
             Media = media,
+            Safety = settings.Safety ?? new SafetyPreferences(),
         };
     }
 

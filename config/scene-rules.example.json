@@ -80,6 +80,15 @@
     "silenceGraceMilliseconds": 1000,
     "preserveLastStateWhenProbeTemporarilyUnavailable": true,
     "disableCommandsInSafeGameMode": true,
+    "globalShortcuts": {
+      "enabled": true,
+      "previousTrack": "Ctrl+Alt+Left",
+      "togglePlayPause": "Ctrl+Alt+P",
+      "nextTrack": "Ctrl+Alt+Right",
+      "minimumIntervalMilliseconds": 350,
+      "rejectWhenRelevantKeyIsAlreadyDown": true,
+      "reportSentSeparatelyFromConfirmedSuccess": true
+    },
     "playingAnimations": {
       "selectionMode": "random-per-playing-session",
       "selectAgainAfterPause": true,

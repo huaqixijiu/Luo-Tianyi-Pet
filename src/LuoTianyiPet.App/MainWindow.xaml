@@ -90,6 +90,26 @@
             </Ellipse.RenderTransform>
         </Ellipse>
 
+        <Border x:Name="FeedbackBubble"
+                Panel.ZIndex="4"
+                MaxWidth="240"
+                Margin="6"
+                Padding="9,6"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="#EC07363B"
+                BorderBrush="#E86BE7E9"
+                BorderThickness="1"
+                CornerRadius="10"
+                IsHitTestVisible="False"
+                Visibility="Collapsed">
+            <TextBlock x:Name="FeedbackBubbleText"
+                       Foreground="White"
+                       FontSize="12"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
+        </Border>
+
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem x:Name="FullBodyModeMenuItem"
@@ -103,6 +123,15 @@
                               Header="显示身体区域调试层"
                               IsCheckable="True"
                               Click="OnToggleBodyHitDebug" />
+                </MenuItem>
+                <Separator />
+                <MenuItem x:Name="MediaCommandMenuItem" Header="网易云音乐">
+                    <MenuItem x:Name="PreviousTrackMenuItem"
+                              Click="OnPreviousTrackClick" />
+                    <MenuItem x:Name="TogglePlayPauseMenuItem"
+                              Click="OnTogglePlayPauseClick" />
+                    <MenuItem x:Name="NextTrackMenuItem"
+                              Click="OnNextTrackClick" />
                 </MenuItem>
                 <Separator />
                 <MenuItem x:Name="TopmostMenuItem"

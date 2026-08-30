@@ -9,6 +9,8 @@ public sealed record AppSettings
     public WindowPreferences Window { get; init; } = new();
 
     public MediaPreferences Media { get; init; } = new();
+
+    public SafetyPreferences Safety { get; init; } = new();
 }
 
 public sealed record WindowPreferences
@@ -35,4 +37,20 @@ public sealed record MediaPreferences
     public int SilenceGraceMilliseconds { get; init; } = DefaultSilenceGraceMilliseconds;
 
     public float AudiblePeakThreshold { get; init; } = DefaultAudiblePeakThreshold;
+
+    public bool EnableCloudMusicShortcutControl { get; init; } = true;
+
+    public string PreviousTrackShortcut { get; init; } = "Ctrl+Alt+Left";
+
+    public string TogglePlayPauseShortcut { get; init; } = "Ctrl+Alt+P";
+
+    public string NextTrackShortcut { get; init; } = "Ctrl+Alt+Right";
+
+    public int CommandCooldownMilliseconds { get; init; } = 350;
+}
+
+public sealed record SafetyPreferences
+{
+    public string ProtectedForegroundProcessNames { get; init; } =
+        "YuanShen.exe;GenshinImpact.exe";
 }

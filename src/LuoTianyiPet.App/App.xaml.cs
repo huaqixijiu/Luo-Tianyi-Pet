@@ -19,7 +19,11 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        _singleInstance = SingleInstanceGuard.Acquire(ApplicationId);
+        bool isPreviewOrQaRun = e.Args.Any(argument =>
+            argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
+            argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
+        string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
+        _singleInstance = SingleInstanceGuard.Acquire(instanceId);
         if (!_singleInstance.IsPrimaryInstance)
         {
             Shutdown();
@@ -53,30 +57,36 @@ public partial class App : Application
             bool previewDragCycle = e.Args.Contains(
                 "--preview-drag-cycle",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewShortcutMenu = e.Args.Contains(
+                "--qa-shortcut-menu",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
                     StringComparison.OrdinalIgnoreCase))?
                 .Split('=', 2)[1];
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
-            bool isPreviewOrQaRun = e.Args.Any(argument =>
-                argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
-                argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
             IAudioSessionProbe? audioSessionProbe = settings.Media.EnableCloudMusicDetection &&
                 !isPreviewOrQaRun
                     ? new CoreAudioSessionProbe()
                     : null;
+            IMediaCommandSender mediaCommandSender = new WindowsMediaCommandSender(
+                new Win32ShortcutInputBackend(),
+                settings.Media,
+                settings.Safety);
             MainWindow window = new(
                 settings,
                 settingsStore,
                 _logger,
                 animationCatalog,
                 audioSessionProbe,
+                mediaCommandSender,
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
                 previewBodyHitDebug,
                 previewDragCycle,
+                previewShortcutMenu,
                 previewBodyReaction,
                 showQaTaskbar);
             MainWindow = window;
