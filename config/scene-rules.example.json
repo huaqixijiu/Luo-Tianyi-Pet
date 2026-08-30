@@ -77,7 +77,7 @@
     "detectAudioWithCoreAudio": true,
     "pollIntervalMilliseconds": 250,
     "audiblePeakThreshold": 0.001,
-    "silenceGraceMilliseconds": 1500,
+    "silenceGraceMilliseconds": 500,
     "preserveLastStateWhenProbeTemporarilyUnavailable": true,
     "disableCommandsInSafeGameMode": true,
     "playingAnimations": {

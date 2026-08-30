@@ -29,19 +29,43 @@ public sealed class JsonSettingsStore : ISettingsStore
         {
             string json = await File.ReadAllTextAsync(_paths.SettingsFile, cancellationToken).ConfigureAwait(false);
             AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions);
-            return settings is { SchemaVersion: AppSettings.CurrentSchemaVersion }
-                ? settings with
-                {
-                    Window = settings.Window ?? new WindowPreferences(),
-                    Media = settings.Media ?? new MediaPreferences(),
-                }
-                : new AppSettings();
+            return settings?.SchemaVersion switch
+            {
+                AppSettings.CurrentSchemaVersion => Normalize(settings),
+                1 => MigrateFromVersion1(settings),
+                _ => new AppSettings(),
+            };
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
             TryPreserveCorruptSettings();
             return new AppSettings();
         }
+    }
+
+    private static AppSettings Normalize(AppSettings settings) => settings with
+    {
+        Window = settings.Window ?? new WindowPreferences(),
+        Media = settings.Media ?? new MediaPreferences(),
+    };
+
+    private static AppSettings MigrateFromVersion1(AppSettings settings)
+    {
+        MediaPreferences media = settings.Media ?? new MediaPreferences();
+        if (media.SilenceGraceMilliseconds == 1500)
+        {
+            media = media with
+            {
+                SilenceGraceMilliseconds = MediaPreferences.DefaultSilenceGraceMilliseconds,
+            };
+        }
+
+        return settings with
+        {
+            SchemaVersion = AppSettings.CurrentSchemaVersion,
+            Window = settings.Window ?? new WindowPreferences(),
+            Media = media,
+        };
     }
 
     public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)

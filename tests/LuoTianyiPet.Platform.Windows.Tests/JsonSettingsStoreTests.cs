@@ -68,6 +68,55 @@ public sealed class JsonSettingsStoreTests
         }
     }
 
+    [Theory]
+    [InlineData(1500, 500)]
+    [InlineData(800, 800)]
+    public async Task Load_Version1Media_MigratesOnlyTheOldDefaultGracePeriod(
+        int storedGraceMilliseconds,
+        int expectedGraceMilliseconds)
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                $$"""
+                {
+                  "schemaVersion": 1,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "left": 123.5
+                  },
+                  "media": {
+                    "enableCloudMusicDetection": false,
+                    "targetProcessName": "custom-player.exe",
+                    "pollIntervalMilliseconds": 400,
+                    "silenceGraceMilliseconds": {{storedGraceMilliseconds}},
+                    "audiblePeakThreshold": 0.002
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(123.5, actual.Window.Left);
+            Assert.False(actual.Media.EnableCloudMusicDetection);
+            Assert.Equal("custom-player.exe", actual.Media.TargetProcessName);
+            Assert.Equal(400, actual.Media.PollIntervalMilliseconds);
+            Assert.Equal(expectedGraceMilliseconds, actual.Media.SilenceGraceMilliseconds);
+            Assert.Equal(0.002f, actual.Media.AudiblePeakThreshold);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task Load_WithInvalidJson_ReturnsDefaultsAndPreservesInput()
     {
