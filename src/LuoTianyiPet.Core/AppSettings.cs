@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 5;
+    public const int CurrentSchemaVersion = 6;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -14,7 +14,28 @@ public sealed record AppSettings
 
     public GenshinPreferences Genshin { get; init; } = new();
 
+    public MessageNotificationPreferences Notifications { get; init; } = new();
+
     public SafetyPreferences Safety { get; init; } = new();
+}
+
+public sealed record MessageNotificationPreferences
+{
+    public const int DefaultDuplicateWindowMilliseconds = 3000;
+
+    public bool EnableMessageReminders { get; init; } = true;
+
+    public int DuplicateWindowMilliseconds { get; init; } =
+        DefaultDuplicateWindowMilliseconds;
+
+    public string QqApplicationIdentifiers { get; init; } = "QQ;TencentQQ;Tencent.QQ";
+
+    public string WeChatApplicationIdentifiers { get; init; } =
+        "微信;WeChat;Weixin;Tencent.WeChat;Tencent.Weixin";
+
+    public string QqProcessNames { get; init; } = "QQ.exe";
+
+    public string WeChatProcessNames { get; init; } = "WeChat.exe;Weixin.exe";
 }
 
 public sealed record GenshinPreferences

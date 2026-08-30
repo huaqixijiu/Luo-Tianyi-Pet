@@ -44,6 +44,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,2,16">
@@ -137,7 +138,44 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="3" Margin="2,2,2,0">
+        <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
+            <StackPanel>
+                <TextBlock FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="QQ / 微信消息提醒" />
+                <CheckBox x:Name="MessageReminderCheckBox"
+                          AutomationProperties.Name="启用 QQ 和微信消息来源提醒"
+                          Content="收到系统通知且来源应用不在前台时提醒" />
+                <TextBlock Margin="0,4,0,10"
+                           Foreground="#A8174E68"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Text="桌宠只识别通知的应用来源和时间，不读取发送者、群名或消息正文。" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="NotificationAccessStatusText"
+                               Margin="0,0,12,0"
+                               VerticalAlignment="Center"
+                               Foreground="#C2174E68"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="正在检查 Windows 通知访问状态……" />
+                    <Button x:Name="NotificationAccessButton"
+                            Grid.Column="1"
+                            AutomationProperties.Name="授权 Windows 通知访问"
+                            MinWidth="94"
+                            Height="34"
+                            Padding="12,0"
+                            Click="OnRequestNotificationAccessClick"
+                            Content="授权访问" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private const string AwakeAnimation = "resonance-awake-pop";
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
+    private const string MessageNotificationAnimation = "codename-curious-sway";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -59,6 +60,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _trackInfoHideTimer;
     private readonly DispatcherTimer _idleSceneTimer;
     private readonly DispatcherTimer _genshinStatusTimer;
+    private readonly DispatcherTimer _messageNotificationStatusTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly ISystemVolumeService? _systemVolumeService;
@@ -67,12 +69,15 @@ public partial class MainWindow : Window
     private readonly ISystemResumeSource? _systemResumeSource;
     private readonly IProtectedGameProcessMonitor? _protectedGameMonitor;
     private readonly IForegroundApplicationProbe? _foregroundApplicationProbe;
+    private readonly IMessageNotificationSource? _messageNotificationSource;
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
     private readonly GenshinBackgroundCameoScheduler _genshinCameoScheduler = new();
     private readonly RandomPetPositionSelector _randomPetPositionSelector = new();
     private readonly ProtectedGamePresenceTracker _genshinProcessMatcher;
+    private readonly MessageProviderMatcher _messageProviderMatcher;
+    private readonly MessageNotificationCoordinator _messageNotificationCoordinator;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly SystemVolumeChangeTracker _volumeChangeTracker = new();
     private readonly string _musicTargetProcessName;
@@ -88,6 +93,7 @@ public partial class MainWindow : Window
     private readonly bool _previewLongIdle;
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
+    private readonly MessageProvider? _previewMessageNotification;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -124,6 +130,10 @@ public partial class MainWindow : Window
     private Point? _genshinCameoRestorePosition;
     private bool _pendingGenshinLaunch;
     private bool _systemSessionUnavailable;
+    private bool _messageNotificationSubscribed;
+    private Guid? _messageNotificationReactionToken;
+    private Guid? _messageNotificationTopmostToken;
+    private MessageProvider? _activeMessageProvider;
 
     public MainWindow(
         AppSettings settings,
@@ -138,6 +148,7 @@ public partial class MainWindow : Window
         ISystemResumeSource? systemResumeSource,
         IProtectedGameProcessMonitor? protectedGameMonitor,
         IForegroundApplicationProbe? foregroundApplicationProbe,
+        IMessageNotificationSource? messageNotificationSource,
         IWindowWorkAreaProvider windowWorkAreaProvider,
         PetVisualState initialVisualState,
         bool previewExit,
@@ -152,6 +163,7 @@ public partial class MainWindow : Window
         bool previewLongIdle,
         bool previewGenshinLaunch,
         bool previewGenshinCameo,
+        MessageProvider? previewMessageNotification,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -168,9 +180,16 @@ public partial class MainWindow : Window
         _systemResumeSource = systemResumeSource;
         _protectedGameMonitor = protectedGameMonitor;
         _foregroundApplicationProbe = foregroundApplicationProbe;
+        _messageNotificationSource = messageNotificationSource;
         _windowWorkAreaProvider = windowWorkAreaProvider;
         _genshinProcessMatcher = new ProtectedGamePresenceTracker(
             ParseGenshinProcessNames(settings.Genshin.ProcessNames));
+        _messageProviderMatcher = new MessageProviderMatcher(settings.Notifications);
+        _messageNotificationCoordinator = new MessageNotificationCoordinator(
+            TimeSpan.FromMilliseconds(
+                settings.Notifications.DuplicateWindowMilliseconds >= 0
+                    ? settings.Notifications.DuplicateWindowMilliseconds
+                    : MessageNotificationPreferences.DefaultDuplicateWindowMilliseconds));
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -197,6 +216,7 @@ public partial class MainWindow : Window
         _previewLongIdle = previewLongIdle;
         _previewGenshinLaunch = previewGenshinLaunch;
         _previewGenshinCameo = previewGenshinCameo;
+        _previewMessageNotification = previewMessageNotification;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -276,6 +296,11 @@ public partial class MainWindow : Window
                     : GenshinPreferences.DefaultStatusPollIntervalMilliseconds),
         };
         _genshinStatusTimer.Tick += OnGenshinStatusTimerTick;
+        _messageNotificationStatusTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1),
+        };
+        _messageNotificationStatusTimer.Tick += OnMessageNotificationStatusTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -325,6 +350,7 @@ public partial class MainWindow : Window
         }
         StartSystemResumeMonitoring();
         StartGenshinMonitoring();
+        StartMessageNotificationMonitoring();
         if (!_previewLongIdle)
         {
             _idleSceneTimer.Start();
@@ -396,6 +422,10 @@ public partial class MainWindow : Window
         if (_previewGenshinCameo)
         {
             _ = BeginGenshinCameoPreviewAsync();
+        }
+        if (_previewMessageNotification is MessageProvider provider)
+        {
+            _ = BeginMessageNotificationPreviewAsync(provider);
         }
     }
 
@@ -477,6 +507,8 @@ public partial class MainWindow : Window
             // Do not start or restore visual playback while Windows is locking or suspending.
             // The normal resume path will resolve the correct continuous state safely.
             CancelGenshinPresentations(restoreContinuousAnimation: false);
+            _messageNotificationCoordinator.ClearPending();
+            CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
             _logger.Info("genshin.suspended", e.Reason.ToString());
         });
     }
@@ -709,6 +741,134 @@ public partial class MainWindow : Window
         }
     }
 
+    private void StartMessageNotificationMonitoring()
+    {
+        if (_messageNotificationSource is null ||
+            !_settings.Notifications.EnableMessageReminders)
+        {
+            return;
+        }
+
+        if (!_messageNotificationSubscribed)
+        {
+            _messageNotificationSource.NotificationReceived += OnMessageNotificationReceived;
+            _messageNotificationSubscribed = true;
+        }
+        _messageNotificationSource.Start();
+        _messageNotificationStatusTimer.Start();
+        _logger.Info(
+            "notification.monitor_status",
+            _messageNotificationSource.GetAccessStatus().ToString());
+    }
+
+    private void OnMessageNotificationReceived(
+        object? sender,
+        MessageNotificationReceivedEventArgs e) =>
+        Dispatcher.BeginInvoke(() => HandleMessageNotification(e));
+
+    private void HandleMessageNotification(MessageNotificationReceivedEventArgs e)
+    {
+        if (_isClosing || !_settings.Notifications.EnableMessageReminders)
+        {
+            return;
+        }
+
+        ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe?.Query() ??
+            new ForegroundApplicationSnapshot(false, null, false);
+        bool sourceIsForeground = foreground.Succeeded &&
+            _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
+        bool canShow = IsMessageNotificationDisplaySafe(foreground);
+        MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
+            e.Provider,
+            e.OccurredAt,
+            sourceIsForeground,
+            canShow);
+        _logger.Info("notification.signal_processed", decision.ToString());
+        if (decision == MessageNotificationDecision.Show)
+        {
+            _ = BeginMessageNotificationAsync(e.Provider, e.OccurredAt);
+        }
+    }
+
+    private void OnMessageNotificationStatusTimerTick(object? sender, EventArgs e)
+    {
+        if (_isClosing || _foregroundApplicationProbe is null)
+        {
+            return;
+        }
+
+        ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
+        if (!IsMessageNotificationDisplaySafe(foreground))
+        {
+            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
+            return;
+        }
+
+        if (_activeMessageProvider is MessageProvider activeProvider &&
+            _messageProviderMatcher.IsForegroundProcess(activeProvider, foreground.ProcessName))
+        {
+            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
+            return;
+        }
+
+        if (_messageNotificationReactionToken is null &&
+            _messageNotificationCoordinator.TryTakePending(
+                provider => _messageProviderMatcher.IsForegroundProcess(
+                    provider,
+                    foreground.ProcessName),
+                out MessageProvider pendingProvider))
+        {
+            _ = BeginMessageNotificationAsync(pendingProvider, DateTimeOffset.Now);
+        }
+    }
+
+    private bool IsMessageNotificationDisplaySafe(ForegroundApplicationSnapshot foreground) =>
+        foreground.Succeeded &&
+        !foreground.IsFullscreen &&
+        !_systemSessionUnavailable &&
+        _edgeDockSide == EdgeDockSide.None &&
+        !_isWindowDragging &&
+        _stateMachine.VisualState.ContinuousState is not
+            (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety) &&
+        _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous;
+
+    private async Task BeginMessageNotificationAsync(
+        MessageProvider provider,
+        DateTimeOffset occurredAt)
+    {
+        if (_isClosing || _messageNotificationReactionToken is not null)
+        {
+            _messageNotificationCoordinator.QueuePending(provider, occurredAt);
+            return;
+        }
+
+        Guid topmostToken = AcquireTransientTopmost();
+        Guid? reactionToken = await PlayReactionAsync(
+            MessageNotificationAnimation,
+            ReactionPriority.Notification);
+        if (reactionToken is not Guid token)
+        {
+            ReleaseTransientTopmost(topmostToken);
+            _messageNotificationCoordinator.QueuePending(provider, occurredAt);
+            return;
+        }
+
+        _messageNotificationReactionToken = token;
+        _messageNotificationTopmostToken = topmostToken;
+        _activeMessageProvider = provider;
+        ShowFeedbackBubble($"{MessageProviderMatcher.GetDisplayName(provider)} 有新消息");
+        _logger.Info("notification.reaction_started", "Source category was shown without message content.");
+    }
+
+    private async Task BeginMessageNotificationPreviewAsync(MessageProvider provider)
+    {
+        await Task.Delay(700);
+        if (!_isClosing)
+        {
+            await BeginMessageNotificationAsync(provider, DateTimeOffset.Now);
+        }
+    }
+
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left || _isClosing)
@@ -925,6 +1085,7 @@ public partial class MainWindow : Window
     {
         _singleClickTimer.Stop();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
+        CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
         if (_edgeDockSide != EdgeDockSide.None)
         {
             _edgeDockAnimationGeneration++;
@@ -1113,6 +1274,7 @@ public partial class MainWindow : Window
         if (outcome.Result == ReactionStartResult.Replaced)
         {
             CleanupReplacedGenshinPresentation();
+            CleanupReplacedMessageNotificationPresentation();
         }
 
         UpdateBodyHitDebugOverlay();
@@ -1149,6 +1311,7 @@ public partial class MainWindow : Window
             _stateMachine.SuppressBodyInteractions(now, BodyInteractionRecoveryDelay);
         }
         Point? restorePosition = FinishGenshinPresentation(token);
+        FinishMessageNotificationPresentation(token);
         _bodyReactionMotion.Cancel();
         _ = TransitionToResolvedContinuousAnimationAsync(
             "animation.body_reaction_transition_completed",
@@ -1733,6 +1896,52 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CleanupReplacedMessageNotificationPresentation()
+    {
+        if (_messageNotificationReactionToken is null)
+        {
+            return;
+        }
+
+        ReleaseTransientTopmost(_messageNotificationTopmostToken);
+        _messageNotificationReactionToken = null;
+        _messageNotificationTopmostToken = null;
+        _activeMessageProvider = null;
+    }
+
+    private void FinishMessageNotificationPresentation(Guid reactionToken)
+    {
+        if (_messageNotificationReactionToken != reactionToken)
+        {
+            return;
+        }
+
+        ReleaseTransientTopmost(_messageNotificationTopmostToken);
+        _messageNotificationReactionToken = null;
+        _messageNotificationTopmostToken = null;
+        _activeMessageProvider = null;
+        _logger.Info("notification.reaction_completed", "Transient topmost was released.");
+    }
+
+    private void CancelMessageNotificationPresentation(bool restoreContinuousAnimation)
+    {
+        bool canceledActiveReaction =
+            _messageNotificationReactionToken is Guid token &&
+            _stateMachine.ActiveReactionToken == token;
+        if (canceledActiveReaction)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+
+        CleanupReplacedMessageNotificationPresentation();
+        if (canceledActiveReaction && restoreContinuousAnimation && !_isClosing)
+        {
+            _bodyReactionMotion.Cancel();
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "notification.presentation_cancelled");
+        }
+    }
+
     private Point? FinishGenshinPresentation(Guid reactionToken)
     {
         if (_genshinLaunchReactionToken == reactionToken)
@@ -1816,13 +2025,42 @@ public partial class MainWindow : Window
             return;
         }
 
-        SettingsWindow settingsWindow = new(_settings.Volume, _systemVolumeService)
+        SettingsWindow settingsWindow = new(
+            _settings.Volume,
+            _settings.Notifications,
+            _systemVolumeService,
+            _messageNotificationSource)
         {
             Owner = this,
         };
         if (settingsWindow.ShowDialog() == true)
         {
+            ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
             ApplyVolumePreferences(settingsWindow.SelectedPreferences);
+        }
+    }
+
+    private void ApplyMessageNotificationPreferences(MessageNotificationPreferences preferences)
+    {
+        bool wasEnabled = _settings.Notifications.EnableMessageReminders;
+        _settings = _settings with { Notifications = preferences };
+        if (preferences.EnableMessageReminders)
+        {
+            StartMessageNotificationMonitoring();
+        }
+        else
+        {
+            _messageNotificationStatusTimer.Stop();
+            _messageNotificationCoordinator.ClearPending();
+            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
+            _messageNotificationSource?.Stop();
+        }
+
+        if (wasEnabled != preferences.EnableMessageReminders)
+        {
+            _logger.Info(
+                "notification.preferences_applied",
+                preferences.EnableMessageReminders ? "Enabled." : "Disabled.");
         }
     }
 
@@ -1861,7 +2099,7 @@ public partial class MainWindow : Window
         {
             _ = SaveSettingsAsync("settings.volume_saved", "Volume preferences saved.");
         }
-        ShowFeedbackBubble("声音与反馈设置已保存");
+        ShowFeedbackBubble("桌宠设置已保存");
         _logger.Info(
             "volume.preferences_applied",
             $"Wheel={preferences.EnableMouseWheelControl}; ExternalFeedback={preferences.EnableExternalChangeFeedback}; Step={preferences.MouseWheelStepPercent}.");
@@ -2506,6 +2744,8 @@ public partial class MainWindow : Window
         _idleSceneTimer.Tick -= OnIdleSceneTimerTick;
         _genshinStatusTimer.Stop();
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
+        _messageNotificationStatusTimer.Stop();
+        _messageNotificationStatusTimer.Tick -= OnMessageNotificationStatusTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
@@ -2515,6 +2755,7 @@ public partial class MainWindow : Window
         _mediaControlsMotion.Cancel();
         _trackInfoMotion.Cancel();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
+        CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         if (_systemResumeSource is not null)
@@ -2527,6 +2768,15 @@ public partial class MainWindow : Window
         {
             _protectedGameMonitor.PresenceChanged -= OnProtectedGamePresenceChanged;
             _protectedGameMonitor.Dispose();
+        }
+        if (_messageNotificationSource is not null)
+        {
+            if (_messageNotificationSubscribed)
+            {
+                _messageNotificationSource.NotificationReceived -= OnMessageNotificationReceived;
+                _messageNotificationSubscribed = false;
+            }
+            _messageNotificationSource.Dispose();
         }
         if (_systemVolumeService is not null)
         {

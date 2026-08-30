@@ -439,6 +439,20 @@
     "cancelPendingOnProcessExitLockOrSleep": true
   },
   "messageNotifications": {
+    "source": "windows-user-notification-listener",
+    "requiresPackageIdentity": true,
+    "requiresExplicitUserConsent": true,
+    "unpackagedBehavior": "unavailable-with-explanation",
+    "readFields": [
+      "app-user-model-id",
+      "application-display-name",
+      "creation-time"
+    ],
+    "neverRead": [
+      "sender",
+      "conversation",
+      "body"
+    ],
     "animation": "codename-curious-sway",
     "loopCount": 1,
     "bubbleContent": "application-name-only",

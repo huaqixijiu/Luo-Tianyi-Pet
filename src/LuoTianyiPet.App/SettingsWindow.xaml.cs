@@ -7,28 +7,38 @@ namespace LuoTianyiPet.App;
 public partial class SettingsWindow : Window
 {
     private readonly ISystemVolumeService? _systemVolumeService;
+    private readonly IMessageNotificationSource? _messageNotificationSource;
     private bool _isReady;
     private bool _isUpdatingSlider;
 
     public SettingsWindow(
         VolumePreferences preferences,
-        ISystemVolumeService? systemVolumeService)
+        MessageNotificationPreferences notificationPreferences,
+        ISystemVolumeService? systemVolumeService,
+        IMessageNotificationSource? messageNotificationSource)
     {
         ArgumentNullException.ThrowIfNull(preferences);
+        ArgumentNullException.ThrowIfNull(notificationPreferences);
         SelectedPreferences = preferences;
+        SelectedNotificationPreferences = notificationPreferences;
         _systemVolumeService = systemVolumeService;
+        _messageNotificationSource = messageNotificationSource;
         InitializeComponent();
 
         MouseWheelControlCheckBox.IsChecked = preferences.EnableMouseWheelControl;
         ExternalFeedbackCheckBox.IsChecked = preferences.EnableExternalChangeFeedback;
+        MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         SelectWheelStep(preferences.MouseWheelStepPercent);
     }
 
     public VolumePreferences SelectedPreferences { get; private set; }
 
+    public MessageNotificationPreferences SelectedNotificationPreferences { get; private set; }
+
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isReady = true;
+        UpdateNotificationAccessDisplay();
         if (_systemVolumeService is null)
         {
             VolumeSlider.IsEnabled = false;
@@ -88,6 +98,20 @@ public partial class SettingsWindow : Window
         VolumeStatusText.Text = "已恢复反馈默认值；系统当前音量没有改变。";
     }
 
+    private async void OnRequestNotificationAccessClick(object sender, RoutedEventArgs e)
+    {
+        if (_messageNotificationSource is null)
+        {
+            UpdateNotificationAccessDisplay();
+            return;
+        }
+
+        NotificationAccessButton.IsEnabled = false;
+        MessageNotificationAccessStatus status =
+            await _messageNotificationSource.RequestAccessAsync();
+        UpdateNotificationAccessDisplay(status);
+    }
+
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
         SelectedPreferences = SelectedPreferences with
@@ -96,7 +120,36 @@ public partial class SettingsWindow : Window
             EnableExternalChangeFeedback = ExternalFeedbackCheckBox.IsChecked == true,
             MouseWheelStepPercent = ReadWheelStep(),
         };
+        SelectedNotificationPreferences = SelectedNotificationPreferences with
+        {
+            EnableMessageReminders = MessageReminderCheckBox.IsChecked == true,
+        };
         DialogResult = true;
+    }
+
+    private void UpdateNotificationAccessDisplay(MessageNotificationAccessStatus? knownStatus = null)
+    {
+        MessageNotificationAccessStatus status = knownStatus ??
+            _messageNotificationSource?.GetAccessStatus() ??
+            MessageNotificationAccessStatus.Unavailable;
+        NotificationAccessStatusText.Text = status switch
+        {
+            MessageNotificationAccessStatus.Allowed =>
+                "Windows 已授权；桌宠只读取通知来源，不读取正文。",
+            MessageNotificationAccessStatus.Unspecified =>
+                "尚未授权。点击后由 Windows 显示系统权限对话框。",
+            MessageNotificationAccessStatus.Denied =>
+                "Windows 已拒绝访问；需要在系统隐私设置中手动允许。",
+            MessageNotificationAccessStatus.PackageIdentityRequired =>
+                "当前免安装版没有 MSIX 包身份；安装后续 MSIX 测试包后才能授权。",
+            _ => "当前系统暂时无法提供通知访问；其它桌宠功能不受影响。",
+        };
+        NotificationAccessButton.IsEnabled =
+            status is MessageNotificationAccessStatus.Unspecified or
+                MessageNotificationAccessStatus.Unavailable;
+        NotificationAccessButton.Content = status == MessageNotificationAccessStatus.Allowed
+            ? "已授权"
+            : "授权访问";
     }
 
     private void UpdateVolumeDisplay(

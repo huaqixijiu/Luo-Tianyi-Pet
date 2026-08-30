@@ -86,6 +86,7 @@ public partial class App : Application
             bool previewGenshinCameo = e.Args.Contains(
                 "--qa-genshin-cameo",
                 StringComparer.OrdinalIgnoreCase);
+            MessageProvider? previewMessageNotification = ParseMessageNotificationPreview(e.Args);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -121,9 +122,14 @@ public partial class App : Application
                                 : GenshinPreferences.DefaultStatusPollIntervalMilliseconds))
                     : null;
             IForegroundApplicationProbe? foregroundApplicationProbe =
-                settings.Genshin.EnableIntegration && !isPreviewOrQaRun
+                (settings.Genshin.EnableIntegration ||
+                    settings.Notifications.EnableMessageReminders) && !isPreviewOrQaRun
                     ? new WindowsForegroundApplicationProbe()
                     : null;
+            MessageProviderMatcher messageProviderMatcher = new(settings.Notifications);
+            IMessageNotificationSource? messageNotificationSource = !isPreviewOrQaRun || previewSettings
+                ? new WindowsMessageNotificationSource(messageProviderMatcher)
+                : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
@@ -137,6 +143,7 @@ public partial class App : Application
                 systemResumeSource,
                 protectedGameMonitor,
                 foregroundApplicationProbe,
+                messageNotificationSource,
                 new WindowsWindowWorkAreaProvider(),
                 initialVisualState,
                 previewExit,
@@ -151,6 +158,7 @@ public partial class App : Application
                 previewLongIdle,
                 previewGenshinLaunch,
                 previewGenshinCameo,
+                previewMessageNotification,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);
@@ -168,6 +176,21 @@ public partial class App : Application
                 MessageBoxImage.Error);
             Shutdown(-1);
         }
+    }
+
+    private static MessageProvider? ParseMessageNotificationPreview(IEnumerable<string> arguments)
+    {
+        string? value = arguments
+            .FirstOrDefault(argument => argument.StartsWith(
+                "--qa-message-notification=",
+                StringComparison.OrdinalIgnoreCase))?
+            .Split('=', 2)[1];
+        return value?.ToLowerInvariant() switch
+        {
+            "qq" => MessageProvider.Qq,
+            "wechat" or "weixin" => MessageProvider.WeChat,
+            _ => null,
+        };
     }
 
     protected override void OnExit(ExitEventArgs e)

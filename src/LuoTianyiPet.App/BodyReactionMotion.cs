@@ -49,6 +49,10 @@ internal sealed class BodyReactionMotion
         {
             PlaySleepingFloat();
         }
+        else if (animationId == "codename-curious-sway")
+        {
+            PlayCuriousSway();
+        }
     }
 
     public void Cancel()
@@ -236,6 +240,29 @@ internal sealed class BodyReactionMotion
         _translate.BeginAnimation(
             TranslateTransform.YProperty,
             floatMotion,
+            HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayCuriousSway()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames sway = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(1800),
+            FillBehavior = FillBehavior.Stop,
+        };
+        double[] offsets = [0, -5, 5, -4, 4, -2, 2, 0];
+        for (int index = 0; index < offsets.Length; index++)
+        {
+            sway.KeyFrames.Add(new EasingDoubleKeyFrame(
+                offsets[index],
+                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(index * 250)),
+                new SineEase { EasingMode = EasingMode.EaseInOut }));
+        }
+
+        _translate.BeginAnimation(
+            TranslateTransform.XProperty,
+            sway,
             HandoffBehavior.SnapshotAndReplace);
     }
 }

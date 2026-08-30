@@ -400,6 +400,17 @@
       "resizeHeight": 240,
       "anchorX": 0.5,
       "anchorY": 1.0
+    },
+    {
+      "id": "codename-curious-sway",
+      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_好奇.png",
+      "atlas": "assets/animations/runtime/codename-curious-sway.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 1800,
+      "anchorX": 0.5,
+      "anchorY": 1.0
     }
   ]
 }

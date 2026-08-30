@@ -1299,6 +1299,31 @@
         238,
         238
       ]
+    },
+    {
+      "id": "codename-curious-sway",
+      "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_好奇.png",
+      "sourceSha256": "b5d1daea9ba000f6bee7a3638cb155c506570a85e1d156148508debad150d149",
+      "atlasPath": "animations/runtime/codename-curious-sway.atlas.png",
+      "atlasSha256": "3d2220c5249367f541756ab473b58bcc37df26a2ce94107fcfe2ec61ae253651",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        1800
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        1,
+        0,
+        155,
+        162
+      ]
     }
   ]
 }

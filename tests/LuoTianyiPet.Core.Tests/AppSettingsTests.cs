@@ -33,6 +33,10 @@ public sealed class AppSettingsTests
         Assert.True(settings.Genshin.EnableIntegration);
         Assert.Equal("YuanShen.exe;GenshinImpact.exe", settings.Genshin.ProcessNames);
         Assert.Equal(2000, settings.Genshin.StatusPollIntervalMilliseconds);
+        Assert.True(settings.Notifications.EnableMessageReminders);
+        Assert.Equal(3000, settings.Notifications.DuplicateWindowMilliseconds);
+        Assert.Equal("QQ.exe", settings.Notifications.QqProcessNames);
+        Assert.Equal("WeChat.exe;Weixin.exe", settings.Notifications.WeChatProcessNames);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
             settings.Safety.ProtectedForegroundProcessNames);

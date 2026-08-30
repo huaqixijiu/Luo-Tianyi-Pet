@@ -30,6 +30,13 @@ public sealed class JsonSettingsStoreTests
                     ProcessNames = "CustomGame.exe",
                     StatusPollIntervalMilliseconds = 3000,
                 },
+                Notifications = new MessageNotificationPreferences
+                {
+                    EnableMessageReminders = false,
+                    DuplicateWindowMilliseconds = 4500,
+                    QqProcessNames = "CustomQQ.exe",
+                    WeChatProcessNames = "CustomWeChat.exe",
+                },
                 Window = new WindowPreferences
                 {
                     AlwaysOnTop = true,
@@ -74,6 +81,40 @@ public sealed class JsonSettingsStoreTests
             Assert.True(actual.Window.AlwaysOnTop);
             Assert.Equal(new MediaPreferences(), actual.Media);
             Assert.Equal(new VolumePreferences(), actual.Volume);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version5Settings_AddsNotificationDefaults()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 5,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "left": 24
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(24, actual.Window.Left);
+            Assert.Equal(new MessageNotificationPreferences(), actual.Notifications);
         }
         finally
         {
