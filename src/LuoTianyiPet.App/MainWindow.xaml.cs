@@ -15,6 +15,7 @@ public partial class MainWindow : Window
 {
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
+    private const double MediaControlsReservedHeight = 58;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private readonly ISettingsStore _settingsStore;
@@ -855,7 +856,9 @@ public partial class MainWindow : Window
             PetImage.Height = manifest.DisplayHeight;
             PetImage.Visibility = Visibility.Visible;
             FallbackSurface.Visibility = Visibility.Collapsed;
-            ResizeAroundBottomCenter(manifest.DisplayWidth + 16, manifest.DisplayHeight + 16);
+            ResizeAroundBottomCenter(
+                manifest.DisplayWidth + 16,
+                manifest.DisplayHeight + 16 + MediaControlsReservedHeight);
             UpdateBodyHitDebugOverlay();
         }
         catch (Exception exception) when (
@@ -872,7 +875,7 @@ public partial class MainWindow : Window
         PetImage.Visibility = Visibility.Collapsed;
         FallbackSurface.Visibility = Visibility.Visible;
         BodyHitDebugOverlay.Visibility = Visibility.Collapsed;
-        ResizeAroundBottomCenter(196, 196);
+        ResizeAroundBottomCenter(196, 196 + MediaControlsReservedHeight);
         _logger.Info("animation.fallback_shown", logMessage);
     }
 

@@ -83,7 +83,9 @@
     "controlSurface": {
       "presentation": "hover-overlay",
       "hideWhenPointerLeaves": true,
-      "keepPetWindowSize": true,
+      "placement": "below-animation",
+      "reservedHeightDips": 58,
+      "keepPetWindowSize": false,
       "theme": {
         "primaryColor": "#66CCFF",
         "surface": "tianyi-blue-tinted-glass",

@@ -115,7 +115,7 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(230px, 1fr) 200px auto auto;
+      grid-template-columns: minmax(230px, 1fr) 200px auto auto auto;
       gap: 10px;
       align-items: center;
       margin: 18px 0;
@@ -133,6 +133,7 @@
     }
     .quiet-button { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.04); }
     .quiet-button:hover { background: rgba(255,255,255,.08); }
+    .quiet-button[aria-pressed="true"] { border-color: var(--blue); color: #071418; background: var(--blue); }
     .primary-button { border: 1px solid rgba(99,225,220,.35); color: #031719; background: var(--cyan); }
     .primary-button:hover { background: #88eeea; }
 
@@ -160,6 +161,7 @@
     .card:hover { transform: translateY(-3px); border-color: rgba(99,225,220,.42); box-shadow: 0 22px 48px rgba(0,0,0,.30); }
     .card.chosen { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(99,225,220,.25), 0 22px 48px rgba(0,0,0,.30); }
     .card.kept { border-color: rgba(255,214,161,.72); box-shadow: 0 0 0 1px rgba(255,214,161,.18), 0 22px 48px rgba(0,0,0,.30); }
+    .card.new-item { border-color: rgba(135,185,255,.55); }
 
     .preview {
       position: relative;
@@ -186,6 +188,13 @@
       color: #082125; background: rgba(239,255,253,.88);
       font-size: 11px; font-weight: 900; backdrop-filter: blur(8px);
     }
+    .new-badge {
+      position: absolute; top: 10px; right: 10px;
+      padding: 6px 9px; border-radius: 999px;
+      color: #062032; background: #87b9ff;
+      box-shadow: 0 5px 18px rgba(12,72,122,.22);
+      font-size: 11px; font-weight: 950; letter-spacing: .04em;
+    }
 
     .card-body { padding: 15px; }
     .keep-row { display: flex; align-items: center; gap: 9px; width: max-content; margin: 0 0 11px; padding: 7px 10px; border: 1px solid rgba(255,214,161,.22); border-radius: 9px; color: var(--warm); background: rgba(255,214,161,.055); cursor: pointer; font-size: 12px; font-weight: 850; }
@@ -197,6 +206,7 @@
     .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .tag { padding: 4px 7px; border-radius: 7px; color: var(--muted); background: rgba(255,255,255,.05); font-size: 11px; }
     .tag.recommended { color: var(--warm); background: rgba(255, 205, 137, .09); }
+    .tag.new { color: #bfe0ff; background: rgba(135,185,255,.14); }
     .desc { min-height: 58px; margin: 0 0 13px; color: var(--muted); font-size: 13px; line-height: 1.55; }
 
     .assign-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 800; }
@@ -311,7 +321,7 @@
         <h1>动画挑选器</h1>
         <p class="intro">一次规划完整桌宠：查看原生动画和程序动效预演，为日常、鼠标互动、音乐和系统事件分配动作，并选择希望实现的联动场景。</p>
       </div>
-      <div class="count-box"><strong id="visibleCount">47</strong><span>个动作候选正在显示</span></div>
+      <div class="count-box"><strong id="visibleCount">63</strong><span>个动作候选正在显示</span></div>
     </header>
 
     <section class="selection-board" aria-labelledby="selectionTitle">
@@ -337,9 +347,10 @@
       </select>
       <button class="quiet-button" id="recommendedOnly" type="button" aria-pressed="false">只看优先推荐</button>
       <button class="quiet-button" id="keptOnly" type="button" aria-pressed="false">只看已保留</button>
+      <button class="quiet-button" id="newOnly" type="button" aria-pressed="false">只看新添加</button>
     </div>
 
-    <p class="help"><strong>说明：</strong>四套点赞动画已按原始 360×360 画布重新生成，不会再只显示脑袋。点击任意预览可以放大观看。“程序动效预演”是对官方静态表情加入浮动、摇摆、弹跳等程序动画，实际桌宠中可以直接实现。</p>
+    <p class="help"><strong>说明：</strong>带蓝色“新添加”标记的是本轮补充的洛天依 12 周年官方 QQ 动态表情，共 16 个，可用“只看新添加”集中预览。四套点赞动画已按原始 360×360 画布重新生成，不会再只显示脑袋。点击任意预览可以放大观看。“程序动效预演”是对官方静态表情加入浮动、摇摆、弹跳等程序动画，实际桌宠中可以直接实现。</p>
 
     <section class="grid" id="grid" aria-live="polite"></section>
     <div class="empty" id="empty">没有符合当前条件的动作，请换个关键词或筛选条件。</div>
@@ -354,7 +365,7 @@
       </div>
       <div class="detector-note">
         <strong>怎么知道音乐正在播放？</strong>
-        推荐读取 Windows Core Audio 的网易云音频会话：检测到 <code>cloudmusic.exe</code> 正在实际输出声音后进入跳舞；连续约 1.5 秒无声再回待机，避免歌曲中的短暂静音误判。进一步可用 WASAPI 回环采样计算音量和低频节拍，让动作速度、幅度随音乐变化，全程不调用网易云接口。
+        推荐读取 Windows Core Audio 的网易云音频会话：检测到 <code>cloudmusic.exe</code> 正在实际输出声音后进入跳舞；连续约 1.0 秒无声再回待机，在暂停反馈和常见切歌间隙之间折中。进一步可用 WASAPI 回环采样计算音量和低频节拍，让动作速度、幅度随音乐变化，全程不调用网易云接口。
       </div>
       <div class="scenario-groups" id="scenarioGroups"></div>
     </section>
@@ -437,6 +448,7 @@
     const baseTheme = "02_个性装扮动画原包/";
     const baseStatic = "03_官方表情包/";
     const baseDerived = "04_官方模型派生动画/";
+    const baseNew12 = "05_新添加_洛天依12周年QQ动态表情/";
 
     const items = [
       { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","拖拽保持","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身动画，不切换为“膨胀”；再次双击切回“嘿嘿”。" },
@@ -470,6 +482,23 @@
       { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["胸部","下体","首次点击"], desc:"已确定为完整全身模式下首次点击胸部或下体敏感区域时的反馈，并开启 4 秒重复点击窗口。" },
       { id:"e_ok", title:"心律共鸣 · OK", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_OK.gif", source:baseEmoji+"心律共鸣动态表情包_OK.gif", tags:["确认","操作反馈"], desc:"含义最清楚的通用操作反馈，上一首、下一首、暂停和继续都能复用。" },
 
+      { id:"new12_entrance", title:"十二周年 · 闪亮登场", category:"feedback", kind:"256 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"01_闪亮登场.gif", source:baseNew12+"01_闪亮登场.gif", tags:["启动","问候","出场"], desc:"适合桌宠启动、切回桌面或完整全身模式登场。动作信息明确，当前只是新候选，尚未替换任何已确定状态。" },
+      { id:"new12_call", title:"十二周年 · 打 call", category:"body", kind:"196 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"02_打call.gif", source:baseNew12+"02_打call.gif", tags:["音乐","强节拍","庆祝"], desc:"手持应援棒的全身感动作，可作为强节拍舞蹈、歌曲高潮或操作成功后的庆祝候选。" },
+      { id:"new12_thinking", title:"十二周年 · 我想想", category:"feedback", kind:"169 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"03_我想想.gif", source:baseNew12+"03_我想想.gif", tags:["加载","等待","思考"], desc:"适合短暂加载、等待播放器响应或设置尚未决定的状态；比强烈失败反馈更温和。" },
+      { id:"new12_peek", title:"十二周年 · 偷看", category:"expression", kind:"400 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"04_偷看.gif", source:baseNew12+"04_偷看.gif", tags:["消息提醒","悬停","探头"], desc:"从墙后探头，适合 QQ/微信新消息、屏幕边缘探头或用户长时间没有互动时低频出现。" },
+      { id:"new12_flat", title:"十二周年 · 躺平", category:"body", kind:"169 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"05_躺平.gif", source:baseNew12+"05_躺平.gif", tags:["长时间待机","睡眠","休息"], desc:"适合长时间无操作、深夜或专注计时后的休息状态，可与现有晚安和眠了候选比较。" },
+      { id:"new12_stop", title:"十二周年 · 斯到普", category:"feedback", kind:"169 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"06_斯到普.gif", source:baseNew12+"06_斯到普.gif", tags:["停止","警告","取消"], desc:"双手阻止的语义清楚，适合危险拖放、操作被安全模式拒绝或需要用户停止连续点击时播放。" },
+      { id:"new12_angry", title:"十二周年 · 生气", category:"expression", kind:"196 帧动态 GIF", priority:false, newlyAdded:true, src:baseNew12+"07_生气.gif", source:baseNew12+"07_生气.gif", tags:["警告","连续点击","彩蛋"], desc:"适合普通部位被连续戳、操作频率过高或作为低频性格彩蛋；不默认替代敏感区域的黑化。" },
+      { id:"new12_charge", title:"十二周年 · 充电", category:"feedback", kind:"225 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"08_充电.gif", source:baseNew12+"08_充电.gif", tags:["低电量","充电中","系统状态"], desc:"画面自带电池符号，适合笔记本接入电源、低电量恢复或电量上升提示。" },
+      { id:"new12_like", title:"十二周年 · 喜欢", category:"expression", kind:"196 帧动态 GIF", priority:false, newlyAdded:true, src:baseNew12+"09_喜欢.gif", source:baseNew12+"09_喜欢.gif", tags:["喜欢歌曲","心动","成功"], desc:"适合网易云喜欢歌曲确认、鼠标普通互动或收到正向事件后的短暂反馈。" },
+      { id:"new12_cry", title:"十二周年 · 哭唧唧", category:"feedback", kind:"196 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"10_哭唧唧.gif", source:baseNew12+"10_哭唧唧.gif", tags:["失败","委屈","断网"], desc:"适合普通错误、断网或操作超时，也可以和已确定的“呜呜晃动”比较后再决定是否替换。" },
+      { id:"new12_hug", title:"十二周年 · 抱抱", category:"expression", kind:"196 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"11_抱抱.gif", source:baseNew12+"11_抱抱.gif", tags:["鼠标互动","安慰","亲密"], desc:"适合点击普通身体、长按互动或专注计时结束后的安慰反馈，不需要改变完整全身模式。" },
+      { id:"new12_message", title:"十二周年 · 在吗", category:"feedback", kind:"196 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"12_在吗.gif", source:baseNew12+"12_在吗.gif", tags:["QQ","微信","消息提醒"], desc:"角色趴在桌前等待回应，适合只提示“QQ 有新消息”或“微信有新消息”，不展示联系人和正文。" },
+      { id:"new12_close", title:"十二周年 · 贴贴", category:"expression", kind:"196 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"13_贴贴.gif", source:baseNew12+"13_贴贴.gif", tags:["摸头","点击互动","亲密"], desc:"适合摸头、点击脸颊或低频亲密互动；可以和现有可爱、啾啾候选并列比较。" },
+      { id:"new12_flower", title:"十二周年 · 给你花花", category:"feedback", kind:"169 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"14_给你花花.gif", source:baseNew12+"14_给你花花.gif", tags:["成功","完成","奖励"], desc:"适合任务完成、专注计时结束、网络恢复或首次设置成功，比点赞类反馈更有仪式感。" },
+      { id:"new12_birthday", title:"十二周年 · 生日快乐", category:"feedback", kind:"196 帧动态 GIF", priority:false, newlyAdded:true, src:baseNew12+"15_生日快乐.gif", source:baseNew12+"15_生日快乐.gif", tags:["7月12日","纪念日","特殊日期"], desc:"可在 7 月 12 日或用户自定义纪念日触发，不建议进入普通随机待机池。" },
+      { id:"new12_hungry", title:"十二周年 · 饿", category:"expression", kind:"256 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"16_饿.gif", source:baseNew12+"16_饿.gif", tags:["午饭","晚饭","休息提醒"], desc:"坐在餐桌前等待，适合午饭、晚饭或长时间工作后的进食提醒，可和现有干饭弹跳比较。" },
+
       { id:"p_morning", title:"收藏集 · 早安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", tags:["早安","启动问候"], desc:"官方静态表情加入缓慢上下浮动，适合早晨启动桌宠或解锁电脑后的问候。" },
       { id:"p_wake", title:"心律共鸣 · 苏醒弹出", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", tags:["苏醒","解锁"], desc:"轻微放大回弹，适合系统从睡眠或锁屏状态恢复。" },
       { id:"p_launch", title:"代号洛天依 · 起航弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", source:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", tags:["启动","出场"], desc:"以弹跳方式出场，可用于桌宠首次启动或音乐软件刚刚开启。" },
@@ -500,6 +529,7 @@
     let keptItems = [];
     let priorityOnly = false;
     let keptOnly = false;
+    let newOnly = false;
 
     try { choices = JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { choices = {}; }
     try { scenarioChoices = JSON.parse(localStorage.getItem(scenarioStorageKey) || "[]"); } catch { scenarioChoices = []; }
@@ -559,10 +589,11 @@
     function cardTemplate(item) {
       const selectedRoles = roles.filter(role => choices[role.id] === item.id);
       const kept = keptItems.includes(item.id);
-      return `<article class="card ${selectedRoles.length ? "chosen" : ""} ${kept ? "kept" : ""}" data-id="${item.id}">
+      return `<article class="card ${selectedRoles.length ? "chosen" : ""} ${kept ? "kept" : ""} ${item.newlyAdded ? "new-item" : ""}" data-id="${item.id}">
         <div class="preview" data-preview="${item.id}" title="点击放大预览">
           <img class="${item.motion ? `motion-${item.motion}` : ""}" src="${esc(item.src)}" alt="${esc(item.title)}动画预览" loading="lazy" />
           <span class="preview-badge">${esc(item.kind)}</span>
+          ${item.newlyAdded ? '<span class="new-badge">新添加</span>' : ""}
           <span class="zoom-hint">点击放大</span>
         </div>
         <div class="card-body">
@@ -571,6 +602,7 @@
           <div class="meta">
             <span class="tag">${categoryNames[item.category]}</span>
             ${item.priority ? '<span class="tag recommended">优先推荐</span>' : ""}
+            ${item.newlyAdded ? '<span class="tag new">本轮新素材</span>' : ""}
             ${item.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join("")}
           </div>
           <p class="desc">${esc(item.desc)}</p>
@@ -592,8 +624,9 @@
         const matchesCategory = category.value === "all" || item.category === category.value;
         const matchesPriority = !priorityOnly || item.priority;
         const matchesKept = !keptOnly || keptItems.includes(item.id);
+        const matchesNew = !newOnly || item.newlyAdded;
         const haystack = [item.title, item.kind, item.desc, ...item.tags].join(" ").toLowerCase();
-        return matchesCategory && matchesPriority && matchesKept && (!term || haystack.includes(term));
+        return matchesCategory && matchesPriority && matchesKept && matchesNew && (!term || haystack.includes(term));
       });
     }
 
@@ -667,7 +700,7 @@
       const selectedScenarios = scenarios.filter(item => scenarioChoices.includes(item.id));
       if (!selectedScenarios.length) lines.push("- 尚未选择");
       selectedScenarios.forEach(item => lines.push(`- ${item.title}：${item.desc}`));
-      lines.push("", "音乐检测建议", "- Core Audio 锁定 cloudmusic.exe 音频会话并读取峰值；连续有声进入跳舞，约 1.5 秒无声后回待机。", "- 可选 WASAPI 回环采样，让动画速度和幅度随音量、低频节拍变化。", "- 网易云控制仍使用全局快捷键，不依赖网易云接口。", "");
+      lines.push("", "音乐检测建议", "- Core Audio 锁定 cloudmusic.exe 音频会话并读取峰值；连续有声进入跳舞，约 1.0 秒无声后回待机。", "- 可选 WASAPI 回环采样，让动画速度和幅度随音量、低频节拍变化。", "- 网易云控制仍使用全局快捷键，不依赖网易云接口。", "");
       return lines.join("\n");
     }
 
@@ -683,6 +716,12 @@
       keptOnly = !keptOnly;
       event.currentTarget.setAttribute("aria-pressed", String(keptOnly));
       event.currentTarget.textContent = keptOnly ? "显示全部候选" : "只看已保留";
+      renderGrid();
+    });
+    document.getElementById("newOnly").addEventListener("click", event => {
+      newOnly = !newOnly;
+      event.currentTarget.setAttribute("aria-pressed", String(newOnly));
+      event.currentTarget.textContent = newOnly ? "显示全部候选" : "只看新添加";
       renderGrid();
     });
     document.getElementById("clearAll").addEventListener("click", () => {
