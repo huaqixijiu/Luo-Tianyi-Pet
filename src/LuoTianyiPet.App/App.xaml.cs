@@ -68,6 +68,9 @@ public partial class App : Application
             bool liveTrackInfoQa = e.Args.Contains(
                 "--qa-track-info-live",
                 StringComparer.OrdinalIgnoreCase);
+            bool liveSystemVolumeQa = e.Args.Contains(
+                "--qa-system-volume",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -82,6 +85,9 @@ public partial class App : Application
                 new Win32ShortcutInputBackend(),
                 settings.Media,
                 settings.Safety);
+            ISystemVolumeService? systemVolumeService = !isPreviewOrQaRun || liveSystemVolumeQa
+                ? CreateSystemVolumeService(settings, _logger)
+                : null;
             IMediaTrackInfoSource? mediaTrackInfoSource = !isPreviewOrQaRun || liveTrackInfoQa
                 ? new SystemMediaTrackInfoSource()
                 : null;
@@ -92,6 +98,7 @@ public partial class App : Application
                 animationCatalog,
                 audioSessionProbe,
                 mediaCommandSender,
+                systemVolumeService,
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
                 initialVisualState,
@@ -161,6 +168,27 @@ public partial class App : Application
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
         {
             logger.Error("animation.catalog_failed", exception);
+            return null;
+        }
+    }
+
+    private static ISystemVolumeService? CreateSystemVolumeService(
+        AppSettings settings,
+        IAppLogger logger)
+    {
+        try
+        {
+            return new WindowsSystemVolumeService(
+                new CoreAudioSystemVolumeBackend(),
+                settings.Volume,
+                settings.Safety);
+        }
+        catch (Exception exception) when (
+            exception is System.Runtime.InteropServices.COMException or
+            InvalidOperationException or
+            UnauthorizedAccessException)
+        {
+            logger.Error("volume.endpoint_initialization_failed", exception);
             return null;
         }
     }

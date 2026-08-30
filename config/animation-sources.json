@@ -64,6 +64,26 @@
       "anchorY": 1.0
     },
     {
+      "id": "resonance-voice",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_共鸣之声.gif",
+      "atlas": "assets/animations/runtime/resonance-voice.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-voice-reversed",
+      "source": "assets/animations/processed/心律共鸣_共鸣之声_倒放.gif",
+      "atlas": "assets/animations/runtime/resonance-voice-reversed.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "resonance-cracked-shake",
       "source": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png",
       "atlas": "assets/animations/runtime/resonance-cracked-shake.atlas.png",

@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -10,7 +10,32 @@ public sealed record AppSettings
 
     public MediaPreferences Media { get; init; } = new();
 
+    public VolumePreferences Volume { get; init; } = new();
+
     public SafetyPreferences Safety { get; init; } = new();
+}
+
+public sealed record VolumePreferences
+{
+    public const int DefaultMouseWheelStepPercent = 2;
+    public const int DefaultMergeChangesWithinMilliseconds = 500;
+    public const int DefaultAnimationCooldownMilliseconds = 2000;
+    public const int DefaultExternalPollIntervalMilliseconds = 250;
+
+    public bool EnableMouseWheelControl { get; init; } = true;
+
+    public bool EnableExternalChangeFeedback { get; init; } = true;
+
+    public int MouseWheelStepPercent { get; init; } = DefaultMouseWheelStepPercent;
+
+    public int MergeChangesWithinMilliseconds { get; init; } =
+        DefaultMergeChangesWithinMilliseconds;
+
+    public int AnimationCooldownMilliseconds { get; init; } =
+        DefaultAnimationCooldownMilliseconds;
+
+    public int ExternalPollIntervalMilliseconds { get; init; } =
+        DefaultExternalPollIntervalMilliseconds;
 }
 
 public sealed record WindowPreferences

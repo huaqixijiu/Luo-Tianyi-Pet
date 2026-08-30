@@ -16,7 +16,8 @@
         MouseLeave="OnRootMouseLeave"
         MouseLeftButtonDown="OnMouseLeftButtonDown"
         MouseLeftButtonUp="OnMouseLeftButtonUp"
-        MouseMove="OnMouseMove">
+        MouseMove="OnMouseMove"
+        PreviewMouseWheel="OnPreviewMouseWheel">
     <Window.Resources>
         <ControlTemplate x:Key="MediaButtonTemplate" TargetType="Button">
             <Grid x:Name="ButtonRoot"

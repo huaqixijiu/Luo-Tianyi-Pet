@@ -76,6 +76,8 @@
     },
     "muteAnimation": null,
     "unmuteAnimation": null,
+    "mouseWheelStepPercent": 2,
+    "externalSystemVolumePollIntervalMilliseconds": 250,
     "mergeChangesWithinMilliseconds": 500,
     "cooldownMilliseconds": 2000,
     "showPercentageBubble": true

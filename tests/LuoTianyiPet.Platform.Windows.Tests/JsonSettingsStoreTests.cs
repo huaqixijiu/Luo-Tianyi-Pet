@@ -61,6 +61,42 @@ public sealed class JsonSettingsStoreTests
 
             Assert.True(actual.Window.AlwaysOnTop);
             Assert.Equal(new MediaPreferences(), actual.Media);
+            Assert.Equal(new VolumePreferences(), actual.Volume);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version3Settings_AddsVolumeDefaults()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 3,
+                  "window": {
+                    "alwaysOnTop": true
+                  },
+                  "media": {
+                    "silenceGraceMilliseconds": 1000
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(new VolumePreferences(), actual.Volume);
         }
         finally
         {

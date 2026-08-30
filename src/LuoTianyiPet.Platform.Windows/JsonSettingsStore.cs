@@ -34,6 +34,9 @@ public sealed class JsonSettingsStore : ISettingsStore
                 AppSettings.CurrentSchemaVersion => Normalize(settings),
                 1 => MigrateFromPreviousVersion(settings, 1500),
                 2 => MigrateFromPreviousVersion(settings, 500),
+                3 => MigrateFromPreviousVersion(
+                    settings,
+                    MediaPreferences.DefaultSilenceGraceMilliseconds),
                 _ => new AppSettings(),
             };
         }
@@ -48,6 +51,7 @@ public sealed class JsonSettingsStore : ISettingsStore
     {
         Window = settings.Window ?? new WindowPreferences(),
         Media = settings.Media ?? new MediaPreferences(),
+        Volume = settings.Volume ?? new VolumePreferences(),
         Safety = settings.Safety ?? new SafetyPreferences(),
     };
 
@@ -69,6 +73,7 @@ public sealed class JsonSettingsStore : ISettingsStore
             SchemaVersion = AppSettings.CurrentSchemaVersion,
             Window = settings.Window ?? new WindowPreferences(),
             Media = media,
+            Volume = settings.Volume ?? new VolumePreferences(),
             Safety = settings.Safety ?? new SafetyPreferences(),
         };
     }

@@ -24,6 +24,12 @@ public sealed class AppSettingsTests
         Assert.Equal("Ctrl+Alt+Right", settings.Media.NextTrackShortcut);
         Assert.Equal("Ctrl+Alt+L", settings.Media.FavoriteTrackShortcut);
         Assert.Equal(350, settings.Media.CommandCooldownMilliseconds);
+        Assert.True(settings.Volume.EnableMouseWheelControl);
+        Assert.True(settings.Volume.EnableExternalChangeFeedback);
+        Assert.Equal(2, settings.Volume.MouseWheelStepPercent);
+        Assert.Equal(500, settings.Volume.MergeChangesWithinMilliseconds);
+        Assert.Equal(2000, settings.Volume.AnimationCooldownMilliseconds);
+        Assert.Equal(250, settings.Volume.ExternalPollIntervalMilliseconds);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
             settings.Safety.ProtectedForegroundProcessNames);

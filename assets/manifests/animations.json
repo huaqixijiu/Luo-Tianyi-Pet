@@ -229,6 +229,74 @@
       ]
     },
     {
+      "id": "resonance-voice",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_共鸣之声.gif",
+      "sourceSha256": "3f085e4c60a672befd84b503e61ab48c37a554bdecb9fdb77ced8007e379ae93",
+      "atlasPath": "animations/runtime/resonance-voice.atlas.png",
+      "atlasSha256": "ebf48f8d8e69c44e99f96281c9c34e58de9bd54011b86875f5a7e4b6836c05df",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
+      "id": "resonance-voice-reversed",
+      "sourcePath": "assets/animations/processed/心律共鸣_共鸣之声_倒放.gif",
+      "sourceSha256": "4647148cc02ad259da1ed236d382baabd329d881e979e58ce77f957ea21a2270",
+      "atlasPath": "animations/runtime/resonance-voice-reversed.atlas.png",
+      "atlasSha256": "6db15b6651814a8f21c94f91db31ec916295f676c2b67aa15ea35cc525c9ba37",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
       "id": "resonance-cracked-shake",
       "sourcePath": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_裂开.png",
       "sourceSha256": "a7aa6a9ce006f4296c91a2754b6b51b020f1e86c7ebbeed7bfeda30dda667f17",
