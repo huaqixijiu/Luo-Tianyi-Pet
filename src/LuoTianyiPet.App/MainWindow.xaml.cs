@@ -34,6 +34,10 @@ public partial class MainWindow : Window
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
+    private readonly DispatcherTimer _musicDetectionTimer;
+    private readonly IAudioSessionProbe? _audioSessionProbe;
+    private readonly MusicAudioActivityDetector _musicActivityDetector;
+    private readonly string _musicTargetProcessName;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
     private readonly bool _previewBodyHitDebug;
@@ -44,6 +48,8 @@ public partial class MainWindow : Window
     private bool _isClosing;
     private bool _isWindowDragging;
     private bool _pettingGestureConsumedPress;
+    private bool _musicPreviewOverride;
+    private bool _audioProbeFailureLogged;
     private Point _dragPressScreenPoint;
     private double _dragStartLeft;
     private double _dragStartTop;
@@ -54,6 +60,7 @@ public partial class MainWindow : Window
         ISettingsStore settingsStore,
         IAppLogger logger,
         AnimationCatalog? animationCatalog,
+        IAudioSessionProbe? audioSessionProbe,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
@@ -66,6 +73,20 @@ public partial class MainWindow : Window
         _settingsStore = settingsStore;
         _logger = logger;
         _animationCatalog = animationCatalog;
+        _audioSessionProbe = audioSessionProbe;
+        _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
+            ? "cloudmusic.exe"
+            : settings.Media.TargetProcessName;
+        float audiblePeakThreshold = float.IsFinite(settings.Media.AudiblePeakThreshold) &&
+            settings.Media.AudiblePeakThreshold is > 0 and <= 1
+                ? settings.Media.AudiblePeakThreshold
+                : MediaPreferences.DefaultAudiblePeakThreshold;
+        int silenceGraceMilliseconds = settings.Media.SilenceGraceMilliseconds >= 0
+            ? settings.Media.SilenceGraceMilliseconds
+            : MediaPreferences.DefaultSilenceGraceMilliseconds;
+        _musicActivityDetector = new MusicAudioActivityDetector(
+            audiblePeakThreshold,
+            TimeSpan.FromMilliseconds(silenceGraceMilliseconds));
         _stateMachine = new PetStateMachine(initialVisualState);
         _previewExit = previewExit;
         _previewMusicTransition = previewMusicTransition;
@@ -85,6 +106,14 @@ public partial class MainWindow : Window
             Interval = DoubleClickInterval,
         };
         _singleClickTimer.Tick += OnSingleClickTimerTick;
+        _musicDetectionTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(
+                settings.Media.PollIntervalMilliseconds > 0
+                    ? settings.Media.PollIntervalMilliseconds
+                    : MediaPreferences.DefaultPollIntervalMilliseconds),
+        };
+        _musicDetectionTimer.Tick += OnMusicDetectionTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -106,6 +135,12 @@ public partial class MainWindow : Window
         Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
+        if (_audioSessionProbe is not null)
+        {
+            _musicDetectionTimer.Start();
+            _logger.Info("media.detection_started", "Cloud music Core Audio detection enabled.");
+        }
+
         UpdateBodyHitDebugOverlay();
         if (_previewExit)
         {
@@ -633,33 +668,81 @@ public partial class MainWindow : Window
 
     private void OnPreviewMusicStart(object sender, RoutedEventArgs e)
     {
-        StartMusicPreview();
+        _musicPreviewOverride = true;
+        _musicActivityDetector.Reset();
+        StartMusicPlayback("manual-preview");
     }
 
-    private void StartMusicPreview()
+    private void StartMusicPlayback(string source)
     {
         DateTimeOffset now = DateTimeOffset.Now;
         string selectedAnimation = _musicAnimationSelector.Select();
         _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
-        if (plan.Source == PlaybackPlanSource.Continuous)
+        if (plan.Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
         {
             _ = TransitionToResolvedContinuousAnimationAsync("animation.music_selection_transition_completed");
         }
 
-        _logger.Info("animation.preview_music_started", $"Selected continuous animation: {selectedAnimation}.");
+        _logger.Info("media.playback_started", $"Source={source}; Animation={selectedAnimation}.");
     }
 
     private void OnPreviewMusicStop(object sender, RoutedEventArgs e)
     {
+        _musicPreviewOverride = false;
+        _musicActivityDetector.Reset();
+        StopMusicPlayback("manual-preview");
+    }
+
+    private void StopMusicPlayback(string source)
+    {
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
-        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
         {
             _ = TransitionToResolvedContinuousAnimationAsync("animation.music_stopped_transition_completed");
         }
 
-        _logger.Info("animation.preview_music_stopped", "Selected display mode restored.");
+        _logger.Info("media.playback_stopped", $"Source={source}; Selected display mode restored.");
+    }
+
+    private void OnMusicDetectionTimerTick(object? sender, EventArgs e)
+    {
+        if (_audioSessionProbe is null || _musicPreviewOverride || _isClosing)
+        {
+            return;
+        }
+
+        AudioSessionSnapshot snapshot = _audioSessionProbe.ReadForProcess(
+            _musicTargetProcessName);
+        if (!snapshot.ProbeSucceeded)
+        {
+            if (!_audioProbeFailureLogged)
+            {
+                _audioProbeFailureLogged = true;
+                _logger.Info("media.detection_temporarily_unavailable", "Core Audio probe will retry.");
+            }
+
+            return;
+        }
+
+        if (_audioProbeFailureLogged)
+        {
+            _audioProbeFailureLogged = false;
+            _logger.Info("media.detection_recovered", "Core Audio probe resumed.");
+        }
+
+        MusicActivityTransition transition = _musicActivityDetector.Update(snapshot, DateTimeOffset.Now);
+        if (transition == MusicActivityTransition.Started)
+        {
+            StartMusicPlayback("core-audio");
+        }
+        else if (transition == MusicActivityTransition.Stopped)
+        {
+            StopMusicPlayback("core-audio");
+        }
     }
 
     private void PlayResolvedContinuousAnimation(bool preserveVisualTransition = false)
@@ -774,7 +857,9 @@ public partial class MainWindow : Window
         await Task.Delay(500);
         if (!_isClosing)
         {
-            StartMusicPreview();
+            _musicPreviewOverride = true;
+            _musicActivityDetector.Reset();
+            StartMusicPlayback("automatic-preview");
         }
     }
 
@@ -827,6 +912,8 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _musicDetectionTimer.Stop();
+        _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();

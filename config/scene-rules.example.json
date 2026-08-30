@@ -75,7 +75,10 @@
     "targetProcess": "cloudmusic.exe",
     "commandMode": "user-configured-global-shortcuts",
     "detectAudioWithCoreAudio": true,
+    "pollIntervalMilliseconds": 250,
+    "audiblePeakThreshold": 0.001,
     "silenceGraceMilliseconds": 1500,
+    "preserveLastStateWhenProbeTemporarilyUnavailable": true,
     "disableCommandsInSafeGameMode": true,
     "playingAnimations": {
       "selectionMode": "random-per-playing-session",

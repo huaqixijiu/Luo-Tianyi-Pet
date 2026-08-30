@@ -13,6 +13,11 @@ public sealed class JsonSettingsStoreTests
             JsonSettingsStore store = new(new LocalAppPaths(testDirectory));
             AppSettings expected = new()
             {
+                Media = new MediaPreferences
+                {
+                    EnableCloudMusicDetection = false,
+                    TargetProcessName = "custom-player.exe",
+                },
                 Window = new WindowPreferences
                 {
                     AlwaysOnTop = true,
@@ -25,6 +30,37 @@ public sealed class JsonSettingsStoreTests
             AppSettings actual = await store.LoadAsync();
 
             Assert.Equal(expected, actual);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_LegacySettingsWithoutMedia_UsesSafeMediaDefaults()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 1,
+                  "window": {
+                    "alwaysOnTop": true
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(new MediaPreferences(), actual.Media);
         }
         finally
         {

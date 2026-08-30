@@ -30,7 +30,11 @@ public sealed class JsonSettingsStore : ISettingsStore
             string json = await File.ReadAllTextAsync(_paths.SettingsFile, cancellationToken).ConfigureAwait(false);
             AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions);
             return settings is { SchemaVersion: AppSettings.CurrentSchemaVersion }
-                ? settings
+                ? settings with
+                {
+                    Window = settings.Window ?? new WindowPreferences(),
+                    Media = settings.Media ?? new MediaPreferences(),
+                }
                 : new AppSettings();
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)

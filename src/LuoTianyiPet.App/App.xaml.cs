@@ -59,11 +59,19 @@ public partial class App : Application
                     StringComparison.OrdinalIgnoreCase))?
                 .Split('=', 2)[1];
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
+            bool isPreviewOrQaRun = e.Args.Any(argument =>
+                argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
+                argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
+            IAudioSessionProbe? audioSessionProbe = settings.Media.EnableCloudMusicDetection &&
+                !isPreviewOrQaRun
+                    ? new CoreAudioSessionProbe()
+                    : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
                 _logger,
                 animationCatalog,
+                audioSessionProbe,
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
