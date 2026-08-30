@@ -3,6 +3,7 @@
 bin/
 obj/
 publish/
+artifacts/
 *.user
 *.suo
 *.userosscache
@@ -21,4 +22,3 @@ publish/
 # Windows metadata
 Thumbs.db
 Desktop.ini
-

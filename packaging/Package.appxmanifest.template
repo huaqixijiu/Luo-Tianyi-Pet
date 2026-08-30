@@ -14,7 +14,7 @@
     <DisplayName>洛天依桌宠</DisplayName>
     <PublisherDisplayName>洛天依桌宠开发版</PublisherDisplayName>
     <Description>Windows 本地洛天依桌宠</Description>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <Logo>assets\package\StoreLogo.png</Logo>
   </Properties>
   <Resources>
     <Resource Language="zh-cn" />
@@ -34,8 +34,8 @@
         DisplayName="洛天依桌宠"
         Description="Windows 本地洛天依桌宠"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png" />
+        Square150x150Logo="assets\package\Square150x150Logo.png"
+        Square44x44Logo="assets\package\Square44x44Logo.png" />
     </Application>
   </Applications>
   <Capabilities>
