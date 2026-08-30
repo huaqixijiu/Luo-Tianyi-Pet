@@ -30,7 +30,10 @@ public partial class App : Application
             return;
         }
 
-        LocalAppPaths paths = new();
+        bool isPortable = e.Args.Contains("--portable", StringComparer.OrdinalIgnoreCase);
+        LocalAppPaths paths = isPortable
+            ? LocalAppPaths.CreatePortable(AppContext.BaseDirectory)
+            : new LocalAppPaths();
         _logger = new FileAppLogger(paths);
         JsonSettingsStore settingsStore = new(paths);
 
@@ -39,6 +42,7 @@ public partial class App : Application
 
         try
         {
+            _logger.Info("app.storage_mode", isPortable ? "Portable." : "Installed.");
             AppSettings settings = await settingsStore.LoadAsync();
             bool simulateMissingAssets = e.Args.Contains("--qa-missing-assets", StringComparer.OrdinalIgnoreCase);
             AnimationCatalog? animationCatalog = simulateMissingAssets ? null : LoadAnimationCatalog(_logger);
