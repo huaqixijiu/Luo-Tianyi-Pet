@@ -744,7 +744,8 @@ public partial class MainWindow : Window
     private void StartMessageNotificationMonitoring()
     {
         if (_messageNotificationSource is null ||
-            !_settings.Notifications.EnableMessageReminders)
+            !_settings.Notifications.EnableMessageReminders ||
+            !_settings.Notifications.WindowsNotificationAccessGranted)
         {
             return;
         }

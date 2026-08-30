@@ -109,6 +109,11 @@ public partial class SettingsWindow : Window
         NotificationAccessButton.IsEnabled = false;
         MessageNotificationAccessStatus status =
             await _messageNotificationSource.RequestAccessAsync();
+        SelectedNotificationPreferences = SelectedNotificationPreferences with
+        {
+            WindowsNotificationAccessGranted =
+                status == MessageNotificationAccessStatus.Allowed,
+        };
         UpdateNotificationAccessDisplay(status);
     }
 
@@ -130,8 +135,10 @@ public partial class SettingsWindow : Window
     private void UpdateNotificationAccessDisplay(MessageNotificationAccessStatus? knownStatus = null)
     {
         MessageNotificationAccessStatus status = knownStatus ??
-            _messageNotificationSource?.GetAccessStatus() ??
-            MessageNotificationAccessStatus.Unavailable;
+            (SelectedNotificationPreferences.WindowsNotificationAccessGranted
+                ? _messageNotificationSource?.GetAccessStatus() ??
+                    MessageNotificationAccessStatus.Unavailable
+                : MessageNotificationAccessStatus.Unspecified);
         NotificationAccessStatusText.Text = status switch
         {
             MessageNotificationAccessStatus.Allowed =>

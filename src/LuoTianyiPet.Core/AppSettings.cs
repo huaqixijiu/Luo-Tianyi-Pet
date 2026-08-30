@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 6;
+    public const int CurrentSchemaVersion = 7;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -24,6 +24,8 @@ public sealed record MessageNotificationPreferences
     public const int DefaultDuplicateWindowMilliseconds = 3000;
 
     public bool EnableMessageReminders { get; init; } = true;
+
+    public bool WindowsNotificationAccessGranted { get; init; }
 
     public int DuplicateWindowMilliseconds { get; init; } =
         DefaultDuplicateWindowMilliseconds;

@@ -123,6 +123,38 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Fact]
+    public async Task Load_Version6Settings_DoesNotProbeNotificationAccessBeforeConsent()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 6,
+                  "notifications": {
+                    "enableMessageReminders": true
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Notifications.EnableMessageReminders);
+            Assert.False(actual.Notifications.WindowsNotificationAccessGranted);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task Load_Version4Settings_AddsGenshinDefaults()
     {
         string testDirectory = CreateTestDirectory();

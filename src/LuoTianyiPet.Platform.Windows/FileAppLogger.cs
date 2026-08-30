@@ -22,7 +22,10 @@ public sealed class FileAppLogger : IAppLogger
     public void Error(string eventName, Exception exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-        Write("ERROR", eventName, exception.GetType().Name);
+        Write(
+            "ERROR",
+            eventName,
+            $"{exception.GetType().Name}; HResult=0x{exception.HResult:X8}");
     }
 
     private void Write(string level, string eventName, string message)
