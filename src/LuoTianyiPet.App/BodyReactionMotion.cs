@@ -28,6 +28,23 @@ internal sealed class BodyReactionMotion
         {
             PlayLoadingSway();
         }
+        else if (animationId is Core.StartupTimeSceneResolver.MorningAnimation or
+            Core.StartupTimeSceneResolver.AfternoonAnimation)
+        {
+            PlayGreetingFloat();
+        }
+        else if (animationId == Core.StartupTimeSceneResolver.LunchAnimation)
+        {
+            PlayLunchBounce();
+        }
+        else if (animationId == Core.StartupTimeSceneResolver.NightAnimation)
+        {
+            PlayNightBreathing();
+        }
+        else if (animationId == "resonance-awake-pop")
+        {
+            PlayAwakePop();
+        }
     }
 
     public void Cancel()
@@ -35,9 +52,11 @@ internal sealed class BodyReactionMotion
         _scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
         _translate.BeginAnimation(TranslateTransform.XProperty, null);
+        _translate.BeginAnimation(TranslateTransform.YProperty, null);
         _scale.ScaleX = 1;
         _scale.ScaleY = 1;
         _translate.X = 0;
+        _translate.Y = 0;
     }
 
     private void PlayHighFiveBounce()
@@ -107,5 +126,97 @@ internal sealed class BodyReactionMotion
             TranslateTransform.XProperty,
             sway,
             HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayGreetingFloat()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames motion = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(1450),
+            FillBehavior = FillBehavior.Stop,
+        };
+        motion.KeyFrames.Add(new EasingDoubleKeyFrame(
+            3,
+            KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        motion.KeyFrames.Add(new EasingDoubleKeyFrame(
+            -7,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(650)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        motion.KeyFrames.Add(new EasingDoubleKeyFrame(
+            0,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(1450)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        _translate.BeginAnimation(
+            TranslateTransform.YProperty,
+            motion,
+            HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayLunchBounce()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames scale = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(1050),
+            FillBehavior = FillBehavior.Stop,
+        };
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.96, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1.09,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(310)),
+            new BackEase { Amplitude = 0.25, EasingMode = EasingMode.EaseOut }));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            0.99,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(650)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(1050)),
+            new SineEase { EasingMode = EasingMode.EaseOut }));
+        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
+        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayNightBreathing()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames scale = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(1900),
+            FillBehavior = FillBehavior.Stop,
+        };
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.98, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1.025,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(900)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(1900)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
+        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayAwakePop()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames scale = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(700),
+            FillBehavior = FillBehavior.Stop,
+        };
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.82, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1.10,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(300)),
+            new BackEase { Amplitude = 0.4, EasingMode = EasingMode.EaseOut }));
+        scale.KeyFrames.Add(new EasingDoubleKeyFrame(
+            1,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(700)),
+            new SineEase { EasingMode = EasingMode.EaseOut }));
+        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
+        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
     }
 }

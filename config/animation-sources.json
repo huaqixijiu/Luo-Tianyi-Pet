@@ -238,6 +238,61 @@
       "anchorY": 1.0
     },
     {
+      "id": "startup-morning-float",
+      "source": "候选素材_官方/03_官方表情包/5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png",
+      "atlas": "assets/animations/runtime/startup-morning-float.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 2200,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "startup-lunch-bounce",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_干饭.png",
+      "atlas": "assets/animations/runtime/startup-lunch-bounce.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 1800,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "startup-afternoon-float",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_摸鱼.png",
+      "atlas": "assets/animations/runtime/startup-afternoon-float.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 2200,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "startup-night-breathe",
+      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
+      "atlas": "assets/animations/runtime/startup-night-breathe.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 2600,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-awake-pop",
+      "source": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png",
+      "atlas": "assets/animations/runtime/resonance-awake-pop.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 1300,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "twelfth-anniversary-entrance",
       "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/01_闪亮登场.gif",
       "atlas": "assets/animations/runtime/twelfth-anniversary-entrance.atlas.png",

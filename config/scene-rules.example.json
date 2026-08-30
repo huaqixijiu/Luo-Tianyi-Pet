@@ -60,7 +60,8 @@
       "maximumIntervalMinutes": 90,
       "onlyWhileIdle": true
     },
-    "sleepAnimation": "tenth-anniversary-goodnight-float"
+    "sleepAnimation": "tenth-anniversary-goodnight-float",
+    "wakeAnimation": "resonance-awake-pop"
   },
   "volume": {
     "controlMethods": [
@@ -373,6 +374,17 @@
       "animation": "codename-sleeping-breathing"
     }
   ],
+  "systemResume": {
+    "sources": [
+      "windows-session-unlock",
+      "windows-power-resume"
+    ],
+    "animation": "resonance-awake-pop",
+    "duplicateWindowMilliseconds": 5000,
+    "loopCount": 1,
+    "preserveSelectedDisplayMode": true,
+    "neverActivateWindow": true
+  },
   "genshinLaunch": {
     "enabled": true,
     "processNames": [

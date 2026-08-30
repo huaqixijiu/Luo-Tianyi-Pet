@@ -848,6 +848,131 @@
       ]
     },
     {
+      "id": "startup-morning-float",
+      "sourcePath": "候选素材_官方/03_官方表情包/5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png",
+      "sourceSha256": "f17b35dc18f17a0da15c4273d3328e8d23c74a2b47626d239e77b86c9ce9961b",
+      "atlasPath": "animations/runtime/startup-morning-float.atlas.png",
+      "atlasSha256": "7b8184a4a96798daeb5f4cc54fd2a38a82cd64f461b423832573d641eb783675",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        2200
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        5,
+        11,
+        156,
+        162
+      ]
+    },
+    {
+      "id": "startup-lunch-bounce",
+      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_干饭.png",
+      "sourceSha256": "40e8a8201a10bf058c89148c618e17108c2e406cdccab235eb011188543b102c",
+      "atlasPath": "animations/runtime/startup-lunch-bounce.atlas.png",
+      "atlasSha256": "d02df1cb3ebdaa2fd3727bea4b7f50865f52249bc1b0d01bed8fda300ac788b2",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        1800
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        14,
+        162,
+        158
+      ]
+    },
+    {
+      "id": "startup-afternoon-float",
+      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_摸鱼.png",
+      "sourceSha256": "bf30e5bbcb86ad97d589511c0b85de3175ae966bd4349cf806714df26359ccef",
+      "atlasPath": "animations/runtime/startup-afternoon-float.atlas.png",
+      "atlasSha256": "683b1d79a58b8bf638f27cb006d1fdf963d4910b2facf7274a967bb48b5abc81",
+      "frameWidth": 695,
+      "frameHeight": 704,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        2200
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        1,
+        0,
+        695,
+        704
+      ]
+    },
+    {
+      "id": "startup-night-breathe",
+      "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
+      "sourceSha256": "7027d9ef0d117a45fd4166a9074ed661744980b0b2bcda5ca716171579da4e82",
+      "atlasPath": "animations/runtime/startup-night-breathe.atlas.png",
+      "atlasSha256": "a428178a4ef0fb39eec7eac5c32b547250ecfa764426f394fec582738698b10b",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        2600
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        2,
+        162,
+        162
+      ]
+    },
+    {
+      "id": "resonance-awake-pop",
+      "sourcePath": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png",
+      "sourceSha256": "a347360ef111de25744e09a376015603818b53b59507e4a97178adcbbbf8f1b8",
+      "atlasPath": "animations/runtime/resonance-awake-pop.atlas.png",
+      "atlasSha256": "d767cd2edc4dacc4c34517c0ff77acf7b94602b1d08a6b72e200319c6b16cbfa",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        1300
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
       "id": "twelfth-anniversary-entrance",
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/01_闪亮登场.gif",
       "sourceSha256": "e00d36f633f7697e2bc0575c1ecb097247c5137d25aec13d1591f3edbd7c2f2b",

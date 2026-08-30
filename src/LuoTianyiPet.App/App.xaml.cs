@@ -74,6 +74,9 @@ public partial class App : Application
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewSystemResume = e.Args.Contains(
+                "--qa-system-resume",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -94,6 +97,9 @@ public partial class App : Application
             IMediaTrackInfoSource? mediaTrackInfoSource = !isPreviewOrQaRun || liveTrackInfoQa
                 ? new SystemMediaTrackInfoSource()
                 : null;
+            ISystemResumeSource? systemResumeSource = !isPreviewOrQaRun
+                ? new WindowsSystemResumeSource()
+                : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
@@ -104,6 +110,7 @@ public partial class App : Application
                 systemVolumeService,
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
+                systemResumeSource,
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
@@ -113,6 +120,7 @@ public partial class App : Application
                 previewTrackInfo,
                 liveTrackInfoQa,
                 previewSettings,
+                previewSystemResume,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);

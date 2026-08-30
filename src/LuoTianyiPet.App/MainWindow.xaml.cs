@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -17,6 +18,7 @@ public partial class MainWindow : Window
     private const string LandingAnimation = "codename-landing-bounce";
     private const string VolumeIncreaseAnimation = "resonance-voice";
     private const string VolumeDecreaseAnimation = "resonance-voice-reversed";
+    private const string AwakeAnimation = "resonance-awake-pop";
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
     private const double EdgeDockThreshold = 18;
@@ -56,7 +58,9 @@ public partial class MainWindow : Window
     private readonly ISystemVolumeService? _systemVolumeService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly IUserIdleTimeSource _userIdleTimeSource;
+    private readonly ISystemResumeSource? _systemResumeSource;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
+    private readonly SystemResumeEventGate _systemResumeEventGate = new();
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly SystemVolumeChangeTracker _volumeChangeTracker = new();
     private readonly string _musicTargetProcessName;
@@ -68,6 +72,7 @@ public partial class MainWindow : Window
     private readonly bool _previewTrackInfo;
     private readonly bool _previewLiveTrackInfo;
     private readonly bool _previewSettings;
+    private readonly bool _previewSystemResume;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -107,6 +112,7 @@ public partial class MainWindow : Window
         ISystemVolumeService? systemVolumeService,
         IMediaTrackInfoSource? mediaTrackInfoSource,
         IUserIdleTimeSource userIdleTimeSource,
+        ISystemResumeSource? systemResumeSource,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
@@ -116,6 +122,7 @@ public partial class MainWindow : Window
         bool previewTrackInfo,
         bool previewLiveTrackInfo,
         bool previewSettings,
+        bool previewSystemResume,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -129,6 +136,7 @@ public partial class MainWindow : Window
         _systemVolumeService = systemVolumeService;
         _mediaTrackInfoSource = mediaTrackInfoSource;
         _userIdleTimeSource = userIdleTimeSource;
+        _systemResumeSource = systemResumeSource;
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -151,6 +159,7 @@ public partial class MainWindow : Window
         _previewTrackInfo = previewTrackInfo;
         _previewLiveTrackInfo = previewLiveTrackInfo;
         _previewSettings = previewSettings;
+        _previewSystemResume = previewSystemResume;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -265,6 +274,11 @@ public partial class MainWindow : Window
         Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
+        if (_persistSettings)
+        {
+            _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
+        }
+        StartSystemResumeMonitoring();
         _idleSceneTimer.Start();
         if (_audioSessionProbe is not null)
         {
@@ -317,6 +331,71 @@ public partial class MainWindow : Window
         if (_previewSettings)
         {
             Dispatcher.BeginInvoke(ShowSettingsDialog, DispatcherPriority.ApplicationIdle);
+        }
+        if (_previewSystemResume)
+        {
+            _ = BeginSystemResumePreviewAsync();
+        }
+    }
+
+    private async Task PlayStartupGreetingAsync(DateTimeOffset now)
+    {
+        StartupTimeSceneDecision decision = StartupTimeSceneResolver.Resolve(
+            TimeOnly.FromDateTime(now.LocalDateTime));
+        _logger.Info("time.startup_greeting", decision.Scene.ToString());
+        await PlayReactionAsync(decision.AnimationId, ReactionPriority.TimeGreeting);
+    }
+
+    private void StartSystemResumeMonitoring()
+    {
+        if (_systemResumeSource is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _systemResumeSource.Resumed += OnSystemResumed;
+            _systemResumeSource.Start();
+            _logger.Info("time.resume_monitor_started", "Windows session and power resume monitoring started.");
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or ExternalException)
+        {
+            _systemResumeSource.Resumed -= OnSystemResumed;
+            _logger.Error("time.resume_monitor_unavailable", exception);
+        }
+    }
+
+    private void OnSystemResumed(object? sender, SystemResumeEventArgs e)
+    {
+        Dispatcher.BeginInvoke(() => HandleSystemResume(e));
+    }
+
+    private void HandleSystemResume(SystemResumeEventArgs e)
+    {
+        if (_isClosing || !_systemResumeEventGate.TryAccept(e.OccurredAt))
+        {
+            return;
+        }
+
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            _logger.Info("time.resume_reaction_skipped", "Pet is intentionally hidden at a screen edge.");
+            return;
+        }
+
+        _logger.Info("time.resume_reaction", e.Reason.ToString());
+        _ = PlayReactionAsync(AwakeAnimation, ReactionPriority.System);
+    }
+
+    private async Task BeginSystemResumePreviewAsync()
+    {
+        await Task.Delay(700);
+        if (!_isClosing)
+        {
+            HandleSystemResume(new SystemResumeEventArgs(
+                SystemResumeReason.PowerResumed,
+                DateTimeOffset.Now));
         }
     }
 
@@ -1926,6 +2005,11 @@ public partial class MainWindow : Window
         _trackInfoMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
+        if (_systemResumeSource is not null)
+        {
+            _systemResumeSource.Resumed -= OnSystemResumed;
+            _systemResumeSource.Dispose();
+        }
         if (_systemVolumeService is not null)
         {
             if (_externalVolumeFeedbackSubscribed)
