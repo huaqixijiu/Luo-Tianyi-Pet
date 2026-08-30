@@ -321,7 +321,7 @@
         <h1>动画挑选器</h1>
         <p class="intro">一次规划完整桌宠：查看原生动画和程序动效预演，为日常、鼠标互动、音乐和系统事件分配动作，并选择希望实现的联动场景。</p>
       </div>
-      <div class="count-box"><strong id="visibleCount">63</strong><span>个动作候选正在显示</span></div>
+      <div class="count-box"><strong id="visibleCount">64</strong><span>个动作候选正在显示</span></div>
     </header>
 
     <section class="selection-board" aria-labelledby="selectionTitle">
@@ -350,7 +350,7 @@
       <button class="quiet-button" id="newOnly" type="button" aria-pressed="false">只看新添加</button>
     </div>
 
-    <p class="help"><strong>说明：</strong>带蓝色“新添加”标记的是本轮补充的洛天依 12 周年官方 QQ 动态表情，共 16 个，可用“只看新添加”集中预览。四套点赞动画已按原始 360×360 画布重新生成，不会再只显示脑袋。点击任意预览可以放大观看。“程序动效预演”是对官方静态表情加入浮动、摇摆、弹跳等程序动画，实际桌宠中可以直接实现。</p>
+    <p class="help"><strong>说明：</strong>带蓝色“新添加”标记的素材共 17 个：洛天依 12 周年官方 QQ 动态表情 16 个，以及本轮新增的“天依游学记·国乐季 · 摸摸”原生动态 GIF 1 个。可用“只看新添加”集中预览。此前两张静态“摸摸”已按你的意见撤下，不再当作摸头动画候选。点击任意预览可以放大观看。</p>
 
     <section class="grid" id="grid" aria-live="polite"></section>
     <div class="empty" id="empty">没有符合当前条件的动作，请换个关键词或筛选条件。</div>
@@ -449,7 +449,7 @@
     const baseStatic = "03_官方表情包/";
     const baseDerived = "04_官方模型派生动画/";
     const baseNew12 = "05_新添加_洛天依12周年QQ动态表情/";
-    const baseNewHeadPat = "06_新添加_官方摸头候选/";
+    const baseDynamicHeadPat = "07_新添加_官方动态摸头候选/";
 
     const items = [
       { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","拖拽保持","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身动画，不切换为“膨胀”；再次双击切回“嘿嘿”。" },
@@ -500,8 +500,7 @@
       { id:"new12_birthday", title:"十二周年 · 生日快乐", category:"feedback", kind:"196 帧动态 GIF", priority:false, newlyAdded:true, src:baseNew12+"15_生日快乐.gif", source:baseNew12+"15_生日快乐.gif", tags:["7月12日","12月12日","生日彩蛋"], desc:"已用于洛天依生日 7 月 12 日及用户生日 12 月 12 日；仅在待机时随机约 45～90 分钟触发一次。" },
       { id:"new12_hungry", title:"十二周年 · 饿", category:"expression", kind:"256 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"16_饿.gif", source:baseNew12+"16_饿.gif", tags:["午饭","晚饭","休息提醒"], desc:"坐在餐桌前等待，适合午饭、晚饭或长时间工作后的进食提醒，可和现有干饭弹跳比较。" },
 
-      { id:"new_headpat_fantasy", title:"幻游世界 · 摸摸", category:"expression", kind:"官方静态 PNG · 程序动效候选", priority:true, newlyAdded:true, motion:"pop", src:baseNewHeadPat+"洛天依幻游世界_摸摸.png", source:baseNewHeadPat+"洛天依幻游世界_摸摸.png", tags:["摸头","天钿","新添加"], desc:"天钿直接落在头顶，语义最准确。建议在识别到往返摸头手势后做轻柔按压和回弹；目前只作候选，不替换现有“可爱”。" },
-      { id:"new_headpat_night", title:"夜航星 · 摸摸", category:"expression", kind:"官方静态 PNG · 程序动效候选", priority:true, newlyAdded:true, motion:"bounce", src:baseNewHeadPat+"洛天依·夜航星_摸摸.png", source:baseNewHeadPat+"洛天依·夜航星_摸摸.png", tags:["摸头","夸张反应","新添加"], desc:"画面有手掌直接摸头，反应比幻游世界版更夸张。适合短促下压、抬起和一次回弹；目前只作候选。" },
+      { id:"new_headpat_guoyue", title:"天依游学记·国乐季 · 摸摸", category:"expression", kind:"10 帧原生动态 GIF", priority:true, newlyAdded:true, src:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", source:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", tags:["摸头","手掌往返","原生动画","新添加"], desc:"真正的连续摸头动作：手掌在头顶左右往返抚摸，天依同步眨眼、脸红。不是静态图加晃动；当前只加入挑选器，确认后再替换运行时的“可爱”。" },
 
       { id:"p_morning", title:"收藏集 · 早安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", tags:["早安","启动问候"], desc:"官方静态表情加入缓慢上下浮动，适合早晨启动桌宠或解锁电脑后的问候。" },
       { id:"p_wake", title:"心律共鸣 · 苏醒弹出", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_苏醒.png", tags:["苏醒","解锁"], desc:"轻微放大回弹，适合系统从睡眠或锁屏状态恢复。" },
