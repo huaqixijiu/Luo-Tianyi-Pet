@@ -80,6 +80,19 @@
     "silenceGraceMilliseconds": 1000,
     "preserveLastStateWhenProbeTemporarilyUnavailable": true,
     "disableCommandsInSafeGameMode": true,
+    "trackInfo": {
+      "sourcePriority": [
+        "windows-system-media-session",
+        "cloudmusic-main-window-caption"
+      ],
+      "pollIntervalMilliseconds": 1000,
+      "showOnPointerHover": true,
+      "showAfterTrackChangeMilliseconds": 4000,
+      "placement": "above-animation",
+      "reservedHeightDips": 52,
+      "persistHistory": false,
+      "writeTitleToLogs": false
+    },
     "controlSurface": {
       "presentation": "hover-overlay",
       "hideWhenPointerLeaves": true,

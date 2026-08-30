@@ -62,6 +62,12 @@ public partial class App : Application
                 StringComparer.OrdinalIgnoreCase) || e.Args.Contains(
                     "--qa-shortcut-menu",
                     StringComparer.OrdinalIgnoreCase);
+            bool previewTrackInfo = e.Args.Contains(
+                "--qa-track-info",
+                StringComparer.OrdinalIgnoreCase);
+            bool liveTrackInfoQa = e.Args.Contains(
+                "--qa-track-info-live",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -76,6 +82,9 @@ public partial class App : Application
                 new Win32ShortcutInputBackend(),
                 settings.Media,
                 settings.Safety);
+            IMediaTrackInfoSource? mediaTrackInfoSource = !isPreviewOrQaRun || liveTrackInfoQa
+                ? new SystemMediaTrackInfoSource()
+                : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
@@ -83,12 +92,15 @@ public partial class App : Application
                 animationCatalog,
                 audioSessionProbe,
                 mediaCommandSender,
+                mediaTrackInfoSource,
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
                 previewBodyHitDebug,
                 previewDragCycle,
                 previewMediaControls,
+                previewTrackInfo,
+                liveTrackInfoQa,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);

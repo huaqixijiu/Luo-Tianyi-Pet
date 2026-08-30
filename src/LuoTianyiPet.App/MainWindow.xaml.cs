@@ -16,8 +16,10 @@ public partial class MainWindow : Window
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
     private const double MediaControlsReservedHeight = 58;
+    private const double TrackInfoReservedHeight = 52;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
+    private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
     private readonly LandingBounceMotion _landingBounceMotion;
     private readonly BodyReactionMotion _bodyReactionMotion;
     private readonly MediaControlsVisibilityMotion _mediaControlsMotion;
+    private readonly MediaControlsVisibilityMotion _trackInfoMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
     private readonly PettingGestureRecognizer _pettingGesture = new(
         TimeSpan.FromMilliseconds(600),
@@ -39,8 +42,11 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _musicDetectionTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
     private readonly DispatcherTimer _mediaControlsHideTimer;
+    private readonly DispatcherTimer _trackInfoRefreshTimer;
+    private readonly DispatcherTimer _trackInfoHideTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
+    private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly string _musicTargetProcessName;
     private readonly bool _previewExit;
@@ -48,6 +54,8 @@ public partial class MainWindow : Window
     private readonly bool _previewBodyHitDebug;
     private readonly bool _previewDragCycle;
     private readonly bool _previewMediaControls;
+    private readonly bool _previewTrackInfo;
+    private readonly bool _previewLiveTrackInfo;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -57,6 +65,13 @@ public partial class MainWindow : Window
     private bool _pettingGestureConsumedPress;
     private bool _musicPreviewOverride;
     private bool _audioProbeFailureLogged;
+    private bool _trackInfoProbeFailureLogged;
+    private bool _trackInfoRefreshInFlight;
+    private bool _trackInfoShowRequested;
+    private bool _hasObservedTrackSnapshot;
+    private bool _showNextTrackChange;
+    private MediaTrackSnapshot _lastTrackSnapshot = MediaTrackSnapshot.Unavailable;
+    private string _lastTrackIdentity = string.Empty;
     private Point _dragPressScreenPoint;
     private double _dragStartLeft;
     private double _dragStartTop;
@@ -69,12 +84,15 @@ public partial class MainWindow : Window
         AnimationCatalog? animationCatalog,
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
+        IMediaTrackInfoSource? mediaTrackInfoSource,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
         bool previewBodyHitDebug,
         bool previewDragCycle,
         bool previewMediaControls,
+        bool previewTrackInfo,
+        bool previewLiveTrackInfo,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -85,6 +103,7 @@ public partial class MainWindow : Window
         _animationCatalog = animationCatalog;
         _audioSessionProbe = audioSessionProbe;
         _mediaCommandSender = mediaCommandSender;
+        _mediaTrackInfoSource = mediaTrackInfoSource;
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -104,6 +123,8 @@ public partial class MainWindow : Window
         _previewBodyHitDebug = previewBodyHitDebug;
         _previewDragCycle = previewDragCycle;
         _previewMediaControls = previewMediaControls;
+        _previewTrackInfo = previewTrackInfo;
+        _previewLiveTrackInfo = previewLiveTrackInfo;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -117,6 +138,10 @@ public partial class MainWindow : Window
         _mediaControlsMotion = new MediaControlsVisibilityMotion(
             MediaControls,
             MediaControlsTranslate);
+        _trackInfoMotion = new MediaControlsVisibilityMotion(
+            TrackInfoBubble,
+            TrackInfoTranslate,
+            enableHitTesting: false);
         _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = DoubleClickInterval,
@@ -140,6 +165,16 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromMilliseconds(220),
         };
         _mediaControlsHideTimer.Tick += OnMediaControlsHideTimerTick;
+        _trackInfoRefreshTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1),
+        };
+        _trackInfoRefreshTimer.Tick += OnTrackInfoRefreshTimerTick;
+        _trackInfoHideTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TrackInfoAutomaticDisplayDuration,
+        };
+        _trackInfoHideTimer.Tick += OnTrackInfoHideTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -159,6 +194,7 @@ public partial class MainWindow : Window
         FavoriteTrackButton.ToolTip = $"喜欢歌曲（{_settings.Media.FavoriteTrackShortcut}）";
         UpdatePlayPauseGlyph();
         _mediaControlsMotion.Hide(animate: false);
+        _trackInfoMotion.Hide(animate: false);
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -171,6 +207,13 @@ public partial class MainWindow : Window
         {
             _musicDetectionTimer.Start();
             _logger.Info("media.detection_started", "Cloud music Core Audio detection enabled.");
+        }
+
+        if (_mediaTrackInfoSource is not null)
+        {
+            _trackInfoRefreshTimer.Start();
+            _ = RefreshTrackInfoAsync(showWhenFound: false);
+            _logger.Info("media.track_detection_started", "System media track detection enabled.");
         }
 
         UpdateBodyHitDebugOverlay();
@@ -197,6 +240,15 @@ public partial class MainWindow : Window
         if (_previewMediaControls)
         {
             _ = BeginMediaControlsPreviewAsync();
+        }
+
+        if (_previewTrackInfo)
+        {
+            ShowTrackInfo(new MediaTrackSnapshot(true, true, "达拉崩吧", "洛天依"), holdAfterLeave: true);
+        }
+        else if (_previewLiveTrackInfo)
+        {
+            _ = BeginLiveTrackInfoPreviewAsync();
         }
     }
 
@@ -858,7 +910,7 @@ public partial class MainWindow : Window
             FallbackSurface.Visibility = Visibility.Collapsed;
             ResizeAroundBottomCenter(
                 manifest.DisplayWidth + 16,
-                manifest.DisplayHeight + 16 + MediaControlsReservedHeight);
+                manifest.DisplayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
             UpdateBodyHitDebugOverlay();
         }
         catch (Exception exception) when (
@@ -875,7 +927,9 @@ public partial class MainWindow : Window
         PetImage.Visibility = Visibility.Collapsed;
         FallbackSurface.Visibility = Visibility.Visible;
         BodyHitDebugOverlay.Visibility = Visibility.Collapsed;
-        ResizeAroundBottomCenter(196, 196 + MediaControlsReservedHeight);
+        ResizeAroundBottomCenter(
+            196,
+            196 + MediaControlsReservedHeight + TrackInfoReservedHeight);
         _logger.Info("animation.fallback_shown", logMessage);
     }
 
@@ -918,6 +972,17 @@ public partial class MainWindow : Window
             _mediaControlsHideTimer.Stop();
             _mediaControlsMotion.Show();
         }
+
+        if (!_isClosing)
+        {
+            _trackInfoHideTimer.Stop();
+            if (_lastTrackSnapshot.HasTrack)
+            {
+                ShowTrackInfo(_lastTrackSnapshot, holdAfterLeave: false);
+            }
+
+            _ = RefreshTrackInfoAsync(showWhenFound: true);
+        }
     }
 
     private void OnRootMouseLeave(object sender, MouseEventArgs e)
@@ -926,6 +991,11 @@ public partial class MainWindow : Window
         {
             _mediaControlsHideTimer.Stop();
             _mediaControlsHideTimer.Start();
+        }
+
+        if (!_previewTrackInfo && !_trackInfoHideTimer.IsEnabled)
+        {
+            _trackInfoMotion.Hide();
         }
     }
 
@@ -964,6 +1034,13 @@ public partial class MainWindow : Window
         };
         ShowFeedbackBubble(message);
 
+        if (result.WasSent && command is MediaCommand.PreviousTrack or MediaCommand.NextTrack)
+        {
+            _showNextTrackChange = true;
+            ShowTrackSwitchPending();
+            _ = RefreshTrackInfoAfterTrackCommandAsync();
+        }
+
         if (!result.WasSent && result.Status is not MediaCommandSendStatus.RateLimited)
         {
             _ = PlayBodyReactionAsync("resonance-cry-shake");
@@ -982,6 +1059,162 @@ public partial class MainWindow : Window
     {
         _feedbackBubbleTimer.Stop();
         FeedbackBubble.Visibility = Visibility.Collapsed;
+    }
+
+    private async void OnTrackInfoRefreshTimerTick(object? sender, EventArgs e)
+    {
+        await RefreshTrackInfoAsync(showWhenFound: false);
+    }
+
+    private async Task RefreshTrackInfoAsync(bool showWhenFound)
+    {
+        _trackInfoShowRequested |= showWhenFound;
+        if (_mediaTrackInfoSource is null || _trackInfoRefreshInFlight || _isClosing)
+        {
+            if (showWhenFound && _mediaTrackInfoSource is null)
+            {
+                ShowTrackInfoUnavailable();
+                _trackInfoShowRequested = false;
+            }
+
+            return;
+        }
+
+        _trackInfoRefreshInFlight = true;
+        try
+        {
+            MediaTrackSnapshot snapshot = MediaTrackText.Normalize(
+                await _mediaTrackInfoSource.ReadAsync(_musicTargetProcessName));
+            bool shouldShowWhenFound = showWhenFound || _trackInfoShowRequested;
+            if (!snapshot.ProbeSucceeded)
+            {
+                if (!_trackInfoProbeFailureLogged)
+                {
+                    _trackInfoProbeFailureLogged = true;
+                    _logger.Info(
+                        "media.track_detection_temporarily_unavailable",
+                        "System media track probe will retry.");
+                }
+
+                if (shouldShowWhenFound && !_lastTrackSnapshot.HasTrack)
+                {
+                    ShowTrackInfoUnavailable();
+                }
+
+                return;
+            }
+
+            if (_trackInfoProbeFailureLogged)
+            {
+                _trackInfoProbeFailureLogged = false;
+                _logger.Info("media.track_detection_recovered", "System media track probe resumed.");
+            }
+
+            string identity = snapshot.HasTrack
+                ? $"{snapshot.Title}\u001f{snapshot.Artist}"
+                : string.Empty;
+            bool trackChanged = _hasObservedTrackSnapshot &&
+                snapshot.HasTrack &&
+                !identity.Equals(_lastTrackIdentity, StringComparison.Ordinal);
+            _hasObservedTrackSnapshot = true;
+            _lastTrackSnapshot = snapshot;
+            _lastTrackIdentity = identity;
+
+            if (snapshot.HasTrack)
+            {
+                bool automaticDisplay = trackChanged || (_showNextTrackChange && trackChanged);
+                if (shouldShowWhenFound || automaticDisplay)
+                {
+                    ShowTrackInfo(snapshot, holdAfterLeave: automaticDisplay);
+                }
+
+                if (trackChanged)
+                {
+                    _showNextTrackChange = false;
+                    _logger.Info("media.track_changed", "System media track metadata changed.");
+                }
+            }
+            else if (shouldShowWhenFound)
+            {
+                ShowTrackInfoUnavailable();
+            }
+        }
+        finally
+        {
+            _trackInfoRefreshInFlight = false;
+            _trackInfoShowRequested = false;
+        }
+    }
+
+    private async Task RefreshTrackInfoAfterTrackCommandAsync()
+    {
+        int[] delays = [250, 500, 750, 1500];
+        foreach (int delay in delays)
+        {
+            await Task.Delay(delay);
+            if (_isClosing || !_showNextTrackChange)
+            {
+                return;
+            }
+
+            await RefreshTrackInfoAsync(showWhenFound: false);
+        }
+
+        _showNextTrackChange = false;
+    }
+
+    private void ShowTrackSwitchPending()
+    {
+        TrackTitleText.Text = "正在切换歌曲…";
+        TrackArtistText.Text = "等待网易云更新歌曲信息";
+        TrackArtistText.Visibility = Visibility.Visible;
+        System.Windows.Automation.AutomationProperties.SetName(
+            TrackInfoBubble,
+            "正在切换歌曲，等待网易云更新歌曲信息");
+        ShowTrackInfoSurface(holdAfterLeave: true);
+    }
+
+    private void ShowTrackInfo(MediaTrackSnapshot snapshot, bool holdAfterLeave)
+    {
+        TrackTitleText.Text = snapshot.Title;
+        TrackArtistText.Text = snapshot.Artist;
+        TrackArtistText.Visibility = string.IsNullOrWhiteSpace(snapshot.Artist)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        System.Windows.Automation.AutomationProperties.SetName(
+            TrackInfoBubble,
+            MediaTrackText.BuildAccessibleLabel(snapshot));
+        ShowTrackInfoSurface(holdAfterLeave);
+    }
+
+    private void ShowTrackInfoUnavailable()
+    {
+        TrackTitleText.Text = "暂未读取到歌曲名称";
+        TrackArtistText.Text = "请确认网易云正在播放并允许系统媒体控制";
+        TrackArtistText.Visibility = Visibility.Visible;
+        System.Windows.Automation.AutomationProperties.SetName(
+            TrackInfoBubble,
+            "暂未读取到歌曲名称");
+        ShowTrackInfoSurface(holdAfterLeave: false);
+    }
+
+    private void ShowTrackInfoSurface(bool holdAfterLeave)
+    {
+        _trackInfoMotion.Show();
+        _trackInfoHideTimer.Stop();
+        if (holdAfterLeave && !_previewTrackInfo)
+        {
+            _trackInfoHideTimer.Start();
+        }
+    }
+
+    private void OnTrackInfoHideTimerTick(object? sender, EventArgs e)
+    {
+        _trackInfoHideTimer.Stop();
+        if (!_previewTrackInfo && !IsMouseOver)
+        {
+            _trackInfoMotion.Hide();
+        }
     }
 
     private async void OnExitClick(object sender, RoutedEventArgs e)
@@ -1045,6 +1278,15 @@ public partial class MainWindow : Window
         _mediaControlsMotion.Show();
     }
 
+    private async Task BeginLiveTrackInfoPreviewAsync()
+    {
+        await Task.Delay(700);
+        if (!_isClosing)
+        {
+            await RefreshTrackInfoAsync(showWhenFound: true);
+        }
+    }
+
     private async Task BeginUserRequestedExitAsync()
     {
         if (_isClosing)
@@ -1075,6 +1317,10 @@ public partial class MainWindow : Window
         _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
         _mediaControlsHideTimer.Stop();
         _mediaControlsHideTimer.Tick -= OnMediaControlsHideTimerTick;
+        _trackInfoRefreshTimer.Stop();
+        _trackInfoRefreshTimer.Tick -= OnTrackInfoRefreshTimerTick;
+        _trackInfoHideTimer.Stop();
+        _trackInfoHideTimer.Tick -= OnTrackInfoHideTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
@@ -1082,6 +1328,7 @@ public partial class MainWindow : Window
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         _mediaControlsMotion.Cancel();
+        _trackInfoMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         if (!_persistSettings)

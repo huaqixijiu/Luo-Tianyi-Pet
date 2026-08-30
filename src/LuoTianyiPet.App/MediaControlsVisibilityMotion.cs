@@ -10,14 +10,17 @@ internal sealed class MediaControlsVisibilityMotion
     private static readonly Duration HideDuration = new(TimeSpan.FromMilliseconds(120));
     private readonly FrameworkElement _surface;
     private readonly TranslateTransform _translate;
+    private readonly bool _enableHitTesting;
     private long _animationVersion;
 
     public MediaControlsVisibilityMotion(
         FrameworkElement surface,
-        TranslateTransform translate)
+        TranslateTransform translate,
+        bool enableHitTesting = true)
     {
         _surface = surface;
         _translate = translate;
+        _enableHitTesting = enableHitTesting;
     }
 
     public void Show(bool animate = true)
@@ -25,7 +28,7 @@ internal sealed class MediaControlsVisibilityMotion
         long version = ++_animationVersion;
         StopAnimations();
         _surface.Visibility = Visibility.Visible;
-        _surface.IsHitTestVisible = true;
+        _surface.IsHitTestVisible = _enableHitTesting;
 
         if (!animate)
         {
@@ -112,7 +115,7 @@ internal sealed class MediaControlsVisibilityMotion
         _surface.Opacity = 1;
         _translate.Y = 0;
         _surface.Visibility = Visibility.Visible;
-        _surface.IsHitTestVisible = true;
+        _surface.IsHitTestVisible = _enableHitTesting;
     }
 
     private void SetHiddenState()

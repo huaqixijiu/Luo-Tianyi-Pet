@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="洛天依桌宠"
         Width="196"
-        Height="254"
+        Height="306"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="NoResize"
@@ -100,7 +100,7 @@
 
     <Grid x:Name="Root">
         <Grid x:Name="PetVisual"
-              Margin="8,8,8,66"
+              Margin="8,60,8,66"
               RenderTransformOrigin="0.5,1">
             <Grid.RenderTransform>
                 <TransformGroup>
@@ -154,7 +154,7 @@
                  Panel.ZIndex="2"
                  Width="150"
                  Height="150"
-                 Margin="8,8,8,66"
+                 Margin="8,60,8,66"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Bottom"
                  IsHitTestVisible="False"
@@ -173,10 +173,55 @@
             </Ellipse.RenderTransform>
         </Ellipse>
 
+        <Border x:Name="TrackInfoBubble"
+                Panel.ZIndex="5"
+                Height="44"
+                Margin="5,6,5,0"
+                Padding="12,5"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                Background="#F2083448"
+                BorderBrush="#D966CCFF"
+                BorderThickness="1"
+                CornerRadius="14"
+                IsHitTestVisible="False"
+                Opacity="0"
+                Visibility="Collapsed"
+                AutomationProperties.Name="当前歌曲">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10"
+                                  Color="#FF0A719D"
+                                  Direction="270"
+                                  Opacity="0.32"
+                                  ShadowDepth="2" />
+            </Border.Effect>
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="TrackInfoTranslate" Y="-6" />
+            </Border.RenderTransform>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="TrackTitleText"
+                           Foreground="White"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="TrackArtistText"
+                           Grid.Row="1"
+                           Foreground="#D8C8F2FF"
+                           FontSize="10"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </Border>
+
         <Border x:Name="FeedbackBubble"
                 Panel.ZIndex="4"
                 MaxWidth="240"
-                Margin="6"
+                Margin="6,56,6,6"
                 Padding="9,6"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
