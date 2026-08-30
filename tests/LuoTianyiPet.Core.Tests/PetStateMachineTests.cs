@@ -119,6 +119,33 @@ public sealed class PetStateMachineTests
     }
 
     [Fact]
+    public void BodyInteractionRecoveryDelayDoesNotBlockDoubleClickStateChangeOrDrag()
+    {
+        PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
+        machine.SuppressBodyInteractions(Now, TimeSpan.FromMilliseconds(800));
+
+        Assert.False(machine.Resolve(Now.AddMilliseconds(799)).BodyRegionInteractionsEnabled);
+        machine.SetDisplayMode(PetDisplayMode.Compact);
+        Assert.Equal(PetDisplayMode.Compact, machine.VisualState.SelectedDisplayMode);
+        machine.SetDisplayMode(PetDisplayMode.FullBodyInteractive);
+        Assert.True(machine.BeginDrag());
+        Assert.True(machine.EndDrag());
+        Assert.True(machine.Resolve(Now.AddMilliseconds(800)).BodyRegionInteractionsEnabled);
+    }
+
+    [Fact]
+    public void LaterBodyInteractionSuppressionExtendsExistingRecoveryDelay()
+    {
+        PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
+        machine.SuppressBodyInteractions(Now, TimeSpan.FromMilliseconds(800));
+
+        machine.SuppressBodyInteractions(Now.AddMilliseconds(400), TimeSpan.FromMilliseconds(800));
+
+        Assert.False(machine.Resolve(Now.AddMilliseconds(1199)).BodyRegionInteractionsEnabled);
+        Assert.True(machine.Resolve(Now.AddMilliseconds(1200)).BodyRegionInteractionsEnabled);
+    }
+
+    [Fact]
     public void NonInterruptibleReactionBlocksDrag()
     {
         PetStateMachine machine = new();

@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
+    private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -380,10 +381,29 @@ public partial class MainWindow : Window
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
-            PlayLandingFeedback();
+            if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
+            {
+                PlayLandingFeedback();
+                _logger.Info("interaction.drag_ended", "Compact landing feedback requested.");
+            }
+            else
+            {
+                RestoreAfterFullBodyDrag();
+                _logger.Info("interaction.drag_ended", "Full-body mode restored without landing feedback.");
+            }
+        }
+    }
+
+    private void RestoreAfterFullBodyDrag()
+    {
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
+        {
+            UpdateBodyHitDebugOverlay();
+            return;
         }
 
-        _logger.Info("interaction.drag_ended", "Landing feedback requested.");
+        _ = TransitionToResolvedContinuousAnimationAsync("animation.full_body_drag_restored");
     }
 
     private void PlayLandingFeedback()
@@ -477,11 +497,13 @@ public partial class MainWindow : Window
 
     private void CompleteBodyReaction(Guid token)
     {
-        if (!_stateMachine.CompleteReaction(token, DateTimeOffset.Now))
+        DateTimeOffset now = DateTimeOffset.Now;
+        if (!_stateMachine.CompleteReaction(token, now))
         {
             return;
         }
 
+        _stateMachine.SuppressBodyInteractions(now, BodyInteractionRecoveryDelay);
         _bodyReactionMotion.Cancel();
         _ = TransitionToResolvedContinuousAnimationAsync("animation.body_reaction_transition_completed");
     }

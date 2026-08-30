@@ -48,6 +48,7 @@ public sealed class PetStateMachine
     private readonly Dictionary<string, DateTimeOffset> _cooldownEnds = new(StringComparer.Ordinal);
     private ActiveReaction? _activeReaction;
     private PetContinuousState _stateBeforeDrag = PetContinuousState.Idle;
+    private DateTimeOffset _bodyInteractionsSuppressedUntil = DateTimeOffset.MinValue;
 
     public PetStateMachine(PetVisualState? initialState = null)
     {
@@ -151,6 +152,20 @@ public sealed class PetStateMachine
 
     public void CancelActiveReaction() => _activeReaction = null;
 
+    public void SuppressBodyInteractions(DateTimeOffset now, TimeSpan duration)
+    {
+        if (duration < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(duration));
+        }
+
+        DateTimeOffset suppressedUntil = now + duration;
+        if (suppressedUntil > _bodyInteractionsSuppressedUntil)
+        {
+            _bodyInteractionsSuppressedUntil = suppressedUntil;
+        }
+    }
+
     public bool BeginDrag()
     {
         if (VisualState.ContinuousState == PetContinuousState.HiddenForSafety)
@@ -208,7 +223,8 @@ public sealed class PetStateMachine
         }
 
         bool bodyRegionsEnabled = VisualState.ContinuousState == PetContinuousState.Idle &&
-            VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
+            VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+            now >= _bodyInteractionsSuppressedUntil;
         return ContinuousPlan(bodyRegionsEnabled);
     }
 

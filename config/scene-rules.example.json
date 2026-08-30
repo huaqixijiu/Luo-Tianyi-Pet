@@ -114,6 +114,15 @@
       ]
     },
     "bodyRegions": {
+      "recoveryDelayAfterAnimationMilliseconds": 800,
+      "recoveryDelayBlocks": [
+        "single-body-click",
+        "head-petting-gesture"
+      ],
+      "recoveryDelayAllows": [
+        "double-click-display-mode-toggle",
+        "pet-window-drag"
+      ],
       "enabledInDisplayModes": [
         "fullBodyInteractive"
       ],
@@ -204,9 +213,17 @@
       "allowWindowTiltAndShadow": true
     },
     "drop": {
-      "animation": "codename-landing-bounce",
-      "loopCount": 1,
-      "addSpringMotion": true,
+      "behaviorByDisplayMode": {
+        "compact": {
+          "animation": "codename-landing-bounce",
+          "loopCount": 1,
+          "addSpringMotion": true
+        },
+        "fullBodyInteractive": {
+          "animation": null,
+          "addSpringMotion": false
+        }
+      },
       "returnToResolvedContinuousState": true,
       "returnToSelectedDisplayMode": true
     },
