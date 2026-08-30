@@ -63,6 +63,12 @@ public sealed class PetStateMachine
     public void SetDisplayMode(PetDisplayMode mode) =>
         VisualState = VisualState with { SelectedDisplayMode = mode };
 
+    public void SetMusicAnimation(string animationId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(animationId);
+        VisualState = VisualState with { MusicAnimationId = animationId };
+    }
+
     public void SetContinuousState(PetContinuousState state)
     {
         if (state == PetContinuousState.Dragging)

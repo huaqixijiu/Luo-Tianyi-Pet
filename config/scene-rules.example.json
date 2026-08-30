@@ -77,15 +77,23 @@
     "detectAudioWithCoreAudio": true,
     "silenceGraceMilliseconds": 1500,
     "disableCommandsInSafeGameMode": true,
-    "startPlaybackAnimation": {
-      "id": "resonance-enjoy-music",
-      "selectionMode": "fixed",
-      "appliesAfterPause": true,
-      "playbackRate": 0.5,
-      "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif",
-      "loopCount": 1
+    "playingAnimations": {
+      "selectionMode": "random-per-playing-session",
+      "selectAgainAfterPause": true,
+      "loopSelectedAnimation": true,
+      "candidates": [
+        {
+          "id": "resonance-enjoy-music",
+          "playbackRate": 0.5,
+          "asset": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif"
+        },
+        {
+          "id": "ninth-anniversary-music-sway",
+          "playbackRate": 1.0,
+          "asset": "候选素材_官方/00_快速预览/02_九周年_音乐摇摆.webp"
+        }
+      ]
     },
-    "playingIdleAnimation": "ninth-anniversary-music-sway",
     "loadingAnimation": "resonance-loading-sway",
     "showLoadingAfterMilliseconds": 400,
     "loadingTimeoutMilliseconds": 15000,

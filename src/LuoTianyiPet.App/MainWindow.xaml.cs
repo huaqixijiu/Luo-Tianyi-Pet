@@ -13,7 +13,6 @@ namespace LuoTianyiPet.App;
 
 public partial class MainWindow : Window
 {
-    private const string EnjoyMusicAnimation = "resonance-enjoy-music";
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
@@ -32,6 +31,7 @@ public partial class MainWindow : Window
         30);
     private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
+    private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
@@ -617,36 +617,26 @@ public partial class MainWindow : Window
     private void StartMusicPreview()
     {
         DateTimeOffset now = DateTimeOffset.Now;
+        string selectedAnimation = _musicAnimationSelector.Select();
+        _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
-        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
-            new ReactionRequest(
-                EnjoyMusicAnimation,
-                ReactionPriority.MediaOrVolume,
-                now.AddSeconds(10)),
-            now);
-        if (outcome.Token is Guid token)
+        PetPlaybackPlan plan = _stateMachine.Resolve(now);
+        if (plan.Source == PlaybackPlanSource.Continuous)
         {
-            PlayAnimation(
-                EnjoyMusicAnimation,
-                () =>
-                {
-                    _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
-                    _ = TransitionToResolvedContinuousAnimationAsync("animation.music_transition_completed");
-                });
-        }
-        else
-        {
-            PlayResolvedContinuousAnimation();
+            _ = TransitionToResolvedContinuousAnimationAsync("animation.music_selection_transition_completed");
         }
 
-        _logger.Info("animation.preview_music_started", "State-machine preview only.");
+        _logger.Info("animation.preview_music_started", $"Selected continuous animation: {selectedAnimation}.");
     }
 
     private void OnPreviewMusicStop(object sender, RoutedEventArgs e)
     {
-        _stateMachine.CancelActiveReaction();
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
-        PlayResolvedContinuousAnimation();
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync("animation.music_stopped_transition_completed");
+        }
+
         _logger.Info("animation.preview_music_stopped", "Selected display mode restored.");
     }
 

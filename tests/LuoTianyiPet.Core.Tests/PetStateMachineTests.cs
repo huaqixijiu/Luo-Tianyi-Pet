@@ -10,13 +10,27 @@ public sealed class PetStateMachineTests
     public void CompletingReactionReResolvesCurrentMusicState()
     {
         PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
+        machine.SetMusicAnimation(PetVisualState.EnjoyMusicAnimation);
         machine.SetContinuousState(PetContinuousState.MusicPlaying);
-        ReactionStartOutcome outcome = machine.TryStartReaction(Request("resonance-enjoy-music"), Now);
+        ReactionStartOutcome outcome = machine.TryStartReaction(Request("notification"), Now);
 
-        Assert.Equal("resonance-enjoy-music", machine.Resolve(Now).AnimationId);
+        Assert.Equal("notification", machine.Resolve(Now).AnimationId);
         Assert.True(machine.CompleteReaction(outcome.Token!.Value, Now.AddSeconds(2)));
-        Assert.Equal(PetVisualState.MusicPlayingAnimation, machine.Resolve(Now.AddSeconds(2)).AnimationId);
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, machine.Resolve(Now.AddSeconds(2)).AnimationId);
         Assert.Equal(PetDisplayMode.FullBodyInteractive, machine.VisualState.SelectedDisplayMode);
+    }
+
+    [Fact]
+    public void MusicSelectionChangedDuringDragIsUsedAfterDrop()
+    {
+        PetStateMachine machine = new();
+        Assert.True(machine.BeginDrag());
+
+        machine.SetMusicAnimation(PetVisualState.EnjoyMusicAnimation);
+        machine.SetContinuousState(PetContinuousState.MusicPlaying);
+
+        Assert.True(machine.EndDrag());
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, machine.Resolve(Now).AnimationId);
     }
 
     [Fact]
@@ -88,7 +102,7 @@ public sealed class PetStateMachineTests
         Assert.Equal(PetVisualState.CompactDraggingAnimation, machine.Resolve(Now).AnimationId);
         machine.SetContinuousState(PetContinuousState.MusicPlaying);
         Assert.True(machine.EndDrag());
-        Assert.Equal(PetVisualState.MusicPlayingAnimation, machine.Resolve(Now).AnimationId);
+        Assert.Equal(PetVisualState.MusicSwayAnimation, machine.Resolve(Now).AnimationId);
     }
 
     [Fact]

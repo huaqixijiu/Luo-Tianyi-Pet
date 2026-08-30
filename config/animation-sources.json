@@ -59,7 +59,7 @@
       "atlas": "assets/animations/runtime/resonance-enjoy-music.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
-      "loopCount": 1,
+      "loopCount": 0,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
