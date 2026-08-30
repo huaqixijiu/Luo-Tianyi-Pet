@@ -112,9 +112,6 @@ public partial class App : Application
             ISystemVolumeService? systemVolumeService = !isPreviewOrQaRun || liveSystemVolumeQa
                 ? CreateSystemVolumeService(settings, _logger)
                 : null;
-            IApplicationVolumeService? applicationVolumeService = !isPreviewOrQaRun
-                ? CreateApplicationVolumeService(settings, _logger)
-                : null;
             IStartupRegistrationService? startupRegistrationService = !isPreviewOrQaRun &&
                 Environment.ProcessPath is string executablePath
                     ? new WindowsStartupRegistrationService(
@@ -156,7 +153,6 @@ public partial class App : Application
                 audioSessionProbe,
                 mediaCommandSender,
                 systemVolumeService,
-                applicationVolumeService,
                 startupRegistrationService,
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
@@ -305,25 +301,6 @@ public partial class App : Application
             UnauthorizedAccessException)
         {
             logger.Error("volume.endpoint_initialization_failed", exception);
-            return null;
-        }
-    }
-
-    private static IApplicationVolumeService? CreateApplicationVolumeService(
-        AppSettings settings,
-        IAppLogger logger)
-    {
-        try
-        {
-            return new CoreAudioApplicationVolumeService(
-                settings.Media.TargetProcessName,
-                settings.Safety);
-        }
-        catch (Exception exception) when (
-            exception is System.Runtime.InteropServices.COMException or
-            InvalidOperationException or ArgumentException or UnauthorizedAccessException)
-        {
-            logger.Error("volume.application_session_initialization_failed", exception);
             return null;
         }
     }

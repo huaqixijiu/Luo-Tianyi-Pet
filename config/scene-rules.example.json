@@ -134,8 +134,7 @@
       "buttons": [
         "previousTrack",
         "togglePlayPause",
-        "nextTrack",
-        "cloudMusicSessionVolume"
+        "nextTrack"
       ],
       "showCurrentShortcutInTooltip": true
     },

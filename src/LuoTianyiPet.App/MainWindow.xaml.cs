@@ -64,7 +64,6 @@ public partial class MainWindow : Window
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly ISystemVolumeService? _systemVolumeService;
-    private readonly IApplicationVolumeService? _applicationVolumeService;
     private readonly IStartupRegistrationService? _startupRegistrationService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly IUserIdleTimeSource _userIdleTimeSource;
@@ -114,9 +113,6 @@ public partial class MainWindow : Window
     private bool _showNextTrackChange;
     private bool _externalVolumeFeedbackSubscribed;
     private bool _permanentTopmost;
-    private bool _isCloudMusicVolumeDragging;
-    private bool _isUpdatingCloudMusicVolumeSlider;
-    private float? _lastCloudMusicVolumeLevel;
     private CancellationTokenSource? _trackSwitchCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
@@ -154,7 +150,6 @@ public partial class MainWindow : Window
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
         ISystemVolumeService? systemVolumeService,
-        IApplicationVolumeService? applicationVolumeService,
         IStartupRegistrationService? startupRegistrationService,
         IMediaTrackInfoSource? mediaTrackInfoSource,
         IUserIdleTimeSource userIdleTimeSource,
@@ -191,7 +186,6 @@ public partial class MainWindow : Window
         _audioSessionProbe = audioSessionProbe;
         _mediaCommandSender = mediaCommandSender;
         _systemVolumeService = systemVolumeService;
-        _applicationVolumeService = applicationVolumeService;
         _startupRegistrationService = startupRegistrationService;
         _mediaTrackInfoSource = mediaTrackInfoSource;
         _userIdleTimeSource = userIdleTimeSource;
@@ -337,7 +331,6 @@ public partial class MainWindow : Window
         TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
         NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
         UpdatePlayPauseGlyph();
-        RefreshCloudMusicVolumeControl();
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
 
@@ -2336,103 +2329,6 @@ public partial class MainWindow : Window
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
 
-    private void OnCloudMusicVolumeSliderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ChangedButton != MouseButton.Left || _applicationVolumeService is null)
-        {
-            return;
-        }
-
-        RefreshCloudMusicVolumeControl();
-        _isCloudMusicVolumeDragging = true;
-    }
-
-    private void OnCloudMusicVolumeSliderValueChanged(
-        object sender,
-        RoutedPropertyChangedEventArgs<double> e)
-    {
-        if (!_isCloudMusicVolumeDragging || _isUpdatingCloudMusicVolumeSlider)
-        {
-            return;
-        }
-
-        SetCloudMusicVolume((float)(e.NewValue / 100));
-    }
-
-    private void OnCloudMusicVolumeSliderMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ChangedButton != MouseButton.Left)
-        {
-            return;
-        }
-
-        _isCloudMusicVolumeDragging = false;
-    }
-
-    private void SetCloudMusicVolume(float requestedLevel)
-    {
-        if (_applicationVolumeService is null)
-        {
-            return;
-        }
-
-        float? previousLevel = _lastCloudMusicVolumeLevel;
-        ApplicationVolumeAdjustmentResult result =
-            _applicationVolumeService.TrySetLevel(requestedLevel);
-        if (result.Status is ApplicationVolumeAdjustmentStatus.Succeeded or
-            ApplicationVolumeAdjustmentStatus.AtLimit)
-        {
-            UpdateCloudMusicVolumeDisplay(result.Snapshot);
-            ShowFeedbackBubble($"🔊 网易云音量 {result.Snapshot.Percentage}%");
-            if (result.Status == ApplicationVolumeAdjustmentStatus.Succeeded &&
-                previousLevel is float previous &&
-                Math.Abs(result.Snapshot.Level - previous) >= 0.0005f)
-            {
-                StartOrMergeVolumeReaction(
-                    result.Snapshot.Level > previous
-                        ? SystemVolumeChangeKind.Increased
-                        : SystemVolumeChangeKind.Decreased);
-            }
-            return;
-        }
-
-        string message = result.Status switch
-        {
-            ApplicationVolumeAdjustmentStatus.TargetSessionMissing =>
-                "网易云当前没有可调节的播放会话",
-            ApplicationVolumeAdjustmentStatus.ProtectedApplicationForeground =>
-                "游戏安全模式：没有调整网易云音量",
-            ApplicationVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
-                "暂时无法确认前台程序，没有调整音量",
-            _ => "暂时无法调整网易云独立音量",
-        };
-        ShowFeedbackBubble(message);
-        RefreshCloudMusicVolumeControl();
-    }
-
-    private void RefreshCloudMusicVolumeControl()
-    {
-        ApplicationVolumeSnapshot snapshot =
-            _applicationVolumeService?.Read() ?? ApplicationVolumeSnapshot.Unavailable;
-        UpdateCloudMusicVolumeDisplay(snapshot);
-    }
-
-    private void UpdateCloudMusicVolumeDisplay(ApplicationVolumeSnapshot snapshot)
-    {
-        bool available = snapshot.IsAvailable;
-        CloudMusicVolumeSlider.Opacity = available ? 1 : 0.48;
-        CloudMusicVolumeSlider.ToolTip = available
-            ? $"网易云独立音量 {snapshot.Percentage}% · 左右滑动调整"
-            : "网易云开始播放后可左右滑动调整独立音量";
-        _isUpdatingCloudMusicVolumeSlider = true;
-        CloudMusicVolumeSlider.Value = available ? snapshot.Percentage : 0;
-        _isUpdatingCloudMusicVolumeSlider = false;
-        System.Windows.Automation.AutomationProperties.SetName(
-            CloudMusicVolumeSlider,
-            available ? $"网易云独立音量 {snapshot.Percentage}%" : "网易云独立音量不可用");
-        _lastCloudMusicVolumeLevel = available ? snapshot.Level : null;
-    }
-
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (_systemVolumeService is null || _isClosing || e.Delta == 0)
@@ -2608,7 +2504,6 @@ public partial class MainWindow : Window
 
         if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
         {
-            RefreshCloudMusicVolumeControl();
             _mediaControlsHideTimer.Stop();
             _mediaControlsMotion.Show();
         }
@@ -2727,10 +2622,6 @@ public partial class MainWindow : Window
 
     private async void OnTrackInfoRefreshTimerTick(object? sender, EventArgs e)
     {
-        if (IsMouseOver && !_isCloudMusicVolumeDragging)
-        {
-            RefreshCloudMusicVolumeControl();
-        }
         await RefreshTrackInfoAsync(showWhenFound: false);
     }
 
@@ -3115,7 +3006,6 @@ public partial class MainWindow : Window
             }
             _systemVolumeService.Dispose();
         }
-        _applicationVolumeService?.Dispose();
         if (!_persistSettings)
         {
             return;
