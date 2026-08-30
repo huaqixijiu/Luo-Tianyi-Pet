@@ -33,6 +33,25 @@ public sealed class PetStateMachineTests
         Assert.Equal(PetVisualState.EnjoyMusicAnimation, machine.Resolve(Now).AnimationId);
     }
 
+    [Theory]
+    [InlineData(PetDisplayMode.Compact)]
+    [InlineData(PetDisplayMode.FullBodyInteractive)]
+    public void MusicAnimationRemainsVisibleThroughoutDrag(PetDisplayMode displayMode)
+    {
+        PetStateMachine machine = new(new PetVisualState(
+            displayMode,
+            PetContinuousState.MusicPlaying,
+            PetVisualState.EnjoyMusicAnimation));
+
+        Assert.True(machine.BeginDrag());
+        PetPlaybackPlan draggingPlan = machine.Resolve(Now);
+
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, draggingPlan.AnimationId);
+        Assert.False(draggingPlan.BodyRegionInteractionsEnabled);
+        Assert.True(machine.EndDrag());
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, machine.Resolve(Now).AnimationId);
+    }
+
     [Fact]
     public void HigherPriorityReplacesAndStaleCompletionCannotEndReplacement()
     {

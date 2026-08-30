@@ -210,6 +210,15 @@ public sealed class PetStateMachine
 
         if (VisualState.ContinuousState == PetContinuousState.Dragging)
         {
+            if (_stateBeforeDrag == PetContinuousState.MusicPlaying)
+            {
+                return new PetPlaybackPlan(
+                    true,
+                    VisualState.MusicAnimationId,
+                    PlaybackPlanSource.Continuous,
+                    false);
+            }
+
             return ContinuousPlan(bodyRegionsEnabled: false);
         }
 

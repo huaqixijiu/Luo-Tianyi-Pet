@@ -416,7 +416,12 @@ public partial class MainWindow : Window
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
-            if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
+            if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+            {
+                RestoreAfterMusicDrag();
+                _logger.Info("interaction.drag_ended", "Music animation continued without landing feedback.");
+            }
+            else if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
             {
                 PlayLandingFeedback();
                 _logger.Info("interaction.drag_ended", "Compact landing feedback requested.");
@@ -427,6 +432,18 @@ public partial class MainWindow : Window
                 _logger.Info("interaction.drag_ended", "Full-body mode restored without landing feedback.");
             }
         }
+    }
+
+    private void RestoreAfterMusicDrag()
+    {
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
+        {
+            UpdateBodyHitDebugOverlay();
+            return;
+        }
+
+        _ = TransitionToResolvedContinuousAnimationAsync("animation.music_drag_restored");
     }
 
     private void RestoreAfterFullBodyDrag()

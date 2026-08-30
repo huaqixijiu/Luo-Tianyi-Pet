@@ -201,6 +201,11 @@
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
+      "whileMusicPlaying": {
+        "animation": "keep-current-music-animation",
+        "replaceCurrentAnimation": false,
+        "playLandingAnimationOnDrop": false
+      },
       "behaviorByDisplayMode": {
         "compact": {
           "animation": "resonance-expand",
