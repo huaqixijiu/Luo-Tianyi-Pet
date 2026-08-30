@@ -16,7 +16,7 @@ public sealed class AppSettingsTests
         Assert.True(settings.Media.EnableCloudMusicDetection);
         Assert.Equal("cloudmusic.exe", settings.Media.TargetProcessName);
         Assert.Equal(250, settings.Media.PollIntervalMilliseconds);
-        Assert.Equal(500, settings.Media.SilenceGraceMilliseconds);
+        Assert.Equal(1000, settings.Media.SilenceGraceMilliseconds);
         Assert.Equal(0.001f, settings.Media.AudiblePeakThreshold);
     }
 }

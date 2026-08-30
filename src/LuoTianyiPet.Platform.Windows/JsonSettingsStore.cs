@@ -32,7 +32,8 @@ public sealed class JsonSettingsStore : ISettingsStore
             return settings?.SchemaVersion switch
             {
                 AppSettings.CurrentSchemaVersion => Normalize(settings),
-                1 => MigrateFromVersion1(settings),
+                1 => MigrateFromPreviousVersion(settings, 1500),
+                2 => MigrateFromPreviousVersion(settings, 500),
                 _ => new AppSettings(),
             };
         }
@@ -49,10 +50,12 @@ public sealed class JsonSettingsStore : ISettingsStore
         Media = settings.Media ?? new MediaPreferences(),
     };
 
-    private static AppSettings MigrateFromVersion1(AppSettings settings)
+    private static AppSettings MigrateFromPreviousVersion(
+        AppSettings settings,
+        int previousDefaultGraceMilliseconds)
     {
         MediaPreferences media = settings.Media ?? new MediaPreferences();
-        if (media.SilenceGraceMilliseconds == 1500)
+        if (media.SilenceGraceMilliseconds == previousDefaultGraceMilliseconds)
         {
             media = media with
             {

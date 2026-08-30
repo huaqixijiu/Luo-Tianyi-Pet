@@ -69,7 +69,7 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Theory]
-    [InlineData(1500, 500)]
+    [InlineData(1500, 1000)]
     [InlineData(800, 800)]
     public async Task Load_Version1Media_MigratesOnlyTheOldDefaultGracePeriod(
         int storedGraceMilliseconds,
@@ -110,6 +110,51 @@ public sealed class JsonSettingsStoreTests
             Assert.Equal(400, actual.Media.PollIntervalMilliseconds);
             Assert.Equal(expectedGraceMilliseconds, actual.Media.SilenceGraceMilliseconds);
             Assert.Equal(0.002f, actual.Media.AudiblePeakThreshold);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(500, 1000)]
+    [InlineData(800, 800)]
+    public async Task Load_Version2Media_MigratesOnlyTheOldDefaultGracePeriod(
+        int storedGraceMilliseconds,
+        int expectedGraceMilliseconds)
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                $$"""
+                {
+                  "schemaVersion": 2,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "top": 456.25
+                  },
+                  "media": {
+                    "enableCloudMusicDetection": true,
+                    "targetProcessName": "cloudmusic.exe",
+                    "pollIntervalMilliseconds": 250,
+                    "silenceGraceMilliseconds": {{storedGraceMilliseconds}},
+                    "audiblePeakThreshold": 0.001
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(456.25, actual.Window.Top);
+            Assert.Equal(expectedGraceMilliseconds, actual.Media.SilenceGraceMilliseconds);
         }
         finally
         {

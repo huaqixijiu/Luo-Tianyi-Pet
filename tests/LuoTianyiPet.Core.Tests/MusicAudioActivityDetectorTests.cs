@@ -36,11 +36,11 @@ public sealed class MusicAudioActivityDetectorTests
 
         Assert.Equal(
             MusicActivityTransition.None,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(499)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(999)));
         Assert.True(detector.IsPlaying);
         Assert.Equal(
             MusicActivityTransition.Stopped,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(500)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1000)));
     }
 
     [Fact]
@@ -53,10 +53,10 @@ public sealed class MusicAudioActivityDetectorTests
 
         Assert.Equal(
             MusicActivityTransition.None,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(899)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1399)));
         Assert.Equal(
             MusicActivityTransition.Stopped,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(900)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1400)));
     }
 
     [Fact]
@@ -93,5 +93,5 @@ public sealed class MusicAudioActivityDetectorTests
 
     private static MusicAudioActivityDetector CreateDetector() => new(
         0.001f,
-        TimeSpan.FromMilliseconds(500));
+        TimeSpan.FromMilliseconds(1000));
 }
