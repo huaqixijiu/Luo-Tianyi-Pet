@@ -24,6 +24,10 @@ internal sealed class BodyReactionMotion
         {
             PlayOopsShake();
         }
+        else if (animationId == "resonance-loading-sway")
+        {
+            PlayLoadingSway();
+        }
     }
 
     public void Cancel()
@@ -80,6 +84,28 @@ internal sealed class BodyReactionMotion
         _translate.BeginAnimation(
             TranslateTransform.XProperty,
             shake,
+            HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayLoadingSway()
+    {
+        Cancel();
+        DoubleAnimationUsingKeyFrames sway = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(900),
+            RepeatBehavior = RepeatBehavior.Forever,
+            AutoReverse = true,
+        };
+        sway.KeyFrames.Add(new EasingDoubleKeyFrame(
+            -6,
+            KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        sway.KeyFrames.Add(new EasingDoubleKeyFrame(
+            6,
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(900)),
+            new SineEase { EasingMode = EasingMode.EaseInOut }));
+        _translate.BeginAnimation(
+            TranslateTransform.XProperty,
+            sway,
             HandoffBehavior.SnapshotAndReplace);
     }
 }

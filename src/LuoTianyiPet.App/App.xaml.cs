@@ -93,6 +93,7 @@ public partial class App : Application
                 audioSessionProbe,
                 mediaCommandSender,
                 mediaTrackInfoSource,
+                new WindowsUserIdleTimeSource(),
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,

@@ -17,6 +17,7 @@ internal sealed class AnimationFramePlayer : IDisposable
     private Action? _completed;
     private int _currentFrameIndex = -1;
     private bool _completionRaised;
+    private bool _reverse;
 
     public AnimationFramePlayer(Image target, AnimationCatalog catalog)
     {
@@ -31,14 +32,18 @@ internal sealed class AnimationFramePlayer : IDisposable
 
     public string? CurrentAnimationId => _current?.Manifest.Id;
 
-    public AnimationAssetManifest Play(string animationId, Action? completed = null)
+    public AnimationAssetManifest Play(
+        string animationId,
+        Action? completed = null,
+        bool reverse = false)
     {
         CachedAnimation animation = GetOrLoad(animationId);
         _current = animation;
         _completed = completed;
+        _reverse = reverse;
         _completionRaised = false;
-        _currentFrameIndex = 0;
-        _target.Source = animation.Frames[0];
+        _currentFrameIndex = reverse ? animation.Frames.Count - 1 : 0;
+        _target.Source = animation.Frames[_currentFrameIndex];
         _stopwatch.Restart();
         _timer.Start();
         return animation.Manifest;
@@ -51,6 +56,7 @@ internal sealed class AnimationFramePlayer : IDisposable
         _current = null;
         _completed = null;
         _completionRaised = false;
+        _reverse = false;
         _currentFrameIndex = -1;
         _target.Source = null;
     }
@@ -92,7 +98,10 @@ internal sealed class AnimationFramePlayer : IDisposable
         CachedAnimation animation = new(
             manifest,
             frames,
-            new AnimationFrameTimeline(manifest.FrameDurationsMilliseconds, manifest.LoopCount));
+            new AnimationFrameTimeline(manifest.FrameDurationsMilliseconds, manifest.LoopCount),
+            new AnimationFrameTimeline(
+                manifest.FrameDurationsMilliseconds.Reverse().ToArray(),
+                manifest.LoopCount));
         _cache.Add(animationId, animation);
         return animation;
     }
@@ -104,11 +113,15 @@ internal sealed class AnimationFramePlayer : IDisposable
             return;
         }
 
-        PlaybackFrame playbackFrame = _current.Timeline.GetFrame(_stopwatch.Elapsed);
-        if (playbackFrame.Index != _currentFrameIndex)
+        AnimationFrameTimeline timeline = _reverse ? _current.ReverseTimeline : _current.Timeline;
+        PlaybackFrame playbackFrame = timeline.GetFrame(_stopwatch.Elapsed);
+        int frameIndex = _reverse
+            ? _current.Frames.Count - 1 - playbackFrame.Index
+            : playbackFrame.Index;
+        if (frameIndex != _currentFrameIndex)
         {
-            _currentFrameIndex = playbackFrame.Index;
-            _target.Source = _current.Frames[playbackFrame.Index];
+            _currentFrameIndex = frameIndex;
+            _target.Source = _current.Frames[frameIndex];
         }
 
         if (!playbackFrame.IsCompleted || _completionRaised)
@@ -127,5 +140,6 @@ internal sealed class AnimationFramePlayer : IDisposable
     private sealed record CachedAnimation(
         AnimationAssetManifest Manifest,
         IReadOnlyList<BitmapSource> Frames,
-        AnimationFrameTimeline Timeline);
+        AnimationFrameTimeline Timeline,
+        AnimationFrameTimeline ReverseTimeline);
 }

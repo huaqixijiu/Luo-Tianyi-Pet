@@ -17,6 +17,8 @@ public partial class MainWindow : Window
     private const string LandingAnimation = "codename-landing-bounce";
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
+    private const double EdgeDockThreshold = 18;
+    private const double EdgeDockVisibleStrip = 12;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
@@ -44,9 +46,12 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _mediaControlsHideTimer;
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
+    private readonly DispatcherTimer _idleSceneTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
+    private readonly IUserIdleTimeSource _userIdleTimeSource;
+    private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly string _musicTargetProcessName;
     private readonly bool _previewExit;
@@ -70,6 +75,12 @@ public partial class MainWindow : Window
     private bool _trackInfoShowRequested;
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
+    private CancellationTokenSource? _trackSwitchCancellation;
+    private string _trackSwitchInitialIdentity = string.Empty;
+    private bool _trackSwitchSawAudioGap;
+    private EdgeDockSide _edgeDockSide;
+    private bool _edgeDockRevealed;
+    private int _edgeDockAnimationGeneration;
     private MediaTrackSnapshot _lastTrackSnapshot = MediaTrackSnapshot.Unavailable;
     private string _lastTrackIdentity = string.Empty;
     private Point _dragPressScreenPoint;
@@ -85,6 +96,7 @@ public partial class MainWindow : Window
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
         IMediaTrackInfoSource? mediaTrackInfoSource,
+        IUserIdleTimeSource userIdleTimeSource,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
@@ -104,6 +116,7 @@ public partial class MainWindow : Window
         _audioSessionProbe = audioSessionProbe;
         _mediaCommandSender = mediaCommandSender;
         _mediaTrackInfoSource = mediaTrackInfoSource;
+        _userIdleTimeSource = userIdleTimeSource;
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -175,6 +188,11 @@ public partial class MainWindow : Window
             Interval = TrackInfoAutomaticDisplayDuration,
         };
         _trackInfoHideTimer.Tick += OnTrackInfoHideTimerTick;
+        _idleSceneTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(5),
+        };
+        _idleSceneTimer.Tick += OnIdleSceneTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -203,6 +221,7 @@ public partial class MainWindow : Window
         Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
+        _idleSceneTimer.Start();
         if (_audioSessionProbe is not null)
         {
             _musicDetectionTimer.Start();
@@ -345,6 +364,11 @@ public partial class MainWindow : Window
 
     private void TryBeginPettingGesture(PointerPoint windowPoint, DateTimeOffset now)
     {
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            return;
+        }
+
         if (!_stateMachine.Resolve(now).BodyRegionInteractionsEnabled)
         {
             return;
@@ -462,6 +486,14 @@ public partial class MainWindow : Window
     private void BeginWindowDrag()
     {
         _singleClickTimer.Stop();
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            _edgeDockAnimationGeneration++;
+            _edgeDockSide = EdgeDockSide.None;
+            _edgeDockRevealed = false;
+            SetEdgeMirror(false);
+        }
+
         if (!_stateMachine.BeginDrag())
         {
             return;
@@ -505,6 +537,12 @@ public partial class MainWindow : Window
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
+            if (TryEnterEdgeDock())
+            {
+                _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
+                return;
+            }
+
             if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
             {
                 RestoreAfterMusicDrag();
@@ -575,6 +613,11 @@ public partial class MainWindow : Window
 
     private void HandleSingleClick(PointerPoint windowPoint)
     {
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            return;
+        }
+
         PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (!plan.BodyRegionInteractionsEnabled)
         {
@@ -607,18 +650,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task PlayBodyReactionAsync(string animationId)
+    private Task PlayBodyReactionAsync(string animationId) =>
+        PlayReactionAsync(animationId, ReactionPriority.UserInteraction, suppressBodyAfter: true);
+
+    private async Task PlayReactionAsync(
+        string animationId,
+        ReactionPriority priority,
+        bool suppressBodyAfter = false)
     {
         DateTimeOffset now = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
                 animationId,
-                ReactionPriority.UserInteraction,
-                now.AddSeconds(15)),
+                priority,
+                now.AddSeconds(20)),
             now);
         if (outcome.Token is not Guid token)
         {
-            _logger.Info("interaction.body_reaction_skipped", outcome.Result.ToString());
+            _logger.Info("animation.reaction_skipped", outcome.Result.ToString());
             return;
         }
 
@@ -626,17 +675,17 @@ public partial class MainWindow : Window
         bool transitioned = await _visualSwapTransition.PlayAsync(
             () => PlayAnimation(
                 animationId,
-                () => CompleteBodyReaction(token),
+                () => CompleteReaction(token, suppressBodyAfter),
                 preserveVisualTransition: true));
         if (transitioned && !_isClosing &&
             _animationPlayer?.CurrentAnimationId == animationId)
         {
             _bodyReactionMotion.PlayFor(animationId);
-            _logger.Info("interaction.body_reaction_started", animationId);
+            _logger.Info("animation.reaction_started", animationId);
         }
     }
 
-    private void CompleteBodyReaction(Guid token)
+    private void CompleteReaction(Guid token, bool suppressBodyAfter)
     {
         DateTimeOffset now = DateTimeOffset.Now;
         if (!_stateMachine.CompleteReaction(token, now))
@@ -644,7 +693,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        _stateMachine.SuppressBodyInteractions(now, BodyInteractionRecoveryDelay);
+        if (suppressBodyAfter)
+        {
+            _stateMachine.SuppressBodyInteractions(now, BodyInteractionRecoveryDelay);
+        }
         _bodyReactionMotion.Cancel();
         _ = TransitionToResolvedContinuousAnimationAsync("animation.body_reaction_transition_completed");
     }
@@ -760,7 +812,8 @@ public partial class MainWindow : Window
     {
         BodyRegionId.LeftEye => "左眼",
         BodyRegionId.RightEye => "右眼",
-        BodyRegionId.FaceAndMouth => "脸/嘴",
+        BodyRegionId.Mouth => "嘴巴",
+        BodyRegionId.Face => "脸部",
         BodyRegionId.LeftHand => "左手",
         BodyRegionId.RightHand => "右手",
         BodyRegionId.Chest => "胸部",
@@ -846,10 +899,61 @@ public partial class MainWindow : Window
         if (transition == MusicActivityTransition.Started)
         {
             StartMusicPlayback("core-audio");
+            if (_showNextTrackChange && _trackSwitchSawAudioGap)
+            {
+                ConfirmTrackSwitch("core-audio-resumed");
+            }
         }
         else if (transition == MusicActivityTransition.Stopped)
         {
+            if (_showNextTrackChange)
+            {
+                _trackSwitchSawAudioGap = true;
+            }
+
             StopMusicPlayback("core-audio");
+        }
+    }
+
+    private void OnIdleSceneTimerTick(object? sender, EventArgs e)
+    {
+        if (_isClosing || _edgeDockSide != EdgeDockSide.None || _isWindowDragging)
+        {
+            return;
+        }
+
+        TimeSpan? idleDuration = _userIdleTimeSource.GetIdleDuration();
+        if (idleDuration is null)
+        {
+            return;
+        }
+
+        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
+        if (continuousState is PetContinuousState.Idle or PetContinuousState.MediumIdle)
+        {
+            PetContinuousState desiredState = idleDuration >= TimeSpan.FromMinutes(5)
+                ? PetContinuousState.MediumIdle
+                : PetContinuousState.Idle;
+            if (desiredState != continuousState)
+            {
+                _stateMachine.SetContinuousState(desiredState);
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    desiredState == PetContinuousState.MediumIdle
+                        ? "animation.medium_idle_started"
+                        : "animation.medium_idle_ended");
+            }
+        }
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        PetPlaybackPlan plan = _stateMachine.Resolve(now);
+        bool birthdayEligible = plan.Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState is PetContinuousState.Idle or PetContinuousState.MediumIdle;
+        if (_birthdayEasterEggScheduler.ShouldTrigger(now, birthdayEligible))
+        {
+            _ = PlayReactionAsync(
+                "twelfth-anniversary-happy-birthday",
+                ReactionPriority.TimeGreeting);
+            _logger.Info("animation.birthday_easter_egg", "Birthday idle easter egg requested.");
         }
     }
 
@@ -886,7 +990,8 @@ public partial class MainWindow : Window
     private void PlayAnimation(
         string animationId,
         Action? completed = null,
-        bool preserveVisualTransition = false)
+        bool preserveVisualTransition = false,
+        bool reverse = false)
     {
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
@@ -903,7 +1008,7 @@ public partial class MainWindow : Window
 
         try
         {
-            AnimationAssetManifest manifest = _animationPlayer.Play(animationId, completed);
+            AnimationAssetManifest manifest = _animationPlayer.Play(animationId, completed, reverse);
             PetImage.Width = manifest.DisplayWidth;
             PetImage.Height = manifest.DisplayHeight;
             PetImage.Visibility = Visibility.Visible;
@@ -947,6 +1052,118 @@ public partial class MainWindow : Window
         Top = Clamp(bottom - height, workArea.Top, workArea.Bottom - height);
     }
 
+    private bool TryEnterEdgeDock()
+    {
+        Rect workArea = SystemParameters.WorkArea;
+        EdgeDockSide side = EdgeDockResolver.Resolve(
+            new DesktopRectangle(Left, Top, ActualWidth, ActualHeight),
+            new DesktopRectangle(workArea.Left, workArea.Top, workArea.Width, workArea.Height),
+            EdgeDockThreshold);
+        if (side == EdgeDockSide.None)
+        {
+            return false;
+        }
+
+        _edgeDockSide = side;
+        _edgeDockRevealed = false;
+        int generation = ++_edgeDockAnimationGeneration;
+        _stateMachine.CancelActiveReaction();
+        _mediaControlsMotion.Hide(animate: false);
+        _trackInfoMotion.Hide(animate: false);
+        SetEdgeMirror(side == EdgeDockSide.Left);
+        string animationId = GetEdgeDockAnimation(side);
+        PlayAnimation(
+            animationId,
+            () =>
+            {
+                if (generation == _edgeDockAnimationGeneration && !_edgeDockRevealed)
+                {
+                    PositionEdgeDock(hidden: true);
+                }
+            },
+            reverse: true);
+        PositionEdgeDock(hidden: false);
+        _logger.Info("window.edge_dock_started", side.ToString());
+        return true;
+    }
+
+    private void RevealEdgeDock()
+    {
+        if (_edgeDockSide == EdgeDockSide.None || _edgeDockRevealed)
+        {
+            return;
+        }
+
+        _edgeDockRevealed = true;
+        ++_edgeDockAnimationGeneration;
+        PlayAnimation(GetEdgeDockAnimation(_edgeDockSide));
+        PositionEdgeDock(hidden: false);
+        _logger.Info("window.edge_dock_revealed", _edgeDockSide.ToString());
+    }
+
+    private void HideEdgeDock()
+    {
+        if (_edgeDockSide == EdgeDockSide.None || !_edgeDockRevealed)
+        {
+            return;
+        }
+
+        _edgeDockRevealed = false;
+        int generation = ++_edgeDockAnimationGeneration;
+        PlayAnimation(
+            GetEdgeDockAnimation(_edgeDockSide),
+            () =>
+            {
+                if (generation == _edgeDockAnimationGeneration && !_edgeDockRevealed)
+                {
+                    PositionEdgeDock(hidden: true);
+                }
+            },
+            reverse: true);
+        PositionEdgeDock(hidden: false);
+        _logger.Info("window.edge_dock_hidden", _edgeDockSide.ToString());
+    }
+
+    private void PositionEdgeDock(bool hidden)
+    {
+        if (_edgeDockSide == EdgeDockSide.None)
+        {
+            return;
+        }
+
+        Rect workArea = SystemParameters.WorkArea;
+        switch (_edgeDockSide)
+        {
+            case EdgeDockSide.Left:
+                Left = hidden ? workArea.Left - ActualWidth + EdgeDockVisibleStrip : workArea.Left;
+                Top = Clamp(Top, workArea.Top, workArea.Bottom - ActualHeight);
+                break;
+            case EdgeDockSide.Right:
+                Left = hidden ? workArea.Right - EdgeDockVisibleStrip : workArea.Right - ActualWidth;
+                Top = Clamp(Top, workArea.Top, workArea.Bottom - ActualHeight);
+                break;
+            case EdgeDockSide.Bottom:
+                Left = Clamp(Left, workArea.Left, workArea.Right - ActualWidth);
+                Top = hidden ? workArea.Bottom - EdgeDockVisibleStrip : workArea.Bottom - ActualHeight;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void SetEdgeMirror(bool mirrored)
+    {
+        PetImage.RenderTransformOrigin = new Point(0.5, 0.5);
+        PetImage.RenderTransform = mirrored ? new ScaleTransform(-1, 1) : Transform.Identity;
+    }
+
+    private static string GetEdgeDockAnimation(EdgeDockSide side) => side switch
+    {
+        EdgeDockSide.Left or EdgeDockSide.Right => "twelfth-anniversary-peek",
+        EdgeDockSide.Bottom => "twelfth-anniversary-entrance",
+        _ => throw new ArgumentOutOfRangeException(nameof(side)),
+    };
+
     private void OnToggleTopmost(object sender, RoutedEventArgs e)
     {
         Topmost = TopmostMenuItem.IsChecked;
@@ -967,6 +1184,12 @@ public partial class MainWindow : Window
 
     private void OnRootMouseEnter(object sender, MouseEventArgs e)
     {
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            RevealEdgeDock();
+            return;
+        }
+
         if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
         {
             _mediaControlsHideTimer.Stop();
@@ -987,6 +1210,16 @@ public partial class MainWindow : Window
 
     private void OnRootMouseLeave(object sender, MouseEventArgs e)
     {
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            if (!_isWindowDragging)
+            {
+                HideEdgeDock();
+            }
+
+            return;
+        }
+
         if (!_previewMediaControls)
         {
             _mediaControlsHideTimer.Stop();
@@ -1036,9 +1269,14 @@ public partial class MainWindow : Window
 
         if (result.WasSent && command is MediaCommand.PreviousTrack or MediaCommand.NextTrack)
         {
+            _trackSwitchCancellation?.Cancel();
+            _trackSwitchCancellation?.Dispose();
+            _trackSwitchCancellation = new CancellationTokenSource();
+            _trackSwitchInitialIdentity = _lastTrackIdentity;
+            _trackSwitchSawAudioGap = false;
             _showNextTrackChange = true;
             ShowTrackSwitchPending();
-            _ = RefreshTrackInfoAfterTrackCommandAsync();
+            _ = MonitorTrackSwitchAsync(_trackSwitchCancellation.Token);
         }
 
         if (!result.WasSent && result.Status is not MediaCommandSendStatus.RateLimited)
@@ -1122,15 +1360,21 @@ public partial class MainWindow : Window
 
             if (snapshot.HasTrack)
             {
-                bool automaticDisplay = trackChanged || (_showNextTrackChange && trackChanged);
+                bool confirmsPendingSwitch = _showNextTrackChange &&
+                    !identity.Equals(_trackSwitchInitialIdentity, StringComparison.Ordinal);
+                bool automaticDisplay = trackChanged || confirmsPendingSwitch;
                 if (shouldShowWhenFound || automaticDisplay)
                 {
                     ShowTrackInfo(snapshot, holdAfterLeave: automaticDisplay);
                 }
 
+                if (confirmsPendingSwitch)
+                {
+                    ConfirmTrackSwitch("track-title");
+                }
+
                 if (trackChanged)
                 {
-                    _showNextTrackChange = false;
                     _logger.Info("media.track_changed", "System media track metadata changed.");
                 }
             }
@@ -1146,21 +1390,53 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task RefreshTrackInfoAfterTrackCommandAsync()
+    private async Task MonitorTrackSwitchAsync(CancellationToken cancellationToken)
     {
-        int[] delays = [250, 500, 750, 1500];
-        foreach (int delay in delays)
+        try
         {
-            await Task.Delay(delay);
-            if (_isClosing || !_showNextTrackChange)
+            DateTimeOffset startedAt = DateTimeOffset.Now;
+            bool loadingShown = false;
+            while (DateTimeOffset.Now - startedAt < TimeSpan.FromSeconds(15))
             {
-                return;
+                await Task.Delay(250, cancellationToken);
+                if (_isClosing || !_showNextTrackChange)
+                {
+                    return;
+                }
+
+                await RefreshTrackInfoAsync(showWhenFound: false);
+                if (!loadingShown && DateTimeOffset.Now - startedAt >= TimeSpan.FromMilliseconds(400))
+                {
+                    loadingShown = true;
+                    await PlayReactionAsync("resonance-loading-sway", ReactionPriority.MediaOrVolume);
+                }
             }
 
-            await RefreshTrackInfoAsync(showWhenFound: false);
+            if (_showNextTrackChange)
+            {
+                _showNextTrackChange = false;
+                ShowFeedbackBubble("网易云没有响应，等太久了，再试一次吧");
+                await PlayReactionAsync("resonance-cry-shake", ReactionPriority.MediaOrVolume);
+                _logger.Info("media.track_switch_timeout", "No public playback change was observed.");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void ConfirmTrackSwitch(string source)
+    {
+        if (!_showNextTrackChange)
+        {
+            return;
         }
 
         _showNextTrackChange = false;
+        _trackSwitchCancellation?.Cancel();
+        ShowFeedbackBubble("切歌成功");
+        _ = PlayReactionAsync("resonance-ok", ReactionPriority.MediaOrVolume);
+        _logger.Info("media.track_switch_confirmed", $"Source={source}.");
     }
 
     private void ShowTrackSwitchPending()
@@ -1311,6 +1587,8 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _trackSwitchCancellation?.Cancel();
+        _trackSwitchCancellation?.Dispose();
         _musicDetectionTimer.Stop();
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
         _feedbackBubbleTimer.Stop();
@@ -1321,6 +1599,8 @@ public partial class MainWindow : Window
         _trackInfoRefreshTimer.Tick -= OnTrackInfoRefreshTimerTick;
         _trackInfoHideTimer.Stop();
         _trackInfoHideTimer.Tick -= OnTrackInfoHideTimerTick;
+        _idleSceneTimer.Stop();
+        _idleSceneTimer.Tick -= OnIdleSceneTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
@@ -1334,6 +1614,11 @@ public partial class MainWindow : Window
         if (!_persistSettings)
         {
             return;
+        }
+
+        if (_edgeDockSide != EdgeDockSide.None)
+        {
+            PositionEdgeDock(hidden: false);
         }
 
         _settings = _settings with

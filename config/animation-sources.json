@@ -195,6 +195,105 @@
       "loopCount": 1,
       "anchorX": 0.5,
       "anchorY": 1.0
+    },
+    {
+      "id": "resonance-loading-sway",
+      "source": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png",
+      "atlas": "assets/animations/runtime/resonance-loading-sway.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 1000,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-ok",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
+      "atlas": "assets/animations/runtime/resonance-ok.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-entrance",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/01_闪亮登场.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-entrance.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 16,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-peek",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/04_偷看.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-peek.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 20,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-lie-flat",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/05_躺平.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-lie-flat.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 0,
+      "maximumFrames": 13,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-hug",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/11_抱抱.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-hug.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 14,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-stick-together",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/13_贴贴.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-stick-together.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 14,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-happy-birthday",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/15_生日快乐.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-happy-birthday.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 14,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
     }
   ]
 }

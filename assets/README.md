@@ -12,3 +12,5 @@
 | `manifests/animations.json` | 运行时动画清单 | 保存帧尺寸、帧时长、循环、显示尺寸、透明边界、来源与图集 SHA-256 |
 
 运行 `tools/animation_tools/compile_animation_atlases.py` 可以根据 `config/animation-sources.json` 重建图集和清单。处理后素材同样通过 Git LFS 管理。
+
+十二周年 QQ GIF 在原文件内部重复写入同一个短动作 13～20 次。运行时配置通过 `maximumFrames` 只保留首个完整周期，并用 `resizeWidth` / `resizeHeight` 生成 240×240 图集帧；原始 300×300 GIF 不修改。播放器可对有限图集使用反向时间线，用于“偷看”和“闪亮登场”的边缘躲藏。

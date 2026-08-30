@@ -9,6 +9,7 @@ public enum PetDisplayMode
 public enum PetContinuousState
 {
     Idle,
+    MediumIdle,
     MusicPlaying,
     Sleeping,
     Dragging,
@@ -26,6 +27,7 @@ public sealed record PetVisualState(
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
     public const string CompactDraggingAnimation = "resonance-expand";
+    public const string MediumIdleAnimation = "twelfth-anniversary-lie-flat";
 
     public string ResolveContinuousAnimation() => ContinuousState switch
     {
@@ -36,6 +38,7 @@ public sealed record PetVisualState(
             _ => throw new ArgumentOutOfRangeException(nameof(SelectedDisplayMode)),
         },
         PetContinuousState.MusicPlaying => MusicAnimationId,
+        PetContinuousState.MediumIdle => MediumIdleAnimation,
         PetContinuousState.Sleeping => SleepingAnimation,
         PetContinuousState.Dragging => SelectedDisplayMode == PetDisplayMode.FullBodyInteractive
             ? FullBodyIdleAnimation

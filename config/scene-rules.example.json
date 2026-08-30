@@ -29,6 +29,7 @@
   },
   "idle": {
     "shortIdleAfterSeconds": 45,
+    "mediumIdleAfterSeconds": 300,
     "sleepAfterSeconds": 900,
     "keepDancingWhileMusicIsPlaying": true,
     "musicTemporarilyOverridesSelectedDisplayMode": true,
@@ -51,6 +52,14 @@
       }
     },
     "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
+    "mediumIdleAnimation": "twelfth-anniversary-lie-flat",
+    "birthdayIdleEasterEgg": {
+      "animation": "twelfth-anniversary-happy-birthday",
+      "dates": ["07-12", "12-12"],
+      "minimumIntervalMinutes": 45,
+      "maximumIntervalMinutes": 90,
+      "onlyWhileIdle": true
+    },
     "sleepAnimation": "tenth-anniversary-goodnight-float"
   },
   "volume": {
@@ -178,9 +187,14 @@
       "enabledInDisplayModes": [
         "fullBodyInteractive"
       ],
-      "faceAndMouth": {
+      "mouth": {
         "gesture": "short-left-click",
         "animation": "resonance-kiss",
+        "loopCount": 1
+      },
+      "face": {
+        "gesture": "short-left-click",
+        "animation": "twelfth-anniversary-stick-together",
         "loopCount": 1
       },
       "eyes": {
@@ -233,17 +247,7 @@
       },
       "ordinaryBody": {
         "matchWhenNoSmallerRegionMatches": true,
-        "selectionMode": "random-no-immediate-repeat",
-        "animationPool": [
-          "tenth-anniversary-spin-dance",
-          "ninth-anniversary-thumb-up",
-          "eighth-anniversary-thumb-up",
-          "resonance-my-pick",
-          "resonance-really-good"
-        ],
-        "excludedBecauseAlreadyAssigned": [
-          "resonance-cute"
-        ],
+        "animation": "twelfth-anniversary-hug",
         "loopCount": 1
       }
     },
@@ -268,6 +272,26 @@
         }
       },
       "allowWindowTiltAndShadow": true
+    },
+    "edgeDock": {
+      "snapThresholdDips": 18,
+      "visibleTriggerStripDips": 12,
+      "supportedEdges": ["left", "right", "bottom"],
+      "left": {
+        "animation": "twelfth-anniversary-peek",
+        "mirrorHorizontally": true
+      },
+      "right": {
+        "animation": "twelfth-anniversary-peek",
+        "mirrorHorizontally": false
+      },
+      "bottom": {
+        "animation": "twelfth-anniversary-entrance"
+      },
+      "hidePlaybackDirection": "reverse",
+      "pointerEnterPlaybackDirection": "forward",
+      "holdFinalFrameWhilePointerInside": true,
+      "pointerLeavePlaybackDirection": "reverse"
     },
     "drop": {
       "behaviorByDisplayMode": {

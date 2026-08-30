@@ -78,6 +78,17 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
     atlas_path = root / entry["atlas"]
     default_duration = int(entry.get("defaultFrameDurationMilliseconds", 100))
     frames, durations = read_frames(source, default_duration)
+    maximum_frames = int(entry.get("maximumFrames", 0))
+    if maximum_frames > 0:
+        frames = frames[:maximum_frames]
+        durations = durations[:maximum_frames]
+    resize_width = int(entry.get("resizeWidth", 0))
+    resize_height = int(entry.get("resizeHeight", 0))
+    if resize_width > 0 and resize_height > 0:
+        frames = [
+            frame.resize((resize_width, resize_height), Image.Resampling.LANCZOS)
+            for frame in frames
+        ]
     if not frames:
         raise ValueError(f"No frames found in {source}")
     if any(frame.size != frames[0].size for frame in frames):

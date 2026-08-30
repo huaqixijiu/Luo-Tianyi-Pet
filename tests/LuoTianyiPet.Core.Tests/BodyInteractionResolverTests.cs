@@ -9,7 +9,8 @@ public sealed class BodyInteractionResolverTests
     [Theory]
     [InlineData(BodyRegionId.LeftEye, BodyInteractionResolver.SoftHeartAnimation)]
     [InlineData(BodyRegionId.RightEye, BodyInteractionResolver.SoftHeartAnimation)]
-    [InlineData(BodyRegionId.FaceAndMouth, BodyInteractionResolver.KissAnimation)]
+    [InlineData(BodyRegionId.Mouth, BodyInteractionResolver.KissAnimation)]
+    [InlineData(BodyRegionId.Face, BodyInteractionResolver.FaceAnimation)]
     [InlineData(BodyRegionId.LeftHand, BodyInteractionResolver.HighFiveAnimation)]
     [InlineData(BodyRegionId.RightHand, BodyInteractionResolver.HighFiveAnimation)]
     [InlineData(BodyRegionId.LeftFoot, BodyInteractionResolver.OopsAnimation)]
@@ -65,17 +66,12 @@ public sealed class BodyInteractionResolverTests
     }
 
     [Fact]
-    public void OrdinaryPoolDoesNotImmediatelyRepeat()
+    public void OrdinaryBodyUsesConfirmedHugAnimation()
     {
-        BodyInteractionResolver resolver = new(_ => 0);
+        BodyInteractionResolver resolver = new();
 
-        string? first = resolver.Resolve(BodyRegionId.OtherBody, Now).AnimationId;
-        string? second = resolver.Resolve(BodyRegionId.OtherBody, Now.AddSeconds(2)).AnimationId;
-
-        Assert.NotNull(first);
-        Assert.NotNull(second);
-        Assert.NotEqual(first, second);
-        Assert.Contains(first, BodyInteractionResolver.OrdinaryAnimationPool);
-        Assert.Contains(second, BodyInteractionResolver.OrdinaryAnimationPool);
+        Assert.Equal(
+            BodyInteractionResolver.OrdinaryBodyAnimation,
+            resolver.Resolve(BodyRegionId.OtherBody, Now).AnimationId);
     }
 }
