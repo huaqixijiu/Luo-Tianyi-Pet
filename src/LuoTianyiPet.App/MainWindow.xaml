@@ -359,6 +359,7 @@
                               Click="OnToggleBodyHitDebug" />
                 </MenuItem>
                 <Separator />
+                <MenuItem Header="设置…" Click="OnOpenSettings" />
                 <MenuItem x:Name="TopmostMenuItem"
                           Header="始终置顶"
                           IsCheckable="True"

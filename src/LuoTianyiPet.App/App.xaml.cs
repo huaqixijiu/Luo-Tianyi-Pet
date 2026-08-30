@@ -71,6 +71,9 @@ public partial class App : Application
             bool liveSystemVolumeQa = e.Args.Contains(
                 "--qa-system-volume",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewSettings = e.Args.Contains(
+                "--qa-settings",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -109,6 +112,7 @@ public partial class App : Application
                 previewMediaControls,
                 previewTrackInfo,
                 liveTrackInfoQa,
+                previewSettings,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);

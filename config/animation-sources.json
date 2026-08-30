@@ -115,9 +115,9 @@
       "anchorY": 1.0
     },
     {
-      "id": "resonance-cute",
-      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_可爱.gif",
-      "atlas": "assets/animations/runtime/resonance-cute.atlas.png",
+      "id": "guoyue-headpat",
+      "source": "候选素材_官方/07_新添加_官方动态摸头候选/天依游学记·国乐季_摸摸.gif",
+      "atlas": "assets/animations/runtime/guoyue-headpat.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,

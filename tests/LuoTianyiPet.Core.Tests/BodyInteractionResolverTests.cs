@@ -31,7 +31,7 @@ public sealed class BodyInteractionResolverTests
         Assert.Equal(
             BodyInteractionDecisionKind.PettingGestureRequired,
             resolver.Resolve(BodyRegionId.HeadAndHair, Now).Kind);
-        Assert.Equal(BodyInteractionResolver.CuteAnimation, resolver.ResolvePetting().AnimationId);
+        Assert.Equal(BodyInteractionResolver.HeadPatAnimation, resolver.ResolvePetting().AnimationId);
     }
 
     [Fact]

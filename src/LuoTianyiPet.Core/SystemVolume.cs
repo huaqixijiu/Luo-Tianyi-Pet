@@ -114,4 +114,8 @@ public interface ISystemVolumeService : IDisposable
     SystemVolumeSafetyStatus CheckFeedbackSafety();
 
     SystemVolumeAdjustmentResult TryAdjustBySteps(int steps);
+
+    SystemVolumeAdjustmentResult TrySetLevel(float level);
+
+    void UpdatePreferences(VolumePreferences preferences);
 }

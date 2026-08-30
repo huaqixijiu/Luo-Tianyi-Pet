@@ -8,6 +8,7 @@
 |---|---|---|
 | `animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif` | 音乐持续动画候选 | 来自官方“享受音乐”GIF；跳过前 4 帧一次性文字入场，将文字稳定的第 4～9 帧按 `4,5,6,7,8,9,8,7,6,5` 往返闭环，并将每帧 100 ms 调整为 200 ms；转换参数和来源哈希见同名 `.meta.json` |
 | `animations/processed/心律共鸣_共鸣之声_倒放.gif` | 降低系统音量 | 来自官方“共鸣之声”GIF；保持帧时长并颠倒帧顺序 |
+| `animations/runtime/guoyue-headpat.atlas.png` | 正式摸头反应 | 来自“天依游学记·国乐季 · 摸摸”官方动态 GIF；保留 10 帧及每帧 100 ms 时序，运行时 ID 为 `guoyue-headpat` |
 | `animations/runtime/*.atlas.png` | WPF 实际播放图集 | 由选定 GIF、动态 WebP 或 PNG 的完整 RGBA 帧确定性生成 |
 | `manifests/animations.json` | 运行时动画清单 | 保存帧尺寸、帧时长、循环、显示尺寸、透明边界、来源与图集 SHA-256 |
 

@@ -390,11 +390,11 @@
       ]
     },
     {
-      "id": "resonance-cute",
-      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_可爱.gif",
-      "sourceSha256": "9c7cbdbb50637cf698c2b5d67182e0ca20bd938cf9cf4ebb982ebe2da0e8a991",
-      "atlasPath": "animations/runtime/resonance-cute.atlas.png",
-      "atlasSha256": "24fcaee9eae635c78bc7676ba133ac0d404d6ff5f63b6df9f2dcee5f49b7cc55",
+      "id": "guoyue-headpat",
+      "sourcePath": "候选素材_官方/07_新添加_官方动态摸头候选/天依游学记·国乐季_摸摸.gif",
+      "sourceSha256": "5df39ec19050fbddd9d7461d1a1dcf3d6fd330fe114eb08568d6c46205b62f75",
+      "atlasPath": "animations/runtime/guoyue-headpat.atlas.png",
+      "atlasSha256": "10ff8e0d9c93d6640818f74bb6f81ce8909cd192246bc14584565b9114807814",
       "frameWidth": 162,
       "frameHeight": 162,
       "columns": 8,

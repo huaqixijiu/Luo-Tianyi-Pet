@@ -65,7 +65,7 @@
   "volume": {
     "controlMethods": [
       "pet-mouse-wheel",
-      "pet-menu-slider",
+      "settings-window-slider",
       "external-system-volume-events"
     ],
     "increaseAnimation": "resonance-voice",
@@ -215,7 +215,7 @@
         ],
         "gesture": "hold-and-stroke",
         "minimumDurationMilliseconds": 600,
-        "animation": "resonance-cute",
+        "animation": "guoyue-headpat",
         "loopCount": 1
       },
       "hands": {

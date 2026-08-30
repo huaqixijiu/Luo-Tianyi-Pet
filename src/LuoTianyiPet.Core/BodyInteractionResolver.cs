@@ -16,7 +16,7 @@ public sealed class BodyInteractionResolver
     public const string KissAnimation = "resonance-kiss";
     public const string FaceAnimation = "twelfth-anniversary-stick-together";
     public const string SoftHeartAnimation = "resonance-soft-heart";
-    public const string CuteAnimation = "resonance-cute";
+    public const string HeadPatAnimation = "guoyue-headpat";
     public const string HighFiveAnimation = "tenth-anniversary-high-five-bounce";
     public const string GuiltyAnimation = "resonance-guilty";
     public const string DarkAnimation = "resonance-dark";
@@ -46,7 +46,7 @@ public sealed class BodyInteractionResolver
         _ => throw new ArgumentOutOfRangeException(nameof(region)),
     };
 
-    public BodyInteractionDecision ResolvePetting() => Play(CuteAnimation);
+    public BodyInteractionDecision ResolvePetting() => Play(HeadPatAnimation);
 
     private BodyInteractionDecision ResolveSensitiveRegion(DateTimeOffset now)
     {

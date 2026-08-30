@@ -99,6 +99,59 @@ public sealed class WindowsSystemVolumeServiceTests
     }
 
     [Fact]
+    public void TrySetLevel_WorksWhenMouseWheelControlIsDisabled()
+    {
+        FakeBackend backend = new();
+        using WindowsSystemVolumeService service = Create(
+            backend,
+            new VolumePreferences { EnableMouseWheelControl = false });
+
+        SystemVolumeAdjustmentResult result = service.TrySetLevel(0.73f);
+
+        Assert.Equal(SystemVolumeAdjustmentStatus.Succeeded, result.Status);
+        Assert.Equal(0.73f, backend.LastSetLevel, 3);
+    }
+
+    [Fact]
+    public void UpdatePreferences_AppliesWheelToggleAndStepWithoutRestart()
+    {
+        FakeBackend backend = new();
+        using WindowsSystemVolumeService service = Create(backend);
+
+        service.UpdatePreferences(new VolumePreferences
+        {
+            EnableMouseWheelControl = false,
+            MouseWheelStepPercent = 5,
+        });
+        Assert.Equal(SystemVolumeAdjustmentStatus.Disabled, service.TryAdjustBySteps(1).Status);
+
+        service.UpdatePreferences(new VolumePreferences
+        {
+            EnableMouseWheelControl = true,
+            MouseWheelStepPercent = 5,
+        });
+        SystemVolumeAdjustmentResult result = service.TryAdjustBySteps(1);
+
+        Assert.Equal(SystemVolumeAdjustmentStatus.Succeeded, result.Status);
+        Assert.Equal(0.55f, backend.LastSetLevel, 3);
+    }
+
+    [Fact]
+    public void TrySetLevel_ProtectedForeground_DoesNotWrite()
+    {
+        FakeBackend backend = new()
+        {
+            Foreground = new(true, "YuanShen.exe"),
+        };
+        using WindowsSystemVolumeService service = Create(backend);
+
+        SystemVolumeAdjustmentResult result = service.TrySetLevel(0.8f);
+
+        Assert.Equal(SystemVolumeAdjustmentStatus.ProtectedApplicationForeground, result.Status);
+        Assert.Equal(0, backend.SetCount);
+    }
+
+    [Fact]
     public void VolumeChanged_ForwardsBackendNotificationUntilDisposed()
     {
         FakeBackend backend = new();

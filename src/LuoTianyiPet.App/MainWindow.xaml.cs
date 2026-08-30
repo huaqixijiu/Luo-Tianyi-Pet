@@ -67,6 +67,7 @@ public partial class MainWindow : Window
     private readonly bool _previewMediaControls;
     private readonly bool _previewTrackInfo;
     private readonly bool _previewLiveTrackInfo;
+    private readonly bool _previewSettings;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -81,6 +82,7 @@ public partial class MainWindow : Window
     private bool _trackInfoShowRequested;
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
+    private bool _externalVolumeFeedbackSubscribed;
     private CancellationTokenSource? _trackSwitchCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
@@ -113,6 +115,7 @@ public partial class MainWindow : Window
         bool previewMediaControls,
         bool previewTrackInfo,
         bool previewLiveTrackInfo,
+        bool previewSettings,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -147,6 +150,7 @@ public partial class MainWindow : Window
         _previewMediaControls = previewMediaControls;
         _previewTrackInfo = previewTrackInfo;
         _previewLiveTrackInfo = previewLiveTrackInfo;
+        _previewSettings = previewSettings;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -241,11 +245,7 @@ public partial class MainWindow : Window
 
         if (_systemVolumeService is not null)
         {
-            if (_settings.Volume.EnableExternalChangeFeedback)
-            {
-                _systemVolumeService.VolumeChanged += OnSystemVolumeChanged;
-                _systemVolumePollTimer.Start();
-            }
+            ConfigureExternalVolumeFeedback(_settings.Volume.EnableExternalChangeFeedback);
 
             SystemVolumeSnapshot initialVolume = _systemVolumeService.Read();
             _volumeChangeTracker.Observe(initialVolume);
@@ -312,6 +312,11 @@ public partial class MainWindow : Window
         else if (_previewLiveTrackInfo)
         {
             _ = BeginLiveTrackInfoPreviewAsync();
+        }
+
+        if (_previewSettings)
+        {
+            Dispatcher.BeginInvoke(ShowSettingsDialog, DispatcherPriority.ApplicationIdle);
         }
     }
 
@@ -1214,6 +1219,102 @@ public partial class MainWindow : Window
         _logger.Info("window.topmost_changed", Topmost ? "Enabled." : "Disabled.");
     }
 
+    private void OnOpenSettings(object sender, RoutedEventArgs e) => ShowSettingsDialog();
+
+    private void ShowSettingsDialog()
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        SettingsWindow settingsWindow = new(_settings.Volume, _systemVolumeService)
+        {
+            Owner = this,
+        };
+        if (settingsWindow.ShowDialog() == true)
+        {
+            ApplyVolumePreferences(settingsWindow.SelectedPreferences);
+        }
+    }
+
+    private void ApplyVolumePreferences(VolumePreferences preferences)
+    {
+        bool externalFeedbackWasEnabled = _settings.Volume.EnableExternalChangeFeedback;
+        WindowPreferences currentWindow = _edgeDockSide == EdgeDockSide.None
+            ? _settings.Window with
+            {
+                AlwaysOnTop = Topmost,
+                Left = Left,
+                Top = Top,
+            }
+            : _settings.Window with { AlwaysOnTop = Topmost };
+        _settings = _settings with
+        {
+            Volume = preferences,
+            Window = currentWindow,
+        };
+        _systemVolumeService?.UpdatePreferences(preferences);
+
+        _volumeFeedbackMergeTimer.Interval = TimeSpan.FromMilliseconds(
+            preferences.MergeChangesWithinMilliseconds > 0
+                ? preferences.MergeChangesWithinMilliseconds
+                : VolumePreferences.DefaultMergeChangesWithinMilliseconds);
+        _systemVolumePollTimer.Interval = TimeSpan.FromMilliseconds(
+            preferences.ExternalPollIntervalMilliseconds > 0
+                ? preferences.ExternalPollIntervalMilliseconds
+                : VolumePreferences.DefaultExternalPollIntervalMilliseconds);
+        if (externalFeedbackWasEnabled != preferences.EnableExternalChangeFeedback)
+        {
+            ConfigureExternalVolumeFeedback(preferences.EnableExternalChangeFeedback);
+        }
+
+        if (_persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.volume_saved", "Volume preferences saved.");
+        }
+        ShowFeedbackBubble("声音与反馈设置已保存");
+        _logger.Info(
+            "volume.preferences_applied",
+            $"Wheel={preferences.EnableMouseWheelControl}; ExternalFeedback={preferences.EnableExternalChangeFeedback}; Step={preferences.MouseWheelStepPercent}.");
+    }
+
+    private void ConfigureExternalVolumeFeedback(bool enabled)
+    {
+        if (_systemVolumeService is null)
+        {
+            return;
+        }
+
+        if (enabled && !_externalVolumeFeedbackSubscribed)
+        {
+            _systemVolumeService.VolumeChanged += OnSystemVolumeChanged;
+            _externalVolumeFeedbackSubscribed = true;
+            _systemVolumePollTimer.Start();
+            _volumeChangeTracker.Observe(_systemVolumeService.Read());
+        }
+        else if (!enabled && _externalVolumeFeedbackSubscribed)
+        {
+            _systemVolumeService.VolumeChanged -= OnSystemVolumeChanged;
+            _externalVolumeFeedbackSubscribed = false;
+            _systemVolumePollTimer.Stop();
+        }
+    }
+
+    private async Task SaveSettingsAsync(string eventName, string message)
+    {
+        try
+        {
+            await _settingsStore.SaveAsync(_settings);
+            _logger.Info(eventName, message);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _logger.Error("settings.save_failed", exception);
+            ShowFeedbackBubble("设置暂时没有保存成功，请稍后再试");
+        }
+    }
+
     private void OnPreviousTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.PreviousTrack);
 
@@ -1827,9 +1928,10 @@ public partial class MainWindow : Window
         _animationPlayer?.Dispose();
         if (_systemVolumeService is not null)
         {
-            if (_settings.Volume.EnableExternalChangeFeedback)
+            if (_externalVolumeFeedbackSubscribed)
             {
                 _systemVolumeService.VolumeChanged -= OnSystemVolumeChanged;
+                _externalVolumeFeedbackSubscribed = false;
             }
             _systemVolumeService.Dispose();
         }

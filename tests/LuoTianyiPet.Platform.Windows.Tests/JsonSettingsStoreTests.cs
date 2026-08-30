@@ -18,6 +18,12 @@ public sealed class JsonSettingsStoreTests
                     EnableCloudMusicDetection = false,
                     TargetProcessName = "custom-player.exe",
                 },
+                Volume = new VolumePreferences
+                {
+                    EnableMouseWheelControl = false,
+                    EnableExternalChangeFeedback = false,
+                    MouseWheelStepPercent = 5,
+                },
                 Window = new WindowPreferences
                 {
                     AlwaysOnTop = true,

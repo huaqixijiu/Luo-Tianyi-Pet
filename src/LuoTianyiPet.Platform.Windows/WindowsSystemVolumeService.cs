@@ -19,8 +19,8 @@ public interface ISystemVolumeBackend : IDisposable
 public sealed class WindowsSystemVolumeService : ISystemVolumeService
 {
     private readonly ISystemVolumeBackend _backend;
-    private readonly bool _mouseWheelControlEnabled;
-    private readonly float _step;
+    private bool _mouseWheelControlEnabled;
+    private float _step;
     private readonly HashSet<string> _protectedProcesses;
     private bool _disposed;
 
@@ -34,11 +34,7 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
         ArgumentNullException.ThrowIfNull(safetyPreferences);
 
         _backend = backend;
-        _mouseWheelControlEnabled = volumePreferences.EnableMouseWheelControl;
-        int stepPercent = volumePreferences.MouseWheelStepPercent is >= 1 and <= 20
-            ? volumePreferences.MouseWheelStepPercent
-            : VolumePreferences.DefaultMouseWheelStepPercent;
-        _step = stepPercent / 100f;
+        UpdatePreferences(volumePreferences);
         _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
             .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Where(name => !string.IsNullOrWhiteSpace(name))
@@ -72,14 +68,15 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
             return new(SystemVolumeAdjustmentStatus.Disabled, SystemVolumeSnapshot.Unavailable);
         }
 
-        SystemVolumeSafetyStatus safety = CheckFeedbackSafety();
-        if (safety != SystemVolumeSafetyStatus.Allowed)
+        SystemVolumeAdjustmentResult? blocked = GetSafetyFailure();
+        if (blocked is not null)
         {
-            return new(
-                safety == SystemVolumeSafetyStatus.ProtectedApplicationForeground
-                    ? SystemVolumeAdjustmentStatus.ProtectedApplicationForeground
-                    : SystemVolumeAdjustmentStatus.ForegroundCheckUnavailable,
-                SystemVolumeSnapshot.Unavailable);
+            return blocked;
+        }
+
+        if (steps == 0)
+        {
+            return new(SystemVolumeAdjustmentStatus.AtLimit, _backend.Read());
         }
 
         SystemVolumeSnapshot current = _backend.Read();
@@ -88,12 +85,46 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
             return new(SystemVolumeAdjustmentStatus.EndpointUnavailable, current);
         }
 
-        if (steps == 0)
+        return TrySetLevelCore(current.Level + (steps * _step), current);
+    }
+
+    public SystemVolumeAdjustmentResult TrySetLevel(float level)
+    {
+        if (!float.IsFinite(level))
         {
-            return new(SystemVolumeAdjustmentStatus.AtLimit, current);
+            return new(SystemVolumeAdjustmentStatus.SystemRejected, SystemVolumeSnapshot.Unavailable);
         }
 
-        float target = Math.Clamp(current.Level + (steps * _step), 0, 1);
+        SystemVolumeAdjustmentResult? blocked = GetSafetyFailure();
+        if (blocked is not null)
+        {
+            return blocked;
+        }
+
+        SystemVolumeSnapshot current = _backend.Read();
+        if (!current.IsAvailable)
+        {
+            return new(SystemVolumeAdjustmentStatus.EndpointUnavailable, current);
+        }
+
+        return TrySetLevelCore(level, current);
+    }
+
+    public void UpdatePreferences(VolumePreferences preferences)
+    {
+        ArgumentNullException.ThrowIfNull(preferences);
+        _mouseWheelControlEnabled = preferences.EnableMouseWheelControl;
+        int stepPercent = preferences.MouseWheelStepPercent is >= 1 and <= 20
+            ? preferences.MouseWheelStepPercent
+            : VolumePreferences.DefaultMouseWheelStepPercent;
+        _step = stepPercent / 100f;
+    }
+
+    private SystemVolumeAdjustmentResult TrySetLevelCore(
+        float requestedLevel,
+        SystemVolumeSnapshot current)
+    {
+        float target = Math.Clamp(requestedLevel, 0, 1);
         if (Math.Abs(target - current.Level) < 0.0005f)
         {
             return new(SystemVolumeAdjustmentStatus.AtLimit, current);
@@ -105,6 +136,18 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
         }
 
         return new(SystemVolumeAdjustmentStatus.Succeeded, adjusted);
+    }
+
+    private SystemVolumeAdjustmentResult? GetSafetyFailure()
+    {
+        SystemVolumeSafetyStatus safety = CheckFeedbackSafety();
+        return safety switch
+        {
+            SystemVolumeSafetyStatus.Allowed => null,
+            SystemVolumeSafetyStatus.ProtectedApplicationForeground =>
+                new(SystemVolumeAdjustmentStatus.ProtectedApplicationForeground, SystemVolumeSnapshot.Unavailable),
+            _ => new(SystemVolumeAdjustmentStatus.ForegroundCheckUnavailable, SystemVolumeSnapshot.Unavailable),
+        };
     }
 
     public void Dispose()
