@@ -25,6 +25,11 @@ public partial class MainWindow : Window
     private readonly LandingBounceMotion _landingBounceMotion;
     private readonly BodyReactionMotion _bodyReactionMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
+    private readonly PettingGestureRecognizer _pettingGesture = new(
+        TimeSpan.FromMilliseconds(600),
+        40,
+        2,
+        30);
     private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly DispatcherTimer _singleClickTimer;
@@ -37,6 +42,7 @@ public partial class MainWindow : Window
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
     private bool _isWindowDragging;
+    private bool _pettingGestureConsumedPress;
     private Point _dragPressScreenPoint;
     private double _dragStartLeft;
     private double _dragStartTop;
@@ -133,7 +139,14 @@ public partial class MainWindow : Window
         _dragStartLeft = Left;
         _dragStartTop = Top;
         Mouse.Capture(this);
-        HandlePointerAction(_pointerGesture.Press(ToPointerPoint(position), e.ClickCount, DateTimeOffset.Now));
+        DateTimeOffset now = DateTimeOffset.Now;
+        PointerGestureAction action = _pointerGesture.Press(ToPointerPoint(position), e.ClickCount, now);
+        HandlePointerAction(action);
+        if (action.Type == PointerGestureActionType.None && e.ClickCount == 1)
+        {
+            TryBeginPettingGesture(ToPointerPoint(position), now);
+        }
+
         SyncSingleClickTimer();
         e.Handled = true;
     }
@@ -145,7 +158,16 @@ public partial class MainWindow : Window
             return;
         }
 
-        HandlePointerAction(_pointerGesture.Move(ToPointerPoint(e.GetPosition(this))));
+        PointerPoint position = ToPointerPoint(e.GetPosition(this));
+        if (_pettingGesture.IsTracking)
+        {
+            HandlePettingMove(position, DateTimeOffset.Now);
+        }
+        else if (!_pettingGestureConsumedPress)
+        {
+            HandlePointerAction(_pointerGesture.Move(position));
+        }
+
         if (_isWindowDragging)
         {
             MoveWindowWithPointer(GetPointerScreenPositionInDips(e));
@@ -161,9 +183,19 @@ public partial class MainWindow : Window
             return;
         }
 
-        HandlePointerAction(_pointerGesture.Release(
-            ToPointerPoint(e.GetPosition(this)),
-            DateTimeOffset.Now));
+        if (_pettingGestureConsumedPress)
+        {
+            _pettingGestureConsumedPress = false;
+            _pettingGesture.Cancel();
+        }
+        else
+        {
+            _pettingGesture.Cancel();
+            HandlePointerAction(_pointerGesture.Release(
+                ToPointerPoint(e.GetPosition(this)),
+                DateTimeOffset.Now));
+        }
+
         if (IsMouseCaptured)
         {
             ReleaseMouseCapture();
@@ -175,6 +207,8 @@ public partial class MainWindow : Window
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
     {
+        _pettingGesture.Cancel();
+        _pettingGestureConsumedPress = false;
         if (_isClosing || !_isWindowDragging)
         {
             return;
@@ -182,6 +216,62 @@ public partial class MainWindow : Window
 
         _pointerGesture.Cancel();
         EndWindowDrag();
+    }
+
+    private void TryBeginPettingGesture(PointerPoint windowPoint, DateTimeOffset now)
+    {
+        if (!_stateMachine.Resolve(now).BodyRegionInteractionsEnabled)
+        {
+            return;
+        }
+
+        PointerPoint? normalizedPoint = NormalizeToPetImage(windowPoint);
+        if (normalizedPoint is null ||
+            !IsOpaquePetPixel(normalizedPoint.Value) ||
+            _bodyHitMap.HitTest(normalizedPoint.Value) != BodyRegionId.HeadAndHair)
+        {
+            return;
+        }
+
+        _pettingGesture.Begin(windowPoint, now);
+        _logger.Info("interaction.petting_candidate_started", "HeadAndHair");
+    }
+
+    private void HandlePettingMove(PointerPoint windowPoint, DateTimeOffset now)
+    {
+        PointerPoint? normalizedPoint = NormalizeToPetImage(windowPoint);
+        BodyHitRegion headRegion = _bodyHitMap.Regions.First(region => region.Id == BodyRegionId.HeadAndHair);
+        if (normalizedPoint is null ||
+            !headRegion.Bounds.Contains(normalizedPoint.Value) ||
+            !IsOpaquePetPixel(normalizedPoint.Value))
+        {
+            _pettingGesture.Cancel();
+            HandlePointerAction(_pointerGesture.Move(windowPoint));
+            return;
+        }
+
+        PettingGestureAction action = _pettingGesture.Move(windowPoint, now);
+        if (action == PettingGestureAction.YieldToWindowDrag)
+        {
+            HandlePointerAction(_pointerGesture.Move(windowPoint));
+            return;
+        }
+
+        if (action != PettingGestureAction.Completed)
+        {
+            return;
+        }
+
+        _pettingGestureConsumedPress = true;
+        _pointerGesture.Cancel();
+        _singleClickTimer.Stop();
+        BodyInteractionDecision decision = _bodyInteractionResolver.ResolvePetting();
+        if (decision.AnimationId is string animationId)
+        {
+            _ = PlayBodyReactionAsync(animationId);
+        }
+
+        _logger.Info("interaction.petting_completed", "Cute reaction requested.");
     }
 
     private void OnToggleDisplayMode(object sender, RoutedEventArgs e) => ToggleDisplayMode();
@@ -728,6 +818,7 @@ public partial class MainWindow : Window
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
+        _pettingGesture.Cancel();
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         CancelVisualTransition();
