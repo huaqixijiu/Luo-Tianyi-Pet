@@ -73,6 +73,128 @@
       "defaultFrameDurationMilliseconds": 850,
       "anchorX": 0.5,
       "anchorY": 1.0
+    },
+    {
+      "id": "resonance-kiss",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_啾啾.gif",
+      "atlas": "assets/animations/runtime/resonance-kiss.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-soft-heart",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_心软软.gif",
+      "atlas": "assets/animations/runtime/resonance-soft-heart.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-cute",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_可爱.gif",
+      "atlas": "assets/animations/runtime/resonance-cute.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "tenth-anniversary-high-five-bounce",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_击掌.png",
+      "atlas": "assets/animations/runtime/tenth-anniversary-high-five-bounce.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 1000,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-guilty",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_重罪.gif",
+      "atlas": "assets/animations/runtime/resonance-guilty.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-dark",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_黑化.gif",
+      "atlas": "assets/animations/runtime/resonance-dark.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "tenth-anniversary-oops-shake",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_糟了.png",
+      "atlas": "assets/animations/runtime/tenth-anniversary-oops-shake.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "defaultFrameDurationMilliseconds": 900,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "tenth-anniversary-spin-dance",
+      "source": "候选素材_官方/00_快速预览/01_十周年_旋转舞.webp",
+      "atlas": "assets/animations/runtime/tenth-anniversary-spin-dance.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "ninth-anniversary-thumbup",
+      "source": "候选素材_官方/00_快速预览/14_九周年_点赞动作.webp",
+      "atlas": "assets/animations/runtime/ninth-anniversary-thumbup.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "eighth-anniversary-thumbup",
+      "source": "候选素材_官方/00_快速预览/11_八周年_点赞动作.webp",
+      "atlas": "assets/animations/runtime/eighth-anniversary-thumbup.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-my-pick",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_我推.gif",
+      "atlas": "assets/animations/runtime/resonance-my-pick.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-so-good",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_真好.gif",
+      "atlas": "assets/animations/runtime/resonance-so-good.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
     }
   ]
 }

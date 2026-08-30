@@ -23,13 +23,16 @@ public partial class MainWindow : Window
     private readonly AnimationFramePlayer? _animationPlayer;
     private readonly VisualSwapTransition _visualSwapTransition;
     private readonly LandingBounceMotion _landingBounceMotion;
+    private readonly BodyReactionMotion _bodyReactionMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
     private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
+    private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
     private readonly bool _previewBodyHitDebug;
     private readonly bool _previewDragCycle;
+    private readonly string? _previewBodyReaction;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
@@ -49,6 +52,7 @@ public partial class MainWindow : Window
         bool previewMusicTransition,
         bool previewBodyHitDebug,
         bool previewDragCycle,
+        string? previewBodyReaction,
         bool showQaTaskbar)
     {
         _settings = settings;
@@ -60,6 +64,7 @@ public partial class MainWindow : Window
         _previewMusicTransition = previewMusicTransition;
         _previewBodyHitDebug = previewBodyHitDebug;
         _previewDragCycle = previewDragCycle;
+        _previewBodyReaction = previewBodyReaction;
         InitializeComponent();
         _visualSwapTransition = new VisualSwapTransition(
             PetVisual,
@@ -67,6 +72,7 @@ public partial class MainWindow : Window
             MusicTransitionFlash,
             MusicTransitionFlashScale);
         _landingBounceMotion = new LandingBounceMotion(PetShakeTransform);
+        _bodyReactionMotion = new BodyReactionMotion(PetScaleTransform, PetShakeTransform);
         _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = DoubleClickInterval,
@@ -107,6 +113,11 @@ public partial class MainWindow : Window
         if (_previewDragCycle)
         {
             _ = BeginPreviewDragCycleAsync();
+        }
+
+        if (_previewBodyReaction is not null)
+        {
+            _ = BeginPreviewBodyReactionAsync(_previewBodyReaction);
         }
     }
 
@@ -332,7 +343,57 @@ public partial class MainWindow : Window
         if (_lastDebugHitRegion is BodyRegionId region)
         {
             _logger.Info("interaction.body_hit", region.ToString());
+            BodyInteractionDecision decision = _bodyInteractionResolver.Resolve(region, DateTimeOffset.Now);
+            if (decision.Kind == BodyInteractionDecisionKind.PlayAnimation &&
+                decision.AnimationId is string animationId)
+            {
+                _ = PlayBodyReactionAsync(animationId);
+            }
+            else
+            {
+                _logger.Info("interaction.body_hit_deferred", decision.Kind.ToString());
+            }
         }
+    }
+
+    private async Task PlayBodyReactionAsync(string animationId)
+    {
+        DateTimeOffset now = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                animationId,
+                ReactionPriority.UserInteraction,
+                now.AddSeconds(15)),
+            now);
+        if (outcome.Token is not Guid token)
+        {
+            _logger.Info("interaction.body_reaction_skipped", outcome.Result.ToString());
+            return;
+        }
+
+        UpdateBodyHitDebugOverlay();
+        bool transitioned = await _visualSwapTransition.PlayAsync(
+            () => PlayAnimation(
+                animationId,
+                () => CompleteBodyReaction(token),
+                preserveVisualTransition: true));
+        if (transitioned && !_isClosing &&
+            _animationPlayer?.CurrentAnimationId == animationId)
+        {
+            _bodyReactionMotion.PlayFor(animationId);
+            _logger.Info("interaction.body_reaction_started", animationId);
+        }
+    }
+
+    private void CompleteBodyReaction(Guid token)
+    {
+        if (!_stateMachine.CompleteReaction(token, DateTimeOffset.Now))
+        {
+            return;
+        }
+
+        _bodyReactionMotion.Cancel();
+        _ = TransitionToResolvedContinuousAnimationAsync("animation.body_reaction_transition_completed");
     }
 
     private PointerPoint? NormalizeToPetImage(PointerPoint windowPoint)
@@ -480,7 +541,7 @@ public partial class MainWindow : Window
                 () =>
                 {
                     _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
-                    _ = TransitionToResolvedContinuousAnimationAsync();
+                    _ = TransitionToResolvedContinuousAnimationAsync("animation.music_transition_completed");
                 });
         }
         else
@@ -513,7 +574,7 @@ public partial class MainWindow : Window
         PlayAnimation(plan.AnimationId, preserveVisualTransition: preserveVisualTransition);
     }
 
-    private async Task TransitionToResolvedContinuousAnimationAsync()
+    private async Task TransitionToResolvedContinuousAnimationAsync(string completionEvent)
     {
         if (_animationPlayer is null || _animationCatalog is null || _isClosing)
         {
@@ -525,7 +586,7 @@ public partial class MainWindow : Window
             () => PlayResolvedContinuousAnimation(preserveVisualTransition: true));
         if (completed && !_isClosing)
         {
-            _logger.Info("animation.music_transition_completed", "Pulse swap completed.");
+            _logger.Info(completionEvent, "Pulse swap completed.");
         }
     }
 
@@ -535,6 +596,7 @@ public partial class MainWindow : Window
         bool preserveVisualTransition = false)
     {
         _landingBounceMotion.Cancel();
+        _bodyReactionMotion.Cancel();
         if (!preserveVisualTransition)
         {
             CancelVisualTransition();
@@ -630,6 +692,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task BeginPreviewBodyReactionAsync(string animationId)
+    {
+        await Task.Delay(500);
+        if (!_isClosing)
+        {
+            await PlayBodyReactionAsync(animationId);
+        }
+    }
+
     private async Task BeginUserRequestedExitAsync()
     {
         if (_isClosing)
@@ -658,6 +729,7 @@ public partial class MainWindow : Window
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
         _landingBounceMotion.Cancel();
+        _bodyReactionMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         _settings = _settings with
