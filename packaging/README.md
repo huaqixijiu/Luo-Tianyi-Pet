@@ -23,9 +23,13 @@ powershell -ExecutionPolicy Bypass -File tools\packaging\build_msix.ps1
 
 正式安装测试前还需要：
 
-1. 由用户确认将 `LuoTianyiPet.Dev.cer` 信任到当前用户的 `TrustedPeople`；
-2. 由用户确认安装生成的 `.msix`；
+1. 由用户确认以管理员权限将 `LuoTianyiPet.Dev.cer` 导入本地计算机的 `TrustedPeople`；
+2. 验证证书指纹为 `E4136BA41AD33EEBC2318301702252F0BE5DBA2C`，再由用户确认安装生成的 `.msix`；
 3. 从安装后的桌宠设置页点击“授权访问”；
 4. 用不含隐私内容的测试消息验证 QQ 和微信来源。
 
 免安装 EXE 继续可用，但设置页会明确显示“需要 MSIX 包身份”，不会尝试绕过系统授权。
+
+实测将自签名公钥只导入 `CurrentUser\TrustedPeople` 后，`Add-AppxPackage` 仍以
+`0x800B0109` 拒绝部署；该证书已立即从当前用户存储撤销，系统中没有残留包注册。
+本项目不使用 `CurrentUser\Root` 扩大根信任范围，也不自动开启 Windows 开发者模式。
