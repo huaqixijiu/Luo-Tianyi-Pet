@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly VisualSwapTransition _visualSwapTransition;
     private readonly LandingBounceMotion _landingBounceMotion;
     private readonly BodyReactionMotion _bodyReactionMotion;
+    private readonly MediaControlsVisibilityMotion _mediaControlsMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
     private readonly PettingGestureRecognizer _pettingGesture = new(
         TimeSpan.FromMilliseconds(600),
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
+    private readonly DispatcherTimer _mediaControlsHideTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
@@ -111,6 +113,9 @@ public partial class MainWindow : Window
             MusicTransitionFlashScale);
         _landingBounceMotion = new LandingBounceMotion(PetShakeTransform);
         _bodyReactionMotion = new BodyReactionMotion(PetScaleTransform, PetShakeTransform);
+        _mediaControlsMotion = new MediaControlsVisibilityMotion(
+            MediaControls,
+            MediaControlsTranslate);
         _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = DoubleClickInterval,
@@ -129,6 +134,11 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(2.4),
         };
         _feedbackBubbleTimer.Tick += OnFeedbackBubbleTimerTick;
+        _mediaControlsHideTimer = new DispatcherTimer(DispatcherPriority.Input)
+        {
+            Interval = TimeSpan.FromMilliseconds(220),
+        };
+        _mediaControlsHideTimer.Tick += OnMediaControlsHideTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -147,6 +157,7 @@ public partial class MainWindow : Window
         NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
         FavoriteTrackButton.ToolTip = $"喜欢歌曲（{_settings.Media.FavoriteTrackShortcut}）";
         UpdatePlayPauseGlyph();
+        _mediaControlsMotion.Hide(animate: false);
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -901,7 +912,8 @@ public partial class MainWindow : Window
     {
         if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
         {
-            MediaControls.Visibility = Visibility.Visible;
+            _mediaControlsHideTimer.Stop();
+            _mediaControlsMotion.Show();
         }
     }
 
@@ -909,15 +921,25 @@ public partial class MainWindow : Window
     {
         if (!_previewMediaControls)
         {
-            MediaControls.Visibility = Visibility.Collapsed;
+            _mediaControlsHideTimer.Stop();
+            _mediaControlsHideTimer.Start();
+        }
+    }
+
+    private void OnMediaControlsHideTimerTick(object? sender, EventArgs e)
+    {
+        _mediaControlsHideTimer.Stop();
+        if (!_previewMediaControls && !IsMouseOver)
+        {
+            _mediaControlsMotion.Hide();
         }
     }
 
     private void UpdatePlayPauseGlyph()
     {
-        PlayPauseGlyph.Text = _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying
-            ? "\uE769"
-            : "\uE768";
+        bool isPlaying = _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
+        PlayGlyph.Visibility = isPlaying ? Visibility.Collapsed : Visibility.Visible;
+        PauseGlyph.Visibility = isPlaying ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void TrySendMediaCommand(MediaCommand command)
@@ -1017,7 +1039,7 @@ public partial class MainWindow : Window
         Rect workArea = SystemParameters.WorkArea;
         Top = Clamp(Top + 300, workArea.Top, workArea.Bottom - ActualHeight);
         Topmost = true;
-        MediaControls.Visibility = Visibility.Visible;
+        _mediaControlsMotion.Show();
     }
 
     private async Task BeginUserRequestedExitAsync()
@@ -1048,12 +1070,15 @@ public partial class MainWindow : Window
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
+        _mediaControlsHideTimer.Stop();
+        _mediaControlsHideTimer.Tick -= OnMediaControlsHideTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
         _pettingGesture.Cancel();
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
+        _mediaControlsMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         if (!_persistSettings)

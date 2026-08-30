@@ -84,6 +84,18 @@
       "presentation": "hover-overlay",
       "hideWhenPointerLeaves": true,
       "keepPetWindowSize": true,
+      "theme": {
+        "primaryColor": "#66CCFF",
+        "surface": "tianyi-blue-tinted-glass",
+        "icons": "local-vector-paths",
+        "useThirdPartyUiFramework": false
+      },
+      "motion": {
+        "showDurationMilliseconds": 170,
+        "hideDelayMilliseconds": 220,
+        "hideDurationMilliseconds": 120,
+        "translateFromBottomPixels": 8
+      },
       "buttons": [
         "previousTrack",
         "togglePlayPause",
