@@ -51,6 +51,7 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
             [MediaCommand.PreviousTrack] = ShortcutBinding.Parse(mediaPreferences.PreviousTrackShortcut),
             [MediaCommand.TogglePlayPause] = ShortcutBinding.Parse(mediaPreferences.TogglePlayPauseShortcut),
             [MediaCommand.NextTrack] = ShortcutBinding.Parse(mediaPreferences.NextTrackShortcut),
+            [MediaCommand.FavoriteTrack] = ShortcutBinding.Parse(mediaPreferences.FavoriteTrackShortcut),
         };
         _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
             .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)

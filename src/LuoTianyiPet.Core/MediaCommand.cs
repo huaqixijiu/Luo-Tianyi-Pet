@@ -5,6 +5,7 @@ public enum MediaCommand
     PreviousTrack,
     TogglePlayPause,
     NextTrack,
+    FavoriteTrack,
 }
 
 public enum MediaCommandSendStatus

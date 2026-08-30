@@ -12,6 +12,8 @@
         Loaded="OnLoaded"
         Closed="OnClosed"
         LostMouseCapture="OnLostMouseCapture"
+        MouseEnter="OnRootMouseEnter"
+        MouseLeave="OnRootMouseLeave"
         MouseLeftButtonDown="OnMouseLeftButtonDown"
         MouseLeftButtonUp="OnMouseLeftButtonUp"
         MouseMove="OnMouseMove">
@@ -110,6 +112,95 @@
                        TextWrapping="Wrap" />
         </Border>
 
+        <Border x:Name="MediaControls"
+                Panel.ZIndex="5"
+                Width="184"
+                Height="42"
+                Margin="6"
+                Padding="5,3"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Background="#F4FFFFFF"
+                BorderBrush="#306C7A86"
+                BorderThickness="1"
+                CornerRadius="21"
+                IsHitTestVisible="True"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="PreviousTrackButton"
+                        Grid.Column="0"
+                        Width="36"
+                        Height="34"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="OnPreviousTrackClick"
+                        Focusable="False"
+                        Foreground="#4D5768"
+                        ToolTip="上一首（Ctrl+Alt+Left）">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="17" Text="&#xE892;" />
+                </Button>
+
+                <Button x:Name="TogglePlayPauseButton"
+                        Grid.Column="1"
+                        Width="36"
+                        Height="36"
+                        Padding="0"
+                        Background="#FF3B57"
+                        BorderBrush="#FFFFF9"
+                        BorderThickness="1"
+                        Click="OnTogglePlayPauseClick"
+                        Focusable="False"
+                        Foreground="White"
+                        ToolTip="播放 / 暂停（Ctrl+Alt+P）">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="18" />
+                        </Style>
+                    </Button.Resources>
+                    <TextBlock x:Name="PlayPauseGlyph"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="17"
+                               Text="&#xE768;" />
+                </Button>
+
+                <Button x:Name="NextTrackButton"
+                        Grid.Column="2"
+                        Width="36"
+                        Height="34"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="OnNextTrackClick"
+                        Focusable="False"
+                        Foreground="#4D5768"
+                        ToolTip="下一首（Ctrl+Alt+Right）">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="17" Text="&#xE893;" />
+                </Button>
+
+                <Button x:Name="FavoriteTrackButton"
+                        Grid.Column="3"
+                        Width="36"
+                        Height="34"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="OnFavoriteTrackClick"
+                        Focusable="False"
+                        Foreground="#FF3B57"
+                        ToolTip="喜欢歌曲（Ctrl+Alt+L）">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xEB51;" />
+                </Button>
+            </Grid>
+        </Border>
+
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem x:Name="FullBodyModeMenuItem"
@@ -123,15 +214,6 @@
                               Header="显示身体区域调试层"
                               IsCheckable="True"
                               Click="OnToggleBodyHitDebug" />
-                </MenuItem>
-                <Separator />
-                <MenuItem x:Name="MediaCommandMenuItem" Header="网易云音乐">
-                    <MenuItem x:Name="PreviousTrackMenuItem"
-                              Click="OnPreviousTrackClick" />
-                    <MenuItem x:Name="TogglePlayPauseMenuItem"
-                              Click="OnTogglePlayPauseClick" />
-                    <MenuItem x:Name="NextTrackMenuItem"
-                              Click="OnNextTrackClick" />
                 </MenuItem>
                 <Separator />
                 <MenuItem x:Name="TopmostMenuItem"

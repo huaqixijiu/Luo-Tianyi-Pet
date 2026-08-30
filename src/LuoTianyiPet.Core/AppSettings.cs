@@ -46,6 +46,8 @@ public sealed record MediaPreferences
 
     public string NextTrackShortcut { get; init; } = "Ctrl+Alt+Right";
 
+    public string FavoriteTrackShortcut { get; init; } = "Ctrl+Alt+L";
+
     public int CommandCooldownMilliseconds { get; init; } = 350;
 }
 

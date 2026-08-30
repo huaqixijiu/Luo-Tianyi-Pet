@@ -44,8 +44,9 @@ public partial class MainWindow : Window
     private readonly bool _previewMusicTransition;
     private readonly bool _previewBodyHitDebug;
     private readonly bool _previewDragCycle;
-    private readonly bool _previewShortcutMenu;
+    private readonly bool _previewMediaControls;
     private readonly string? _previewBodyReaction;
+    private readonly bool _persistSettings;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
@@ -70,9 +71,10 @@ public partial class MainWindow : Window
         bool previewMusicTransition,
         bool previewBodyHitDebug,
         bool previewDragCycle,
-        bool previewShortcutMenu,
+        bool previewMediaControls,
         string? previewBodyReaction,
-        bool showQaTaskbar)
+        bool showQaTaskbar,
+        bool persistSettings)
     {
         _settings = settings;
         _settingsStore = settingsStore;
@@ -98,8 +100,9 @@ public partial class MainWindow : Window
         _previewMusicTransition = previewMusicTransition;
         _previewBodyHitDebug = previewBodyHitDebug;
         _previewDragCycle = previewDragCycle;
-        _previewShortcutMenu = previewShortcutMenu;
+        _previewMediaControls = previewMediaControls;
         _previewBodyReaction = previewBodyReaction;
+        _persistSettings = persistSettings;
         InitializeComponent();
         _visualSwapTransition = new VisualSwapTransition(
             PetVisual,
@@ -139,10 +142,11 @@ public partial class MainWindow : Window
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
         BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
-        MediaCommandMenuItem.IsEnabled = _settings.Media.EnableCloudMusicShortcutControl;
-        PreviousTrackMenuItem.Header = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
-        TogglePlayPauseMenuItem.Header = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
-        NextTrackMenuItem.Header = $"下一首（{_settings.Media.NextTrackShortcut}）";
+        PreviousTrackButton.ToolTip = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
+        TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
+        NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
+        FavoriteTrackButton.ToolTip = $"喜欢歌曲（{_settings.Media.FavoriteTrackShortcut}）";
+        UpdatePlayPauseGlyph();
 
         Rect workArea = SystemParameters.WorkArea;
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -178,9 +182,9 @@ public partial class MainWindow : Window
             _ = BeginPreviewBodyReactionAsync(_previewBodyReaction);
         }
 
-        if (_previewShortcutMenu)
+        if (_previewMediaControls)
         {
-            _ = BeginShortcutMenuPreviewAsync();
+            _ = BeginMediaControlsPreviewAsync();
         }
     }
 
@@ -717,6 +721,7 @@ public partial class MainWindow : Window
         string selectedAnimation = _musicAnimationSelector.Select();
         _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
+        UpdatePlayPauseGlyph();
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
         if (plan.Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
@@ -737,6 +742,7 @@ public partial class MainWindow : Window
     private void StopMusicPlayback(string source)
     {
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
         {
@@ -888,6 +894,32 @@ public partial class MainWindow : Window
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
 
+    private void OnFavoriteTrackClick(object sender, RoutedEventArgs e) =>
+        TrySendMediaCommand(MediaCommand.FavoriteTrack);
+
+    private void OnRootMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
+        {
+            MediaControls.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void OnRootMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (!_previewMediaControls)
+        {
+            MediaControls.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void UpdatePlayPauseGlyph()
+    {
+        PlayPauseGlyph.Text = _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying
+            ? "\uE769"
+            : "\uE768";
+    }
+
     private void TrySendMediaCommand(MediaCommand command)
     {
         MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
@@ -974,7 +1006,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task BeginShortcutMenuPreviewAsync()
+    private async Task BeginMediaControlsPreviewAsync()
     {
         await Task.Delay(500);
         if (_isClosing)
@@ -984,18 +1016,8 @@ public partial class MainWindow : Window
 
         Rect workArea = SystemParameters.WorkArea;
         Top = Clamp(Top + 300, workArea.Top, workArea.Bottom - ActualHeight);
-        _feedbackBubbleTimer.Interval = TimeSpan.FromSeconds(10);
-        ShowFeedbackBubble("游戏安全模式：这次没有发送快捷键");
-        if (Root.ContextMenu is not null)
-        {
-            Root.ContextMenu.PlacementTarget = Root;
-            Root.ContextMenu.IsOpen = true;
-            await Task.Delay(100);
-            MediaCommandMenuItem.IsSubmenuOpen = true;
-            await Task.Delay(2000);
-            MediaCommandMenuItem.IsSubmenuOpen = false;
-            Root.ContextMenu.IsOpen = false;
-        }
+        Topmost = true;
+        MediaControls.Visibility = Visibility.Visible;
     }
 
     private async Task BeginUserRequestedExitAsync()
@@ -1034,6 +1056,11 @@ public partial class MainWindow : Window
         _bodyReactionMotion.Cancel();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
+        if (!_persistSettings)
+        {
+            return;
+        }
+
         _settings = _settings with
         {
             Window = _settings.Window with

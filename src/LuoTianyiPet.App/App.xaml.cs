@@ -57,9 +57,11 @@ public partial class App : Application
             bool previewDragCycle = e.Args.Contains(
                 "--preview-drag-cycle",
                 StringComparer.OrdinalIgnoreCase);
-            bool previewShortcutMenu = e.Args.Contains(
-                "--qa-shortcut-menu",
-                StringComparer.OrdinalIgnoreCase);
+            bool previewMediaControls = e.Args.Contains(
+                "--qa-media-controls",
+                StringComparer.OrdinalIgnoreCase) || e.Args.Contains(
+                    "--qa-shortcut-menu",
+                    StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -86,9 +88,10 @@ public partial class App : Application
                 previewMusicTransition,
                 previewBodyHitDebug,
                 previewDragCycle,
-                previewShortcutMenu,
+                previewMediaControls,
                 previewBodyReaction,
-                showQaTaskbar);
+                showQaTaskbar,
+                persistSettings: !isPreviewOrQaRun);
             MainWindow = window;
             window.Show();
             _logger.Info("app.started", "Runtime animation window started.");

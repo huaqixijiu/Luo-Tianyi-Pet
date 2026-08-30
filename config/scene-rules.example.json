@@ -80,11 +80,24 @@
     "silenceGraceMilliseconds": 1000,
     "preserveLastStateWhenProbeTemporarilyUnavailable": true,
     "disableCommandsInSafeGameMode": true,
+    "controlSurface": {
+      "presentation": "hover-overlay",
+      "hideWhenPointerLeaves": true,
+      "keepPetWindowSize": true,
+      "buttons": [
+        "previousTrack",
+        "togglePlayPause",
+        "nextTrack",
+        "favoriteTrack"
+      ],
+      "showCurrentShortcutInTooltip": true
+    },
     "globalShortcuts": {
       "enabled": true,
       "previousTrack": "Ctrl+Alt+Left",
       "togglePlayPause": "Ctrl+Alt+P",
       "nextTrack": "Ctrl+Alt+Right",
+      "favoriteTrack": "Ctrl+Alt+L",
       "minimumIntervalMilliseconds": 350,
       "rejectWhenRelevantKeyIsAlreadyDown": true,
       "reportSentSeparatelyFromConfirmedSuccess": true
