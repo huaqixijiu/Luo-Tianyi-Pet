@@ -5,6 +5,48 @@ public interface IUserIdleTimeSource
     TimeSpan? GetIdleDuration();
 }
 
+public sealed record IdleSceneDecision(
+    PetContinuousState TargetState,
+    bool PlayWakeReaction)
+{
+    public bool ChangesStateFrom(PetContinuousState currentState) => TargetState != currentState;
+}
+
+public static class IdleSceneResolver
+{
+    public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(15);
+
+    public static IdleSceneDecision Resolve(
+        TimeSpan idleDuration,
+        PetContinuousState currentState)
+    {
+        if (idleDuration < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(idleDuration));
+        }
+
+        if (currentState is PetContinuousState.MusicPlaying or
+            PetContinuousState.Dragging or
+            PetContinuousState.HiddenForSafety)
+        {
+            return new IdleSceneDecision(currentState, PlayWakeReaction: false);
+        }
+
+        PetContinuousState targetState = idleDuration switch
+        {
+            _ when idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
+            _ when idleDuration >= MediumIdleThreshold => PetContinuousState.MediumIdle,
+            _ => PetContinuousState.Idle,
+        };
+
+        return new IdleSceneDecision(
+            targetState,
+            PlayWakeReaction: currentState == PetContinuousState.Sleeping &&
+                targetState != PetContinuousState.Sleeping);
+    }
+}
+
 public sealed class BirthdayEasterEggScheduler
 {
     private readonly Func<int, int> _nextMinutes;

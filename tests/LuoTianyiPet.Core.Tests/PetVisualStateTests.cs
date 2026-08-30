@@ -5,6 +5,14 @@ namespace LuoTianyiPet.Core.Tests;
 public sealed class PetVisualStateTests
 {
     [Fact]
+    public void SleepingUsesTenthAnniversaryGoodnightAnimation()
+    {
+        PetVisualState state = new(ContinuousState: PetContinuousState.Sleeping);
+
+        Assert.Equal(PetVisualState.SleepingAnimation, state.ResolveContinuousAnimation());
+    }
+
+    [Fact]
     public void MediumIdleUsesTwelfthAnniversaryLieFlatAnimation()
     {
         PetVisualState state = new(ContinuousState: PetContinuousState.MediumIdle);

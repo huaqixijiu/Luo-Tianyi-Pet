@@ -973,6 +973,31 @@
       ]
     },
     {
+      "id": "tenth-anniversary-goodnight-float",
+      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
+      "sourceSha256": "ad4af569142bdcf31474e1829b76fe4e2c432ad338e87163e0dc613da8e28e39",
+      "atlasPath": "animations/runtime/tenth-anniversary-goodnight-float.atlas.png",
+      "atlasSha256": "e9cb3610592bb62c06b6ff31b202f63b83da7b3052f533e5eb008d8b6dc51429",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        2400
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        8,
+        9,
+        159,
+        162
+      ]
+    },
+    {
       "id": "twelfth-anniversary-entrance",
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/01_闪亮登场.gif",
       "sourceSha256": "e00d36f633f7697e2bc0575c1ecb097247c5137d25aec13d1591f3edbd7c2f2b",

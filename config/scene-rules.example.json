@@ -52,6 +52,8 @@
       }
     },
     "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
+    "idlePollMilliseconds": 1000,
+    "mediumIdleAfterMinutes": 5,
     "mediumIdleAnimation": "twelfth-anniversary-lie-flat",
     "birthdayIdleEasterEgg": {
       "animation": "twelfth-anniversary-happy-birthday",
@@ -60,8 +62,11 @@
       "maximumIntervalMinutes": 90,
       "onlyWhileIdle": true
     },
+    "sleepAfterMinutes": 15,
+    "sleepRequiresMusicStopped": true,
     "sleepAnimation": "tenth-anniversary-goodnight-float",
-    "wakeAnimation": "resonance-awake-pop"
+    "wakeAnimation": "resonance-awake-pop",
+    "wakeDuplicateWindowMilliseconds": 5000
   },
   "volume": {
     "controlMethods": [

@@ -45,6 +45,10 @@ internal sealed class BodyReactionMotion
         {
             PlayAwakePop();
         }
+        else if (animationId == Core.PetVisualState.SleepingAnimation)
+        {
+            PlaySleepingFloat();
+        }
     }
 
     public void Cancel()
@@ -218,5 +222,20 @@ internal sealed class BodyReactionMotion
             new SineEase { EasingMode = EasingMode.EaseOut }));
         _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlaySleepingFloat()
+    {
+        Cancel();
+        DoubleAnimation floatMotion = new(-3, 3, TimeSpan.FromMilliseconds(1800))
+        {
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        };
+        _translate.BeginAnimation(
+            TranslateTransform.YProperty,
+            floatMotion,
+            HandoffBehavior.SnapshotAndReplace);
     }
 }

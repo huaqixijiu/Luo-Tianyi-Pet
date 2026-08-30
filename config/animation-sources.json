@@ -293,6 +293,17 @@
       "anchorY": 1.0
     },
     {
+      "id": "tenth-anniversary-goodnight-float",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
+      "atlas": "assets/animations/runtime/tenth-anniversary-goodnight-float.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 2400,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "twelfth-anniversary-entrance",
       "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/01_闪亮登场.gif",
       "atlas": "assets/animations/runtime/twelfth-anniversary-entrance.atlas.png",

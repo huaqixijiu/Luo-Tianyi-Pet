@@ -73,6 +73,7 @@ public partial class MainWindow : Window
     private readonly bool _previewLiveTrackInfo;
     private readonly bool _previewSettings;
     private readonly bool _previewSystemResume;
+    private readonly bool _previewLongIdle;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -123,6 +124,7 @@ public partial class MainWindow : Window
         bool previewLiveTrackInfo,
         bool previewSettings,
         bool previewSystemResume,
+        bool previewLongIdle,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -160,6 +162,7 @@ public partial class MainWindow : Window
         _previewLiveTrackInfo = previewLiveTrackInfo;
         _previewSettings = previewSettings;
         _previewSystemResume = previewSystemResume;
+        _previewLongIdle = previewLongIdle;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -228,7 +231,7 @@ public partial class MainWindow : Window
         _trackInfoHideTimer.Tick += OnTrackInfoHideTimerTick;
         _idleSceneTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromSeconds(5),
+            Interval = TimeSpan.FromSeconds(1),
         };
         _idleSceneTimer.Tick += OnIdleSceneTimerTick;
         ShowInTaskbar = showQaTaskbar;
@@ -279,7 +282,10 @@ public partial class MainWindow : Window
             _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
         }
         StartSystemResumeMonitoring();
-        _idleSceneTimer.Start();
+        if (!_previewLongIdle)
+        {
+            _idleSceneTimer.Start();
+        }
         if (_audioSessionProbe is not null)
         {
             _musicDetectionTimer.Start();
@@ -336,6 +342,10 @@ public partial class MainWindow : Window
         {
             _ = BeginSystemResumePreviewAsync();
         }
+        if (_previewLongIdle)
+        {
+            _ = BeginLongIdlePreviewAsync();
+        }
     }
 
     private async Task PlayStartupGreetingAsync(DateTimeOffset now)
@@ -373,7 +383,18 @@ public partial class MainWindow : Window
 
     private void HandleSystemResume(SystemResumeEventArgs e)
     {
-        if (_isClosing || !_systemResumeEventGate.TryAccept(e.OccurredAt))
+        if (_isClosing)
+        {
+            return;
+        }
+
+        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
+        if (continuousState is PetContinuousState.MediumIdle or PetContinuousState.Sleeping)
+        {
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        }
+
+        if (!_systemResumeEventGate.TryAccept(e.OccurredAt))
         {
             return;
         }
@@ -396,6 +417,22 @@ public partial class MainWindow : Window
             HandleSystemResume(new SystemResumeEventArgs(
                 SystemResumeReason.PowerResumed,
                 DateTimeOffset.Now));
+        }
+    }
+
+    private async Task BeginLongIdlePreviewAsync()
+    {
+        await Task.Delay(700);
+        if (_isClosing)
+        {
+            return;
+        }
+
+        ApplyIdleScene(TimeSpan.FromMinutes(15));
+        await Task.Delay(2400);
+        if (!_isClosing)
+        {
+            ApplyIdleScene(TimeSpan.Zero);
         }
     }
 
@@ -1056,21 +1093,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
-        if (continuousState is PetContinuousState.Idle or PetContinuousState.MediumIdle)
-        {
-            PetContinuousState desiredState = idleDuration >= TimeSpan.FromMinutes(5)
-                ? PetContinuousState.MediumIdle
-                : PetContinuousState.Idle;
-            if (desiredState != continuousState)
-            {
-                _stateMachine.SetContinuousState(desiredState);
-                _ = TransitionToResolvedContinuousAnimationAsync(
-                    desiredState == PetContinuousState.MediumIdle
-                        ? "animation.medium_idle_started"
-                        : "animation.medium_idle_ended");
-            }
-        }
+        ApplyIdleScene(idleDuration.Value);
 
         DateTimeOffset now = DateTimeOffset.Now;
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
@@ -1082,6 +1105,44 @@ public partial class MainWindow : Window
                 "twelfth-anniversary-happy-birthday",
                 ReactionPriority.TimeGreeting);
             _logger.Info("animation.birthday_easter_egg", "Birthday idle easter egg requested.");
+        }
+    }
+
+    private void ApplyIdleScene(TimeSpan idleDuration)
+    {
+        PetContinuousState previousState = _stateMachine.VisualState.ContinuousState;
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(idleDuration, previousState);
+        if (!decision.ChangesStateFrom(previousState))
+        {
+            return;
+        }
+
+        _stateMachine.SetContinuousState(decision.TargetState);
+        if (decision.PlayWakeReaction)
+        {
+            _logger.Info("animation.long_idle_wake", $"Restored={decision.TargetState}.");
+            if (_systemResumeEventGate.TryAccept(DateTimeOffset.Now))
+            {
+                _ = PlayReactionAsync(AwakeAnimation, ReactionPriority.System);
+            }
+            else if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+            {
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "animation.long_idle_wake_merged.transition_completed");
+            }
+            return;
+        }
+
+        string eventName = decision.TargetState switch
+        {
+            PetContinuousState.MediumIdle => "animation.medium_idle_started",
+            PetContinuousState.Sleeping => "animation.long_idle_sleep_started",
+            _ => "animation.idle_restored",
+        };
+        _logger.Info(eventName, $"IdleMilliseconds={idleDuration.TotalMilliseconds:0}.");
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(eventName + ".transition_completed");
         }
     }
 
@@ -1097,6 +1158,10 @@ public partial class MainWindow : Window
         }
 
         PlayAnimation(plan.AnimationId, preserveVisualTransition: preserveVisualTransition);
+        if (!preserveVisualTransition)
+        {
+            _bodyReactionMotion.PlayFor(plan.AnimationId);
+        }
     }
 
     private async Task TransitionToResolvedContinuousAnimationAsync(string completionEvent)
@@ -1111,7 +1176,19 @@ public partial class MainWindow : Window
             () => PlayResolvedContinuousAnimation(preserveVisualTransition: true));
         if (completed && !_isClosing)
         {
+            StartResolvedContinuousMotion();
             _logger.Info(completionEvent, "Pulse swap completed.");
+        }
+    }
+
+    private void StartResolvedContinuousMotion()
+    {
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (plan.Source == PlaybackPlanSource.Continuous &&
+            plan.AnimationId is string animationId &&
+            _animationPlayer?.CurrentAnimationId == animationId)
+        {
+            _bodyReactionMotion.PlayFor(animationId);
         }
     }
 
