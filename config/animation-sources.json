@@ -55,7 +55,7 @@
     },
     {
       "id": "resonance-enjoy-music",
-      "source": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif",
+      "source": "assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif",
       "atlas": "assets/animations/runtime/resonance-enjoy-music.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,

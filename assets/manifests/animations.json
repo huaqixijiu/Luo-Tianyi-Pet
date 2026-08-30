@@ -196,10 +196,10 @@
     },
     {
       "id": "resonance-enjoy-music",
-      "sourcePath": "assets/animations/processed/心律共鸣_享受音乐_0.5x.gif",
-      "sourceSha256": "8c3c4dd3fc2f25f1abeefbbb03b1624bda39bfc0fb5889b0e5b0ef2a2644b4a6",
+      "sourcePath": "assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif",
+      "sourceSha256": "a07af4434fde79fa9d1823ac614110fd619a2ecd23035acbcd2e80afa4bb63b0",
       "atlasPath": "animations/runtime/resonance-enjoy-music.atlas.png",
-      "atlasSha256": "f1c17357da45a710843f62417f4db1d288016c44d188f97d58e083d5c823c82f",
+      "atlasSha256": "aafed47582ec66647c4c496bd99d2e4152225fb3db678ea3455375a9084060de",
       "frameWidth": 162,
       "frameHeight": 162,
       "columns": 8,

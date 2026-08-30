@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_享受音乐.gif",
+  "sourceSha256": "53ea074fabfdde280027f4c507863b22a58f9c30f21532224ad0c2affd48c959",
+  "output": "assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif",
+  "outputSha256": "a07af4434fde79fa9d1823ac614110fd619a2ecd23035acbcd2e80afa4bb63b0",
+  "transformation": "stable-range-ping-pong-loop",
+  "sourceFrameCount": 10,
+  "sourceFrameRangeInclusive": [
+    4,
+    9
+  ],
+  "outputSourceFrameIndices": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    8,
+    7,
+    6,
+    5
+  ],
+  "durationMultiplier": 2.0,
+  "frameCount": 10,
+  "canvasWidth": 162,
+  "canvasHeight": 162,
+  "frameDurationsMilliseconds": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "loop": 0
+}
