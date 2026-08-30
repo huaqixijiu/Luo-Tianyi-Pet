@@ -61,6 +61,8 @@ public sealed class PetStateMachine
 
     public PetVisualState VisualState { get; private set; }
 
+    public Guid? ActiveReactionToken => _activeReaction?.Token;
+
     public void SetDisplayMode(PetDisplayMode mode) =>
         VisualState = VisualState with { SelectedDisplayMode = mode };
 

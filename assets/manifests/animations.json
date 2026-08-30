@@ -70,6 +70,74 @@
       ]
     },
     {
+      "id": "resonance-no-playing",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_你不许玩.gif",
+      "sourceSha256": "2653beb368d872cf33eb8df74aa9f96753a9d60d6e9de800cbcb575355d63793",
+      "atlasPath": "animations/runtime/resonance-no-playing.atlas.png",
+      "atlasSha256": "c78388d47366b46c06ad4574edc924719f98a6451e6fa94809f4340a9540955b",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 3,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        1,
+        3,
+        162,
+        162
+      ]
+    },
+    {
+      "id": "resonance-please",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_拜托.gif",
+      "sourceSha256": "9ada5d65ed017e6a495f99385af0e053044f4ae2eed4e7e739cee48cbe6c39e5",
+      "atlasPath": "animations/runtime/resonance-please.atlas.png",
+      "atlasSha256": "ecc56b762aafc8fb3516e1ffe913f139a0e611a85ae47e793e400fa73371bf04",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
       "id": "codename-landing-bounce",
       "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
       "sourceSha256": "2e4ab6a8da3fe972f4731efe4932e5664b8636486b267698976b00d882f2bcff",

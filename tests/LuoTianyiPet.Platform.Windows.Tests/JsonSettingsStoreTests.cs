@@ -24,6 +24,12 @@ public sealed class JsonSettingsStoreTests
                     EnableExternalChangeFeedback = false,
                     MouseWheelStepPercent = 5,
                 },
+                Genshin = new GenshinPreferences
+                {
+                    EnableIntegration = false,
+                    ProcessNames = "CustomGame.exe",
+                    StatusPollIntervalMilliseconds = 3000,
+                },
                 Window = new WindowPreferences
                 {
                     AlwaysOnTop = true,
@@ -68,6 +74,40 @@ public sealed class JsonSettingsStoreTests
             Assert.True(actual.Window.AlwaysOnTop);
             Assert.Equal(new MediaPreferences(), actual.Media);
             Assert.Equal(new VolumePreferences(), actual.Volume);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version4Settings_AddsGenshinDefaults()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 4,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "left": 42
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(42, actual.Window.Left);
+            Assert.Equal(new GenshinPreferences(), actual.Genshin);
         }
         finally
         {

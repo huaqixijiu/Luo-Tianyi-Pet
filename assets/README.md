@@ -12,6 +12,8 @@
 | `animations/runtime/startup-*.atlas.png` | 四段启动时间问候 | 来自收藏集“早安”、十周年“干饭/摸鱼”和代号洛天依“眠了”官方 PNG；运行时通过程序动效叠加浮动、弹跳或呼吸 |
 | `animations/runtime/resonance-awake-pop.atlas.png` | Windows 解锁/电源恢复 | 来自心律共鸣“苏醒”官方 PNG；运行时叠加一次放大回弹 |
 | `animations/runtime/tenth-anniversary-goodnight-float.atlas.png` | 15 分钟长待机睡眠 | 来自十周年“晚安”官方 PNG；运行时叠加低幅度上下浮动并持续到用户恢复输入 |
+| `animations/runtime/resonance-no-playing.atlas.png` | 原神启动反应 | 来自心律共鸣“你不许玩”官方动态 GIF；保留 10 帧，单次反应由运行时连续播放 3 轮 |
+| `animations/runtime/resonance-please.atlas.png` | 原神后台低频彩蛋 | 来自心律共鸣“拜托”官方动态 GIF；保留 10 帧，在当前显示器安全工作区随机位置播放 1 轮 |
 | `animations/runtime/*.atlas.png` | WPF 实际播放图集 | 由选定 GIF、动态 WebP 或 PNG 的完整 RGBA 帧确定性生成 |
 | `manifests/animations.json` | 运行时动画清单 | 保存帧尺寸、帧时长、循环、显示尺寸、透明边界、来源与图集 SHA-256 |
 

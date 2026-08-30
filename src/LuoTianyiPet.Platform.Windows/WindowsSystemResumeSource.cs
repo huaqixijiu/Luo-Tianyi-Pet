@@ -10,6 +10,8 @@ public sealed class WindowsSystemResumeSource : ISystemResumeSource
 
     public event EventHandler<SystemResumeEventArgs>? Resumed;
 
+    public event EventHandler<SystemSuspendEventArgs>? Suspended;
+
     public void Start()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -43,21 +45,43 @@ public sealed class WindowsSystemResumeSource : ISystemResumeSource
 
     private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
     {
-        if (!_disposed && e.Reason == SessionSwitchReason.SessionUnlock)
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (e.Reason == SessionSwitchReason.SessionUnlock)
         {
             Resumed?.Invoke(
                 this,
                 new SystemResumeEventArgs(SystemResumeReason.SessionUnlocked, DateTimeOffset.Now));
         }
+        else if (e.Reason == SessionSwitchReason.SessionLock)
+        {
+            Suspended?.Invoke(
+                this,
+                new SystemSuspendEventArgs(SystemSuspendReason.SessionLocked, DateTimeOffset.Now));
+        }
     }
 
     private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
-        if (!_disposed && e.Mode == PowerModes.Resume)
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (e.Mode == PowerModes.Resume)
         {
             Resumed?.Invoke(
                 this,
                 new SystemResumeEventArgs(SystemResumeReason.PowerResumed, DateTimeOffset.Now));
+        }
+        else if (e.Mode == PowerModes.Suspend)
+        {
+            Suspended?.Invoke(
+                this,
+                new SystemSuspendEventArgs(SystemSuspendReason.PowerSuspended, DateTimeOffset.Now));
         }
     }
 }

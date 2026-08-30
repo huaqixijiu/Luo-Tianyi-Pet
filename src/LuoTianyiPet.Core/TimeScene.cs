@@ -51,6 +51,12 @@ public enum SystemResumeReason
     PowerResumed,
 }
 
+public enum SystemSuspendReason
+{
+    SessionLocked,
+    PowerSuspended,
+}
+
 public sealed class SystemResumeEventArgs(
     SystemResumeReason reason,
     DateTimeOffset occurredAt) : EventArgs
@@ -60,9 +66,20 @@ public sealed class SystemResumeEventArgs(
     public DateTimeOffset OccurredAt { get; } = occurredAt;
 }
 
+public sealed class SystemSuspendEventArgs(
+    SystemSuspendReason reason,
+    DateTimeOffset occurredAt) : EventArgs
+{
+    public SystemSuspendReason Reason { get; } = reason;
+
+    public DateTimeOffset OccurredAt { get; } = occurredAt;
+}
+
 public interface ISystemResumeSource : IDisposable
 {
     event EventHandler<SystemResumeEventArgs>? Resumed;
+
+    event EventHandler<SystemSuspendEventArgs>? Suspended;
 
     void Start();
 }

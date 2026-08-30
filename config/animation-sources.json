@@ -23,6 +23,26 @@
       "anchorY": 1.0
     },
     {
+      "id": "resonance-no-playing",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_你不许玩.gif",
+      "atlas": "assets/animations/runtime/resonance-no-playing.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 3,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "resonance-please",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_拜托.gif",
+      "atlas": "assets/animations/runtime/resonance-please.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "codename-landing-bounce",
       "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
       "atlas": "assets/animations/runtime/codename-landing-bounce.atlas.png",

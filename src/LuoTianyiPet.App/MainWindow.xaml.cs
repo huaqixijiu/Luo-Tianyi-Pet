@@ -3,12 +3,14 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using LuoTianyiPet.Animation;
 using LuoTianyiPet.Core;
+using LuoTianyiPet.Platform.Windows;
 
 namespace LuoTianyiPet.App;
 
@@ -19,6 +21,9 @@ public partial class MainWindow : Window
     private const string VolumeIncreaseAnimation = "resonance-voice";
     private const string VolumeDecreaseAnimation = "resonance-voice-reversed";
     private const string AwakeAnimation = "resonance-awake-pop";
+    private const string GenshinLaunchAnimation = "resonance-no-playing";
+    private const string GenshinCameoAnimation = "resonance-please";
+    private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
     private const double EdgeDockThreshold = 18;
@@ -53,14 +58,21 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
     private readonly DispatcherTimer _idleSceneTimer;
+    private readonly DispatcherTimer _genshinStatusTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly ISystemVolumeService? _systemVolumeService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly IUserIdleTimeSource _userIdleTimeSource;
     private readonly ISystemResumeSource? _systemResumeSource;
+    private readonly IProtectedGameProcessMonitor? _protectedGameMonitor;
+    private readonly IForegroundApplicationProbe? _foregroundApplicationProbe;
+    private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
+    private readonly GenshinBackgroundCameoScheduler _genshinCameoScheduler = new();
+    private readonly RandomPetPositionSelector _randomPetPositionSelector = new();
+    private readonly ProtectedGamePresenceTracker _genshinProcessMatcher;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly SystemVolumeChangeTracker _volumeChangeTracker = new();
     private readonly string _musicTargetProcessName;
@@ -74,6 +86,8 @@ public partial class MainWindow : Window
     private readonly bool _previewSettings;
     private readonly bool _previewSystemResume;
     private readonly bool _previewLongIdle;
+    private readonly bool _previewGenshinLaunch;
+    private readonly bool _previewGenshinCameo;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -102,6 +116,14 @@ public partial class MainWindow : Window
     private double _dragStartTop;
     private BodyRegionId? _lastDebugHitRegion;
     private Guid? _activeVolumeReactionToken;
+    private readonly HashSet<Guid> _transientTopmostRequests = [];
+    private Guid? _genshinLaunchReactionToken;
+    private Guid? _genshinLaunchTopmostToken;
+    private Guid? _genshinCameoReactionToken;
+    private Guid? _genshinCameoTopmostToken;
+    private Point? _genshinCameoRestorePosition;
+    private bool _pendingGenshinLaunch;
+    private bool _systemSessionUnavailable;
 
     public MainWindow(
         AppSettings settings,
@@ -114,6 +136,9 @@ public partial class MainWindow : Window
         IMediaTrackInfoSource? mediaTrackInfoSource,
         IUserIdleTimeSource userIdleTimeSource,
         ISystemResumeSource? systemResumeSource,
+        IProtectedGameProcessMonitor? protectedGameMonitor,
+        IForegroundApplicationProbe? foregroundApplicationProbe,
+        IWindowWorkAreaProvider windowWorkAreaProvider,
         PetVisualState initialVisualState,
         bool previewExit,
         bool previewMusicTransition,
@@ -125,6 +150,8 @@ public partial class MainWindow : Window
         bool previewSettings,
         bool previewSystemResume,
         bool previewLongIdle,
+        bool previewGenshinLaunch,
+        bool previewGenshinCameo,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -139,6 +166,11 @@ public partial class MainWindow : Window
         _mediaTrackInfoSource = mediaTrackInfoSource;
         _userIdleTimeSource = userIdleTimeSource;
         _systemResumeSource = systemResumeSource;
+        _protectedGameMonitor = protectedGameMonitor;
+        _foregroundApplicationProbe = foregroundApplicationProbe;
+        _windowWorkAreaProvider = windowWorkAreaProvider;
+        _genshinProcessMatcher = new ProtectedGamePresenceTracker(
+            ParseGenshinProcessNames(settings.Genshin.ProcessNames));
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
@@ -163,6 +195,8 @@ public partial class MainWindow : Window
         _previewSettings = previewSettings;
         _previewSystemResume = previewSystemResume;
         _previewLongIdle = previewLongIdle;
+        _previewGenshinLaunch = previewGenshinLaunch;
+        _previewGenshinCameo = previewGenshinCameo;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -234,6 +268,14 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(1),
         };
         _idleSceneTimer.Tick += OnIdleSceneTimerTick;
+        _genshinStatusTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(
+                settings.Genshin.StatusPollIntervalMilliseconds > 0
+                    ? settings.Genshin.StatusPollIntervalMilliseconds
+                    : GenshinPreferences.DefaultStatusPollIntervalMilliseconds),
+        };
+        _genshinStatusTimer.Tick += OnGenshinStatusTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -242,8 +284,8 @@ public partial class MainWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        Topmost = _settings.Window.AlwaysOnTop;
-        TopmostMenuItem.IsChecked = Topmost;
+        TopmostMenuItem.IsChecked = _settings.Window.AlwaysOnTop;
+        ApplyEffectiveTopmost();
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
         BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
@@ -270,7 +312,7 @@ public partial class MainWindow : Window
                     : "Default multimedia output endpoint could not be read.");
         }
 
-        Rect workArea = SystemParameters.WorkArea;
+        DesktopRectangle workArea = GetCurrentWorkArea();
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
         double desiredTop = _settings.Window.Top ?? workArea.Bottom - ActualHeight - 32;
         Left = Clamp(desiredLeft, workArea.Left, workArea.Right - ActualWidth);
@@ -282,6 +324,7 @@ public partial class MainWindow : Window
             _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
         }
         StartSystemResumeMonitoring();
+        StartGenshinMonitoring();
         if (!_previewLongIdle)
         {
             _idleSceneTimer.Start();
@@ -346,6 +389,14 @@ public partial class MainWindow : Window
         {
             _ = BeginLongIdlePreviewAsync();
         }
+        if (_previewGenshinLaunch)
+        {
+            _ = BeginGenshinLaunchPreviewAsync();
+        }
+        if (_previewGenshinCameo)
+        {
+            _ = BeginGenshinCameoPreviewAsync();
+        }
     }
 
     private async Task PlayStartupGreetingAsync(DateTimeOffset now)
@@ -366,12 +417,14 @@ public partial class MainWindow : Window
         try
         {
             _systemResumeSource.Resumed += OnSystemResumed;
+            _systemResumeSource.Suspended += OnSystemSuspended;
             _systemResumeSource.Start();
             _logger.Info("time.resume_monitor_started", "Windows session and power resume monitoring started.");
         }
         catch (Exception exception) when (exception is InvalidOperationException or ExternalException)
         {
             _systemResumeSource.Resumed -= OnSystemResumed;
+            _systemResumeSource.Suspended -= OnSystemSuspended;
             _logger.Error("time.resume_monitor_unavailable", exception);
         }
     }
@@ -388,6 +441,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        _systemSessionUnavailable = false;
         PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
         if (continuousState is PetContinuousState.MediumIdle or PetContinuousState.Sleeping)
         {
@@ -407,6 +461,24 @@ public partial class MainWindow : Window
 
         _logger.Info("time.resume_reaction", e.Reason.ToString());
         _ = PlayReactionAsync(AwakeAnimation, ReactionPriority.System);
+    }
+
+    private void OnSystemSuspended(object? sender, SystemSuspendEventArgs e)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (_isClosing)
+            {
+                return;
+            }
+
+            _systemSessionUnavailable = true;
+            _genshinCameoScheduler.Reset();
+            // Do not start or restore visual playback while Windows is locking or suspending.
+            // The normal resume path will resolve the correct continuous state safely.
+            CancelGenshinPresentations(restoreContinuousAnimation: false);
+            _logger.Info("genshin.suspended", e.Reason.ToString());
+        });
     }
 
     private async Task BeginSystemResumePreviewAsync()
@@ -433,6 +505,207 @@ public partial class MainWindow : Window
         if (!_isClosing)
         {
             ApplyIdleScene(TimeSpan.Zero);
+        }
+    }
+
+    private void StartGenshinMonitoring()
+    {
+        if (_protectedGameMonitor is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _protectedGameMonitor.PresenceChanged += OnProtectedGamePresenceChanged;
+            _protectedGameMonitor.Start();
+            _genshinStatusTimer.Start();
+            _logger.Info(
+                "genshin.monitor_started",
+                _protectedGameMonitor.IsRunning
+                    ? "Protected game was already running; launch reaction was not replayed."
+                    : "Waiting for filtered low-frequency process enumeration.");
+        }
+        catch (InvalidOperationException exception)
+        {
+            _protectedGameMonitor.PresenceChanged -= OnProtectedGamePresenceChanged;
+            _protectedGameMonitor.Dispose();
+            _logger.Error("genshin.monitor_unavailable", exception);
+        }
+    }
+
+    private void OnProtectedGamePresenceChanged(
+        object? sender,
+        ProtectedGamePresenceChangedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(() => HandleProtectedGamePresenceChanged(e));
+    }
+
+    private void HandleProtectedGamePresenceChanged(ProtectedGamePresenceChangedEventArgs e)
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        if (e.IsRunning)
+        {
+            _pendingGenshinLaunch = true;
+            _logger.Info("genshin.process_started", "Protected game became running.");
+            EvaluateGenshinIntegration();
+            return;
+        }
+
+        _pendingGenshinLaunch = false;
+        _genshinCameoScheduler.Reset();
+        CancelGenshinPresentations(restoreContinuousAnimation: true);
+        _logger.Info("genshin.process_stopped", "Protected game is no longer running.");
+    }
+
+    private void OnGenshinStatusTimerTick(object? sender, EventArgs e) =>
+        EvaluateGenshinIntegration();
+
+    private void EvaluateGenshinIntegration()
+    {
+        if (_isClosing || _protectedGameMonitor is null || _foregroundApplicationProbe is null)
+        {
+            return;
+        }
+
+        bool gameIsRunning = _protectedGameMonitor.IsRunning;
+        if (!gameIsRunning)
+        {
+            _pendingGenshinLaunch = false;
+            _genshinCameoScheduler.Reset();
+            return;
+        }
+
+        ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
+        bool gameIsForeground = foreground.Succeeded &&
+            _genshinProcessMatcher.IsTargetProcess(foreground.ProcessName);
+        bool unsafeForeground = !foreground.Succeeded || gameIsForeground || foreground.IsFullscreen;
+        if (unsafeForeground || _systemSessionUnavailable)
+        {
+            _genshinCameoScheduler.Update(DateTimeOffset.Now, gameIsRunning, canShow: false);
+            CancelGenshinPresentations(restoreContinuousAnimation: true);
+            return;
+        }
+
+        bool windowAvailable = _edgeDockSide == EdgeDockSide.None &&
+            !_isWindowDragging &&
+            _stateMachine.VisualState.ContinuousState is not
+                (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety);
+        if (_pendingGenshinLaunch && windowAvailable)
+        {
+            _pendingGenshinLaunch = false;
+            _ = BeginGenshinLaunchReactionAsync(retryOnFailure: true);
+            return;
+        }
+
+        bool cameoCanShow = windowAvailable &&
+            _genshinLaunchReactionToken is null &&
+            _genshinCameoReactionToken is null &&
+            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous;
+        if (_genshinCameoScheduler.Update(
+            DateTimeOffset.Now,
+            gameIsRunning,
+            cameoCanShow) == GenshinCameoScheduleDecision.Trigger)
+        {
+            _ = BeginGenshinCameoAsync();
+        }
+    }
+
+    private async Task BeginGenshinLaunchReactionAsync(bool retryOnFailure)
+    {
+        if (_isClosing || _genshinLaunchReactionToken is not null)
+        {
+            return;
+        }
+
+        Guid topmostToken = AcquireTransientTopmost();
+        Guid? reactionToken = await PlayReactionAsync(
+            GenshinLaunchAnimation,
+            ReactionPriority.Genshin);
+        if (reactionToken is not Guid token)
+        {
+            ReleaseTransientTopmost(topmostToken);
+            if (retryOnFailure && _protectedGameMonitor?.IsRunning == true)
+            {
+                _pendingGenshinLaunch = true;
+            }
+            return;
+        }
+
+        _genshinLaunchReactionToken = token;
+        _genshinLaunchTopmostToken = topmostToken;
+        _logger.Info("genshin.launch_reaction_started", "Three-loop reaction started without activation.");
+    }
+
+    private async Task BeginGenshinCameoAsync()
+    {
+        if (_isClosing || _genshinCameoReactionToken is not null || _edgeDockSide != EdgeDockSide.None)
+        {
+            return;
+        }
+
+        Point restorePosition = new(Left, Top);
+        try
+        {
+            AnimationAssetManifest manifest = _animationCatalog?.GetRequired(GenshinCameoAnimation)
+                ?? throw new InvalidOperationException("Genshin cameo animation is unavailable.");
+            DesktopRectangle workArea = _windowWorkAreaProvider.GetForWindow(
+                new WindowInteropHelper(this).Handle);
+            double targetWidth = manifest.DisplayWidth + 16;
+            double targetHeight = manifest.DisplayHeight + 16 +
+                MediaControlsReservedHeight + TrackInfoReservedHeight;
+            PointerPoint position = _randomPetPositionSelector.Select(
+                workArea,
+                Math.Max(ActualWidth, targetWidth),
+                Math.Max(ActualHeight, targetHeight),
+                GenshinCameoSafeMargin);
+            Left = position.X;
+            Top = position.Y;
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or ArgumentOutOfRangeException or KeyNotFoundException)
+        {
+            _logger.Error("genshin.cameo_position_unavailable", exception);
+            return;
+        }
+
+        _genshinCameoRestorePosition = restorePosition;
+        Guid topmostToken = AcquireTransientTopmost();
+        Guid? reactionToken = await PlayReactionAsync(
+            GenshinCameoAnimation,
+            ReactionPriority.Genshin);
+        if (reactionToken is not Guid token)
+        {
+            ReleaseTransientTopmost(topmostToken);
+            RestoreWindowPosition(restorePosition);
+            _genshinCameoRestorePosition = null;
+            return;
+        }
+
+        _genshinCameoReactionToken = token;
+        _genshinCameoTopmostToken = topmostToken;
+        _logger.Info("genshin.cameo_started", "Background cameo started at a safe random work-area position.");
+    }
+
+    private async Task BeginGenshinLaunchPreviewAsync()
+    {
+        await Task.Delay(700);
+        if (!_isClosing)
+        {
+            await BeginGenshinLaunchReactionAsync(retryOnFailure: false);
+        }
+    }
+
+    private async Task BeginGenshinCameoPreviewAsync()
+    {
+        await Task.Delay(700);
+        if (!_isClosing)
+        {
+            await BeginGenshinCameoAsync();
         }
     }
 
@@ -651,6 +924,7 @@ public partial class MainWindow : Window
     private void BeginWindowDrag()
     {
         _singleClickTimer.Stop();
+        CancelGenshinPresentations(restoreContinuousAnimation: false);
         if (_edgeDockSide != EdgeDockSide.None)
         {
             _edgeDockAnimationGeneration++;
@@ -815,10 +1089,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private Task PlayBodyReactionAsync(string animationId) =>
+    private Task<Guid?> PlayBodyReactionAsync(string animationId) =>
         PlayReactionAsync(animationId, ReactionPriority.UserInteraction, suppressBodyAfter: true);
 
-    private async Task PlayReactionAsync(
+    private async Task<Guid?> PlayReactionAsync(
         string animationId,
         ReactionPriority priority,
         bool suppressBodyAfter = false)
@@ -833,7 +1107,12 @@ public partial class MainWindow : Window
         if (outcome.Token is not Guid token)
         {
             _logger.Info("animation.reaction_skipped", outcome.Result.ToString());
-            return;
+            return null;
+        }
+
+        if (outcome.Result == ReactionStartResult.Replaced)
+        {
+            CleanupReplacedGenshinPresentation();
         }
 
         UpdateBodyHitDebugOverlay();
@@ -847,7 +1126,14 @@ public partial class MainWindow : Window
         {
             _bodyReactionMotion.PlayFor(animationId);
             _logger.Info("animation.reaction_started", animationId);
+            return token;
         }
+
+        if (_stateMachine.ActiveReactionToken == token)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+        return null;
     }
 
     private void CompleteReaction(Guid token, bool suppressBodyAfter)
@@ -862,8 +1148,13 @@ public partial class MainWindow : Window
         {
             _stateMachine.SuppressBodyInteractions(now, BodyInteractionRecoveryDelay);
         }
+        Point? restorePosition = FinishGenshinPresentation(token);
         _bodyReactionMotion.Cancel();
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.body_reaction_transition_completed");
+        _ = TransitionToResolvedContinuousAnimationAsync(
+            "animation.body_reaction_transition_completed",
+            restorePosition is Point point
+                ? () => RestoreWindowPosition(point)
+                : null);
     }
 
     private PointerPoint? NormalizeToPetImage(PointerPoint windowPoint)
@@ -1164,11 +1455,14 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task TransitionToResolvedContinuousAnimationAsync(string completionEvent)
+    private async Task TransitionToResolvedContinuousAnimationAsync(
+        string completionEvent,
+        Action? afterTransition = null)
     {
         if (_animationPlayer is null || _animationCatalog is null || _isClosing)
         {
             PlayResolvedContinuousAnimation();
+            afterTransition?.Invoke();
             return;
         }
 
@@ -1177,7 +1471,12 @@ public partial class MainWindow : Window
         if (completed && !_isClosing)
         {
             StartResolvedContinuousMotion();
+            afterTransition?.Invoke();
             _logger.Info(completionEvent, "Pulse swap completed.");
+        }
+        else if (!_isClosing)
+        {
+            afterTransition?.Invoke();
         }
     }
 
@@ -1245,7 +1544,7 @@ public partial class MainWindow : Window
 
     private void ResizeAroundBottomCenter(double width, double height)
     {
-        Rect workArea = SystemParameters.WorkArea;
+        DesktopRectangle workArea = GetCurrentWorkArea();
         double oldWidth = ActualWidth > 0 ? ActualWidth : Width;
         double oldHeight = ActualHeight > 0 ? ActualHeight : Height;
         double center = Left + oldWidth / 2;
@@ -1371,8 +1670,141 @@ public partial class MainWindow : Window
 
     private void OnToggleTopmost(object sender, RoutedEventArgs e)
     {
-        Topmost = TopmostMenuItem.IsChecked;
-        _logger.Info("window.topmost_changed", Topmost ? "Enabled." : "Disabled.");
+        ApplyEffectiveTopmost();
+        _logger.Info(
+            "window.topmost_changed",
+            TopmostMenuItem.IsChecked ? "Enabled." : "Disabled.");
+    }
+
+    private Guid AcquireTransientTopmost()
+    {
+        Guid token = Guid.NewGuid();
+        _transientTopmostRequests.Add(token);
+        ApplyEffectiveTopmost();
+        return token;
+    }
+
+    private void ReleaseTransientTopmost(Guid? token)
+    {
+        if (token is Guid value && _transientTopmostRequests.Remove(value))
+        {
+            ApplyEffectiveTopmost();
+        }
+    }
+
+    private void ApplyEffectiveTopmost()
+    {
+        bool permanentTopmost = TopmostMenuItem.IsChecked;
+        bool effectiveTopmost = permanentTopmost || _transientTopmostRequests.Count > 0;
+        Topmost = effectiveTopmost;
+        nint handle = new WindowInteropHelper(this).Handle;
+        if (handle != 0 &&
+            !WindowsWindowZOrder.SetTopmostWithoutActivation(handle, effectiveTopmost) &&
+            !permanentTopmost &&
+            _transientTopmostRequests.Count > 0)
+        {
+            _transientTopmostRequests.Clear();
+            Topmost = false;
+            _logger.Info("window.transient_topmost_rejected", "No-activate z-order request failed closed.");
+        }
+    }
+
+    private void CleanupReplacedGenshinPresentation()
+    {
+        Point? restorePosition = null;
+        if (_genshinLaunchReactionToken is not null)
+        {
+            ReleaseTransientTopmost(_genshinLaunchTopmostToken);
+            _genshinLaunchReactionToken = null;
+            _genshinLaunchTopmostToken = null;
+        }
+        if (_genshinCameoReactionToken is not null)
+        {
+            ReleaseTransientTopmost(_genshinCameoTopmostToken);
+            restorePosition = _genshinCameoRestorePosition;
+            _genshinCameoReactionToken = null;
+            _genshinCameoTopmostToken = null;
+            _genshinCameoRestorePosition = null;
+        }
+
+        if (restorePosition is Point point)
+        {
+            RestoreWindowPosition(point);
+        }
+    }
+
+    private Point? FinishGenshinPresentation(Guid reactionToken)
+    {
+        if (_genshinLaunchReactionToken == reactionToken)
+        {
+            ReleaseTransientTopmost(_genshinLaunchTopmostToken);
+            _genshinLaunchReactionToken = null;
+            _genshinLaunchTopmostToken = null;
+            _logger.Info("genshin.launch_reaction_completed", "Transient topmost was released.");
+        }
+
+        if (_genshinCameoReactionToken != reactionToken)
+        {
+            return null;
+        }
+
+        ReleaseTransientTopmost(_genshinCameoTopmostToken);
+        Point? restorePosition = _genshinCameoRestorePosition;
+        _genshinCameoReactionToken = null;
+        _genshinCameoTopmostToken = null;
+        _genshinCameoRestorePosition = null;
+        _logger.Info("genshin.cameo_completed", "Original position and topmost preference will be restored.");
+        return restorePosition;
+    }
+
+    private void CancelGenshinPresentations(bool restoreContinuousAnimation)
+    {
+        bool canceledActiveReaction =
+            _stateMachine.ActiveReactionToken == _genshinLaunchReactionToken ||
+            _stateMachine.ActiveReactionToken == _genshinCameoReactionToken;
+        if (canceledActiveReaction)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+
+        ReleaseTransientTopmost(_genshinLaunchTopmostToken);
+        ReleaseTransientTopmost(_genshinCameoTopmostToken);
+        Point? restorePosition = _genshinCameoRestorePosition;
+        _genshinLaunchReactionToken = null;
+        _genshinLaunchTopmostToken = null;
+        _genshinCameoReactionToken = null;
+        _genshinCameoTopmostToken = null;
+        _genshinCameoRestorePosition = null;
+        if (restorePosition is Point point)
+        {
+            RestoreWindowPosition(point);
+        }
+
+        if (canceledActiveReaction && restoreContinuousAnimation && !_isClosing)
+        {
+            _bodyReactionMotion.Cancel();
+            _ = TransitionToResolvedContinuousAnimationAsync("genshin.presentation_cancelled");
+        }
+    }
+
+    private void RestoreWindowPosition(Point position)
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        Left = Clamp(position.X, workArea.Left, workArea.Right - ActualWidth);
+        Top = Clamp(position.Y, workArea.Top, workArea.Bottom - ActualHeight);
+    }
+
+    private DesktopRectangle GetCurrentWorkArea()
+    {
+        try
+        {
+            return _windowWorkAreaProvider.GetForWindow(new WindowInteropHelper(this).Handle);
+        }
+        catch (InvalidOperationException)
+        {
+            Rect fallback = SystemParameters.WorkArea;
+            return new DesktopRectangle(fallback.Left, fallback.Top, fallback.Width, fallback.Height);
+        }
     }
 
     private void OnOpenSettings(object sender, RoutedEventArgs e) => ShowSettingsDialog();
@@ -1400,11 +1832,11 @@ public partial class MainWindow : Window
         WindowPreferences currentWindow = _edgeDockSide == EdgeDockSide.None
             ? _settings.Window with
             {
-                AlwaysOnTop = Topmost,
+                AlwaysOnTop = TopmostMenuItem.IsChecked,
                 Left = Left,
                 Top = Top,
             }
-            : _settings.Window with { AlwaysOnTop = Topmost };
+            : _settings.Window with { AlwaysOnTop = TopmostMenuItem.IsChecked };
         _settings = _settings with
         {
             Volume = preferences,
@@ -2072,6 +2504,8 @@ public partial class MainWindow : Window
         _trackInfoHideTimer.Tick -= OnTrackInfoHideTimerTick;
         _idleSceneTimer.Stop();
         _idleSceneTimer.Tick -= OnIdleSceneTimerTick;
+        _genshinStatusTimer.Stop();
+        _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
@@ -2080,12 +2514,19 @@ public partial class MainWindow : Window
         _bodyReactionMotion.Cancel();
         _mediaControlsMotion.Cancel();
         _trackInfoMotion.Cancel();
+        CancelGenshinPresentations(restoreContinuousAnimation: false);
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         if (_systemResumeSource is not null)
         {
             _systemResumeSource.Resumed -= OnSystemResumed;
+            _systemResumeSource.Suspended -= OnSystemSuspended;
             _systemResumeSource.Dispose();
+        }
+        if (_protectedGameMonitor is not null)
+        {
+            _protectedGameMonitor.PresenceChanged -= OnProtectedGamePresenceChanged;
+            _protectedGameMonitor.Dispose();
         }
         if (_systemVolumeService is not null)
         {
@@ -2110,7 +2551,7 @@ public partial class MainWindow : Window
         {
             Window = _settings.Window with
             {
-                AlwaysOnTop = Topmost,
+                AlwaysOnTop = TopmostMenuItem.IsChecked,
                 Left = Left,
                 Top = Top,
             },
@@ -2125,6 +2566,15 @@ public partial class MainWindow : Window
         {
             _logger.Error("window.state_save_failed", exception);
         }
+    }
+
+    private static string[] ParseGenshinProcessNames(string? value)
+    {
+        string[] names = (value ?? string.Empty)
+            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return names.Length > 0
+            ? names
+            : ["YuanShen.exe", "GenshinImpact.exe"];
     }
 
     private static double Clamp(double value, double minimum, double maximum) =>

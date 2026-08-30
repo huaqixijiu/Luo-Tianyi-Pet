@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 4;
+    public const int CurrentSchemaVersion = 5;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -12,7 +12,21 @@ public sealed record AppSettings
 
     public VolumePreferences Volume { get; init; } = new();
 
+    public GenshinPreferences Genshin { get; init; } = new();
+
     public SafetyPreferences Safety { get; init; } = new();
+}
+
+public sealed record GenshinPreferences
+{
+    public const int DefaultStatusPollIntervalMilliseconds = 2000;
+
+    public bool EnableIntegration { get; init; } = true;
+
+    public string ProcessNames { get; init; } = "YuanShen.exe;GenshinImpact.exe";
+
+    public int StatusPollIntervalMilliseconds { get; init; } =
+        DefaultStatusPollIntervalMilliseconds;
 }
 
 public sealed record VolumePreferences

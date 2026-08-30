@@ -30,6 +30,9 @@ public sealed class AppSettingsTests
         Assert.Equal(500, settings.Volume.MergeChangesWithinMilliseconds);
         Assert.Equal(2000, settings.Volume.AnimationCooldownMilliseconds);
         Assert.Equal(250, settings.Volume.ExternalPollIntervalMilliseconds);
+        Assert.True(settings.Genshin.EnableIntegration);
+        Assert.Equal("YuanShen.exe;GenshinImpact.exe", settings.Genshin.ProcessNames);
+        Assert.Equal(2000, settings.Genshin.StatusPollIntervalMilliseconds);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
             settings.Safety.ProtectedForegroundProcessNames);

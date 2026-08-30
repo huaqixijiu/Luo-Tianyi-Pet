@@ -80,6 +80,12 @@ public partial class App : Application
             bool previewLongIdle = e.Args.Contains(
                 "--qa-long-idle",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewGenshinLaunch = e.Args.Contains(
+                "--qa-genshin-launch",
+                StringComparer.OrdinalIgnoreCase);
+            bool previewGenshinCameo = e.Args.Contains(
+                "--qa-genshin-cameo",
+                StringComparer.OrdinalIgnoreCase);
             string? previewBodyReaction = e.Args
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
@@ -103,6 +109,21 @@ public partial class App : Application
             ISystemResumeSource? systemResumeSource = !isPreviewOrQaRun
                 ? new WindowsSystemResumeSource()
                 : null;
+            string[] genshinProcessNames = (settings.Genshin.ProcessNames ?? string.Empty)
+                .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            IProtectedGameProcessMonitor? protectedGameMonitor =
+                settings.Genshin.EnableIntegration && !isPreviewOrQaRun && genshinProcessNames.Length > 0
+                    ? new PollingProtectedGameProcessMonitor(
+                        genshinProcessNames,
+                        TimeSpan.FromMilliseconds(
+                            settings.Genshin.StatusPollIntervalMilliseconds > 0
+                                ? settings.Genshin.StatusPollIntervalMilliseconds
+                                : GenshinPreferences.DefaultStatusPollIntervalMilliseconds))
+                    : null;
+            IForegroundApplicationProbe? foregroundApplicationProbe =
+                settings.Genshin.EnableIntegration && !isPreviewOrQaRun
+                    ? new WindowsForegroundApplicationProbe()
+                    : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
@@ -114,6 +135,9 @@ public partial class App : Application
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
                 systemResumeSource,
+                protectedGameMonitor,
+                foregroundApplicationProbe,
+                new WindowsWindowWorkAreaProvider(),
                 initialVisualState,
                 previewExit,
                 previewMusicTransition,
@@ -125,6 +149,8 @@ public partial class App : Application
                 previewSettings,
                 previewSystemResume,
                 previewLongIdle,
+                previewGenshinLaunch,
+                previewGenshinCameo,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);

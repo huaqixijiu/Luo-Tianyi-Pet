@@ -396,7 +396,8 @@
       "YuanShen.exe",
       "GenshinImpact.exe"
     ],
-    "detectionMode": "windows-process-lifecycle-event-only",
+    "detectionMode": "filtered-low-frequency-process-enumeration",
+    "pollIntervalMilliseconds": 2000,
     "animation": "resonance-no-playing",
     "loopCount": 3,
     "requestTransientTopmost": true,
