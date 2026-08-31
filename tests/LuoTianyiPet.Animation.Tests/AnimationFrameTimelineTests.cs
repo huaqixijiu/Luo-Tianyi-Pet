@@ -36,4 +36,26 @@ public sealed class AnimationFrameTimelineTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new AnimationFrameTimeline([100, 0], 1));
     }
+
+    [Theory]
+    [InlineData(0.8, 375)]
+    [InlineData(1.2, 250)]
+    public void TimelineScalesDurationsForPerPlaybackSpeed(
+        double playbackRate,
+        long expectedCycleMilliseconds)
+    {
+        AnimationFrameTimeline timeline = new([100, 200], 1, playbackRate);
+
+        Assert.Equal(expectedCycleMilliseconds, timeline.CycleDurationMilliseconds);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(double.NaN)]
+    public void TimelineRejectsInvalidPlaybackRates(double playbackRate)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new AnimationFrameTimeline([100], 1, playbackRate));
+    }
 }

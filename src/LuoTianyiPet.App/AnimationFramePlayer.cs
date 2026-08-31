@@ -50,10 +50,17 @@ internal sealed class AnimationFramePlayer : IDisposable
         string animationId,
         int startFrameIndex,
         int endFrameIndex,
-        Action? completed = null)
+        Action? completed = null,
+        double playbackRate = 1.0)
     {
         CachedAnimation animation = GetOrLoad(animationId);
-        return StartPlayback(animation, startFrameIndex, endFrameIndex, loopCount: 1, completed);
+        return StartPlayback(
+            animation,
+            startFrameIndex,
+            endFrameIndex,
+            loopCount: 1,
+            completed,
+            playbackRate);
     }
 
     public AnimationAssetManifest ShowFrame(string animationId, int frameIndex)
@@ -161,7 +168,8 @@ internal sealed class AnimationFramePlayer : IDisposable
         int startFrameIndex,
         int endFrameIndex,
         int loopCount,
-        Action? completed)
+        Action? completed,
+        double playbackRate = 1.0)
     {
         IReadOnlyList<int> indices = FrameIndexSequence.Create(
             startFrameIndex,
@@ -173,7 +181,7 @@ internal sealed class AnimationFramePlayer : IDisposable
 
         _current = animation;
         _activeFrameIndices = indices;
-        _activeTimeline = new AnimationFrameTimeline(durations, loopCount);
+        _activeTimeline = new AnimationFrameTimeline(durations, loopCount, playbackRate);
         _completed = completed;
         _completionRaised = false;
         _currentFrameIndex = startFrameIndex;

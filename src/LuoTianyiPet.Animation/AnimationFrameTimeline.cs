@@ -7,7 +7,10 @@ public sealed class AnimationFrameTimeline
     private readonly long[] _frameEndMilliseconds;
     private readonly int _loopCount;
 
-    public AnimationFrameTimeline(IReadOnlyList<int> frameDurationsMilliseconds, int loopCount)
+    public AnimationFrameTimeline(
+        IReadOnlyList<int> frameDurationsMilliseconds,
+        int loopCount,
+        double playbackRate = 1.0)
     {
         ArgumentNullException.ThrowIfNull(frameDurationsMilliseconds);
         if (frameDurationsMilliseconds.Count == 0 || frameDurationsMilliseconds.Any(value => value <= 0))
@@ -22,12 +25,22 @@ public sealed class AnimationFrameTimeline
             throw new ArgumentOutOfRangeException(nameof(loopCount));
         }
 
+        if (!double.IsFinite(playbackRate) || playbackRate <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(playbackRate));
+        }
+
         _loopCount = loopCount;
         _frameEndMilliseconds = new long[frameDurationsMilliseconds.Count];
         long total = 0;
         for (int index = 0; index < frameDurationsMilliseconds.Count; index++)
         {
-            total = checked(total + frameDurationsMilliseconds[index]);
+            long scaledDuration = Math.Max(
+                1,
+                checked((long)Math.Round(
+                    frameDurationsMilliseconds[index] / playbackRate,
+                    MidpointRounding.AwayFromZero)));
+            total = checked(total + scaledDuration);
             _frameEndMilliseconds[index] = total;
         }
 

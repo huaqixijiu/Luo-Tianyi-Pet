@@ -33,7 +33,9 @@ public partial class MainWindow : Window
     private const double EdgeDockAlphaInset = 2;
     private const double BottomControlsLayoutDistance = 80;
     private const double SideDockWallClipLeftRatio = 0.735;
-    private const double SideDockWallClipWidthRatio = 0.105;
+    private const double SideDockWallClipWidthRatio = 0.075;
+    private const double SideDockRevealPlaybackRate = 1.2;
+    private const double BottomDockHidePlaybackRate = 0.8;
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -1811,7 +1813,8 @@ public partial class MainWindow : Window
         string animationId,
         int startFrameIndex,
         int endFrameIndex,
-        Action? completed = null)
+        Action? completed = null,
+        double playbackRate = 1.0)
     {
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
@@ -1828,7 +1831,8 @@ public partial class MainWindow : Window
                 animationId,
                 startFrameIndex,
                 endFrameIndex,
-                completed);
+                completed,
+                playbackRate);
             ApplyAnimationManifest(manifest);
         }
         catch (Exception exception) when (
@@ -2006,7 +2010,8 @@ public partial class MainWindow : Window
             animationId,
             route.StartFrameIndex,
             route.EndFrameIndex,
-            completed);
+            completed,
+            GetEdgeDockPlaybackRate(_edgeDockSide, revealed));
     }
 
     private void ShowEdgeDockHideStartFrame(EdgeDockSide side)
@@ -2113,6 +2118,14 @@ public partial class MainWindow : Window
             (BottomDockHiddenFrame, BottomDockHideStartFrame, BottomDockRevealEndFrame),
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
+
+    private static double GetEdgeDockPlaybackRate(EdgeDockSide side, bool revealed) =>
+        (side, revealed) switch
+        {
+            (EdgeDockSide.Left or EdgeDockSide.Right, true) => SideDockRevealPlaybackRate,
+            (EdgeDockSide.Bottom, false) => BottomDockHidePlaybackRate,
+            _ => 1.0,
+        };
 
     private void CreateTrayIcon()
     {
