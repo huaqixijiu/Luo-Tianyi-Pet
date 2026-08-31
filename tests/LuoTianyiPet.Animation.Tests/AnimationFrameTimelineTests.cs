@@ -38,8 +38,10 @@ public sealed class AnimationFrameTimelineTests
     }
 
     [Theory]
+    [InlineData(0.7, 429)]
     [InlineData(0.8, 375)]
     [InlineData(1.2, 250)]
+    [InlineData(1.3, 231)]
     public void TimelineScalesDurationsForPerPlaybackSpeed(
         double playbackRate,
         long expectedCycleMilliseconds)

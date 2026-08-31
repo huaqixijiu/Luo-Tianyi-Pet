@@ -35,8 +35,8 @@ public partial class MainWindow : Window
     private const double BottomControlsLayoutDistance = 80;
     private const double SideDockWallClipLeftRatio = 0.9;
     private const double SideDockWallClipWidthRatio = 0.092;
-    private const double SideDockRevealPlaybackRate = 1.2;
-    private const double BottomDockHidePlaybackRate = 0.8;
+    private const double SideDockRevealPlaybackRate = 1.3;
+    private const double BottomDockHidePlaybackRate = 0.7;
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
