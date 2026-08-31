@@ -113,9 +113,24 @@
     }
     .slot-clear:hover { color: var(--text); background: rgba(255, 255, 255, .08); }
 
+    .project-status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .status-card {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,.025);
+    }
+    .status-card strong { display: block; margin-bottom: 4px; color: var(--cyan); font-size: 22px; }
+    .status-card span { color: var(--muted); font-size: 12px; }
+
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(230px, 1fr) 200px auto auto auto;
+      grid-template-columns: minmax(230px, 1fr) 190px auto auto auto auto;
       gap: 10px;
       align-items: center;
       margin: 18px 0;
@@ -133,6 +148,7 @@
     }
     .quiet-button { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.04); }
     .quiet-button:hover { background: rgba(255,255,255,.08); }
+    .quiet-button:disabled { opacity: .42; cursor: not-allowed; }
     .quiet-button[aria-pressed="true"] { border-color: var(--blue); color: #071418; background: var(--blue); }
     .primary-button { border: 1px solid rgba(99,225,220,.35); color: #031719; background: var(--cyan); }
     .primary-button:hover { background: #88eeea; }
@@ -297,11 +313,15 @@
       font: 13px/1.65 Consolas, "Microsoft YaHei UI", monospace;
     }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .backup-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .backup-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .visually-hidden { position: fixed; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
     @media (max-width: 1120px) {
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .slots { grid-template-columns: repeat(3, 1fr); }
       .scenario-groups { grid-template-columns: 1fr 1fr; }
+      .project-status { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
     }
     @media (max-width: 820px) {
       header { grid-template-columns: 1fr; }
@@ -320,6 +340,7 @@
       .toolbar .quiet-button { grid-column: auto; }
       .preview { height: 330px; }
       .board-head { align-items: flex-start; flex-direction: column; }
+      .project-status { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -329,7 +350,7 @@
       <div>
         <p class="eyebrow">LUO TIANYI DESKTOP PET</p>
         <h1>动画挑选器</h1>
-        <p class="intro">一次规划完整桌宠：查看原生动画和程序动效预演，为日常、鼠标互动、音乐和系统事件分配动作，并选择希望实现的联动场景。</p>
+        <p class="intro">重新整理后的官方素材总览。当前已经接入桌宠的动画会排在最前面并写明触发方式；你仍可勾选其它候选，所有选择都能备份和恢复。</p>
       </div>
       <div class="count-box"><strong id="visibleCount">65</strong><span>个动作候选正在显示</span></div>
     </header>
@@ -339,11 +360,20 @@
         <h2 id="selectionTitle">完整动画状态表</h2>
         <div class="board-actions">
           <span class="keep-count">已保留 <strong id="keptCount">0</strong> 个动画</span>
-          <button class="quiet-button" id="clearAll" type="button">清空选择</button>
+          <button class="quiet-button" id="undoAction" type="button" disabled>撤销上一步</button>
+          <button class="quiet-button" id="restoreProject" type="button">恢复项目当前状态</button>
+          <button class="quiet-button" id="clearAll" type="button">开始全新挑选</button>
           <button class="primary-button" id="showSummary" type="button">查看 / 导出结果</button>
         </div>
       </div>
       <div class="slot-groups" id="slots"></div>
+    </section>
+
+    <section class="project-status" aria-label="动画素材概况">
+      <div class="status-card"><strong id="usedCount">0</strong><span>个动画已经接入桌宠</span></div>
+      <div class="status-card"><strong id="candidateCount">0</strong><span>个动画仍可继续挑选</span></div>
+      <div class="status-card"><strong id="newCount">0</strong><span>个素材标记为新添加</span></div>
+      <div class="status-card"><strong id="totalCount">0</strong><span>个官方动画与动效候选</span></div>
     </section>
 
     <div class="toolbar">
@@ -356,6 +386,7 @@
         <option value="procedural">程序动效预演</option>
       </select>
       <button class="quiet-button" id="recommendedOnly" type="button" aria-pressed="false">只看优先推荐</button>
+      <button class="quiet-button" id="usedOnly" type="button" aria-pressed="false">只看当前已使用</button>
       <button class="quiet-button" id="keptOnly" type="button" aria-pressed="false">只看已保留</button>
       <button class="quiet-button" id="newOnly" type="button" aria-pressed="false">只看新添加</button>
     </div>
@@ -391,6 +422,12 @@
         <button class="quiet-button" id="downloadSummary" type="button">下载文本</button>
         <button class="primary-button" id="copySummary" type="button">复制结果</button>
       </div>
+      <div class="backup-row">
+        <button class="quiet-button" id="downloadBackup" type="button">备份选择（JSON）</button>
+        <button class="quiet-button" id="importBackup" type="button">导入选择备份</button>
+        <input class="visually-hidden" id="backupFile" type="file" accept="application/json,.json" />
+      </div>
+      <p class="backup-note">文本结果适合发给我继续讨论；JSON 备份可以完整恢复勾选、用途分配和联动场景。</p>
     </div>
   </dialog>
 
@@ -481,13 +518,13 @@
       { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["默认待机","迷你模式","双击切换"], desc:"已确定为每次启动时的迷你默认待机；双击进入完整全身互动模式，拖拽时自动切换为“膨胀”。" },
       { id:"e_join", title:"心律共鸣 · 加入我们", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_加入我们.gif", source:baseEmoji+"心律共鸣动态表情包_加入我们.gif", tags:["招手","随机待机"], desc:"适合首次启动或桌宠主动招手，不太适合频繁的按键反馈。" },
       { id:"e_kiss", title:"心律共鸣 · 啾啾", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_啾啾.gif", source:baseEmoji+"心律共鸣动态表情包_啾啾.gif", tags:["嘴部","点击互动"], desc:"已确定为短按嘴部时的一次性反馈；脸部现在单独使用十二周年“贴贴”。" },
-      { id:"e_cute", title:"心律共鸣 · 可爱", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_可爱.gif", source:baseEmoji+"心律共鸣动态表情包_可爱.gif", tags:["摸头","头顶","互动"], desc:"已确定为按住并抚摸头发或头顶区域约 600 毫秒后的反馈。" },
-      { id:"e_noPlay", title:"心律共鸣 · 你不许玩", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", source:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", tags:["阻止","暂停"], desc:"可以在暂停音乐或连续点击时作为有性格的特殊反馈。" },
+      { id:"e_cute", title:"心律共鸣 · 可爱", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_可爱.gif", source:baseEmoji+"心律共鸣动态表情包_可爱.gif", tags:["卖萌","候选互动"], desc:"曾作为摸头候选，现已由真正带手掌往返动作的“天依游学记·国乐季 · 摸摸”替换；本项继续保留供其它互动选择。" },
+      { id:"e_noPlay", title:"心律共鸣 · 你不许玩", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", source:baseEmoji+"心律共鸣动态表情包_你不许玩.gif", tags:["原神启动","连续三次","临时置顶"], desc:"已确定为检测到原神本轮首次启动后的反应：在安全桌面环境连续播放三次，临时置顶结束后恢复用户原设置。" },
       { id:"e_expand", title:"心律共鸣 · 膨胀", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_膨胀.gif", source:baseEmoji+"心律共鸣动态表情包_膨胀.gif", tags:["嘿嘿模式","拖拽中","循环"], desc:"已确定为“嘿嘿”迷你模式进入拖拽后的替换动画；完整全身模式拖拽时不使用它。" },
       { id:"e_poor", title:"心律共鸣 · 贫穷", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_贫穷.gif", source:baseEmoji+"心律共鸣动态表情包_贫穷.gif", tags:["委屈","彩蛋"], desc:"个性较强，更适合作为隐藏互动，而不是第一版固定状态。" },
       { id:"e_omg", title:"心律共鸣 · 天哪", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_天哪.gif", source:baseEmoji+"心律共鸣动态表情包_天哪.gif", tags:["惊讶","切歌反馈"], desc:"适合快速切歌、操作失败或意外状态时播放一次。" },
       { id:"e_oshi", title:"心律共鸣 · 我推", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_我推.gif", source:baseEmoji+"心律共鸣动态表情包_我推.gif", tags:["支持","普通部位随机"], desc:"已加入完整全身模式的普通部位点击随机池。" },
-      { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["音乐","播放反馈"], desc:"与音乐播放语义完全匹配，适合作为开始播放时的一次性反馈或小尺寸舞蹈。" },
+      { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["持续音乐","普通歌曲","洛天依歌曲"], desc:"已用于音乐陪伴：普通或未知歌手固定循环本动画；识别到洛天依时与“音乐摇摆”随机二选一。运行时使用 0.5 倍速无缝版本。" },
       { id:"e_soft", title:"心律共鸣 · 心软软", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_心软软.gif", source:baseEmoji+"心律共鸣动态表情包_心软软.gif", tags:["左眼","右眼","点击互动"], desc:"已从脚部移到眼睛：完整全身模式点击左眼或右眼时播放，眼睛命中优先于脸部区域。" },
       { id:"e_nice", title:"心律共鸣 · 真好", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_真好.gif", source:baseEmoji+"心律共鸣动态表情包_真好.gif", tags:["满足","普通部位随机"], desc:"已加入完整全身模式的普通部位点击随机池。" },
       { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["胸部","下体","首次点击"], desc:"已确定为完整全身模式下首次点击胸部或下体敏感区域时的反馈，并开启 4 秒重复点击窗口。" },
@@ -510,7 +547,7 @@
       { id:"new12_birthday", title:"十二周年 · 生日快乐", category:"feedback", kind:"196 帧动态 GIF", priority:false, newlyAdded:true, src:baseNew12+"15_生日快乐.gif", source:baseNew12+"15_生日快乐.gif", tags:["7月12日","12月12日","生日彩蛋"], desc:"已用于洛天依生日 7 月 12 日及用户生日 12 月 12 日；仅在待机时随机约 45～90 分钟触发一次。" },
       { id:"new12_hungry", title:"十二周年 · 饿", category:"expression", kind:"256 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"16_饿.gif", source:baseNew12+"16_饿.gif", tags:["午饭","晚饭","休息提醒"], desc:"坐在餐桌前等待，适合午饭、晚饭或长时间工作后的进食提醒，可和现有干饭弹跳比较。" },
 
-      { id:"new_headpat_guoyue", title:"天依游学记·国乐季 · 摸摸", category:"expression", kind:"10 帧原生动态 GIF", priority:true, newlyAdded:true, src:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", source:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", tags:["摸头","手掌往返","原生动画","新添加"], desc:"真正的连续摸头动作：手掌在头顶左右往返抚摸，天依同步眨眼、脸红。不是静态图加晃动；当前只加入挑选器，确认后再替换运行时的“可爱”。" },
+      { id:"new_headpat_guoyue", title:"天依游学记·国乐季 · 摸摸", category:"expression", kind:"10 帧原生动态 GIF", priority:true, newlyAdded:true, src:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", source:baseDynamicHeadPat+"天依游学记·国乐季_摸摸.gif", tags:["摸头","手掌往返","原生动画","已采用"], desc:"正式摸头反应：点击头顶，或按住头顶轻轻左右抚摸时播放。手掌在头顶往返，天依同步眨眼、脸红；运行时已适当放慢。" },
       { id:"new_headpat_orange", title:"橙子洛天依 · 摸摸头", category:"expression", kind:"15 帧原生动态 GIF", priority:true, newlyAdded:true, src:baseDynamicHeadPat+"橙子洛天依_摸摸头.gif", source:baseDynamicHeadPat+"橙子洛天依_摸摸头.gif", tags:["摸头","完整手掌","美年达联动","原生动画","新添加"], desc:"画面原文字就是“摸摸头”：完整手掌从上方落到头顶并持续抚摸，天依由闭眼脸红变为睁眼微笑。当前只加入挑选器，确认后再替换运行时的“可爱”。" },
 
       { id:"p_morning", title:"收藏集 · 早安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", tags:["早安","启动问候"], desc:"官方静态表情加入缓慢上下浮动，适合早晨启动桌宠或解锁电脑后的问候。" },
@@ -518,7 +555,7 @@
       { id:"p_launch", title:"代号洛天依 · 起航弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", source:baseStatic+"1842-代号洛天依/代号洛天依_起航.png", tags:["启动","出场"], desc:"以弹跳方式出场，可用于桌宠首次启动或音乐软件刚刚开启。" },
       { id:"p_sleep", title:"代号洛天依 · 眠了呼吸", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", source:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", tags:["睡眠","深夜"], desc:"缓慢缩放和轻微倾斜模拟呼吸，适合深夜、锁屏前或长时间无操作。" },
       { id:"p_goodnight", title:"十周年 · 晚安浮动", category:"procedural", kind:"程序动效预演", priority:false, motion:"sleep", src:baseStatic+"340-洛天依十周年/洛天依_晚安.png", source:baseStatic+"340-洛天依十周年/洛天依_晚安.png", tags:["晚安","长时间睡眠"], desc:"已用于长时间无操作后的睡眠状态；退出桌宠改用“裂开晃动”。" },
-      { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["悬停","看鼠标"], desc:"鼠标靠近时轻微左右倾斜，适合悬停观察或窗口边缘探头。" },
+      { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["QQ","微信","消息提醒"], desc:"已用于 QQ 或微信的新消息来源提醒，只显示应用来源，不读取发送者、会话名或正文。" },
       { id:"p_wink", title:"代号洛天依 · Wink 回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"1842-代号洛天依/代号洛天依_wink.png", source:baseStatic+"1842-代号洛天依/代号洛天依_wink.png", tags:["点击","摸头"], desc:"点击或摸头时短促回弹，既可以作互动反馈，也适合开机问候。" },
       { id:"p_land", title:"代号洛天依 · 降落弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"1842-代号洛天依/代号洛天依_降落.png", source:baseStatic+"1842-代号洛天依/代号洛天依_降落.png", tags:["松手","落地"], desc:"专门补足拖拽结束状态；程序中可配合重力、惯性和一次回弹。" },
       { id:"p_idle", title:"十周年 · 摸鱼漂浮", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", source:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", tags:["下午问候","待机","发呆"], desc:"已确定为 13:30～20:00 启动时的下午问候；也可作为无操作一段时间后的随机待机。" },
@@ -578,19 +615,85 @@
     items.forEach(item => item.activeUsage = activeUsage[item.id] || "");
 
     const categoryNames = { body:"全身动作", feedback:"操作反馈", expression:"表情互动", procedural:"程序动效" };
-    const storageKey = "luotianyi-pet-animation-picks-v2";
-    const scenarioStorageKey = "luotianyi-pet-scenarios-v1";
-    const keepStorageKey = "luotianyi-pet-kept-animations-v1";
-    let choices = {};
-    let scenarioChoices = [];
-    let keptItems = [];
+    const stateVersion = 3;
+    const storageKey = "luotianyi-pet-animation-picker-state-v3";
+    const defaultChoices = {
+      idle:"e_hehe",
+      randomIdle:"new12_flat",
+      greet:"p_morning",
+      sleep:"p_goodnight",
+      hover:"new12_peek",
+      click:"new_headpat_guoyue",
+      drag:"e_expand",
+      drop:"p_land",
+      musicStart:"e_music",
+      dance:"dance9",
+      pause:"p_pause",
+      track:"p_loading",
+      success:"e_ok",
+      warning:"e_noPlay",
+      surprise:"p_lowbattery"
+    };
+    const originallyKept = [
+      "dance10","dance9","holo","thumb8","e_baituo","e_success","e_give","e_voice",
+      "e_great","e_dark","e_hehe","e_join","e_kiss","e_cute","e_noPlay","e_expand",
+      "e_poor","e_omg","e_oshi","e_music","e_soft","e_nice","e_guilty","e_ok",
+      "p_morning","p_goodnight","p_curious","p_loading","p_pause","p_warning","p_network",
+      "p_lowbattery","p_food","p_highfive"
+    ];
+    const validItemIds = new Set(items.map(item => item.id));
+    const validRoleIds = new Set(roles.map(role => role.id));
+    const validScenarioIds = new Set(scenarios.map(item => item.id));
+    const defaultKeptItems = [...new Set([...originallyKept, ...Object.keys(activeUsage)])].filter(id => validItemIds.has(id));
+    const defaultScenarioChoices = [
+      "audioSession","mediaKeys","trackChange","volume","pointer","dragPhysics","idleEvents",
+      "screenEdge","fullscreen","appPresence","startup","sleepWake","clock"
+    ];
+    let choices = { ...defaultChoices };
+    let scenarioChoices = [...defaultScenarioChoices];
+    let keptItems = [...defaultKeptItems];
+    let history = [];
     let priorityOnly = false;
+    let usedOnly = false;
     let keptOnly = false;
     let newOnly = false;
 
-    try { choices = JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { choices = {}; }
-    try { scenarioChoices = JSON.parse(localStorage.getItem(scenarioStorageKey) || "[]"); } catch { scenarioChoices = []; }
-    try { keptItems = JSON.parse(localStorage.getItem(keepStorageKey) || "[]"); } catch { keptItems = []; }
+    function sanitizeState(candidate) {
+      const safeChoices = {};
+      if (candidate && candidate.choices && typeof candidate.choices === "object") {
+        Object.entries(candidate.choices).forEach(([roleId, itemId]) => {
+          if (validRoleIds.has(roleId) && validItemIds.has(itemId)) safeChoices[roleId] = itemId;
+        });
+      }
+      const safeScenarios = Array.isArray(candidate?.scenarioChoices)
+        ? [...new Set(candidate.scenarioChoices.filter(id => validScenarioIds.has(id)))] : [];
+      const safeKept = Array.isArray(candidate?.keptItems)
+        ? [...new Set(candidate.keptItems.filter(id => validItemIds.has(id)))] : [];
+      return { choices:safeChoices, scenarioChoices:safeScenarios, keptItems:safeKept };
+    }
+
+    function currentState() {
+      return { version:stateVersion, choices:{...choices}, scenarioChoices:[...scenarioChoices], keptItems:[...keptItems] };
+    }
+
+    function applyState(candidate) {
+      const safe = sanitizeState(candidate);
+      choices = safe.choices;
+      scenarioChoices = safe.scenarioChoices;
+      keptItems = safe.keptItems;
+    }
+
+    function projectState() {
+      return { choices:{...defaultChoices}, scenarioChoices:[...defaultScenarioChoices], keptItems:[...defaultKeptItems] };
+    }
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+      if (saved?.version === stateVersion) applyState(saved);
+      else applyState(projectState());
+    } catch {
+      applyState(projectState());
+    }
 
     const grid = document.getElementById("grid");
     const slots = document.getElementById("slots");
@@ -606,15 +709,27 @@
     const largePreviewImage = document.getElementById("largePreviewImage");
     const largePreviewTitle = document.getElementById("largePreviewTitle");
     const keptCount = document.getElementById("keptCount");
+    const undoAction = document.getElementById("undoAction");
+    const backupFile = document.getElementById("backupFile");
 
     function esc(value) {
       return String(value).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[ch]);
     }
 
     function save() {
-      localStorage.setItem(storageKey, JSON.stringify(choices));
-      localStorage.setItem(scenarioStorageKey, JSON.stringify(scenarioChoices));
-      localStorage.setItem(keepStorageKey, JSON.stringify(keptItems));
+      localStorage.setItem(storageKey, JSON.stringify(currentState()));
+    }
+
+    function remember() {
+      history.push(currentState());
+      if (history.length > 30) history.shift();
+      undoAction.disabled = false;
+    }
+
+    function commit(message) {
+      save();
+      renderAll();
+      if (message) notify(message);
     }
 
     function notify(message) {
@@ -639,7 +754,9 @@
         }).join("")}</div>
       </section>`).join("");
       slots.querySelectorAll("[data-clear]").forEach(button => button.addEventListener("click", () => {
-        delete choices[button.dataset.clear]; save(); renderAll();
+        remember();
+        delete choices[button.dataset.clear];
+        commit("已清除这个用途分配");
       }));
     }
 
@@ -683,10 +800,11 @@
       return items.filter(item => {
         const matchesCategory = category.value === "all" || item.category === category.value;
         const matchesPriority = !priorityOnly || item.priority;
+        const matchesUsed = !usedOnly || item.activeUsage;
         const matchesKept = !keptOnly || keptItems.includes(item.id);
         const matchesNew = !newOnly || item.newlyAdded;
         const haystack = [item.title, item.kind, item.desc, ...item.tags].join(" ").toLowerCase();
-        return matchesCategory && matchesPriority && matchesKept && matchesNew && (!term || haystack.includes(term));
+        return matchesCategory && matchesPriority && matchesUsed && matchesKept && matchesNew && (!term || haystack.includes(term));
       }).sort((left, right) => Number(Boolean(right.activeUsage)) - Number(Boolean(left.activeUsage)));
     }
 
@@ -698,14 +816,16 @@
       grid.querySelectorAll("[data-role]").forEach(button => button.addEventListener("click", () => {
         const role = roles.find(role => role.id === button.dataset.role);
         const item = itemById(button.dataset.item);
+        remember();
         if (choices[role.id] === item.id) delete choices[role.id];
         else choices[role.id] = item.id;
-        save(); renderAll(); notify(`${role.label}：${choices[role.id] ? item.title : "已清除"}`);
+        commit(`${role.label}：${choices[role.id] ? item.title : "已清除"}`);
       }));
       grid.querySelectorAll("[data-keep]").forEach(input => input.addEventListener("change", () => {
+        remember();
         if (input.checked && !keptItems.includes(input.dataset.keep)) keptItems.push(input.dataset.keep);
         if (!input.checked) keptItems = keptItems.filter(id => id !== input.dataset.keep);
-        save(); renderAll(); notify(input.checked ? "已加入保留列表" : "已从保留列表移除");
+        commit(input.checked ? "已加入保留列表" : "已从保留列表移除");
       }));
       grid.querySelectorAll("[data-preview]").forEach(preview => preview.addEventListener("click", () => {
         const item = itemById(preview.dataset.preview);
@@ -725,16 +845,34 @@
         </label>`).join("")}</div>
       </section>`).join("");
       scenarioGroups.querySelectorAll("[data-scenario]").forEach(input => input.addEventListener("change", () => {
+        remember();
         if (input.checked && !scenarioChoices.includes(input.dataset.scenario)) scenarioChoices.push(input.dataset.scenario);
         if (!input.checked) scenarioChoices = scenarioChoices.filter(id => id !== input.dataset.scenario);
         save();
       }));
     }
 
-    function renderAll() { renderSlots(); renderGrid(); renderScenarios(); keptCount.textContent = keptItems.length; }
+    function renderAll() {
+      renderSlots();
+      renderGrid();
+      renderScenarios();
+      keptCount.textContent = keptItems.length;
+      document.getElementById("usedCount").textContent = items.filter(item => item.activeUsage).length;
+      document.getElementById("candidateCount").textContent = items.filter(item => !item.activeUsage).length;
+      document.getElementById("newCount").textContent = items.filter(item => item.newlyAdded).length;
+      document.getElementById("totalCount").textContent = items.length;
+      undoAction.disabled = history.length === 0;
+    }
 
     function buildSummary() {
       const lines = ["洛天依桌宠 · 动画选择结果", ""];
+      const usedAnimations = items.filter(item => item.activeUsage);
+      lines.push(`项目当前已接入（${usedAnimations.length} 个）`, "");
+      usedAnimations.forEach(item => {
+        lines.push(`- ${item.title}`);
+        lines.push(`  触发：${item.activeUsage}`);
+      });
+      lines.push("");
       lines.push(`勾选保留的动画（${keptItems.length} 个）`, "");
       const keptAnimations = items.filter(item => keptItems.includes(item.id));
       if (!keptAnimations.length) lines.push("- 尚未勾选");
@@ -772,6 +910,12 @@
       event.currentTarget.textContent = priorityOnly ? "显示全部候选" : "只看优先推荐";
       renderGrid();
     });
+    document.getElementById("usedOnly").addEventListener("click", event => {
+      usedOnly = !usedOnly;
+      event.currentTarget.setAttribute("aria-pressed", String(usedOnly));
+      event.currentTarget.textContent = usedOnly ? "显示全部候选" : "只看当前已使用";
+      renderGrid();
+    });
     document.getElementById("keptOnly").addEventListener("click", event => {
       keptOnly = !keptOnly;
       event.currentTarget.setAttribute("aria-pressed", String(keptOnly));
@@ -785,11 +929,31 @@
       renderGrid();
     });
     document.getElementById("clearAll").addEventListener("click", () => {
-      choices = {}; scenarioChoices = []; keptItems = []; save(); renderAll(); notify("保留、动画和场景选择已清空");
+      if (!confirm("确定开始全新挑选吗？当前勾选和用途分配会被清空，但仍可使用“撤销上一步”恢复。")) return;
+      remember();
+      choices = {};
+      scenarioChoices = [];
+      keptItems = [];
+      commit("已建立一份空白选择，可随时撤销");
+    });
+    document.getElementById("restoreProject").addEventListener("click", () => {
+      if (!confirm("恢复到项目当前已确认的动画和场景吗？恢复后仍可撤销。")) return;
+      remember();
+      applyState(projectState());
+      commit("已恢复项目当前状态");
+    });
+    undoAction.addEventListener("click", () => {
+      const previous = history.pop();
+      if (!previous) return;
+      applyState(previous);
+      save();
+      renderAll();
+      notify("已撤销上一步");
     });
     document.getElementById("toggleRecommendedScenarios").addEventListener("click", () => {
       const recommended = scenarios.filter(item => item.recommended).map(item => item.id);
       const allSelected = recommended.every(id => scenarioChoices.includes(id));
+      remember();
       scenarioChoices = allSelected ? scenarioChoices.filter(id => !recommended.includes(id)) : [...new Set([...scenarioChoices, ...recommended])];
       save(); renderScenarios(); notify(allSelected ? "已取消推荐场景" : "已勾选推荐场景");
     });
@@ -811,10 +975,37 @@
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     });
+    document.getElementById("downloadBackup").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(currentState(), null, 2)], {type:"application/json;charset=utf-8"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "洛天依桌宠_动画挑选器备份.json";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      notify("选择备份已下载");
+    });
+    document.getElementById("importBackup").addEventListener("click", () => backupFile.click());
+    backupFile.addEventListener("change", async () => {
+      const file = backupFile.files?.[0];
+      if (!file) return;
+      try {
+        const imported = JSON.parse(await file.text());
+        if (imported?.version !== stateVersion) throw new Error("版本不兼容");
+        remember();
+        applyState(imported);
+        commit("选择备份已恢复");
+        dialog.close();
+      } catch {
+        notify("备份无法读取或版本不兼容");
+      } finally {
+        backupFile.value = "";
+      }
+    });
     dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
     document.getElementById("closePreview").addEventListener("click", () => previewDialog.close());
     previewDialog.addEventListener("click", event => { if (event.target === previewDialog) previewDialog.close(); });
 
+    save();
     renderAll();
   </script>
 </body>
