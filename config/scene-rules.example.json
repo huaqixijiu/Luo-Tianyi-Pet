@@ -303,11 +303,14 @@
       "allowWindowTiltAndShadow": true
     },
     "edgeDock": {
-      "snapThresholdDips": 18,
-      "visibleTriggerStripDips": 12,
+      "hideActivationDepthDips": 28,
+      "dragOverscanDips": 96,
+      "allowFlushPlacementWithoutHiding": true,
       "supportedEdges": ["left", "right", "bottom"],
       "previewAnimationImmediatelyWhileDraggingAtEdge": true,
-      "visibleWallHandle": true,
+      "hiddenTriggerUsesSourceArtwork": true,
+      "bottomControlsLayoutDistanceDips": 80,
+      "bottomControlsPlacement": "above-track-info",
       "left": {
         "animation": "twelfth-anniversary-peek",
         "mirrorHorizontally": true
@@ -321,6 +324,7 @@
       },
       "hidePlaybackDirection": "reverse",
       "pointerEnterPlaybackDirection": "forward",
+      "reverseFromCurrentFrameWhenDirectionChanges": true,
       "holdFinalFrameWhilePointerInside": true,
       "pointerLeavePlaybackDirection": "reverse"
     },

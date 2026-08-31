@@ -61,14 +61,17 @@ public partial class App : Application
             bool previewDragCycle = e.Args.Contains(
                 "--preview-drag-cycle",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewBottomControlsLayout = e.Args.Contains(
+                "--qa-bottom-controls",
+                StringComparer.OrdinalIgnoreCase);
             bool previewMediaControls = e.Args.Contains(
                 "--qa-media-controls",
                 StringComparer.OrdinalIgnoreCase) || e.Args.Contains(
                     "--qa-shortcut-menu",
-                    StringComparer.OrdinalIgnoreCase);
+                    StringComparer.OrdinalIgnoreCase) || previewBottomControlsLayout;
             bool previewTrackInfo = e.Args.Contains(
                 "--qa-track-info",
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase) || previewBottomControlsLayout;
             bool liveTrackInfoQa = e.Args.Contains(
                 "--qa-track-info-live",
                 StringComparer.OrdinalIgnoreCase);
@@ -177,6 +180,7 @@ public partial class App : Application
                 previewGenshinCameo,
                 previewMessageNotification,
                 previewEdgeDock,
+                previewBottomControlsLayout,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);

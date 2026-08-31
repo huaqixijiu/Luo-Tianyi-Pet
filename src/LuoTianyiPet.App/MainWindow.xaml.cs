@@ -27,8 +27,14 @@ public partial class MainWindow : Window
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
-    private const double EdgeDockThreshold = 18;
-    private const double EdgeDockVisibleStrip = 12;
+    private const double EdgeDockActivationDepth = 28;
+    private const double EdgeDockDragOverscan = 96;
+    private const double EdgeDockAlphaInset = 2;
+    private const double BottomControlsLayoutDistance = 80;
+    private const int SideDockHiddenFrame = 3;
+    private const int SideDockRevealedFrame = 7;
+    private const int BottomDockHiddenFrame = 3;
+    private const int BottomDockRevealedFrame = 7;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
@@ -97,6 +103,7 @@ public partial class MainWindow : Window
     private readonly bool _previewGenshinCameo;
     private readonly MessageProvider? _previewMessageNotification;
     private readonly EdgeDockSide? _previewEdgeDock;
+    private readonly bool _previewBottomControlsLayout;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -120,6 +127,7 @@ public partial class MainWindow : Window
     private EdgeDockSide _edgeDockSide;
     private EdgeDockSide _dragEdgeCandidate;
     private bool _edgeDockRevealed;
+    private bool _useBottomControlsLayout;
     private int _edgeDockAnimationGeneration;
     private MediaTrackSnapshot _lastTrackSnapshot = MediaTrackSnapshot.Unavailable;
     private string _lastTrackIdentity = string.Empty;
@@ -174,6 +182,7 @@ public partial class MainWindow : Window
         bool previewGenshinCameo,
         MessageProvider? previewMessageNotification,
         EdgeDockSide? previewEdgeDock,
+        bool previewBottomControlsLayout,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -231,6 +240,7 @@ public partial class MainWindow : Window
         _previewGenshinCameo = previewGenshinCameo;
         _previewMessageNotification = previewMessageNotification;
         _previewEdgeDock = previewEdgeDock;
+        _previewBottomControlsLayout = previewBottomControlsLayout;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -356,6 +366,13 @@ public partial class MainWindow : Window
         Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
+        UpdateBottomControlsLayoutForCurrentPosition();
+        if (_previewBottomControlsLayout)
+        {
+            ApplyBottomControlsLayout(useAbovePetLayout: true);
+            DesktopRectangle petBounds = GetPetImageBoundsInWindow();
+            Top = workArea.Bottom - petBounds.Bottom;
+        }
         if (_persistSettings)
         {
             _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
@@ -1114,6 +1131,8 @@ public partial class MainWindow : Window
             _edgeDockRevealed = false;
             SetEdgeMirror(false);
             EdgeDockHandle.Visibility = Visibility.Collapsed;
+            PetImage.Clip = null;
+            PetImage.IsHitTestVisible = true;
         }
 
         _dragEdgeCandidate = EdgeDockSide.None;
@@ -1143,12 +1162,15 @@ public partial class MainWindow : Window
         double desiredTop = _dragStartTop + currentScreenPoint.Y - _dragPressScreenPoint.Y;
         Left = Clamp(
             desiredLeft,
-            SystemParameters.VirtualScreenLeft,
-            SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - ActualWidth);
+            SystemParameters.VirtualScreenLeft - EdgeDockDragOverscan,
+            SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - ActualWidth +
+                EdgeDockDragOverscan);
         Top = Clamp(
             desiredTop,
             SystemParameters.VirtualScreenTop,
-            SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight);
+            SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight +
+                EdgeDockDragOverscan);
+        UpdateBottomControlsLayoutForCurrentPosition();
         UpdateDragEdgePreview();
     }
 
@@ -1170,6 +1192,8 @@ public partial class MainWindow : Window
 
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
+            SnapVisiblePetInsideWorkArea();
+            UpdateBottomControlsLayoutForCurrentPosition();
 
             if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
             {
@@ -1609,17 +1633,17 @@ public partial class MainWindow : Window
         }
 
         SetEdgeMirror(candidate == EdgeDockSide.Left);
-        PlayAnimation(GetEdgeDockAnimation(candidate));
+        ShowEdgeDockRevealedFrame(candidate);
         _logger.Info("interaction.drag_edge_preview", candidate.ToString());
     }
 
     private EdgeDockSide ResolveCurrentEdgeDockSide()
     {
         DesktopRectangle workArea = GetCurrentWorkArea();
-        return EdgeDockResolver.Resolve(
-            new DesktopRectangle(Left, Top, ActualWidth, ActualHeight),
+        return EdgeDockResolver.ResolveHideIntent(
+            GetPetImageDesktopBounds(),
             workArea,
-            EdgeDockThreshold);
+            EdgeDockActivationDepth);
     }
 
     private void OnIdleSceneTimerTick(object? sender, EventArgs e)
@@ -1764,14 +1788,7 @@ public partial class MainWindow : Window
         try
         {
             AnimationAssetManifest manifest = _animationPlayer.Play(animationId, completed, reverse);
-            PetImage.Width = manifest.DisplayWidth;
-            PetImage.Height = manifest.DisplayHeight;
-            PetImage.Visibility = Visibility.Visible;
-            FallbackSurface.Visibility = Visibility.Collapsed;
-            ResizeAroundBottomCenter(
-                manifest.DisplayWidth + 16,
-                manifest.DisplayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
-            UpdateBodyHitDebugOverlay();
+            ApplyAnimationManifest(manifest);
         }
         catch (Exception exception) when (
             exception is IOException or InvalidDataException or ArgumentException or KeyNotFoundException or NotSupportedException)
@@ -1779,6 +1796,77 @@ public partial class MainWindow : Window
             _logger.Error("animation.play_failed", exception);
             ShowFallback("Animation playback failed.");
         }
+    }
+
+    private void PlayAnimationRange(
+        string animationId,
+        int startFrameIndex,
+        int endFrameIndex,
+        Action? completed = null)
+    {
+        _landingBounceMotion.Cancel();
+        _bodyReactionMotion.Cancel();
+        CancelVisualTransition();
+        if (_animationPlayer is null || _animationCatalog is null)
+        {
+            ShowFallback("Animation catalog unavailable.");
+            return;
+        }
+
+        try
+        {
+            AnimationAssetManifest manifest = _animationPlayer.PlayRange(
+                animationId,
+                startFrameIndex,
+                endFrameIndex,
+                completed);
+            ApplyAnimationManifest(manifest);
+        }
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or ArgumentException or
+            KeyNotFoundException or NotSupportedException)
+        {
+            _logger.Error("animation.range_play_failed", exception);
+            ShowFallback("Animation range playback failed.");
+        }
+    }
+
+    private void ShowAnimationFrame(string animationId, int frameIndex)
+    {
+        _landingBounceMotion.Cancel();
+        _bodyReactionMotion.Cancel();
+        CancelVisualTransition();
+        if (_animationPlayer is null || _animationCatalog is null)
+        {
+            ShowFallback("Animation catalog unavailable.");
+            return;
+        }
+
+        try
+        {
+            AnimationAssetManifest manifest = _animationPlayer.ShowFrame(animationId, frameIndex);
+            ApplyAnimationManifest(manifest);
+        }
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or ArgumentException or
+            KeyNotFoundException or NotSupportedException)
+        {
+            _logger.Error("animation.frame_show_failed", exception);
+            ShowFallback("Animation frame could not be shown.");
+        }
+    }
+
+    private void ApplyAnimationManifest(AnimationAssetManifest manifest)
+    {
+        PetImage.Width = manifest.DisplayWidth;
+        PetImage.Height = manifest.DisplayHeight;
+        PetImage.Visibility = Visibility.Visible;
+        PetImage.IsHitTestVisible = true;
+        FallbackSurface.Visibility = Visibility.Collapsed;
+        ResizeAroundBottomCenter(
+            manifest.DisplayWidth + 16,
+            manifest.DisplayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
+        UpdateBodyHitDebugOverlay();
     }
 
     private void ShowFallback(string logMessage)
@@ -1804,7 +1892,8 @@ public partial class MainWindow : Window
         Width = width;
         Height = height;
         Left = Clamp(center - width / 2, workArea.Left, workArea.Right - width);
-        Top = Clamp(bottom - height, workArea.Top, workArea.Bottom - height);
+        double bottomOverflow = _useBottomControlsLayout ? PetVisual.Margin.Bottom : 0;
+        Top = Clamp(bottom - height, workArea.Top, workArea.Bottom - height + bottomOverflow);
     }
 
     private bool TryEnterEdgeDock()
@@ -1820,22 +1909,26 @@ public partial class MainWindow : Window
         _dragEdgeCandidate = EdgeDockSide.None;
         _edgeDockSide = side;
         _edgeDockRevealed = false;
+        if (side == EdgeDockSide.Bottom)
+        {
+            ApplyBottomControlsLayout(useAbovePetLayout: true);
+        }
+
         int generation = ++_edgeDockAnimationGeneration;
         _stateMachine.CancelActiveReaction();
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
         SetEdgeMirror(side == EdgeDockSide.Left);
-        string animationId = GetEdgeDockAnimation(side);
-        PlayAnimation(
-            animationId,
+        EdgeDockHandle.Visibility = Visibility.Collapsed;
+        PlayEdgeDockToward(
+            revealed: false,
             () =>
             {
                 if (generation == _edgeDockAnimationGeneration && !_edgeDockRevealed)
                 {
                     PositionEdgeDock(hidden: true);
                 }
-            },
-            reverse: true);
+            });
         PositionEdgeDock(hidden: false);
         _logger.Info("window.edge_dock_started", side.ToString());
         return true;
@@ -1850,7 +1943,9 @@ public partial class MainWindow : Window
 
         _edgeDockRevealed = true;
         ++_edgeDockAnimationGeneration;
-        PlayAnimation(GetEdgeDockAnimation(_edgeDockSide));
+        EdgeDockHandle.Visibility = Visibility.Collapsed;
+        PetImage.IsHitTestVisible = true;
+        PlayEdgeDockToward(revealed: true);
         PositionEdgeDock(hidden: false);
         _logger.Info("window.edge_dock_revealed", _edgeDockSide.ToString());
     }
@@ -1864,18 +1959,49 @@ public partial class MainWindow : Window
 
         _edgeDockRevealed = false;
         int generation = ++_edgeDockAnimationGeneration;
-        PlayAnimation(
-            GetEdgeDockAnimation(_edgeDockSide),
+        EdgeDockHandle.Visibility = Visibility.Collapsed;
+        PlayEdgeDockToward(
+            revealed: false,
             () =>
             {
                 if (generation == _edgeDockAnimationGeneration && !_edgeDockRevealed)
                 {
                     PositionEdgeDock(hidden: true);
                 }
-            },
-            reverse: true);
+            });
         PositionEdgeDock(hidden: false);
         _logger.Info("window.edge_dock_hidden", _edgeDockSide.ToString());
+    }
+
+    private void PlayEdgeDockToward(bool revealed, Action? completed = null)
+    {
+        if (_edgeDockSide == EdgeDockSide.None)
+        {
+            return;
+        }
+
+        string animationId = GetEdgeDockAnimation(_edgeDockSide);
+        (int hiddenFrame, int revealedFrame) = GetEdgeDockFrames(_edgeDockSide);
+        int fallbackStart = revealed ? hiddenFrame : revealedFrame;
+        int currentFrame = _animationPlayer?.CurrentAnimationId == animationId
+            ? _animationPlayer.CurrentFrameIndex
+            : fallbackStart;
+        if (currentFrame < hiddenFrame || currentFrame > revealedFrame)
+        {
+            currentFrame = fallbackStart;
+        }
+
+        PlayAnimationRange(
+            animationId,
+            currentFrame,
+            revealed ? revealedFrame : hiddenFrame,
+            completed);
+    }
+
+    private void ShowEdgeDockRevealedFrame(EdgeDockSide side)
+    {
+        (_, int revealedFrame) = GetEdgeDockFrames(side);
+        ShowAnimationFrame(GetEdgeDockAnimation(side), revealedFrame);
     }
 
     private void PositionEdgeDock(bool hidden)
@@ -1885,20 +2011,22 @@ public partial class MainWindow : Window
             return;
         }
 
+        UpdateLayout();
         DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle localPet = GetPetImageBoundsInWindow();
         switch (_edgeDockSide)
         {
             case EdgeDockSide.Left:
-                Left = hidden ? workArea.Left - ActualWidth + EdgeDockVisibleStrip : workArea.Left;
-                Top = Clamp(Top, workArea.Top, workArea.Bottom - ActualHeight);
+                Left = workArea.Left - localPet.Left - EdgeDockAlphaInset;
+                Top = Clamp(Top, workArea.Top - localPet.Top, workArea.Bottom - localPet.Bottom);
                 break;
             case EdgeDockSide.Right:
-                Left = hidden ? workArea.Right - EdgeDockVisibleStrip : workArea.Right - ActualWidth;
-                Top = Clamp(Top, workArea.Top, workArea.Bottom - ActualHeight);
+                Left = workArea.Right - localPet.Right + EdgeDockAlphaInset;
+                Top = Clamp(Top, workArea.Top - localPet.Top, workArea.Bottom - localPet.Bottom);
                 break;
             case EdgeDockSide.Bottom:
-                Left = Clamp(Left, workArea.Left, workArea.Right - ActualWidth);
-                Top = hidden ? workArea.Bottom - EdgeDockVisibleStrip : workArea.Bottom - ActualHeight;
+                Left = Clamp(Left, workArea.Left - localPet.Left, workArea.Right - localPet.Right);
+                Top = workArea.Bottom - localPet.Bottom + EdgeDockAlphaInset;
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -1911,27 +2039,44 @@ public partial class MainWindow : Window
         if (!hidden || _edgeDockSide == EdgeDockSide.None)
         {
             EdgeDockHandle.Visibility = Visibility.Collapsed;
+            PetImage.Clip = null;
+            PetImage.IsHitTestVisible = true;
             return;
         }
 
+        PetImage.IsHitTestVisible = false;
         EdgeDockHandle.Visibility = Visibility.Visible;
         if (_edgeDockSide == EdgeDockSide.Bottom)
         {
-            EdgeDockHandle.Width = 78;
-            EdgeDockHandle.Height = EdgeDockVisibleStrip;
+            double petWidth = Math.Max(1, PetImage.ActualWidth);
+            double petHeight = Math.Max(1, PetImage.ActualHeight);
+            PetImage.Clip = new RectangleGeometry(new Rect(
+                petWidth * 0.20,
+                petHeight * 0.86,
+                petWidth * 0.60,
+                petHeight * 0.14));
+            EdgeDockHandle.Width = petWidth * 0.60;
+            EdgeDockHandle.Height = petHeight * 0.14;
             EdgeDockHandle.HorizontalAlignment = WpfHorizontalAlignment.Center;
-            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Top;
-            EdgeDockHandleDots.Orientation = Orientation.Horizontal;
+            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Bottom;
+            EdgeDockHandle.Margin = new Thickness(0, 0, 0, PetVisual.Margin.Bottom);
         }
         else
         {
-            EdgeDockHandle.Width = EdgeDockVisibleStrip;
-            EdgeDockHandle.Height = 78;
+            double petWidth = Math.Max(1, PetImage.ActualWidth);
+            double petHeight = Math.Max(1, PetImage.ActualHeight);
+            PetImage.Clip = new RectangleGeometry(new Rect(
+                petWidth * 0.735,
+                0,
+                petWidth * 0.265,
+                petHeight));
+            EdgeDockHandle.Width = petWidth * 0.265;
+            EdgeDockHandle.Height = petHeight;
             EdgeDockHandle.HorizontalAlignment = _edgeDockSide == EdgeDockSide.Left
-                ? WpfHorizontalAlignment.Right
-                : WpfHorizontalAlignment.Left;
-            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Center;
-            EdgeDockHandleDots.Orientation = Orientation.Vertical;
+                ? WpfHorizontalAlignment.Left
+                : WpfHorizontalAlignment.Right;
+            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Bottom;
+            EdgeDockHandle.Margin = new Thickness(8, 0, 8, PetVisual.Margin.Bottom);
         }
     }
 
@@ -1945,6 +2090,15 @@ public partial class MainWindow : Window
     {
         EdgeDockSide.Left or EdgeDockSide.Right => "twelfth-anniversary-peek",
         EdgeDockSide.Bottom => "twelfth-anniversary-entrance",
+        _ => throw new ArgumentOutOfRangeException(nameof(side)),
+    };
+
+    private static (int HiddenFrame, int RevealedFrame) GetEdgeDockFrames(
+        EdgeDockSide side) => side switch
+    {
+        EdgeDockSide.Left or EdgeDockSide.Right =>
+            (SideDockHiddenFrame, SideDockRevealedFrame),
+        EdgeDockSide.Bottom => (BottomDockHiddenFrame, BottomDockRevealedFrame),
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
 
@@ -2173,6 +2327,115 @@ public partial class MainWindow : Window
         DesktopRectangle workArea = GetCurrentWorkArea();
         Left = Clamp(position.X, workArea.Left, workArea.Right - ActualWidth);
         Top = Clamp(position.Y, workArea.Top, workArea.Bottom - ActualHeight);
+        UpdateBottomControlsLayoutForCurrentPosition();
+    }
+
+    private void UpdateBottomControlsLayoutForCurrentPosition()
+    {
+        if (!IsLoaded || PetImage.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        bool useAbovePetLayout = _edgeDockSide == EdgeDockSide.Bottom ||
+            EdgeDockResolver.IsNearBottom(
+                GetPetImageDesktopBounds(),
+                workArea,
+                BottomControlsLayoutDistance);
+        ApplyBottomControlsLayout(useAbovePetLayout);
+    }
+
+    private void ApplyBottomControlsLayout(bool useAbovePetLayout)
+    {
+        if (_useBottomControlsLayout == useAbovePetLayout)
+        {
+            return;
+        }
+
+        UpdateLayout();
+        double petBottomBefore = Top + GetPetImageBoundsInWindow().Bottom;
+        _useBottomControlsLayout = useAbovePetLayout;
+        if (useAbovePetLayout)
+        {
+            PetVisual.Margin = new Thickness(8, 118, 8, 8);
+            MusicTransitionFlash.Margin = new Thickness(8, 118, 8, 8);
+            MediaControls.VerticalAlignment = VerticalAlignment.Top;
+            MediaControls.Margin = new Thickness(0, 7, 0, 0);
+            TrackInfoBubble.Margin = new Thickness(5, 60, 5, 0);
+            FeedbackBubble.Margin = new Thickness(6, 110, 6, 6);
+        }
+        else
+        {
+            PetVisual.Margin = new Thickness(8, 60, 8, 66);
+            MusicTransitionFlash.Margin = new Thickness(8, 60, 8, 66);
+            MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
+            MediaControls.Margin = new Thickness(0, 0, 0, 7);
+            TrackInfoBubble.Margin = new Thickness(5, 6, 5, 0);
+            FeedbackBubble.Margin = new Thickness(6, 56, 6, 6);
+        }
+
+        UpdateLayout();
+        double petBottomAfter = Top + GetPetImageBoundsInWindow().Bottom;
+        double topAdjustment = petBottomBefore - petBottomAfter;
+        Top += topAdjustment;
+        if (_isWindowDragging)
+        {
+            _dragStartTop += topAdjustment;
+        }
+
+        _logger.Info(
+            "window.bottom_controls_layout_changed",
+            useAbovePetLayout ? "AbovePet" : "BelowPet");
+    }
+
+    private void SnapVisiblePetInsideWorkArea()
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle pet = GetPetImageDesktopBounds();
+        if (pet.Left < workArea.Left)
+        {
+            Left += workArea.Left - pet.Left;
+        }
+        else if (pet.Right > workArea.Right)
+        {
+            Left -= pet.Right - workArea.Right;
+        }
+
+        pet = GetPetImageDesktopBounds();
+        if (pet.Top < workArea.Top)
+        {
+            Top += workArea.Top - pet.Top;
+        }
+        else if (pet.Bottom > workArea.Bottom)
+        {
+            Top -= pet.Bottom - workArea.Bottom;
+        }
+    }
+
+    private DesktopRectangle GetPetImageDesktopBounds()
+    {
+        DesktopRectangle local = GetPetImageBoundsInWindow();
+        return new DesktopRectangle(
+            Left + local.Left,
+            Top + local.Top,
+            local.Width,
+            local.Height);
+    }
+
+    private DesktopRectangle GetPetImageBoundsInWindow()
+    {
+        UpdateLayout();
+        double width = PetImage.ActualWidth > 0 ? PetImage.ActualWidth : PetImage.Width;
+        double height = PetImage.ActualHeight > 0 ? PetImage.ActualHeight : PetImage.Height;
+        Rect transformed = PetImage
+            .TransformToAncestor(this)
+            .TransformBounds(new Rect(0, 0, width, height));
+        return new DesktopRectangle(
+            transformed.Left,
+            transformed.Top,
+            transformed.Width,
+            transformed.Height);
     }
 
     private DesktopRectangle GetCurrentWorkArea()
@@ -3064,23 +3327,25 @@ public partial class MainWindow : Window
             return;
         }
 
+        BeginWindowDrag();
         DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle localPet = GetPetImageBoundsInWindow();
+        double qaOvershoot = EdgeDockActivationDepth + 4;
         switch (side)
         {
             case EdgeDockSide.Left:
-                Left = workArea.Left;
+                Left = workArea.Left - localPet.Left - qaOvershoot;
                 break;
             case EdgeDockSide.Right:
-                Left = workArea.Right - ActualWidth;
+                Left = workArea.Right - localPet.Right + qaOvershoot;
                 break;
             case EdgeDockSide.Bottom:
-                Top = workArea.Bottom - ActualHeight;
+                Top = workArea.Bottom - localPet.Bottom + qaOvershoot;
                 break;
             default:
                 return;
         }
 
-        BeginWindowDrag();
         UpdateDragEdgePreview();
         await Task.Delay(900);
         if (!_isClosing)

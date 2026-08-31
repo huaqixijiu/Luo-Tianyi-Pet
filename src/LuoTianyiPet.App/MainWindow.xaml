@@ -337,9 +337,8 @@
                 Height="78"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Background="#E566CCFF"
-                BorderBrush="#FFFFFFFF"
-                BorderThickness="1"
+                Background="Transparent"
+                BorderThickness="0"
                 Cursor="Hand"
                 Focusable="False"
                 IsHitTestVisible="True"
@@ -349,21 +348,12 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6">
+                            BorderThickness="0">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
             </Button.Template>
-            <StackPanel x:Name="EdgeDockHandleDots"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <Ellipse Width="3" Height="3" Margin="0,2" Fill="White" />
-                <Ellipse Width="3" Height="3" Margin="0,2" Fill="White" />
-                <Ellipse Width="3" Height="3" Margin="0,2" Fill="White" />
-            </StackPanel>
         </Button>
 
         <Grid.ContextMenu>

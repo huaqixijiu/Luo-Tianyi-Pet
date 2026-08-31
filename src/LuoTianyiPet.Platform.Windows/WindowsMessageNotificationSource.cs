@@ -68,8 +68,19 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
             return;
         }
 
-        _listener!.NotificationChanged += OnNotificationChanged;
-        _started = true;
+        try
+        {
+            _listener!.NotificationChanged += OnNotificationChanged;
+            _started = true;
+        }
+        catch (Exception exception) when (IsRecoverablePlatformException(exception))
+        {
+            // The Windows notification RPC service may be restarting even though the
+            // cached access status is Allowed. Treat this as temporarily unavailable;
+            // the settings/status refresh can establish a fresh listener later.
+            _listener = null;
+            _started = false;
+        }
     }
 
     public void Stop()
@@ -79,7 +90,15 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
             return;
         }
 
-        _listener.NotificationChanged -= OnNotificationChanged;
+        try
+        {
+            _listener.NotificationChanged -= OnNotificationChanged;
+        }
+        catch (Exception exception) when (IsRecoverablePlatformException(exception))
+        {
+            // A disconnected Windows notification service has no live subscription
+            // left to remove.
+        }
         _started = false;
     }
 
@@ -140,6 +159,9 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         UserNotificationListenerAccessStatus.Unspecified => MessageNotificationAccessStatus.Unspecified,
         _ => MessageNotificationAccessStatus.Unavailable,
     };
+
+    private static bool IsRecoverablePlatformException(Exception exception) =>
+        exception is UnauthorizedAccessException or COMException or InvalidOperationException;
 }
 
 internal static class WindowsPackageIdentity

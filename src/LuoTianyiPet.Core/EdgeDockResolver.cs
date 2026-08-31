@@ -17,23 +17,36 @@ public readonly record struct DesktopRectangle(double Left, double Top, double W
 
 public static class EdgeDockResolver
 {
-    public static EdgeDockSide Resolve(
-        DesktopRectangle window,
+    public static EdgeDockSide ResolveHideIntent(
+        DesktopRectangle visiblePet,
         DesktopRectangle workArea,
-        double threshold)
+        double activationDepth)
     {
-        if (threshold < 0 || !double.IsFinite(threshold))
+        if (activationDepth < 0 || !double.IsFinite(activationDepth))
         {
-            throw new ArgumentOutOfRangeException(nameof(threshold));
+            throw new ArgumentOutOfRangeException(nameof(activationDepth));
         }
 
-        (EdgeDockSide Side, double Distance)[] candidates =
+        (EdgeDockSide Side, double Depth)[] candidates =
         [
-            (EdgeDockSide.Left, Math.Max(0, window.Left - workArea.Left)),
-            (EdgeDockSide.Right, Math.Max(0, workArea.Right - window.Right)),
-            (EdgeDockSide.Bottom, Math.Max(0, workArea.Bottom - window.Bottom)),
+            (EdgeDockSide.Left, workArea.Left - visiblePet.Left),
+            (EdgeDockSide.Right, visiblePet.Right - workArea.Right),
+            (EdgeDockSide.Bottom, visiblePet.Bottom - workArea.Bottom),
         ];
-        (EdgeDockSide side, double distance) = candidates.MinBy(candidate => candidate.Distance);
-        return distance <= threshold ? side : EdgeDockSide.None;
+        (EdgeDockSide side, double depth) = candidates.MaxBy(candidate => candidate.Depth);
+        return depth >= activationDepth ? side : EdgeDockSide.None;
+    }
+
+    public static bool IsNearBottom(
+        DesktopRectangle visiblePet,
+        DesktopRectangle workArea,
+        double distance)
+    {
+        if (distance < 0 || !double.IsFinite(distance))
+        {
+            throw new ArgumentOutOfRangeException(nameof(distance));
+        }
+
+        return visiblePet.Bottom >= workArea.Bottom - distance;
     }
 }

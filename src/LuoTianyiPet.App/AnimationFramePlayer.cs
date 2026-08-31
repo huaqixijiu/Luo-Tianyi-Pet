@@ -14,10 +14,11 @@ internal sealed class AnimationFramePlayer : IDisposable
     private readonly Stopwatch _stopwatch = new();
     private readonly Dictionary<string, CachedAnimation> _cache = new(StringComparer.Ordinal);
     private CachedAnimation? _current;
+    private AnimationFrameTimeline? _activeTimeline;
+    private IReadOnlyList<int>? _activeFrameIndices;
     private Action? _completed;
     private int _currentFrameIndex = -1;
     private bool _completionRaised;
-    private bool _reverse;
 
     public AnimationFramePlayer(Image target, AnimationCatalog catalog)
     {
@@ -32,20 +33,46 @@ internal sealed class AnimationFramePlayer : IDisposable
 
     public string? CurrentAnimationId => _current?.Manifest.Id;
 
+    public int CurrentFrameIndex => _currentFrameIndex;
+
     public AnimationAssetManifest Play(
         string animationId,
         Action? completed = null,
         bool reverse = false)
     {
         CachedAnimation animation = GetOrLoad(animationId);
+        int start = reverse ? animation.Frames.Count - 1 : 0;
+        int end = reverse ? 0 : animation.Frames.Count - 1;
+        return StartPlayback(animation, start, end, animation.Manifest.LoopCount, completed);
+    }
+
+    public AnimationAssetManifest PlayRange(
+        string animationId,
+        int startFrameIndex,
+        int endFrameIndex,
+        Action? completed = null)
+    {
+        CachedAnimation animation = GetOrLoad(animationId);
+        return StartPlayback(animation, startFrameIndex, endFrameIndex, loopCount: 1, completed);
+    }
+
+    public AnimationAssetManifest ShowFrame(string animationId, int frameIndex)
+    {
+        CachedAnimation animation = GetOrLoad(animationId);
+        if ((uint)frameIndex >= (uint)animation.Frames.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(frameIndex));
+        }
+
+        _timer.Stop();
+        _stopwatch.Stop();
         _current = animation;
-        _completed = completed;
-        _reverse = reverse;
+        _activeTimeline = null;
+        _activeFrameIndices = null;
+        _completed = null;
         _completionRaised = false;
-        _currentFrameIndex = reverse ? animation.Frames.Count - 1 : 0;
-        _target.Source = animation.Frames[_currentFrameIndex];
-        _stopwatch.Restart();
-        _timer.Start();
+        _currentFrameIndex = frameIndex;
+        _target.Source = animation.Frames[frameIndex];
         return animation.Manifest;
     }
 
@@ -54,9 +81,10 @@ internal sealed class AnimationFramePlayer : IDisposable
         _timer.Stop();
         _stopwatch.Stop();
         _current = null;
+        _activeTimeline = null;
+        _activeFrameIndices = null;
         _completed = null;
         _completionRaised = false;
-        _reverse = false;
         _currentFrameIndex = -1;
         _target.Source = null;
     }
@@ -95,29 +123,20 @@ internal sealed class AnimationFramePlayer : IDisposable
             frames.Add(frame);
         }
 
-        CachedAnimation animation = new(
-            manifest,
-            frames,
-            new AnimationFrameTimeline(manifest.FrameDurationsMilliseconds, manifest.LoopCount),
-            new AnimationFrameTimeline(
-                manifest.FrameDurationsMilliseconds.Reverse().ToArray(),
-                manifest.LoopCount));
+        CachedAnimation animation = new(manifest, frames);
         _cache.Add(animationId, animation);
         return animation;
     }
 
     private void OnTick(object? sender, EventArgs e)
     {
-        if (_current is null)
+        if (_current is null || _activeTimeline is null || _activeFrameIndices is null)
         {
             return;
         }
 
-        AnimationFrameTimeline timeline = _reverse ? _current.ReverseTimeline : _current.Timeline;
-        PlaybackFrame playbackFrame = timeline.GetFrame(_stopwatch.Elapsed);
-        int frameIndex = _reverse
-            ? _current.Frames.Count - 1 - playbackFrame.Index
-            : playbackFrame.Index;
+        PlaybackFrame playbackFrame = _activeTimeline.GetFrame(_stopwatch.Elapsed);
+        int frameIndex = _activeFrameIndices[playbackFrame.Index];
         if (frameIndex != _currentFrameIndex)
         {
             _currentFrameIndex = frameIndex;
@@ -137,9 +156,34 @@ internal sealed class AnimationFramePlayer : IDisposable
         completed?.Invoke();
     }
 
+    private AnimationAssetManifest StartPlayback(
+        CachedAnimation animation,
+        int startFrameIndex,
+        int endFrameIndex,
+        int loopCount,
+        Action? completed)
+    {
+        IReadOnlyList<int> indices = FrameIndexSequence.Create(
+            startFrameIndex,
+            endFrameIndex,
+            animation.Frames.Count);
+        int[] durations = indices
+            .Select(index => animation.Manifest.FrameDurationsMilliseconds[index])
+            .ToArray();
+
+        _current = animation;
+        _activeFrameIndices = indices;
+        _activeTimeline = new AnimationFrameTimeline(durations, loopCount);
+        _completed = completed;
+        _completionRaised = false;
+        _currentFrameIndex = startFrameIndex;
+        _target.Source = animation.Frames[startFrameIndex];
+        _stopwatch.Restart();
+        _timer.Start();
+        return animation.Manifest;
+    }
+
     private sealed record CachedAnimation(
         AnimationAssetManifest Manifest,
-        IReadOnlyList<BitmapSource> Frames,
-        AnimationFrameTimeline Timeline,
-        AnimationFrameTimeline ReverseTimeline);
+        IReadOnlyList<BitmapSource> Frames);
 }
