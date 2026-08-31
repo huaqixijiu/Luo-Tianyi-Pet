@@ -22,10 +22,17 @@ public sealed class FileAppLogger : IAppLogger
     public void Error(string eventName, Exception exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
+        string targetType = exception.TargetSite?.DeclaringType?.FullName ?? "unknown";
+        string targetMethod = exception.TargetSite?.Name ?? "unknown";
+        string parameter = exception is ArgumentException argumentException &&
+            !string.IsNullOrWhiteSpace(argumentException.ParamName)
+                ? argumentException.ParamName
+                : "none";
         Write(
             "ERROR",
             eventName,
-            $"{exception.GetType().Name}; HResult=0x{exception.HResult:X8}");
+            $"{exception.GetType().Name}; HResult=0x{exception.HResult:X8}; " +
+            $"Target={targetType}.{targetMethod}; Parameter={parameter}");
     }
 
     private void Write(string level, string eventName, string message)

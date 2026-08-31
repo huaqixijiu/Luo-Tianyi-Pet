@@ -34,16 +34,38 @@ public sealed class CoreAudioSessionProbe : IAudioSessionProbe
                 }
 
                 found = true;
-                maximumPeak = Math.Max(maximumPeak, session.AudioMeterInformation.MasterPeakValue);
+                if (!TryNormalizePeakLevel(
+                    session.AudioMeterInformation.MasterPeakValue,
+                    out float sessionPeak))
+                {
+                    return AudioSessionSnapshot.Unavailable;
+                }
+
+                maximumPeak = Math.Max(maximumPeak, sessionPeak);
             }
 
             return found ? AudioSessionSnapshot.Found(maximumPeak) : AudioSessionSnapshot.Missing;
         }
         catch (Exception exception) when (
-            exception is COMException or InvalidOperationException or UnauthorizedAccessException)
+            exception is COMException or
+            InvalidOperationException or
+            ArgumentOutOfRangeException or
+            UnauthorizedAccessException)
         {
             return AudioSessionSnapshot.Unavailable;
         }
+    }
+
+    internal static bool TryNormalizePeakLevel(float value, out float normalized)
+    {
+        if (!float.IsFinite(value))
+        {
+            normalized = 0;
+            return false;
+        }
+
+        normalized = Math.Clamp(value, 0, 1);
+        return true;
     }
 
     private static HashSet<uint> GetTargetProcessIds(string processName)

@@ -1535,8 +1535,26 @@ public partial class MainWindow : Window
             return;
         }
 
-        AudioSessionSnapshot snapshot = _audioSessionProbe.ReadForProcess(
-            _musicTargetProcessName);
+        AudioSessionSnapshot snapshot;
+        try
+        {
+            snapshot = _audioSessionProbe.ReadForProcess(_musicTargetProcessName);
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or
+            InvalidOperationException or
+            System.Runtime.InteropServices.COMException or
+            UnauthorizedAccessException)
+        {
+            if (!_audioProbeFailureLogged)
+            {
+                _audioProbeFailureLogged = true;
+                _logger.Error("media.detection_probe_failed", exception);
+            }
+
+            return;
+        }
+
         if (!snapshot.ProbeSucceeded)
         {
             if (!_audioProbeFailureLogged)
