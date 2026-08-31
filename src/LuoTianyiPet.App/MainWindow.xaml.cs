@@ -32,10 +32,14 @@ public partial class MainWindow : Window
     private const double EdgeDockDragOverscan = 96;
     private const double EdgeDockAlphaInset = 2;
     private const double BottomControlsLayoutDistance = 80;
+    private const double SideDockWallClipLeftRatio = 0.735;
+    private const double SideDockWallClipWidthRatio = 0.105;
     private const int SideDockHiddenFrame = 3;
-    private const int SideDockRevealedFrame = 7;
+    private const int SideDockHideStartFrame = 7;
+    private const int SideDockRevealEndFrame = 19;
     private const int BottomDockHiddenFrame = 3;
-    private const int BottomDockRevealedFrame = 7;
+    private const int BottomDockHideStartFrame = 5;
+    private const int BottomDockRevealEndFrame = 7;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
@@ -1638,7 +1642,7 @@ public partial class MainWindow : Window
         }
 
         SetEdgeMirror(candidate == EdgeDockSide.Left);
-        ShowEdgeDockRevealedFrame(candidate);
+        ShowEdgeDockHideStartFrame(candidate);
         _logger.Info("interaction.drag_edge_preview", candidate.ToString());
     }
 
@@ -1986,27 +1990,29 @@ public partial class MainWindow : Window
         }
 
         string animationId = GetEdgeDockAnimation(_edgeDockSide);
-        (int hiddenFrame, int revealedFrame) = GetEdgeDockFrames(_edgeDockSide);
-        int fallbackStart = revealed ? hiddenFrame : revealedFrame;
-        int currentFrame = _animationPlayer?.CurrentAnimationId == animationId
+        (int hiddenFrame, int hideStartFrame, int revealEndFrame) =
+            GetEdgeDockFrames(_edgeDockSide);
+        int? currentFrame = _animationPlayer?.CurrentAnimationId == animationId
             ? _animationPlayer.CurrentFrameIndex
-            : fallbackStart;
-        if (currentFrame < hiddenFrame || currentFrame > revealedFrame)
-        {
-            currentFrame = fallbackStart;
-        }
+            : null;
+        EdgeDockFrameRoute route = EdgeDockFrameRouteResolver.Resolve(
+            revealed,
+            currentFrame,
+            hiddenFrame,
+            hideStartFrame,
+            revealEndFrame);
 
         PlayAnimationRange(
             animationId,
-            currentFrame,
-            revealed ? revealedFrame : hiddenFrame,
+            route.StartFrameIndex,
+            route.EndFrameIndex,
             completed);
     }
 
-    private void ShowEdgeDockRevealedFrame(EdgeDockSide side)
+    private void ShowEdgeDockHideStartFrame(EdgeDockSide side)
     {
-        (_, int revealedFrame) = GetEdgeDockFrames(side);
-        ShowAnimationFrame(GetEdgeDockAnimation(side), revealedFrame);
+        (_, int hideStartFrame, _) = GetEdgeDockFrames(side);
+        ShowAnimationFrame(GetEdgeDockAnimation(side), hideStartFrame);
     }
 
     private void PositionEdgeDock(bool hidden)
@@ -2016,9 +2022,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        ConfigureEdgeDockHandle(hidden);
         UpdateLayout();
         DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle localPet = GetPetImageBoundsInWindow();
+        DesktopRectangle localPet = hidden
+            ? GetPetImageVisibleBoundsInWindow()
+            : GetPetImageBoundsInWindow();
         switch (_edgeDockSide)
         {
             case EdgeDockSide.Left:
@@ -2036,7 +2045,6 @@ public partial class MainWindow : Window
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        ConfigureEdgeDockHandle(hidden);
     }
 
     private void ConfigureEdgeDockHandle(bool hidden)
@@ -2050,39 +2058,37 @@ public partial class MainWindow : Window
         }
 
         PetImage.IsHitTestVisible = false;
-        EdgeDockHandle.Visibility = Visibility.Visible;
+        double petWidth = Math.Max(1, PetImage.ActualWidth);
+        double petHeight = Math.Max(1, PetImage.ActualHeight);
         if (_edgeDockSide == EdgeDockSide.Bottom)
         {
-            double petWidth = Math.Max(1, PetImage.ActualWidth);
-            double petHeight = Math.Max(1, PetImage.ActualHeight);
             PetImage.Clip = new RectangleGeometry(new Rect(
                 petWidth * 0.20,
                 petHeight * 0.86,
                 petWidth * 0.60,
                 petHeight * 0.14));
-            EdgeDockHandle.Width = petWidth * 0.60;
-            EdgeDockHandle.Height = petHeight * 0.14;
-            EdgeDockHandle.HorizontalAlignment = WpfHorizontalAlignment.Center;
-            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Bottom;
-            EdgeDockHandle.Margin = new Thickness(0, 0, 0, PetVisual.Margin.Bottom);
         }
         else
         {
-            double petWidth = Math.Max(1, PetImage.ActualWidth);
-            double petHeight = Math.Max(1, PetImage.ActualHeight);
             PetImage.Clip = new RectangleGeometry(new Rect(
-                petWidth * 0.735,
+                petWidth * SideDockWallClipLeftRatio,
                 0,
-                petWidth * 0.265,
+                petWidth * SideDockWallClipWidthRatio,
                 petHeight));
-            EdgeDockHandle.Width = petWidth * 0.265;
-            EdgeDockHandle.Height = petHeight;
-            EdgeDockHandle.HorizontalAlignment = _edgeDockSide == EdgeDockSide.Left
-                ? WpfHorizontalAlignment.Left
-                : WpfHorizontalAlignment.Right;
-            EdgeDockHandle.VerticalAlignment = VerticalAlignment.Bottom;
-            EdgeDockHandle.Margin = new Thickness(8, 0, 8, PetVisual.Margin.Bottom);
         }
+
+        UpdateLayout();
+        DesktopRectangle handleBounds = GetPetImageVisibleBoundsInWindow();
+        EdgeDockHandle.Width = handleBounds.Width;
+        EdgeDockHandle.Height = handleBounds.Height;
+        EdgeDockHandle.HorizontalAlignment = WpfHorizontalAlignment.Left;
+        EdgeDockHandle.VerticalAlignment = VerticalAlignment.Top;
+        EdgeDockHandle.Margin = new Thickness(
+            handleBounds.Left,
+            handleBounds.Top,
+            0,
+            0);
+        EdgeDockHandle.Visibility = Visibility.Visible;
     }
 
     private void SetEdgeMirror(bool mirrored)
@@ -2098,12 +2104,13 @@ public partial class MainWindow : Window
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
 
-    private static (int HiddenFrame, int RevealedFrame) GetEdgeDockFrames(
+    private static (int HiddenFrame, int HideStartFrame, int RevealEndFrame) GetEdgeDockFrames(
         EdgeDockSide side) => side switch
     {
         EdgeDockSide.Left or EdgeDockSide.Right =>
-            (SideDockHiddenFrame, SideDockRevealedFrame),
-        EdgeDockSide.Bottom => (BottomDockHiddenFrame, BottomDockRevealedFrame),
+            (SideDockHiddenFrame, SideDockHideStartFrame, SideDockRevealEndFrame),
+        EdgeDockSide.Bottom =>
+            (BottomDockHiddenFrame, BottomDockHideStartFrame, BottomDockRevealEndFrame),
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
 
@@ -2438,6 +2445,24 @@ public partial class MainWindow : Window
         Rect transformed = PetImage
             .TransformToAncestor(this)
             .TransformBounds(new Rect(0, 0, width, height));
+        return new DesktopRectangle(
+            transformed.Left,
+            transformed.Top,
+            transformed.Width,
+            transformed.Height);
+    }
+
+    private DesktopRectangle GetPetImageVisibleBoundsInWindow()
+    {
+        UpdateLayout();
+        Rect sourceBounds = PetImage.Clip?.Bounds ?? new Rect(
+            0,
+            0,
+            PetImage.ActualWidth > 0 ? PetImage.ActualWidth : PetImage.Width,
+            PetImage.ActualHeight > 0 ? PetImage.ActualHeight : PetImage.Height);
+        Rect transformed = PetImage
+            .TransformToAncestor(this)
+            .TransformBounds(sourceBounds);
         return new DesktopRectangle(
             transformed.Left,
             transformed.Top,

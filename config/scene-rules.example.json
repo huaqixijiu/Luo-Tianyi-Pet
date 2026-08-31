@@ -313,17 +313,30 @@
       "bottomControlsPlacement": "above-track-info",
       "left": {
         "animation": "twelfth-anniversary-peek",
-        "mirrorHorizontally": true
+        "mirrorHorizontally": true,
+        "hiddenFrameIndex": 3,
+        "hideStartFrameIndex": 7,
+        "revealEndFrameIndex": 19,
+        "hiddenWallClipLeftRatio": 0.735,
+        "hiddenWallClipWidthRatio": 0.105
       },
       "right": {
         "animation": "twelfth-anniversary-peek",
-        "mirrorHorizontally": false
+        "mirrorHorizontally": false,
+        "hiddenFrameIndex": 3,
+        "hideStartFrameIndex": 7,
+        "revealEndFrameIndex": 19,
+        "hiddenWallClipLeftRatio": 0.735,
+        "hiddenWallClipWidthRatio": 0.105
       },
       "bottom": {
-        "animation": "twelfth-anniversary-entrance"
+        "animation": "twelfth-anniversary-entrance",
+        "hiddenFrameIndex": 3,
+        "hideStartFrameIndex": 5,
+        "revealEndFrameIndex": 7
       },
-      "hidePlaybackDirection": "reverse",
-      "pointerEnterPlaybackDirection": "forward",
+      "hidePlaybackRoute": "clean-no-text-segment",
+      "pointerEnterPlaybackRoute": "full-reveal-segment",
       "reverseFromCurrentFrameWhenDirectionChanges": true,
       "holdFinalFrameWhilePointerInside": true,
       "pointerLeavePlaybackDirection": "reverse"
