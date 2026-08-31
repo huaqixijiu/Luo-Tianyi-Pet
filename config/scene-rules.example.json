@@ -473,16 +473,20 @@
     "readFields": [
       "app-user-model-id",
       "application-display-name",
-      "creation-time"
+      "creation-time",
+      "application-logo",
+      "first-title-element-only-when-separate-body-element-exists"
     ],
     "neverRead": [
-      "sender",
-      "conversation",
-      "body"
+      "message-body-value",
+      "notification-actions",
+      "chat-database-or-cache",
+      "remote-avatar-url"
     ],
+    "contactAvatar": "not-exposed-by-user-notification-api-fallback-to-application-logo",
     "animation": "codename-curious-sway",
     "loopCount": 1,
-    "bubbleContent": "application-name-only",
+    "bubbleContent": "application-logo-and-conversation-title-with-source-only-fallback",
     "deduplicateWithinMilliseconds": 3000,
     "suppressWhenSourceIsForeground": true,
     "requestTransientTopmostOnDesktop": true,

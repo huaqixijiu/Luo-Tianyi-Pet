@@ -174,7 +174,7 @@
                            Foreground="#A8174E68"
                            FontSize="11"
                            TextWrapping="Wrap"
-                           Text="桌宠只识别通知的应用来源和时间，不读取发送者、群名或消息正文。" />
+                           Text="桌宠会读取应用图标和通知标题，用于显示联系人昵称或群名；不读取、显示、保存或记录消息正文。标题结构不明确时只显示应用来源。" />
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />

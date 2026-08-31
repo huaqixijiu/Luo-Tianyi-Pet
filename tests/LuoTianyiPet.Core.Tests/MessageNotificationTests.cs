@@ -89,6 +89,21 @@ public sealed class MessageNotificationTests
     }
 
     [Fact]
+    public void CoordinatorSuppressesOlderNotificationThatFinishesLoadingLate()
+    {
+        MessageNotificationCoordinator coordinator = new(TimeSpan.FromSeconds(3));
+        coordinator.Observe(MessageProvider.Qq, Now, false, true);
+
+        MessageNotificationDecision decision = coordinator.Observe(
+            MessageProvider.Qq,
+            Now.AddSeconds(-10),
+            sourceIsForeground: false,
+            canShow: true);
+
+        Assert.Equal(MessageNotificationDecision.IgnoredDuplicate, decision);
+    }
+
+    [Fact]
     public void CoordinatorIgnoresNotificationWhenSourceIsForeground()
     {
         MessageNotificationCoordinator coordinator = new(TimeSpan.FromSeconds(3));
@@ -119,6 +134,26 @@ public sealed class MessageNotificationTests
     }
 
     [Fact]
+    public void CoordinatorPreservesConversationMetadataWhileDeferred()
+    {
+        MessageNotificationCoordinator coordinator = new(TimeSpan.FromSeconds(3));
+        MessageNotificationSummary summary = new(
+            MessageProvider.WeChat,
+            Now,
+            "天依应援群",
+            new byte[] { 1, 2, 3 });
+
+        Assert.Equal(
+            MessageNotificationDecision.Deferred,
+            coordinator.Observe(summary, sourceIsForeground: false, canShow: false));
+        Assert.True(coordinator.TryTakePending(
+            _ => false,
+            out MessageNotificationSummary pending));
+        Assert.Equal("天依应援群", pending.ConversationDisplayName);
+        Assert.Equal(new byte[] { 1, 2, 3 }, pending.ApplicationIcon?.ToArray());
+    }
+
+    [Fact]
     public void PendingNotificationIsClearedWhenSourceBecomesForeground()
     {
         MessageNotificationCoordinator coordinator = new(TimeSpan.FromSeconds(3));
@@ -126,7 +161,7 @@ public sealed class MessageNotificationTests
 
         Assert.False(coordinator.TryTakePending(
             provider => provider == MessageProvider.WeChat,
-            out _));
+            out MessageNotificationSummary _));
         Assert.False(coordinator.HasPending);
     }
 }

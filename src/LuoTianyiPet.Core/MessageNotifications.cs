@@ -15,13 +15,22 @@ public enum MessageNotificationAccessStatus
     Unavailable,
 }
 
-public sealed class MessageNotificationReceivedEventArgs(
-    MessageProvider provider,
-    DateTimeOffset occurredAt) : EventArgs
-{
-    public MessageProvider Provider { get; } = provider;
+public sealed record MessageNotificationSummary(
+    MessageProvider Provider,
+    DateTimeOffset OccurredAt,
+    string? ConversationDisplayName = null,
+    ReadOnlyMemory<byte>? ApplicationIcon = null,
+    ReadOnlyMemory<byte>? ContactAvatar = null);
 
-    public DateTimeOffset OccurredAt { get; } = occurredAt;
+public sealed class MessageNotificationReceivedEventArgs(
+    MessageNotificationSummary notification) : EventArgs
+{
+    public MessageNotificationSummary Notification { get; } =
+        notification ?? throw new ArgumentNullException(nameof(notification));
+
+    public MessageProvider Provider => Notification.Provider;
+
+    public DateTimeOffset OccurredAt => Notification.OccurredAt;
 }
 
 public interface IMessageNotificationSource : IDisposable
@@ -140,7 +149,7 @@ public sealed class MessageNotificationCoordinator
 {
     private readonly TimeSpan _duplicateWindow;
     private readonly Dictionary<MessageProvider, DateTimeOffset> _lastObserved = [];
-    private readonly Dictionary<MessageProvider, DateTimeOffset> _pending = [];
+    private readonly Dictionary<MessageProvider, MessageNotificationSummary> _pending = [];
 
     public MessageNotificationCoordinator(TimeSpan duplicateWindow)
     {
@@ -158,11 +167,21 @@ public sealed class MessageNotificationCoordinator
         MessageProvider provider,
         DateTimeOffset occurredAt,
         bool sourceIsForeground,
+        bool canShow) => Observe(
+            new MessageNotificationSummary(provider, occurredAt),
+            sourceIsForeground,
+            canShow);
+
+    public MessageNotificationDecision Observe(
+        MessageNotificationSummary notification,
+        bool sourceIsForeground,
         bool canShow)
     {
+        ArgumentNullException.ThrowIfNull(notification);
+        MessageProvider provider = notification.Provider;
+        DateTimeOffset occurredAt = notification.OccurredAt;
         if (_lastObserved.TryGetValue(provider, out DateTimeOffset lastObserved) &&
-            occurredAt >= lastObserved &&
-            occurredAt - lastObserved < _duplicateWindow)
+            (occurredAt <= lastObserved || occurredAt - lastObserved < _duplicateWindow))
         {
             return MessageNotificationDecision.IgnoredDuplicate;
         }
@@ -176,7 +195,7 @@ public sealed class MessageNotificationCoordinator
 
         if (!canShow)
         {
-            _pending[provider] = occurredAt;
+            _pending[provider] = notification;
             return MessageNotificationDecision.Deferred;
         }
 
@@ -185,10 +204,12 @@ public sealed class MessageNotificationCoordinator
 
     public bool TryTakePending(
         Func<MessageProvider, bool> sourceIsForeground,
-        out MessageProvider provider)
+        out MessageNotificationSummary notification)
     {
         ArgumentNullException.ThrowIfNull(sourceIsForeground);
-        foreach ((MessageProvider candidate, _) in _pending.OrderBy(pair => pair.Value).ToArray())
+        foreach ((MessageProvider candidate, MessageNotificationSummary pending) in _pending
+            .OrderBy(pair => pair.Value.OccurredAt)
+            .ToArray())
         {
             if (sourceIsForeground(candidate))
             {
@@ -197,16 +218,31 @@ public sealed class MessageNotificationCoordinator
             }
 
             _pending.Remove(candidate);
-            provider = candidate;
+            notification = pending;
             return true;
         }
 
-        provider = default;
+        notification = null!;
         return false;
     }
 
+    public bool TryTakePending(
+        Func<MessageProvider, bool> sourceIsForeground,
+        out MessageProvider provider)
+    {
+        bool found = TryTakePending(sourceIsForeground, out MessageNotificationSummary notification);
+        provider = found ? notification.Provider : default;
+        return found;
+    }
+
+    public void QueuePending(MessageNotificationSummary notification)
+    {
+        ArgumentNullException.ThrowIfNull(notification);
+        _pending[notification.Provider] = notification;
+    }
+
     public void QueuePending(MessageProvider provider, DateTimeOffset occurredAt) =>
-        _pending[provider] = occurredAt;
+        QueuePending(new MessageNotificationSummary(provider, occurredAt));
 
     public void ClearPending() => _pending.Clear();
 }

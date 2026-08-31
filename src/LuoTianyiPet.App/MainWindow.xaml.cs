@@ -1,6 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -817,14 +818,13 @@ public partial class MainWindow : Window
             _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
         bool canShow = IsMessageNotificationDisplaySafe(foreground);
         MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
-            e.Provider,
-            e.OccurredAt,
+            e.Notification,
             sourceIsForeground,
             canShow);
         _logger.Info("notification.signal_processed", decision.ToString());
         if (decision == MessageNotificationDecision.Show)
         {
-            _ = BeginMessageNotificationAsync(e.Provider, e.OccurredAt);
+            _ = BeginMessageNotificationAsync(e.Notification);
         }
     }
 
@@ -854,9 +854,9 @@ public partial class MainWindow : Window
                 provider => _messageProviderMatcher.IsForegroundProcess(
                     provider,
                     foreground.ProcessName),
-                out MessageProvider pendingProvider))
+                out MessageNotificationSummary pendingNotification))
         {
-            _ = BeginMessageNotificationAsync(pendingProvider, DateTimeOffset.Now);
+            _ = BeginMessageNotificationAsync(pendingNotification);
         }
     }
 
@@ -870,13 +870,11 @@ public partial class MainWindow : Window
             (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety) &&
         _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous;
 
-    private async Task BeginMessageNotificationAsync(
-        MessageProvider provider,
-        DateTimeOffset occurredAt)
+    private async Task BeginMessageNotificationAsync(MessageNotificationSummary notification)
     {
         if (_isClosing || _messageNotificationReactionToken is not null)
         {
-            _messageNotificationCoordinator.QueuePending(provider, occurredAt);
+            _messageNotificationCoordinator.QueuePending(notification);
             return;
         }
 
@@ -887,15 +885,19 @@ public partial class MainWindow : Window
         if (reactionToken is not Guid token)
         {
             ReleaseTransientTopmost(topmostToken);
-            _messageNotificationCoordinator.QueuePending(provider, occurredAt);
+            _messageNotificationCoordinator.QueuePending(notification);
             return;
         }
 
         _messageNotificationReactionToken = token;
         _messageNotificationTopmostToken = topmostToken;
-        _activeMessageProvider = provider;
-        ShowFeedbackBubble($"{MessageProviderMatcher.GetDisplayName(provider)} 有新消息");
-        _logger.Info("notification.reaction_started", "Source category was shown without message content.");
+        _activeMessageProvider = notification.Provider;
+        ShowMessageNotification(notification);
+        _logger.Info(
+            "notification.reaction_started",
+            notification.ConversationDisplayName is null
+                ? "Source category and application icon were shown without message content."
+                : "Source category, application icon, and conversation title were shown without message content.");
     }
 
     private async Task BeginMessageNotificationPreviewAsync(MessageProvider provider)
@@ -903,7 +905,10 @@ public partial class MainWindow : Window
         await Task.Delay(700);
         if (!_isClosing)
         {
-            await BeginMessageNotificationAsync(provider, DateTimeOffset.Now);
+            await BeginMessageNotificationAsync(new MessageNotificationSummary(
+                provider,
+                DateTimeOffset.Now,
+                "测试联系人"));
         }
     }
 
@@ -2224,6 +2229,7 @@ public partial class MainWindow : Window
 
     private void CleanupReplacedMessageNotificationPresentation()
     {
+        HideMessageNotification();
         if (_messageNotificationReactionToken is null)
         {
             return;
@@ -2246,6 +2252,7 @@ public partial class MainWindow : Window
         _messageNotificationReactionToken = null;
         _messageNotificationTopmostToken = null;
         _activeMessageProvider = null;
+        HideMessageNotification();
         _logger.Info("notification.reaction_completed", "Transient topmost was released.");
     }
 
@@ -2893,6 +2900,74 @@ public partial class MainWindow : Window
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Start();
+    }
+
+    private void ShowMessageNotification(MessageNotificationSummary notification)
+    {
+        string providerName = MessageProviderMatcher.GetDisplayName(notification.Provider);
+        ImageSource? applicationIcon = DecodeNotificationImage(notification.ApplicationIcon);
+        ImageSource? contactAvatar = DecodeNotificationImage(notification.ContactAvatar);
+        ImageSource? primaryIcon = contactAvatar ?? applicationIcon;
+
+        MessageSourceText.Text = $"{providerName} · 新消息";
+        MessageConversationText.Text = string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
+            ? "有新消息"
+            : notification.ConversationDisplayName;
+        MessageProviderGlyph.Text = notification.Provider == MessageProvider.Qq ? "Q" : "微";
+        MessagePrimaryIconSurface.Background = notification.Provider == MessageProvider.Qq
+            ? new SolidColorBrush(Color.FromRgb(0x39, 0xA9, 0xF2))
+            : new SolidColorBrush(Color.FromRgb(0x20, 0xC0, 0x5C));
+        MessagePrimaryIcon.Source = primaryIcon;
+        MessageProviderGlyph.Visibility = primaryIcon is null
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        bool showApplicationBadge = contactAvatar is not null && applicationIcon is not null;
+        MessageAppBadgeIcon.Source = showApplicationBadge ? applicationIcon : null;
+        MessageAppBadge.Visibility = showApplicationBadge
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        AutomationProperties.SetName(
+            MessageNotificationBubble,
+            string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
+                ? $"{providerName} 有新消息"
+                : $"{providerName}，{notification.ConversationDisplayName} 有新消息");
+        MessageNotificationBubble.Visibility = Visibility.Visible;
+    }
+
+    private void HideMessageNotification()
+    {
+        MessageNotificationBubble.Visibility = Visibility.Collapsed;
+        MessagePrimaryIcon.Source = null;
+        MessageAppBadgeIcon.Source = null;
+        MessageAppBadge.Visibility = Visibility.Collapsed;
+    }
+
+    private static ImageSource? DecodeNotificationImage(ReadOnlyMemory<byte>? encodedImage)
+    {
+        if (encodedImage is not ReadOnlyMemory<byte> bytes || bytes.IsEmpty)
+        {
+            return null;
+        }
+
+        try
+        {
+            using MemoryStream stream = new(bytes.ToArray(), writable: false);
+            BitmapImage image = new();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch (Exception)
+        {
+            // Notification icons come from another app through Windows. Malformed or
+            // unsupported image data must fall back to the provider glyph.
+            return null;
+        }
     }
 
     private void OnFeedbackBubbleTimerTick(object? sender, EventArgs e)

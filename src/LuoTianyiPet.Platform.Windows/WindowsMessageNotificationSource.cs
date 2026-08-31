@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 using LuoTianyiPet.Core;
+using Windows.Foundation;
+using Windows.Storage.Streams;
 using Windows.UI.Notifications;
 using Windows.UI.Notifications.Management;
 
@@ -7,6 +9,7 @@ namespace LuoTianyiPet.Platform.Windows;
 
 public sealed class WindowsMessageNotificationSource : IMessageNotificationSource
 {
+    private const ulong MaximumIconBytes = 1024 * 1024;
     private readonly MessageProviderMatcher _matcher;
     private UserNotificationListener? _listener;
     private bool _started;
@@ -114,7 +117,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         GC.SuppressFinalize(this);
     }
 
-    private void OnNotificationChanged(
+    private async void OnNotificationChanged(
         UserNotificationListener sender,
         UserNotificationChangedEventArgs args)
     {
@@ -136,18 +139,76 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
                 notification.AppInfo.DisplayInfo.DisplayName);
             if (provider is MessageProvider matched)
             {
+                string? conversationDisplayName = TryReadConversationDisplayName(notification);
+                byte[]? applicationIcon = await TryReadApplicationIconAsync(notification);
+                if (_disposed)
+                {
+                    return;
+                }
+
                 NotificationReceived?.Invoke(
                     this,
                     new MessageNotificationReceivedEventArgs(
-                        matched,
-                        notification.CreationTime));
+                        new MessageNotificationSummary(
+                            matched,
+                            notification.CreationTime,
+                            conversationDisplayName,
+                            applicationIcon,
+                            ContactAvatar: null)));
             }
         }
-        catch (Exception exception) when (
-            exception is UnauthorizedAccessException or COMException or InvalidOperationException)
+        catch (Exception)
         {
             // Permission may be revoked while the app is running. The next status check
-            // reports the unavailable state; notification contents are never inspected.
+            // reports the unavailable state. Platform payload failures are isolated here
+            // because this is an async WinRT event boundary. Nothing is persisted.
+        }
+    }
+
+    private static string? TryReadConversationDisplayName(UserNotification notification)
+    {
+        NotificationBinding? binding = notification.Notification.Visual.GetBinding(
+            KnownNotificationBindings.ToastGeneric) ??
+            notification.Notification.Visual.Bindings.FirstOrDefault();
+        if (binding is null)
+        {
+            return null;
+        }
+
+        IReadOnlyList<AdaptiveNotificationText> elements = binding.GetTextElements();
+        string? firstText = elements.Count > 0 ? elements[0].Text : null;
+        return NotificationConversationTitleSelector.Select(elements.Count, firstText);
+    }
+
+    private static async Task<byte[]?> TryReadApplicationIconAsync(UserNotification notification)
+    {
+        try
+        {
+            RandomAccessStreamReference logoReference = notification.AppInfo.DisplayInfo.GetLogo(
+                new Size(48, 48));
+            using IRandomAccessStreamWithContentType stream = await logoReference.OpenReadAsync();
+            if (stream.Size is 0 or > MaximumIconBytes)
+            {
+                return null;
+            }
+
+            uint byteCount = checked((uint)stream.Size);
+            using DataReader reader = new(stream.GetInputStreamAt(0));
+            uint loaded = await reader.LoadAsync(byteCount);
+            if (loaded == 0)
+            {
+                return null;
+            }
+
+            byte[] bytes = new byte[loaded];
+            reader.ReadBytes(bytes);
+            return bytes;
+        }
+        catch (Exception exception) when (
+            IsRecoverablePlatformException(exception) ||
+            exception is IOException or ArgumentException or OverflowException)
+        {
+            return null;
         }
     }
 
@@ -162,6 +223,33 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
     private static bool IsRecoverablePlatformException(Exception exception) =>
         exception is UnauthorizedAccessException or COMException or InvalidOperationException;
+}
+
+internal static class NotificationConversationTitleSelector
+{
+    private const int MaximumDisplayLength = 64;
+
+    public static string? Select(int textElementCount, string? firstText)
+    {
+        // A single text element may itself be message content. Only accept the first
+        // element when a separate body element exists, and never read that body value.
+        if (textElementCount < 2 || string.IsNullOrWhiteSpace(firstText))
+        {
+            return null;
+        }
+
+        string normalized = string.Concat(firstText
+            .Trim()
+            .Where(character => !char.IsControl(character)));
+        if (normalized.Length == 0)
+        {
+            return null;
+        }
+
+        return normalized.Length <= MaximumDisplayLength
+            ? normalized
+            : normalized[..(MaximumDisplayLength - 1)] + "…";
+    }
 }
 
 internal static class WindowsPackageIdentity

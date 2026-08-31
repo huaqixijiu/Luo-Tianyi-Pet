@@ -220,6 +220,93 @@
             </Grid>
         </Border>
 
+        <Border x:Name="MessageNotificationBubble"
+                Panel.ZIndex="8"
+                Width="188"
+                Height="58"
+                Margin="4,4,4,0"
+                Padding="8,6"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="#F4F7FCFF"
+                BorderBrush="#D966CCFF"
+                BorderThickness="1"
+                CornerRadius="15"
+                IsHitTestVisible="False"
+                Visibility="Collapsed"
+                AutomationProperties.Name="聊天消息提醒">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12"
+                                  Color="#FF0A719D"
+                                  Direction="270"
+                                  Opacity="0.34"
+                                  ShadowDepth="3" />
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="46" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Width="42"
+                      Height="42"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Center">
+                    <Border x:Name="MessagePrimaryIconSurface"
+                            Background="#FF66CCFF"
+                            BorderBrush="White"
+                            BorderThickness="1"
+                            CornerRadius="21"
+                            ClipToBounds="True">
+                        <Grid>
+                            <TextBlock x:Name="MessageProviderGlyph"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="15"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       Text="Q" />
+                            <Image x:Name="MessagePrimaryIcon"
+                                   Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="MessageAppBadge"
+                            Width="19"
+                            Height="19"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Background="White"
+                            BorderBrush="#FF66CCFF"
+                            BorderThickness="1"
+                            CornerRadius="9.5"
+                            ClipToBounds="True"
+                            Visibility="Collapsed">
+                        <Image x:Name="MessageAppBadgeIcon"
+                               Margin="2"
+                               Stretch="Uniform" />
+                    </Border>
+                </Grid>
+
+                <StackPanel Grid.Column="1"
+                            Margin="3,1,2,0"
+                            VerticalAlignment="Center">
+                    <TextBlock x:Name="MessageSourceText"
+                               Foreground="#FF397B9A"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Text="QQ · 新消息" />
+                    <TextBlock x:Name="MessageConversationText"
+                               Margin="0,1,0,0"
+                               Foreground="#FF18394A"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Text="有新消息"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <Border x:Name="FeedbackBubble"
                 Panel.ZIndex="4"
                 MaxWidth="240"
