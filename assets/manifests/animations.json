@@ -1110,8 +1110,8 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/04_偷看.gif",
       "sourceSha256": "30ac7af60d2776196ce6776e35c75c7f8804e72f97e351ea365cfd3389e49a9c",
       "atlasPath": "animations/runtime/twelfth-anniversary-peek.atlas.png",
-      "atlasSha256": "8a4793dcc7f66f3cb777c728e3f2cb4c743c94af4a8823c03a7f0d5ec0b1f131",
-      "frameWidth": 240,
+      "atlasSha256": "13785619c83d780bae9ec2c2dc707abf88f43ac7876e24d71789bfd768edbdbb",
+      "frameWidth": 196,
       "frameHeight": 240,
       "columns": 8,
       "rows": 3,
@@ -1138,14 +1138,14 @@
         140
       ],
       "loopCount": 1,
-      "displayWidth": 190,
+      "displayWidth": 155,
       "displayHeight": 190,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
         6,
         2,
-        238,
+        196,
         238
       ]
     },

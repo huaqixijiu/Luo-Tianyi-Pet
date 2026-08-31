@@ -86,6 +86,8 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
     if maximum_frames > 0:
         frames = frames[:maximum_frames]
         durations = durations[:maximum_frames]
+    if not frames:
+        raise ValueError(f"No frames found in {source}")
     resize_width = int(entry.get("resizeWidth", 0))
     resize_height = int(entry.get("resizeHeight", 0))
     if resize_width > 0 and resize_height > 0:
@@ -93,10 +95,27 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
             frame.resize((resize_width, resize_height), Image.Resampling.LANCZOS)
             for frame in frames
         ]
-    if not frames:
-        raise ValueError(f"No frames found in {source}")
     if any(frame.size != frames[0].size for frame in frames):
         raise ValueError(f"Frame sizes differ in {source}")
+    crop = entry.get("cropAfterResize")
+    if crop is not None:
+        if (
+            not isinstance(crop, list)
+            or len(crop) != 4
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in crop)
+        ):
+            raise ValueError(f"Invalid cropAfterResize for {entry['id']}")
+        crop_box = tuple(crop)
+        if (
+            crop_box[0] < 0
+            or crop_box[1] < 0
+            or crop_box[2] <= crop_box[0]
+            or crop_box[3] <= crop_box[1]
+            or crop_box[2] > frames[0].width
+            or crop_box[3] > frames[0].height
+        ):
+            raise ValueError(f"cropAfterResize is outside the frame for {entry['id']}")
+        frames = [frame.crop(crop_box) for frame in frames]
 
     columns = min(maximum_columns, len(frames))
     rows = math.ceil(len(frames) / columns)

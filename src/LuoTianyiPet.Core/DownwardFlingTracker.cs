@@ -58,13 +58,9 @@ public sealed class DownwardFlingTracker
             return;
         }
 
-        if (_samples.Count > 0 && observedAt < _samples[^1].ObservedAt)
-        {
-            throw new ArgumentOutOfRangeException(nameof(observedAt));
-        }
-
-        _samples.Add(new MotionSample(position, observedAt));
-        DateTimeOffset retentionStart = observedAt - _recentWindow - _recentWindow;
+        DateTimeOffset effectiveObservedAt = NormalizeObservedAt(observedAt);
+        _samples.Add(new MotionSample(position, effectiveObservedAt));
+        DateTimeOffset retentionStart = effectiveObservedAt - _recentWindow - _recentWindow;
         _samples.RemoveAll(sample => sample.ObservedAt < retentionStart && sample != _origin);
     }
 
@@ -76,10 +72,17 @@ public sealed class DownwardFlingTracker
             return false;
         }
 
-        Add(releasePosition, observedAt);
-        DateTimeOffset windowStart = observedAt - _recentWindow;
+        if (_samples.Count > 0 && observedAt < _samples[^1].ObservedAt)
+        {
+            Cancel();
+            return false;
+        }
+
+        DateTimeOffset effectiveObservedAt = NormalizeObservedAt(observedAt);
+        Add(releasePosition, effectiveObservedAt);
+        DateTimeOffset windowStart = effectiveObservedAt - _recentWindow;
         MotionSample recentAnchor = _samples.First(sample => sample.ObservedAt >= windowStart);
-        double elapsedSeconds = (observedAt - recentAnchor.ObservedAt).TotalSeconds;
+        double elapsedSeconds = (effectiveObservedAt - recentAnchor.ObservedAt).TotalSeconds;
         double totalDrop = releasePosition.Y - origin.Position.Y;
         double recentDrop = releasePosition.Y - recentAnchor.Position.Y;
         double recentVelocity = elapsedSeconds > 0
@@ -105,6 +108,11 @@ public sealed class DownwardFlingTracker
             throw new ArgumentOutOfRangeException(nameof(position));
         }
     }
+
+    private DateTimeOffset NormalizeObservedAt(DateTimeOffset observedAt) =>
+        _samples.Count > 0 && observedAt < _samples[^1].ObservedAt
+            ? _samples[^1].ObservedAt
+            : observedAt;
 
     private sealed record MotionSample(PointerPoint Position, DateTimeOffset ObservedAt);
 }

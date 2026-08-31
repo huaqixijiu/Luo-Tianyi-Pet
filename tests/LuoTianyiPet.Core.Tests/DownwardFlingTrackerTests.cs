@@ -59,4 +59,32 @@ public sealed class DownwardFlingTrackerTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public void SlightlyEarlierMoveTimestampIsClampedInsteadOfThrowing()
+    {
+        DownwardFlingTracker tracker = new();
+        tracker.Begin(new PointerPoint(100, 100), Start.AddMilliseconds(1));
+
+        tracker.Add(new PointerPoint(100, 130), Start);
+        bool result = tracker.Complete(
+            new PointerPoint(100, 205),
+            Start.AddMilliseconds(151));
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void EarlierReleaseTimestampFailsClosedInsteadOfThrowing()
+    {
+        DownwardFlingTracker tracker = new();
+        tracker.Begin(new PointerPoint(100, 100), Start);
+        tracker.Add(new PointerPoint(100, 180), Start.AddMilliseconds(100));
+
+        bool result = tracker.Complete(
+            new PointerPoint(100, 205),
+            Start.AddMilliseconds(90));
+
+        Assert.False(result);
+    }
 }
