@@ -292,7 +292,8 @@
         "compact": {
           "animation": "resonance-expand",
           "replaceCurrentAnimation": true,
-          "loopWhileDragging": true
+          "loopWhileDragging": false,
+          "holdLastFrameAfterOnePlay": true
         },
         "fullBodyInteractive": {
           "animation": "keep-current-full-body-animation",
@@ -304,7 +305,9 @@
     },
     "edgeDock": {
       "hideActivationDepthDips": 28,
+      "hideReleaseDepthDips": 14,
       "dragOverscanDips": 96,
+      "useStableDragReferenceBounds": true,
       "allowFlushPlacementWithoutHiding": true,
       "supportedEdges": ["left", "right", "bottom"],
       "previewAnimationImmediatelyWhileDraggingAtEdge": true,
@@ -350,9 +353,17 @@
     "drop": {
       "behaviorByDisplayMode": {
         "compact": {
-          "animation": "codename-landing-bounce",
-          "loopCount": 1,
-          "addSpringMotion": true
+          "routineReleaseAnimation": null,
+          "routineReleaseTransition": "pulse-swap-to-resolved-state",
+          "fastDownwardFling": {
+            "animation": "codename-landing-bounce",
+            "minimumTotalDropDips": 72,
+            "minimumRecentDropDips": 22,
+            "minimumRecentVelocityDipsPerSecond": 650,
+            "recentWindowMilliseconds": 180,
+            "loopCount": 1,
+            "addSpringMotion": true
+          }
         },
         "fullBodyInteractive": {
           "animation": null,

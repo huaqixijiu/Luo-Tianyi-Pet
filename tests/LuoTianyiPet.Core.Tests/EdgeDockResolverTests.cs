@@ -53,6 +53,38 @@ public sealed class EdgeDockResolverTests
     }
 
     [Theory]
+    [InlineData(-20, 300, EdgeDockSide.Left)]
+    [InlineData(1740, 300, EdgeDockSide.Right)]
+    [InlineData(800, 860, EdgeDockSide.Bottom)]
+    public void KeepsCurrentIntentInsideReleaseHysteresisBand(
+        double left,
+        double top,
+        EdgeDockSide currentIntent)
+    {
+        EdgeDockSide result = EdgeDockResolver.ResolveHideIntentWithHysteresis(
+            new DesktopRectangle(left, top, 200, 200),
+            WorkArea,
+            activationDepth: 28,
+            releaseDepth: 14,
+            currentIntent);
+
+        Assert.Equal(currentIntent, result);
+    }
+
+    [Fact]
+    public void ClearsCurrentIntentAfterPointerRetreatsPastReleaseDepth()
+    {
+        EdgeDockSide result = EdgeDockResolver.ResolveHideIntentWithHysteresis(
+            new DesktopRectangle(-13, 300, 200, 200),
+            WorkArea,
+            activationDepth: 28,
+            releaseDepth: 14,
+            EdgeDockSide.Left);
+
+        Assert.Equal(EdgeDockSide.None, result);
+    }
+
+    [Theory]
     [InlineData(740, true)]
     [InlineData(768, true)]
     [InlineData(739, false)]

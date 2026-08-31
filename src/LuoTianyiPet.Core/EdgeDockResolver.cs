@@ -37,6 +37,34 @@ public static class EdgeDockResolver
         return depth >= activationDepth ? side : EdgeDockSide.None;
     }
 
+    public static EdgeDockSide ResolveHideIntentWithHysteresis(
+        DesktopRectangle visiblePet,
+        DesktopRectangle workArea,
+        double activationDepth,
+        double releaseDepth,
+        EdgeDockSide currentIntent)
+    {
+        if (releaseDepth < 0 || !double.IsFinite(releaseDepth) || releaseDepth > activationDepth)
+        {
+            throw new ArgumentOutOfRangeException(nameof(releaseDepth));
+        }
+
+        EdgeDockSide resolved = ResolveHideIntent(visiblePet, workArea, activationDepth);
+        if (resolved != EdgeDockSide.None || currentIntent == EdgeDockSide.None)
+        {
+            return resolved;
+        }
+
+        double currentDepth = currentIntent switch
+        {
+            EdgeDockSide.Left => workArea.Left - visiblePet.Left,
+            EdgeDockSide.Right => visiblePet.Right - workArea.Right,
+            EdgeDockSide.Bottom => visiblePet.Bottom - workArea.Bottom,
+            _ => throw new ArgumentOutOfRangeException(nameof(currentIntent)),
+        };
+        return currentDepth >= releaseDepth ? currentIntent : EdgeDockSide.None;
+    }
+
     public static bool IsNearBottom(
         DesktopRectangle visiblePet,
         DesktopRectangle workArea,

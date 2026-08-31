@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
     private const double EdgeDockActivationDepth = 28;
+    private const double EdgeDockReleaseDepth = 14;
     private const double EdgeDockDragOverscan = 96;
     private const double EdgeDockAlphaInset = 2;
     private const double BottomControlsLayoutDistance = 80;
@@ -55,6 +56,7 @@ public partial class MainWindow : Window
     private readonly MediaControlsVisibilityMotion _mediaControlsMotion;
     private readonly MediaControlsVisibilityMotion _trackInfoMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
+    private readonly DownwardFlingTracker _downwardFlingTracker = new();
     private readonly PettingGestureRecognizer _pettingGesture = new(
         TimeSpan.FromMilliseconds(350),
         24,
@@ -133,6 +135,8 @@ public partial class MainWindow : Window
     private bool _trackSwitchSawAudioGap;
     private EdgeDockSide _edgeDockSide;
     private EdgeDockSide _dragEdgeCandidate;
+    private DesktopRectangle? _dragIntentPetBoundsInWindow;
+    private bool _dragReleaseRequestsLanding;
     private bool _edgeDockRevealed;
     private bool _useBottomControlsLayout;
     private int _edgeDockAnimationGeneration;
@@ -949,10 +953,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        DateTimeOffset now = DateTimeOffset.Now;
         PointerPoint position = ToPointerPoint(e.GetPosition(this));
         if (_pettingGesture.IsTracking)
         {
-            HandlePettingMove(position, DateTimeOffset.Now);
+            HandlePettingMove(position, now);
         }
         else if (!_pettingGestureConsumedPress)
         {
@@ -961,7 +966,7 @@ public partial class MainWindow : Window
 
         if (_isWindowDragging)
         {
-            MoveWindowWithPointer(GetPointerScreenPositionInDips(e));
+            MoveWindowWithPointer(GetPointerScreenPositionInDips(e), now);
         }
 
         e.Handled = true;
@@ -974,6 +979,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        DateTimeOffset now = DateTimeOffset.Now;
+        Point releaseScreenPoint = GetPointerScreenPositionInDips(e);
+        if (_isWindowDragging)
+        {
+            _dragReleaseRequestsLanding = _downwardFlingTracker.Complete(
+                ToPointerPoint(releaseScreenPoint),
+                now);
+        }
+
         if (_pettingGestureConsumedPress)
         {
             _pettingGestureConsumedPress = false;
@@ -984,7 +998,7 @@ public partial class MainWindow : Window
             _pettingGesture.Cancel();
             HandlePointerAction(_pointerGesture.Release(
                 ToPointerPoint(e.GetPosition(this)),
-                DateTimeOffset.Now));
+                now));
         }
 
         if (IsMouseCaptured)
@@ -1006,6 +1020,8 @@ public partial class MainWindow : Window
         }
 
         _pointerGesture.Cancel();
+        _downwardFlingTracker.Cancel();
+        _dragReleaseRequestsLanding = false;
         EndWindowDrag();
     }
 
@@ -1150,25 +1166,26 @@ public partial class MainWindow : Window
 
         if (!_stateMachine.BeginDrag())
         {
+            _downwardFlingTracker.Cancel();
             return;
         }
 
         _isWindowDragging = true;
-        string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
-        if (_animationPlayer?.CurrentAnimationId != dragAnimation)
-        {
-            PlayResolvedContinuousAnimation();
-        }
+        _dragReleaseRequestsLanding = false;
+        _downwardFlingTracker.Begin(ToPointerPoint(_dragPressScreenPoint), DateTimeOffset.Now);
+        PlayCurrentDragVisual();
 
         _dragStartLeft = Left;
         _dragStartTop = Top;
+        _dragIntentPetBoundsInWindow = GetPetImageBoundsInWindow();
 
         UpdateBodyHitDebugOverlay();
         _logger.Info("interaction.drag_started", _stateMachine.VisualState.SelectedDisplayMode.ToString());
     }
 
-    private void MoveWindowWithPointer(Point currentScreenPoint)
+    private void MoveWindowWithPointer(Point currentScreenPoint, DateTimeOffset observedAt)
     {
+        _downwardFlingTracker.Add(ToPointerPoint(currentScreenPoint), observedAt);
         double desiredLeft = _dragStartLeft + currentScreenPoint.X - _dragPressScreenPoint.X;
         double desiredTop = _dragStartTop + currentScreenPoint.Y - _dragPressScreenPoint.Y;
         Left = Clamp(
@@ -1182,6 +1199,10 @@ public partial class MainWindow : Window
             SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight +
                 EdgeDockDragOverscan);
         UpdateBottomControlsLayoutForCurrentPosition();
+        if (_dragEdgeCandidate == EdgeDockSide.None)
+        {
+            _dragIntentPetBoundsInWindow = GetPetImageBoundsInWindow();
+        }
         UpdateDragEdgePreview();
     }
 
@@ -1192,15 +1213,20 @@ public partial class MainWindow : Window
             return;
         }
 
+        bool playLandingFeedback = _dragReleaseRequestsLanding;
+        _dragReleaseRequestsLanding = false;
+        _downwardFlingTracker.Cancel();
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
             if (TryEnterEdgeDock())
             {
+                _dragIntentPetBoundsInWindow = null;
                 _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
                 return;
             }
 
+            _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
             SnapVisiblePetInsideWorkArea();
@@ -1213,8 +1239,20 @@ public partial class MainWindow : Window
             }
             else if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
             {
-                PlayLandingFeedback();
-                _logger.Info("interaction.drag_ended", "Compact landing feedback requested.");
+                if (playLandingFeedback)
+                {
+                    PlayLandingFeedback();
+                    _logger.Info(
+                        "interaction.drag_ended",
+                        "Fast downward compact fling requested landing feedback.");
+                }
+                else
+                {
+                    RestoreAfterCompactDrag();
+                    _logger.Info(
+                        "interaction.drag_ended",
+                        "Compact drag restored without routine landing feedback.");
+                }
             }
             else
             {
@@ -1627,6 +1665,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private void PlayCurrentDragVisual()
+    {
+        string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
+        if (dragAnimation == PetVisualState.CompactDraggingAnimation && _animationCatalog is not null)
+        {
+            AnimationAssetManifest manifest = _animationCatalog.GetRequired(dragAnimation);
+            PlayAnimationRange(
+                dragAnimation,
+                startFrameIndex: 0,
+                endFrameIndex: manifest.FrameDurationsMilliseconds.Count - 1);
+            return;
+        }
+
+        if (_animationPlayer?.CurrentAnimationId != dragAnimation)
+        {
+            PlayResolvedContinuousAnimation();
+        }
+    }
+
+    private void RestoreAfterCompactDrag() =>
+        _ = TransitionToResolvedContinuousAnimationAsync("animation.compact_drag_restored");
+
     private void UpdateDragEdgePreview()
     {
         EdgeDockSide candidate = ResolveCurrentEdgeDockSide();
@@ -1639,7 +1699,7 @@ public partial class MainWindow : Window
         if (candidate == EdgeDockSide.None)
         {
             SetEdgeMirror(false);
-            PlayResolvedContinuousAnimation();
+            PlayCurrentDragVisual();
             return;
         }
 
@@ -1651,10 +1711,18 @@ public partial class MainWindow : Window
     private EdgeDockSide ResolveCurrentEdgeDockSide()
     {
         DesktopRectangle workArea = GetCurrentWorkArea();
-        return EdgeDockResolver.ResolveHideIntent(
-            GetPetImageDesktopBounds(),
+        DesktopRectangle localPet = _dragIntentPetBoundsInWindow ?? GetPetImageBoundsInWindow();
+        DesktopRectangle stablePet = new(
+            Left + localPet.Left,
+            Top + localPet.Top,
+            localPet.Width,
+            localPet.Height);
+        return EdgeDockResolver.ResolveHideIntentWithHysteresis(
+            stablePet,
             workArea,
-            EdgeDockActivationDepth);
+            EdgeDockActivationDepth,
+            EdgeDockReleaseDepth,
+            _dragEdgeCandidate);
     }
 
     private void OnIdleSceneTimerTick(object? sender, EventArgs e)
@@ -3271,7 +3339,7 @@ public partial class MainWindow : Window
         }
 
         BeginWindowDrag();
-        await Task.Delay(900);
+        await Task.Delay(1600);
         if (!_isClosing)
         {
             EndWindowDrag();
@@ -3460,7 +3528,27 @@ public partial class MainWindow : Window
         }
 
         UpdateDragEdgePreview();
-        await Task.Delay(900);
+        double[] boundaryOffsets = [1, -1, 2, -2, 1, -1];
+        foreach (double offset in boundaryOffsets)
+        {
+            await Task.Delay(90);
+            switch (side)
+            {
+                case EdgeDockSide.Left:
+                    Left = workArea.Left - localPet.Left - EdgeDockActivationDepth - offset;
+                    break;
+                case EdgeDockSide.Right:
+                    Left = workArea.Right - localPet.Right + EdgeDockActivationDepth + offset;
+                    break;
+                case EdgeDockSide.Bottom:
+                    Top = workArea.Bottom - localPet.Bottom + EdgeDockActivationDepth + offset;
+                    break;
+            }
+
+            UpdateDragEdgePreview();
+        }
+
+        await Task.Delay(500);
         if (!_isClosing)
         {
             EndWindowDrag();
