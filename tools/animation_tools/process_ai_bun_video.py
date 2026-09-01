@@ -238,6 +238,16 @@ def normalize_frame(frame: Image.Image, crop: tuple[int, int, int, int]) -> Imag
     return canvas
 
 
+def clear_between_feet_floor_residue(frame: Image.Image) -> Image.Image:
+    """Clear the last compressed shadow island in the stable shoe gap."""
+    result = frame.copy()
+    # Every source frame normalizes to the same 256 px canvas and the unwanted
+    # island stays inside this empty gap.  The rectangle deliberately stops
+    # before both shoe outlines and starts below the central leg outline.
+    result.paste((0, 0, 0, 0), (140, 228, 149, 240))
+    return result
+
+
 def frame_signature(frame: Image.Image) -> np.ndarray:
     preview = frame.resize((48, 48), Image.Resampling.BILINEAR)
     rgba = np.asarray(preview, dtype=np.float32) / 255.0
@@ -358,7 +368,10 @@ def main() -> None:
 
     keyed = [key_character(Image.open(path)) for path in frame_paths]
     crop = union_bounds(keyed)
-    normalized = [normalize_frame(frame, crop) for frame in keyed]
+    normalized = [
+        clear_between_feet_floor_residue(normalize_frame(frame, crop))
+        for frame in keyed
+    ]
     run_start, run_end = select_run_cycle(normalized, 12, 57)
     run_frames = normalized[run_start:run_end]
     eat_start = 55
@@ -394,6 +407,7 @@ def main() -> None:
             "opaqueAtDistance": 58,
             "removeCornerWatermark": True,
             "removeFloorShadow": True,
+            "normalizedShoeGapCleanup": [140, 228, 149, 240],
             "preserveEnclosedCharacterRegions": True,
         },
         "retouch": "remove unintended tooth from open-mouth frames",
