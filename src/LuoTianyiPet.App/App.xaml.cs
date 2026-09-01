@@ -108,9 +108,13 @@ public partial class App : Application
                 !isPreviewOrQaRun
                     ? new CoreAudioSessionProbe()
                     : null;
+            Win32ShortcutInputBackend mediaInputBackend = new();
             IMediaCommandSender mediaCommandSender = new WindowsMediaCommandSender(
-                new Win32ShortcutInputBackend(),
+                mediaInputBackend,
                 settings.Media,
+                settings.Safety);
+            IMediaApplicationLauncher mediaApplicationLauncher = new WindowsMediaApplicationLauncher(
+                mediaInputBackend,
                 settings.Safety);
             ISystemVolumeService? systemVolumeService = !isPreviewOrQaRun || liveSystemVolumeQa
                 ? CreateSystemVolumeService(settings, _logger)
@@ -153,6 +157,7 @@ public partial class App : Application
                 animationCatalog,
                 audioSessionProbe,
                 mediaCommandSender,
+                mediaApplicationLauncher,
                 systemVolumeService,
                 startupRegistrationService,
                 mediaTrackInfoSource,

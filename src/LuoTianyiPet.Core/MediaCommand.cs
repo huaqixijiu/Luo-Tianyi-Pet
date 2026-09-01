@@ -28,3 +28,26 @@ public interface IMediaCommandSender
 {
     MediaCommandSendResult TrySend(MediaCommand command, DateTimeOffset now);
 }
+
+public enum MediaApplicationLaunchStatus
+{
+    AlreadyRunning,
+    Started,
+    NotFound,
+    ProtectedApplicationForeground,
+    ForegroundCheckUnavailable,
+    SystemRejected,
+}
+
+public sealed record MediaApplicationLaunchResult(MediaApplicationLaunchStatus Status)
+{
+    public bool IsReadyOrStarted =>
+        Status is MediaApplicationLaunchStatus.AlreadyRunning or MediaApplicationLaunchStatus.Started;
+}
+
+public interface IMediaApplicationLauncher
+{
+    bool IsRunning(string processName);
+
+    MediaApplicationLaunchResult TryLaunch(string processName);
+}

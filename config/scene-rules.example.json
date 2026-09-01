@@ -147,6 +147,19 @@
       "rejectWhenRelevantKeyIsAlreadyDown": true,
       "reportSentSeparatelyFromConfirmedSuccess": true
     },
+    "coldStartFromPlayButton": {
+      "enabled": true,
+      "triggerOnlyWhenTargetProcessIsAbsent": true,
+      "resolveExecutableFromWindowsAppPathsFirst": true,
+      "knownInstallDirectoriesFallback": true,
+      "shortcutDispatchDelayMilliseconds": 2000,
+      "timeoutMilliseconds": 30000,
+      "waitingAnimation": "resonance-loading-sway",
+      "waitingAnimationMotion": "none-static-source-image",
+      "holdWaitingTextUntilResolved": true,
+      "finishWhenCoreAudioBecomesAudible": true,
+      "disableInSafeGameMode": true
+    },
     "playingAnimations": {
       "selectionMode": "artist-aware",
       "selectAgainAfterPause": true,

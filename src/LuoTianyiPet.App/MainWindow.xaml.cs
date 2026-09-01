@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private const string FileDropPromptAnimation = "resonance-give-me";
     private const string FileDropSuccessAnimation = "resonance-ok";
     private const string FileDropFailureAnimation = "resonance-cry-shake";
+    private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -57,6 +58,8 @@ public partial class MainWindow : Window
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
+    private static readonly TimeSpan CloudMusicLaunchShortcutDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan CloudMusicLaunchTimeout = TimeSpan.FromSeconds(30);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -90,6 +93,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _messageNotificationStatusTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
+    private readonly IMediaApplicationLauncher _mediaApplicationLauncher;
     private readonly ISystemVolumeService? _systemVolumeService;
     private readonly IStartupRegistrationService? _startupRegistrationService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
@@ -143,10 +147,13 @@ public partial class MainWindow : Window
     private bool _externalVolumeFeedbackSubscribed;
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
+    private CancellationTokenSource? _cloudMusicLaunchCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
     private DateTimeOffset? _userPauseFastConfirmationUntil;
+    private Guid? _cloudMusicLaunchReactionToken;
+    private bool _cloudMusicLaunchWaiting;
     private EdgeDockSide _edgeDockSide;
     private EdgeDockSide _dragEdgeCandidate;
     private DesktopRectangle? _dragIntentPetBoundsInWindow;
@@ -187,6 +194,7 @@ public partial class MainWindow : Window
         AnimationCatalog? animationCatalog,
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
+        IMediaApplicationLauncher mediaApplicationLauncher,
         ISystemVolumeService? systemVolumeService,
         IStartupRegistrationService? startupRegistrationService,
         IMediaTrackInfoSource? mediaTrackInfoSource,
@@ -225,6 +233,8 @@ public partial class MainWindow : Window
         _animationCatalog = animationCatalog;
         _audioSessionProbe = audioSessionProbe;
         _mediaCommandSender = mediaCommandSender;
+        _mediaApplicationLauncher = mediaApplicationLauncher ??
+            throw new ArgumentNullException(nameof(mediaApplicationLauncher));
         _systemVolumeService = systemVolumeService;
         _startupRegistrationService = startupRegistrationService;
         _mediaTrackInfoSource = mediaTrackInfoSource;
@@ -1659,6 +1669,13 @@ public partial class MainWindow : Window
             : "preview-luo-tianyi";
         _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
+        bool completedApplicationLaunchWait = _cloudMusicLaunchWaiting;
+        if (completedApplicationLaunchWait)
+        {
+            FinishCloudMusicLaunchWait(restoreContinuousAnimation: false);
+            ShowFeedbackBubble("网易云已开始播放");
+        }
+
         UpdatePlayPauseGlyph();
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
         if (plan.Source == PlaybackPlanSource.Continuous &&
@@ -2857,7 +2874,7 @@ public partial class MainWindow : Window
         TrySendMediaCommand(MediaCommand.PreviousTrack);
 
     private void OnTogglePlayPauseClick(object sender, RoutedEventArgs e) =>
-        TrySendMediaCommand(MediaCommand.TogglePlayPause);
+        HandleTogglePlayPauseRequest();
 
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
@@ -3104,6 +3121,12 @@ public partial class MainWindow : Window
 
     private void TrySendMediaCommand(MediaCommand command)
     {
+        if (_cloudMusicLaunchWaiting)
+        {
+            ShowPersistentFeedbackBubble("网易云正在启动，等音乐响起后就会自动切换");
+            return;
+        }
+
         bool userRequestedPause = command == MediaCommand.TogglePlayPause &&
             _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
         MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
@@ -3146,12 +3169,195 @@ public partial class MainWindow : Window
         }
     }
 
+    private void HandleTogglePlayPauseRequest()
+    {
+        if (_cloudMusicLaunchWaiting)
+        {
+            ShowPersistentFeedbackBubble("网易云正在启动，等音乐响起后就会自动切换");
+            return;
+        }
+
+        MediaApplicationLaunchResult launchResult =
+            _mediaApplicationLauncher.TryLaunch(_musicTargetProcessName);
+        _logger.Info("media.application_launch_result", $"Status={launchResult.Status}.");
+        if (launchResult.Status == MediaApplicationLaunchStatus.AlreadyRunning)
+        {
+            TrySendMediaCommand(MediaCommand.TogglePlayPause);
+            return;
+        }
+
+        if (launchResult.Status == MediaApplicationLaunchStatus.Started)
+        {
+            BeginCloudMusicLaunchWait();
+            return;
+        }
+
+        string message = launchResult.Status switch
+        {
+            MediaApplicationLaunchStatus.NotFound =>
+                "没有找到网易云音乐，请先确认已经安装",
+            MediaApplicationLaunchStatus.ProtectedApplicationForeground =>
+                "游戏安全模式：这次没有打开网易云",
+            MediaApplicationLaunchStatus.ForegroundCheckUnavailable =>
+                "暂时无法确认前台程序，没有打开网易云",
+            MediaApplicationLaunchStatus.SystemRejected =>
+                "Windows 没能打开网易云音乐，请稍后再试",
+            _ => "网易云音乐暂时无法启动",
+        };
+        ShowFeedbackBubble(message);
+        _ = PlayBodyReactionAsync(FileDropFailureAnimation);
+    }
+
+    private void BeginCloudMusicLaunchWait()
+    {
+        _cloudMusicLaunchCancellation?.Cancel();
+        _cloudMusicLaunchCancellation?.Dispose();
+        _cloudMusicLaunchCancellation = new CancellationTokenSource();
+        _cloudMusicLaunchWaiting = true;
+        DateTimeOffset now = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                CloudMusicLaunchWaitingAnimation,
+                ReactionPriority.UserInteraction,
+                now + CloudMusicLaunchTimeout + TimeSpan.FromSeconds(2),
+                "media:cloudmusic-launch"),
+            now);
+        if (outcome.Token is Guid token)
+        {
+            if (outcome.Result == ReactionStartResult.Replaced)
+            {
+                CleanupReplacedGenshinPresentation();
+                CleanupReplacedMessageNotificationPresentation();
+            }
+
+            _cloudMusicLaunchReactionToken = token;
+            _ = _visualSwapTransition.PlayAsync(
+                () => PlayAnimation(
+                    CloudMusicLaunchWaitingAnimation,
+                    preserveVisualTransition: true));
+        }
+        else
+        {
+            _logger.Info("media.application_launch_animation_skipped", outcome.Result.ToString());
+        }
+
+        ShowPersistentFeedbackBubble("正在打开网易云音乐，请稍等…");
+        _ = MonitorCloudMusicLaunchAsync(_cloudMusicLaunchCancellation.Token);
+    }
+
+    private async Task MonitorCloudMusicLaunchAsync(CancellationToken cancellationToken)
+    {
+        DateTimeOffset startedAt = DateTimeOffset.Now;
+        bool playCommandSent = false;
+        try
+        {
+            while (DateTimeOffset.Now - startedAt < CloudMusicLaunchTimeout)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
+                if (!_cloudMusicLaunchWaiting ||
+                    _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+                {
+                    return;
+                }
+
+                if (!playCommandSent &&
+                    DateTimeOffset.Now - startedAt >= CloudMusicLaunchShortcutDelay &&
+                    _mediaApplicationLauncher.IsRunning(_musicTargetProcessName))
+                {
+                    MediaCommandSendResult playResult = _mediaCommandSender.TrySend(
+                        MediaCommand.TogglePlayPause,
+                        DateTimeOffset.Now);
+                    _logger.Info(
+                        "media.application_launch_play_result",
+                        $"Status={playResult.Status}.");
+                    if (playResult.WasSent)
+                    {
+                        playCommandSent = true;
+                        if (_audioSessionProbe is null)
+                        {
+                            FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
+                            ShowFeedbackBubble(
+                                "网易云已打开并发送播放快捷键；音乐检测关闭，无法确认播放状态");
+                            return;
+                        }
+
+                        ShowPersistentFeedbackBubble("网易云已打开，正在等待音乐开始播放…");
+                    }
+                    else if (playResult.Status is not
+                        (MediaCommandSendStatus.RateLimited or MediaCommandSendStatus.KeyboardBusy))
+                    {
+                        FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
+                        ShowFeedbackBubble(GetMediaCommandFailureMessage(playResult.Status));
+                        await PlayBodyReactionAsync(FileDropFailureAnimation);
+                        return;
+                    }
+                }
+            }
+
+            if (_cloudMusicLaunchWaiting)
+            {
+                FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
+                ShowFeedbackBubble(playCommandSent
+                    ? "等待网易云播放超时，请打开网易云检查歌曲"
+                    : "网易云启动超时，请稍后再试");
+                await PlayBodyReactionAsync(FileDropFailureAnimation);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Playback detection or window shutdown owns the final state.
+        }
+    }
+
+    private void FinishCloudMusicLaunchWait(bool restoreContinuousAnimation)
+    {
+        if (!_cloudMusicLaunchWaiting)
+        {
+            return;
+        }
+
+        _cloudMusicLaunchWaiting = false;
+        _cloudMusicLaunchCancellation?.Cancel();
+        _cloudMusicLaunchCancellation?.Dispose();
+        _cloudMusicLaunchCancellation = null;
+        Guid? token = _cloudMusicLaunchReactionToken;
+        _cloudMusicLaunchReactionToken = null;
+        bool completed = token is Guid reactionToken &&
+            _stateMachine.CompleteReaction(reactionToken, DateTimeOffset.Now);
+        if (completed && restoreContinuousAnimation && !_isClosing)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "media.application_launch_wait_completed");
+        }
+    }
+
+    private static string GetMediaCommandFailureMessage(MediaCommandSendStatus status) => status switch
+    {
+        MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
+        MediaCommandSendStatus.InvalidShortcut => "播放快捷键设置无效，请检查配置",
+        MediaCommandSendStatus.ProtectedApplicationForeground =>
+            "游戏安全模式：这次没有发送播放快捷键",
+        MediaCommandSendStatus.ForegroundCheckUnavailable =>
+            "暂时无法确认前台程序，没有发送播放快捷键",
+        MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
+        MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
+        MediaCommandSendStatus.SystemRejected => "系统没有接受播放快捷键，请再试一次",
+        _ => "没有发送播放快捷键",
+    };
+
     private void ShowFeedbackBubble(string message)
     {
         FeedbackBubbleText.Text = message;
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Start();
+    }
+
+    private void ShowPersistentFeedbackBubble(string message)
+    {
+        FeedbackBubbleText.Text = message;
+        FeedbackBubble.Visibility = Visibility.Visible;
+        _feedbackBubbleTimer.Stop();
     }
 
     private void OnFileDragEnter(object sender, WpfDragEventArgs e) =>
@@ -3798,6 +4004,9 @@ public partial class MainWindow : Window
         _trayIcon = null;
         _trackSwitchCancellation?.Cancel();
         _trackSwitchCancellation?.Dispose();
+        _cloudMusicLaunchCancellation?.Cancel();
+        _cloudMusicLaunchCancellation?.Dispose();
+        _cloudMusicLaunchCancellation = null;
         _musicDetectionTimer.Stop();
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
         _musicPausePresentationTimer.Stop();
