@@ -18,6 +18,8 @@ artifacts/
 *.tmp
 *.temp
 ~$*
+__pycache__/
+*.py[cod]
 
 # Local heavyweight authoring tools (portable, reproducible setup only)
 .local-tools/

@@ -1,10 +1,10 @@
 """Convert the approved AI bun-chase video into traceable transparent atlases.
 
 The video model emitted a nearly uniform salmon background, a detached moving
-watermark, a soft floor shadow, and one unwanted tooth. This tool keys the
-background, clears the corner watermark, attenuates the floor shadow, fills the
-small tooth region from the surrounding mouth colour, normalizes every frame to
-a fixed transparent canvas, and builds separate running and eating atlases.
+watermark, a soft floor shadow, and a small tooth that the user chose to keep.
+This tool keys the background, clears the corner watermark and floor shadow,
+normalizes every frame to a fixed transparent canvas, and builds separate
+running and eating atlases without repainting character details.
 """
 
 from __future__ import annotations
@@ -33,70 +33,8 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def remove_unwanted_tooth(rgb: np.ndarray) -> np.ndarray:
-    result = rgb.copy()
-    height, width, _ = result.shape
-    x0, x1 = int(width * 0.38), int(width * 0.62)
-    y0, y1 = int(height * 0.34), int(height * 0.60)
-    roi = result[y0:y1, x0:x1]
-
-    red = (
-        (roi[:, :, 0] >= 105)
-        & (roi[:, :, 0] <= 190)
-        & (roi[:, :, 1] >= 45)
-        & (roi[:, :, 1] <= 125)
-        & (roi[:, :, 2] >= 40)
-        & (roi[:, :, 2] <= 120)
-    )
-    ys, xs = np.where(red)
-    if len(xs) < 350:
-        return result
-
-    mouth_left, mouth_right = int(xs.min()), int(xs.max())
-    mouth_top, mouth_bottom = int(ys.min()), int(ys.max())
-    mouth_height = mouth_bottom - mouth_top + 1
-    if mouth_height < 24 or mouth_right - mouth_left < 28:
-        return result
-
-    mouth_width = mouth_right - mouth_left + 1
-    if mouth_width < 45:
-        return result
-
-    mouth = roi[mouth_top : mouth_bottom + 1, mouth_left : mouth_right + 1]
-    coral_pixels = mouth[red[mouth_top : mouth_bottom + 1, mouth_left : mouth_right + 1]]
-    coral = tuple(int(value) for value in np.median(coral_pixels, axis=0))
-    outline_pixels = coral_pixels[np.sum(coral_pixels, axis=1) < np.percentile(np.sum(coral_pixels, axis=1), 18)]
-    outline = tuple(int(value) for value in np.median(outline_pixels, axis=0))
-
-    # In the approved take the generated tooth is anchored to the upper-left
-    # mouth rim.  Paint only that small relative triangle; broad colour-based
-    # replacement would risk touching the light hair or skin.
-    centre_x = int(mouth_width * 0.28)
-    half_width = max(4, int(mouth_width * 0.07))
-    tooth_height = max(6, int(mouth_height * 0.24))
-    mouth_image = Image.fromarray(mouth, mode="RGB")
-    draw = ImageDraw.Draw(mouth_image)
-    draw.polygon(
-        [
-            (centre_x - half_width, 1),
-            (centre_x + half_width, 1),
-            (centre_x, tooth_height),
-        ],
-        fill=coral,
-    )
-    draw.line(
-        (centre_x - half_width - 1, 1, centre_x + half_width + 1, 1),
-        fill=outline,
-        width=max(2, mouth_width // 80),
-    )
-    roi[mouth_top : mouth_bottom + 1, mouth_left : mouth_right + 1] = np.asarray(mouth_image)
-    result[y0:y1, x0:x1] = roi
-    return result
-
-
 def key_character(frame: Image.Image) -> Image.Image:
     rgb = np.asarray(frame.convert("RGB"), dtype=np.uint8)
-    rgb = remove_unwanted_tooth(rgb)
     height, width, _ = rgb.shape
     yy, xx = np.mgrid[0:height, 0:width]
     x_norm = xx.astype(np.float32) / max(1, width - 1)
@@ -410,7 +348,7 @@ def main() -> None:
             "normalizedShoeGapCleanup": [140, 228, 149, 240],
             "preserveEnclosedCharacterRegions": True,
         },
-        "retouch": "remove unintended tooth from open-mouth frames",
+        "retouch": "none; preserve the source open-mouth tooth",
         "normalizedFrameSize": [FRAME_SIZE, FRAME_SIZE],
         "run": {
             "sourceFramesOneBased": [run_start + 1, run_end],
