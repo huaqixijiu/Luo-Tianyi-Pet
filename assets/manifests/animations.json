@@ -1401,11 +1401,10 @@
       ],
       "id": "ai-bun-chase-run",
       "atlasPath": "animations/runtime/ai-bun-chase-run.atlas.png",
-      "atlasSha256": "a9ed336b53849cb45785623b670de40f72df3e55d5b3db620768fa21af7141f3",
+      "atlasSha256": "4fe35e6be6501d2fac28374029bb1def3ee7fce2f22c7a97585221bc9b6fd8c1",
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
-        42,
         42,
         42,
         42,
@@ -1440,7 +1439,7 @@
       ],
       "id": "ai-bun-eat",
       "atlasPath": "animations/runtime/ai-bun-eat.atlas.png",
-      "atlasSha256": "d84f9240dde657179b2f0505b419e354e1f93140f643bbd00d0a0f809619f16f",
+      "atlasSha256": "afb23e92ae0b55d027bf24f372b2098766d8ccee55bb47da1bad59088da863dc",
       "columns": 8,
       "rows": 9,
       "frameDurationsMilliseconds": [

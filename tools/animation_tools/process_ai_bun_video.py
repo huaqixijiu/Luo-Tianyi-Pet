@@ -364,6 +364,15 @@ def main() -> None:
         "sourceVideoSha256": sha256(args.source_video),
         "sourceFrameCount": len(frame_paths),
         "sourceFps": 24,
+        "frameExtraction": {
+            "decoder": "Blender 4.5 VSE",
+            "inputColorSpace": "sRGB",
+            "displayDevice": "sRGB",
+            "viewTransform": "Standard",
+            "look": "None",
+            "exposure": 0,
+            "gamma": 1,
+        },
         "backgroundRemoval": {
             "method": "border-fitted colour plane plus sealed-outline interior preservation and corner watermark clearing",
             "transparentBelowDistance": 34,

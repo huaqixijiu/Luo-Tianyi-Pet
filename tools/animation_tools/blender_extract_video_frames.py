@@ -33,6 +33,16 @@ def main() -> None:
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.use_file_extension = True
     scene.render.use_sequencer = True
+    # The source is ordinary sRGB artwork, not a scene-referred 3D render.
+    # Blender 4.x defaults to AgX, which tone-maps and visibly darkens the
+    # character when the video strip is rendered back to PNG. Standard keeps
+    # the decoded video appearance intact for sprite extraction.
+    scene.display_settings.display_device = "sRGB"
+    scene.sequencer_colorspace_settings.name = "sRGB"
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0
+    scene.view_settings.gamma = 1
 
     for frame in range(1, frame_count + 1):
         scene.frame_set(frame)
@@ -48,6 +58,7 @@ def main() -> None:
                 "height": height,
                 "frameCount": frame_count,
                 "fps": fps,
+                "viewTransform": scene.view_settings.view_transform,
                 "outputDirectory": str(output_dir),
             },
             ensure_ascii=False,
