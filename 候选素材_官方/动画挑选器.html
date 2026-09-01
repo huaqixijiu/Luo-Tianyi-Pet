@@ -176,7 +176,7 @@
     }
     .card:hover { transform: translateY(-3px); border-color: rgba(99,225,220,.42); box-shadow: 0 22px 48px rgba(0,0,0,.30); }
     .card.chosen { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(99,225,220,.25), 0 22px 48px rgba(0,0,0,.30); }
-    .card.kept { border-color: rgba(255,214,161,.72); box-shadow: 0 0 0 1px rgba(255,214,161,.18), 0 22px 48px rgba(0,0,0,.30); }
+    .card.marked-delete { border-color: rgba(255,155,169,.82); box-shadow: 0 0 0 1px rgba(255,155,169,.22), 0 22px 48px rgba(0,0,0,.30); }
     .card.new-item { border-color: rgba(135,185,255,.55); }
 
     .preview {
@@ -221,11 +221,11 @@
     .new-badge + .used-badge { top: 43px; }
 
     .card-body { padding: 15px; }
-    .keep-row { display: flex; align-items: center; gap: 9px; width: max-content; margin: 0 0 11px; padding: 7px 10px; border: 1px solid rgba(255,214,161,.22); border-radius: 9px; color: var(--warm); background: rgba(255,214,161,.055); cursor: pointer; font-size: 12px; font-weight: 850; }
-    .keep-row:hover { background: rgba(255,214,161,.11); }
-    .keep-row input { width: 17px; height: 17px; margin: 0; accent-color: #f5b966; }
-    .keep-count { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid rgba(255,214,161,.18); border-radius: 11px; color: var(--muted); background: rgba(255,214,161,.045); font-size: 12px; }
-    .keep-count strong { margin: 0 4px; color: var(--warm); font-size: 17px; }
+    .delete-row { display: flex; align-items: center; gap: 9px; width: max-content; margin: 0 0 11px; padding: 7px 10px; border: 1px solid rgba(255,155,169,.28); border-radius: 9px; color: var(--danger); background: rgba(255,155,169,.06); cursor: pointer; font-size: 12px; font-weight: 850; }
+    .delete-row:hover { background: rgba(255,155,169,.13); }
+    .delete-row input { width: 17px; height: 17px; margin: 0; accent-color: #ff7589; }
+    .delete-count { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid rgba(255,155,169,.22); border-radius: 11px; color: var(--muted); background: rgba(255,155,169,.055); font-size: 12px; }
+    .delete-count strong { margin: 0 4px; color: var(--danger); font-size: 17px; }
     .card h3 { margin: 0 0 8px; font-size: 17px; line-height: 1.35; }
     .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .tag { padding: 4px 7px; border-radius: 7px; color: var(--muted); background: rgba(255,255,255,.05); font-size: 11px; }
@@ -234,6 +234,17 @@
     .tag.used { color: #031719; background: var(--cyan); font-weight: 900; }
     .desc { min-height: 58px; margin: 0 0 13px; color: var(--muted); font-size: 13px; line-height: 1.55; }
     .active-usage { margin: -2px 0 13px; padding: 9px 10px; border-left: 3px solid var(--cyan); border-radius: 0 9px 9px 0; color: #c9fffc; background: rgba(99,225,220,.08); font-size: 12px; line-height: 1.55; }
+    .delete-warning { margin: -3px 0 13px; color: var(--danger); font-size: 12px; font-weight: 800; line-height: 1.5; }
+
+    .used-overview { margin: 0 0 18px; padding: 18px; border: 1px solid rgba(99,225,220,.22); border-radius: 20px; background: rgba(8,25,29,.78); box-shadow: var(--shadow); }
+    .used-overview-head { display: flex; justify-content: space-between; gap: 14px; align-items: start; margin-bottom: 13px; }
+    .used-overview h2 { margin: 0 0 6px; font-size: 18px; }
+    .used-overview p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .used-overview-count { flex: 0 0 auto; color: var(--cyan); font-size: 13px; font-weight: 900; }
+    .used-overview-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .used-overview-item { padding: 11px 12px; border: 1px solid rgba(99,225,220,.11); border-radius: 12px; background: rgba(99,225,220,.045); }
+    .used-overview-item strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 13px; }
+    .used-overview-item span { display: block; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
     .assign-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 800; }
     .role-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -343,6 +354,7 @@
       .preview { height: 330px; }
       .board-head { align-items: flex-start; flex-direction: column; }
       .project-status { grid-template-columns: 1fr 1fr; }
+      .used-overview-list { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -352,19 +364,19 @@
       <div>
         <p class="eyebrow">LUO TIANYI DESKTOP PET</p>
         <h1>动画挑选器</h1>
-        <p class="intro">重新整理后的官方素材总览。当前已经接入桌宠的动画会排在最前面并写明触发方式；你仍可勾选其它候选，所有选择都能备份和恢复。</p>
+        <p class="intro">重新整理后的动画素材总览。当前已经接入桌宠的动画会排在最前面并写明触发方式；不想要的素材可以勾选“删掉这个动画”，等你明确通知后我才会实际清理。</p>
       </div>
-      <div class="count-box"><strong id="visibleCount">90</strong><span>个动作候选正在显示</span></div>
+      <div class="count-box"><strong id="visibleCount">91</strong><span>个动作候选正在显示</span></div>
     </header>
 
     <section class="selection-board" aria-labelledby="selectionTitle">
       <div class="board-head">
         <h2 id="selectionTitle">完整动画状态表</h2>
         <div class="board-actions">
-          <span class="keep-count">已保留 <strong id="keptCount">0</strong> 个动画</span>
+          <span class="delete-count">待删除 <strong id="deletionCount">0</strong> 个动画</span>
           <button class="quiet-button" id="undoAction" type="button" disabled>撤销上一步</button>
           <button class="quiet-button" id="restoreProject" type="button">恢复项目当前状态</button>
-          <button class="quiet-button" id="clearAll" type="button">开始全新挑选</button>
+          <button class="quiet-button" id="clearDeletion" type="button">清空待删除清单</button>
           <button class="primary-button" id="showSummary" type="button">查看 / 导出结果</button>
         </div>
       </div>
@@ -375,7 +387,18 @@
       <div class="status-card"><strong id="usedCount">0</strong><span>个动画已经接入桌宠</span></div>
       <div class="status-card"><strong id="candidateCount">0</strong><span>个动画仍可继续挑选</span></div>
       <div class="status-card"><strong id="newCount">0</strong><span>个素材标记为新添加</span></div>
-      <div class="status-card"><strong id="totalCount">0</strong><span>个官方动画与动效候选</span></div>
+      <div class="status-card"><strong id="totalCount">0</strong><span>个动画、立绘与动效候选</span></div>
+    </section>
+
+    <section class="used-overview" aria-labelledby="usedOverviewTitle">
+      <div class="used-overview-head">
+        <div>
+          <h2 id="usedOverviewTitle">目前已经使用的动画与位置</h2>
+          <p>这里是正式桌宠当前会触发的动画，不包含仅保留在运行时或挑选器中的未分配候选。</p>
+        </div>
+        <span class="used-overview-count"><strong id="usedOverviewCount">0</strong> 项已接入</span>
+      </div>
+      <div class="used-overview-list" id="usedOverviewList"></div>
     </section>
 
     <div class="toolbar">
@@ -389,11 +412,11 @@
       </select>
       <button class="quiet-button" id="recommendedOnly" type="button" aria-pressed="false">只看优先推荐</button>
       <button class="quiet-button" id="usedOnly" type="button" aria-pressed="false">只看当前已使用</button>
-      <button class="quiet-button" id="keptOnly" type="button" aria-pressed="false">只看已保留</button>
+      <button class="quiet-button" id="deletionOnly" type="button" aria-pressed="false">只看待删除</button>
       <button class="quiet-button" id="newOnly" type="button" aria-pressed="false">只看新添加</button>
     </div>
 
-    <p class="help"><strong>说明：</strong>已经接入桌宠的动画会自动排在最上方，并带青色“已使用”标记；卡片中会写明当前触发方式。带蓝色“新添加”标记的素材仍可用“只看新添加”集中预览。点击任意预览可以放大观看。</p>
+    <p class="help"><strong>说明：</strong>青色“已使用”表示动画已经进入正式桌宠，卡片和上方总览会写明触发位置。勾选“删掉这个动画”只会加入待删除清单，不会立刻删除文件；已使用动画即使被勾选，也必须先解除代码和配置引用后才能清理。点击任意预览可以放大观看。</p>
 
     <section class="grid" id="grid" aria-live="polite"></section>
     <div class="empty" id="empty">没有符合当前条件的动作，请换个关键词或筛选条件。</div>
@@ -416,8 +439,8 @@
 
   <dialog id="summaryDialog">
     <div class="dialog-body">
-      <h2>动画选择结果</h2>
-      <p class="intro">结果会自动保存在这个浏览器中。可以复制文字发给我，或者下载成文本文件。</p>
+      <h2>动画使用与待删除结果</h2>
+      <p class="intro">待删除清单会自动保存在这个浏览器中。复制或下载结果发给我后，我会先核对引用；只有你明确通知开始删除时才会实际清理。</p>
       <textarea id="summaryText" readonly></textarea>
       <div class="dialog-actions">
         <button class="quiet-button" id="closeDialog" type="button">关闭</button>
@@ -429,7 +452,7 @@
         <button class="quiet-button" id="importBackup" type="button">导入选择备份</button>
         <input class="visually-hidden" id="backupFile" type="file" accept="application/json,.json" />
       </div>
-      <p class="backup-note">文本结果适合发给我继续讨论；JSON 备份可以完整恢复勾选、用途分配和联动场景。</p>
+      <p class="backup-note">文本结果适合发给我继续讨论；JSON 备份可以完整恢复待删除清单、用途分配和联动场景。</p>
     </div>
   </dialog>
 
@@ -586,9 +609,11 @@
     ];
 
     const activeUsage = {
-      official_fullbody_idle:"双击“嘿嘿”进入完整全身互动；拖拽时保持本模型画面并只移动窗口，不再切换专用拖拽动画；再次双击返回迷你模式。",
+      official_fullbody_idle:"双击“嘿嘿”进入完整全身互动；拖拽时保持这张新立绘并只移动窗口；音乐播放时由音乐动画临时覆盖，停止后恢复；再次双击返回迷你模式。",
       dance9:"检测到歌手包含洛天依时，与“享受音乐”二选一随机作为持续音乐动画。",
       e_baituo:"原神在后台运行时，每小时低频随机出现一次；游戏前台或全屏时不出现。",
+      e_give:"用户把文件拖入桌宠窗口时播放一次并定格末帧；文件离开投放区时恢复，成功移入回收站后进入吃包子流程。",
+      ai_file_eating_approved:"桌面文件移入回收站或文件直接拖到桌宠并回收成功后，在原位置生成可拖动小笼包；天依循环奔跑追踪、张嘴吃掉，再返回原位。",
       e_voice:"检测到系统音量调高时正放，调低时使用运行时倒放版本；悬浮控制岛不显示音量图标。",
       e_dark:"胸部或下体在 4 秒内第二次点击时以 0.5 倍速播放。",
       e_hehe:"默认迷你待机；未播放音乐且没有其它反应时循环。",
@@ -598,7 +623,7 @@
       e_music:"普通歌曲固定陪听；洛天依歌曲与“音乐摇摆”随机二选一。",
       e_soft:"完整全身模式点击左眼或右眼时播放。",
       e_guilty:"完整全身模式首次点击胸部或下体时以 0.7 倍速播放。",
-      e_ok:"上一首或下一首操作确认成功后播放。",
+      e_ok:"上一首、下一首或其它需要确认的操作成功后播放；文件回收成功则优先进入吃包子演出。",
       new12_entrance:"拖到底部边缘时立即预览；松手后倒放躲入底边，悬停触发条后正放出现。",
       new12_peek:"拖到左/右边缘时立即预览；松手后倒放躲藏，悬停墙面触发条后正放探头。",
       new12_flat:"无输入约 5 分钟后的中等待机。",
@@ -612,6 +637,7 @@
       p_curious:"QQ 或微信有系统通知且来源应用不在前台时播放。",
       p_land:"仅在迷你模式从较高位置快速向下甩动并松手时作为隐藏彩蛋播放；普通松手、完整全身和音乐拖拽均不播放。",
       p_idle:"13:30～20:00 启动或运行中跨到 13:30 时持续播放 30 秒。",
+      p_loading:"网易云未运行时点击播放/暂停后静止显示，并配合“正在打开网易云音乐”文字；检测到开始出声后结束。",
       p_pause:"音乐暂停后持续约 1 分钟；恢复播放或双击时提前退出并恢复用户原显示模式。",
       p_warning:"完整全身模式点击左脚或右脚时播放。",
       p_network:"用户主动退出桌宠时播放一次。",
@@ -622,8 +648,9 @@
     items.forEach(item => item.activeUsage = activeUsage[item.id] || "");
 
     const categoryNames = { body:"全身动作", feedback:"操作反馈", expression:"表情互动", procedural:"程序动效" };
-    const stateVersion = 3;
-    const storageKey = "luotianyi-pet-animation-picker-state-v3";
+    const stateVersion = 4;
+    const storageKey = "luotianyi-pet-animation-picker-state-v4";
+    const legacyStorageKey = "luotianyi-pet-animation-picker-state-v3";
     const defaultChoices = {
       idle:"e_hehe",
       randomIdle:"new12_flat",
@@ -640,28 +667,21 @@
       warning:"e_noPlay",
       surprise:"p_lowbattery"
     };
-    const originallyKept = [
-      "dance10","dance9","holo","thumb8","e_baituo","e_success","e_give","e_voice",
-      "e_great","e_dark","e_hehe","e_join","e_kiss","e_cute","e_noPlay","e_expand",
-      "e_poor","e_omg","e_oshi","e_music","e_soft","e_nice","e_guilty","e_ok",
-      "p_morning","p_goodnight","p_curious","p_loading","p_pause","p_warning","p_network",
-      "p_lowbattery","p_food","p_highfive"
-    ];
     const validItemIds = new Set(items.map(item => item.id));
     const validRoleIds = new Set(roles.map(role => role.id));
     const validScenarioIds = new Set(scenarios.map(item => item.id));
-    const defaultKeptItems = [...new Set([...originallyKept, ...Object.keys(activeUsage)])].filter(id => validItemIds.has(id));
+    const defaultDeletionItems = [];
     const defaultScenarioChoices = [
       "audioSession","mediaKeys","trackChange","volume","pointer","dragPhysics","idleEvents",
       "screenEdge","fullscreen","appPresence","startup","sleepWake","clock"
     ];
     let choices = { ...defaultChoices };
     let scenarioChoices = [...defaultScenarioChoices];
-    let keptItems = [...defaultKeptItems];
+    let deletionItems = [...defaultDeletionItems];
     let history = [];
     let priorityOnly = false;
     let usedOnly = false;
-    let keptOnly = false;
+    let deletionOnly = false;
     let newOnly = false;
 
     function sanitizeState(candidate) {
@@ -673,30 +693,35 @@
       }
       const safeScenarios = Array.isArray(candidate?.scenarioChoices)
         ? [...new Set(candidate.scenarioChoices.filter(id => validScenarioIds.has(id)))] : [];
-      const safeKept = Array.isArray(candidate?.keptItems)
-        ? [...new Set(candidate.keptItems.filter(id => validItemIds.has(id)))] : [];
-      return { choices:safeChoices, scenarioChoices:safeScenarios, keptItems:safeKept };
+      const safeDeletionItems = Array.isArray(candidate?.deletionItems)
+        ? [...new Set(candidate.deletionItems.filter(id => validItemIds.has(id)))] : [];
+      return { choices:safeChoices, scenarioChoices:safeScenarios, deletionItems:safeDeletionItems };
     }
 
     function currentState() {
-      return { version:stateVersion, choices:{...choices}, scenarioChoices:[...scenarioChoices], keptItems:[...keptItems] };
+      return { version:stateVersion, choices:{...choices}, scenarioChoices:[...scenarioChoices], deletionItems:[...deletionItems] };
     }
 
     function applyState(candidate) {
       const safe = sanitizeState(candidate);
       choices = safe.choices;
       scenarioChoices = safe.scenarioChoices;
-      keptItems = safe.keptItems;
+      deletionItems = safe.deletionItems;
     }
 
     function projectState() {
-      return { choices:{...defaultChoices}, scenarioChoices:[...defaultScenarioChoices], keptItems:[...defaultKeptItems] };
+      return { choices:{...defaultChoices}, scenarioChoices:[...defaultScenarioChoices], deletionItems:[...defaultDeletionItems] };
     }
 
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
       if (saved?.version === stateVersion) applyState(saved);
-      else applyState(projectState());
+      else {
+        const legacy = JSON.parse(localStorage.getItem(legacyStorageKey) || "null");
+        if (legacy?.version === 3) {
+          applyState({ choices:legacy.choices, scenarioChoices:legacy.scenarioChoices, deletionItems:[] });
+        } else applyState(projectState());
+      }
     } catch {
       applyState(projectState());
     }
@@ -714,7 +739,8 @@
     const previewDialog = document.getElementById("previewDialog");
     const largePreviewImage = document.getElementById("largePreviewImage");
     const largePreviewTitle = document.getElementById("largePreviewTitle");
-    const keptCount = document.getElementById("keptCount");
+    const deletionCount = document.getElementById("deletionCount");
+    const usedOverviewList = document.getElementById("usedOverviewList");
     const undoAction = document.getElementById("undoAction");
     const backupFile = document.getElementById("backupFile");
 
@@ -768,8 +794,8 @@
 
     function cardTemplate(item) {
       const selectedRoles = roles.filter(role => choices[role.id] === item.id);
-      const kept = keptItems.includes(item.id);
-      return `<article class="card ${selectedRoles.length ? "chosen" : ""} ${kept ? "kept" : ""} ${item.newlyAdded ? "new-item" : ""}" data-id="${item.id}">
+      const markedForDeletion = deletionItems.includes(item.id);
+      return `<article class="card ${selectedRoles.length ? "chosen" : ""} ${markedForDeletion ? "marked-delete" : ""} ${item.newlyAdded ? "new-item" : ""}" data-id="${item.id}">
         <div class="preview" data-preview="${item.id}" title="点击放大预览">
           <img class="${item.motion ? `motion-${item.motion}` : ""}" src="${esc(item.src)}" alt="${esc(item.title)}动画预览" loading="lazy" />
           <span class="preview-badge">${esc(item.kind)}</span>
@@ -778,7 +804,7 @@
           <span class="zoom-hint">点击放大</span>
         </div>
         <div class="card-body">
-          <label class="keep-row"><input type="checkbox" data-keep="${item.id}" ${kept ? "checked" : ""} /><span>保留这个动画</span></label>
+          <label class="delete-row"><input type="checkbox" data-delete="${item.id}" ${markedForDeletion ? "checked" : ""} /><span>删掉这个动画</span></label>
           <h3>${esc(item.title)}</h3>
           <div class="meta">
             <span class="tag">${categoryNames[item.category]}</span>
@@ -788,7 +814,8 @@
             ${item.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join("")}
           </div>
           <p class="desc">${esc(item.desc)}</p>
-          ${item.activeUsage ? `<p class="active-usage"><strong>当前触发：</strong>${esc(item.activeUsage)}</p>` : ""}
+          ${item.activeUsage ? `<p class="active-usage"><strong>当前用途：</strong>${esc(item.activeUsage)}</p>` : ""}
+          ${markedForDeletion && item.activeUsage ? '<p class="delete-warning">此动画正在使用：实际删除前必须先解除代码和配置引用。</p>' : ""}
           <details class="assign-panel" ${selectedRoles.length ? "open" : ""}>
             <summary>分配用途${selectedRoles.length ? ` · 已选 ${selectedRoles.map(role => role.short).join("、")}` : ""}</summary>
             <div class="role-buttons">${roles.map(role => `<button class="role-button ${choices[role.id] === item.id ? "active" : ""}" type="button" data-role="${role.id}" data-item="${item.id}">${role.short}</button>`).join("")}</div>
@@ -807,10 +834,10 @@
         const matchesCategory = category.value === "all" || item.category === category.value;
         const matchesPriority = !priorityOnly || item.priority;
         const matchesUsed = !usedOnly || item.activeUsage;
-        const matchesKept = !keptOnly || keptItems.includes(item.id);
+        const matchesDeletion = !deletionOnly || deletionItems.includes(item.id);
         const matchesNew = !newOnly || item.newlyAdded;
         const haystack = [item.title, item.kind, item.desc, ...item.tags].join(" ").toLowerCase();
-        return matchesCategory && matchesPriority && matchesUsed && matchesKept && matchesNew && (!term || haystack.includes(term));
+        return matchesCategory && matchesPriority && matchesUsed && matchesDeletion && matchesNew && (!term || haystack.includes(term));
       }).sort((left, right) => Number(Boolean(right.activeUsage)) - Number(Boolean(left.activeUsage)));
     }
 
@@ -827,11 +854,11 @@
         else choices[role.id] = item.id;
         commit(`${role.label}：${choices[role.id] ? item.title : "已清除"}`);
       }));
-      grid.querySelectorAll("[data-keep]").forEach(input => input.addEventListener("change", () => {
+      grid.querySelectorAll("[data-delete]").forEach(input => input.addEventListener("change", () => {
         remember();
-        if (input.checked && !keptItems.includes(input.dataset.keep)) keptItems.push(input.dataset.keep);
-        if (!input.checked) keptItems = keptItems.filter(id => id !== input.dataset.keep);
-        commit(input.checked ? "已加入保留列表" : "已从保留列表移除");
+        if (input.checked && !deletionItems.includes(input.dataset.delete)) deletionItems.push(input.dataset.delete);
+        if (!input.checked) deletionItems = deletionItems.filter(id => id !== input.dataset.delete);
+        commit(input.checked ? "已加入待删除清单（尚未删除文件）" : "已从待删除清单移除");
       }));
       grid.querySelectorAll("[data-preview]").forEach(preview => preview.addEventListener("click", () => {
         const item = itemById(preview.dataset.preview);
@@ -858,11 +885,21 @@
       }));
     }
 
+    function renderUsedOverview() {
+      const usedAnimations = items.filter(item => item.activeUsage);
+      usedOverviewList.innerHTML = usedAnimations.map(item => `<div class="used-overview-item">
+        <strong>${esc(item.title)}</strong>
+        <span>${esc(item.activeUsage)}</span>
+      </div>`).join("");
+      document.getElementById("usedOverviewCount").textContent = usedAnimations.length;
+    }
+
     function renderAll() {
       renderSlots();
       renderGrid();
       renderScenarios();
-      keptCount.textContent = keptItems.length;
+      renderUsedOverview();
+      deletionCount.textContent = deletionItems.length;
       document.getElementById("usedCount").textContent = items.filter(item => item.activeUsage).length;
       document.getElementById("candidateCount").textContent = items.filter(item => !item.activeUsage).length;
       document.getElementById("newCount").textContent = items.filter(item => item.newlyAdded).length;
@@ -871,22 +908,24 @@
     }
 
     function buildSummary() {
-      const lines = ["洛天依桌宠 · 动画选择结果", ""];
+      const lines = ["洛天依桌宠 · 动画使用与待删除结果", ""];
       const usedAnimations = items.filter(item => item.activeUsage);
       lines.push(`项目当前已接入（${usedAnimations.length} 个）`, "");
       usedAnimations.forEach(item => {
         lines.push(`- ${item.title}`);
-        lines.push(`  触发：${item.activeUsage}`);
+        lines.push(`  用途：${item.activeUsage}`);
       });
       lines.push("");
-      lines.push(`勾选保留的动画（${keptItems.length} 个）`, "");
-      const keptAnimations = items.filter(item => keptItems.includes(item.id));
-      if (!keptAnimations.length) lines.push("- 尚未勾选");
-      keptAnimations.forEach(item => {
+      lines.push(`勾选待删除的动画（${deletionItems.length} 个）`, "");
+      const deletionAnimations = items.filter(item => deletionItems.includes(item.id));
+      if (!deletionAnimations.length) lines.push("- 尚未勾选");
+      deletionAnimations.forEach(item => {
         lines.push(`- ${item.title}`);
         lines.push(`  类型：${item.kind}`);
         lines.push(`  文件：${item.source.replaceAll("/", "\\")}`);
+        if (item.activeUsage) lines.push(`  注意：当前仍在使用——${item.activeUsage}`);
       });
+      lines.push("", "说明：以上仅是待删除清单，尚未删除任何素材；收到明确删除通知后再核对引用并执行。", "");
       lines.push("", "动画状态分配", "");
       roles.forEach((role, index) => {
         const item = itemById(choices[role.id]);
@@ -922,10 +961,10 @@
       event.currentTarget.textContent = usedOnly ? "显示全部候选" : "只看当前已使用";
       renderGrid();
     });
-    document.getElementById("keptOnly").addEventListener("click", event => {
-      keptOnly = !keptOnly;
-      event.currentTarget.setAttribute("aria-pressed", String(keptOnly));
-      event.currentTarget.textContent = keptOnly ? "显示全部候选" : "只看已保留";
+    document.getElementById("deletionOnly").addEventListener("click", event => {
+      deletionOnly = !deletionOnly;
+      event.currentTarget.setAttribute("aria-pressed", String(deletionOnly));
+      event.currentTarget.textContent = deletionOnly ? "显示全部候选" : "只看待删除";
       renderGrid();
     });
     document.getElementById("newOnly").addEventListener("click", event => {
@@ -934,13 +973,11 @@
       event.currentTarget.textContent = newOnly ? "显示全部候选" : "只看新添加";
       renderGrid();
     });
-    document.getElementById("clearAll").addEventListener("click", () => {
-      if (!confirm("确定开始全新挑选吗？当前勾选和用途分配会被清空，但仍可使用“撤销上一步”恢复。")) return;
+    document.getElementById("clearDeletion").addEventListener("click", () => {
+      if (!confirm("确定清空待删除清单吗？不会改变当前用途分配和联动场景，仍可使用“撤销上一步”恢复。")) return;
       remember();
-      choices = {};
-      scenarioChoices = [];
-      keptItems = [];
-      commit("已建立一份空白选择，可随时撤销");
+      deletionItems = [];
+      commit("待删除清单已清空，没有删除任何文件");
     });
     document.getElementById("restoreProject").addEventListener("click", () => {
       if (!confirm("恢复到项目当前已确认的动画和场景吗？恢复后仍可撤销。")) return;
@@ -977,7 +1014,7 @@
       const blob = new Blob([buildSummary()], {type:"text/plain;charset=utf-8"});
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "洛天依桌宠_动画选择结果.txt";
+      link.download = "洛天依桌宠_动画使用与待删除结果.txt";
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     });
@@ -996,6 +1033,10 @@
       if (!file) return;
       try {
         const imported = JSON.parse(await file.text());
+        if (imported?.version === 3) {
+          imported.version = stateVersion;
+          imported.deletionItems = [];
+        }
         if (imported?.version !== stateVersion) throw new Error("版本不兼容");
         remember();
         applyState(imported);
