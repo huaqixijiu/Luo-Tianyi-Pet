@@ -24,3 +24,16 @@
 
 这些候选不替换角色、不重绘衣服和脸，也不引入其他表情包画风。它们属于整个人物的二维程序动效，因此可以解决“切换素材不协调”，但不能替代 PMX 骨骼级的真实挥手、抬腿或转头。源文件和生成算法均保留；运行
 `tools/animation_tools/make_full_body_action_candidates.py --root .` 可以重新生成。
+
+## 精细 PMX 骨骼动作候选
+
+`精细骨骼动作候选/完整全身_拖拽双脚乱甩.webp` 是第一项真正从官方 PMX 骨骼重新渲染的动作，不是二维整图变换：
+
+- Blender 4.5.13 LTS + MMD Tools 4.5.13 导入官方 PMX；
+- 32 帧、24 fps、480 × 520 透明动态 WebP；
+- 左右腿、膝盖、脚踝独立交替甩动；
+- 腰、上半身、头、手臂和发辫带有反向惯性；
+- 使用“困る”“あ”“まばたき”表情 Morph；
+- 首尾按照同一周期连续采样，可作为拖拽中的无缝循环。
+
+动作通过 `tools/animation_tools/blender_make_drag_leg_flail.py` 定义并从导入后的模型场景渲染，PNG 序列再由 `tools/animation_tools/pack_rendered_action.py` 确定性缩放并封装为 WebP。便携式 Blender 和中间渲染帧只保存在 Git 忽略的 `.local-tools/`，不会进入仓库或安装到系统。

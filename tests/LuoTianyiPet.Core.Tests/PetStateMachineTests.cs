@@ -125,7 +125,7 @@ public sealed class PetStateMachineTests
     }
 
     [Fact]
-    public void FullBodyDragKeepsFullBodyVisualButDisablesBodyRegions()
+    public void FullBodyDragUsesRiggedLegFlailAndDisablesBodyRegions()
     {
         PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
 
@@ -133,7 +133,7 @@ public sealed class PetStateMachineTests
         Assert.True(machine.BeginDrag());
         PetPlaybackPlan plan = machine.Resolve(Now);
 
-        Assert.Equal(PetVisualState.FullBodyIdleAnimation, plan.AnimationId);
+        Assert.Equal(PetVisualState.FullBodyDraggingAnimation, plan.AnimationId);
         Assert.False(plan.BodyRegionInteractionsEnabled);
     }
 

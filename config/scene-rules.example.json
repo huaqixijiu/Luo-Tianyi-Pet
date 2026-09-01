@@ -296,8 +296,8 @@
           "holdLastFrameAfterOnePlay": true
         },
         "fullBodyInteractive": {
-          "animation": "keep-current-full-body-animation",
-          "replaceCurrentAnimation": false,
+          "animation": "official-v4-chibi-full-body-drag-leg-flail",
+          "replaceCurrentAnimation": true,
           "loopWhileDragging": true
         }
       },

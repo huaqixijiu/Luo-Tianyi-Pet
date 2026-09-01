@@ -19,6 +19,9 @@ artifacts/
 *.temp
 ~$*
 
+# Local heavyweight authoring tools (portable, reproducible setup only)
+.local-tools/
+
 # Windows metadata
 Thumbs.db
 Desktop.ini

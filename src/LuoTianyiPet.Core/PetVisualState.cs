@@ -23,6 +23,7 @@ public sealed record PetVisualState(
 {
     public const string CompactIdleAnimation = "resonance-hehe";
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";
+    public const string FullBodyDraggingAnimation = "official-v4-chibi-full-body-drag-leg-flail";
     public const string MusicSwayAnimation = "ninth-anniversary-music-sway";
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
@@ -41,7 +42,7 @@ public sealed record PetVisualState(
         PetContinuousState.MediumIdle => MediumIdleAnimation,
         PetContinuousState.Sleeping => SleepingAnimation,
         PetContinuousState.Dragging => SelectedDisplayMode == PetDisplayMode.FullBodyInteractive
-            ? FullBodyIdleAnimation
+            ? FullBodyDraggingAnimation
             : CompactDraggingAnimation,
         PetContinuousState.HiddenForSafety => throw new InvalidOperationException(
             "Hidden pets do not have a continuous animation."),
