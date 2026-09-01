@@ -1,10 +1,10 @@
-"""Convert the approved AI bun-chase video into traceable transparent atlases.
+"""Convert the approved AI bun animation frames into runtime atlases.
 
-The video model emitted a nearly uniform salmon background, a detached moving
-watermark, a soft floor shadow, and a small tooth that the user chose to keep.
-This tool keys the background, clears the corner watermark and floor shadow,
-normalizes every frame to a fixed transparent canvas, and builds separate
-running and eating atlases without repainting character details.
+The preferred input is the user-reviewed transparent PNG sequence exported
+from After Effects.  Its alpha channel is used verbatim: this tool only crops,
+scales, positions and packs frames, so it cannot re-key the mouth, tooth, hair
+or feet.  The legacy automatic colour-key path remains available solely for
+reproducing older builds.
 """
 
 from __future__ import annotations
@@ -30,6 +30,18 @@ def sha256(path: Path) -> str:
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
+    return digest.hexdigest()
+
+
+def sha256_sequence(paths: list[Path]) -> str:
+    """Hash the ordered filenames and bytes as one reproducible source."""
+    digest = hashlib.sha256()
+    for path in paths:
+        digest.update(path.name.encode("utf-8"))
+        digest.update(b"\0")
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
     return digest.hexdigest()
 
 
@@ -293,23 +305,41 @@ def prepare_bun(source: Path, output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--frames", type=Path, required=True)
-    parser.add_argument("--source-video", type=Path, required=True)
+    parser.add_argument(
+        "--input-mode",
+        choices=("transparent", "auto-key"),
+        default="transparent",
+        help="Use source alpha verbatim, or reproduce the legacy colour-key path.",
+    )
+    parser.add_argument("--source-video", type=Path)
     parser.add_argument("--bun-source", type=Path, required=True)
     parser.add_argument("--assets-root", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--preview-output", type=Path)
     args = parser.parse_args()
 
-    frame_paths = sorted(args.frames.glob("frame_*.png"))
+    frame_paths = sorted(args.frames.glob("*.png"))
     if len(frame_paths) != 121:
-        raise RuntimeError(f"Expected 121 extracted frames, found {len(frame_paths)}.")
+        raise RuntimeError(f"Expected 121 PNG frames, found {len(frame_paths)}.")
 
-    keyed = [key_character(Image.open(path)) for path in frame_paths]
+    if args.input_mode == "transparent":
+        keyed = []
+        for path in frame_paths:
+            frame = Image.open(path)
+            if "A" not in frame.mode:
+                raise RuntimeError(f"Transparent input has no alpha channel: {path}")
+            rgba = frame.convert("RGBA")
+            if rgba.getchannel("A").getextrema() == (255, 255):
+                raise RuntimeError(f"Transparent input is fully opaque: {path}")
+            keyed.append(rgba)
+    else:
+        if args.source_video is None:
+            raise RuntimeError("--source-video is required with --input-mode auto-key.")
+        keyed = [key_character(Image.open(path)) for path in frame_paths]
     crop = union_bounds(keyed)
-    normalized = [
-        clear_between_feet_floor_residue(normalize_frame(frame, crop))
-        for frame in keyed
-    ]
+    normalized = [normalize_frame(frame, crop) for frame in keyed]
+    if args.input_mode == "auto-key":
+        normalized = [clear_between_feet_floor_residue(frame) for frame in normalized]
     run_start, run_end = select_run_cycle(normalized, 12, 57)
     run_frames = normalized[run_start:run_end]
     eat_start = 55
@@ -326,29 +356,20 @@ def main() -> None:
         build_picker_preview(normalized, args.preview_output)
 
     metadata = {
-        "sourceVideo": args.source_video.as_posix(),
-        "sourceVideoSha256": sha256(args.source_video),
+        "sourceSequence": args.frames.as_posix(),
+        "sourceSequenceSha256": sha256_sequence(frame_paths),
         "sourceFrameCount": len(frame_paths),
         "sourceFps": 24,
-        "frameExtraction": {
-            "decoder": "Blender 4.5 VSE",
-            "inputColorSpace": "sRGB",
-            "displayDevice": "sRGB",
-            "viewTransform": "Standard",
-            "look": "None",
-            "exposure": 0,
-            "gamma": 1,
+        "sourcePreparation": {
+            "inputMode": args.input_mode,
+            "backgroundRemoval": (
+                "user-reviewed After Effects alpha channel; no runtime keying or cleanup"
+                if args.input_mode == "transparent"
+                else "legacy automatic colour-key and floor cleanup"
+            ),
+            "alphaPolicy": "preserved verbatim before Lanczos normalization",
+            "retouch": "none; preserve the user-approved mouth and tooth",
         },
-        "backgroundRemoval": {
-            "method": "border-fitted colour plane plus sealed-outline interior preservation and corner watermark clearing",
-            "transparentBelowDistance": 34,
-            "opaqueAtDistance": 58,
-            "removeCornerWatermark": True,
-            "removeFloorShadow": True,
-            "normalizedShoeGapCleanup": [140, 228, 149, 240],
-            "preserveEnclosedCharacterRegions": True,
-        },
-        "retouch": "none; preserve the source open-mouth tooth",
         "normalizedFrameSize": [FRAME_SIZE, FRAME_SIZE],
         "run": {
             "sourceFramesOneBased": [run_start + 1, run_end],
@@ -376,6 +397,9 @@ def main() -> None:
         },
         "cropBeforeResize": list(crop),
     }
+    if args.source_video is not None:
+        metadata["legacySourceVideo"] = args.source_video.as_posix()
+        metadata["legacySourceVideoSha256"] = sha256(args.source_video)
     if args.preview_output is not None:
         metadata["pickerPreview"] = {
             "output": args.preview_output.as_posix(),

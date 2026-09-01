@@ -1385,8 +1385,8 @@
       ]
     },
     {
-      "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_AI生成.mp4",
-      "sourceSha256": "5a8cb0e5897a7d39d5e915c7d21912813b21282a7d0ad85b07c78699a84d1d6b",
+      "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_手工抠像PNG",
+      "sourceSha256": "302e3c7de41b90e825ea3ff7a136c03ef4800a4155af0ffae0e368c930abc19e",
       "frameWidth": 256,
       "frameHeight": 256,
       "displayWidth": 205,
@@ -1401,7 +1401,7 @@
       ],
       "id": "ai-bun-chase-run",
       "atlasPath": "animations/runtime/ai-bun-chase-run.atlas.png",
-      "atlasSha256": "09391e3cfba33182950120f21dc0cbd1e2e6c886572e4f43a6775d6c9ef09814",
+      "atlasSha256": "b5c203f6712b529007cc1947793829d2e717495524d6919ca8fa789962945fe9",
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1423,8 +1423,8 @@
       "loopCount": 0
     },
     {
-      "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_AI生成.mp4",
-      "sourceSha256": "5a8cb0e5897a7d39d5e915c7d21912813b21282a7d0ad85b07c78699a84d1d6b",
+      "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_手工抠像PNG",
+      "sourceSha256": "302e3c7de41b90e825ea3ff7a136c03ef4800a4155af0ffae0e368c930abc19e",
       "frameWidth": 256,
       "frameHeight": 256,
       "displayWidth": 205,
@@ -1439,7 +1439,7 @@
       ],
       "id": "ai-bun-eat",
       "atlasPath": "animations/runtime/ai-bun-eat.atlas.png",
-      "atlasSha256": "6781e62e7bb4689d9062721ffdb46bdc12862b0a892c7097618f90062bf70d3f",
+      "atlasSha256": "6b33e4324fcaa8cc5d22ede34e83491cc0b191be9b43000ce932f28c52b965f6",
       "columns": 8,
       "rows": 9,
       "frameDurationsMilliseconds": [
