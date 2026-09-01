@@ -4,6 +4,23 @@ namespace LuoTianyiPet.Core.Tests;
 
 public sealed class BunChasePlannerTests
 {
+    [Theory]
+    [InlineData(false, 140)]
+    [InlineData(true, 100)]
+    public void ResolveMouthTarget_UsesCalibratedAndMirroredOpenMouthPosition(
+        bool mirrored,
+        double expectedX)
+    {
+        PointerPoint mouth = BunChasePlanner.ResolveMouthTarget(
+            new PointerPoint(20, 30),
+            200,
+            300,
+            mirrored);
+
+        Assert.Equal(expectedX, mouth.X, 3);
+        Assert.Equal(190.5, mouth.Y, 3);
+    }
+
     [Fact]
     public void DesktopFileTreatSafety_AllowsScreenSizedExplorerDesktop()
     {

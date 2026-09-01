@@ -124,6 +124,68 @@ def key_character(frame: Image.Image) -> Image.Image:
     corner_height = int(rgb.shape[0] * 0.15)
     alpha[:corner_height, :corner_width] = 0
     alpha[-corner_height:, -corner_width:] = 0
+    # Colour-distance keying alone cannot distinguish the salmon background
+    # from deliberately warm details inside the outlined character (most
+    # visibly the open mouth).  Preserve every low-confidence region enclosed
+    # by the character silhouette and only treat low-confidence pixels that
+    # remain connected to the canvas border as background.  Gaps between the
+    # arms, legs and hair remain transparent because they are border-connected.
+    # Close tiny antialiasing gaps in the dark outline before the exterior
+    # flood.  Video compression otherwise leaves one-pixel passages that make
+    # the mouth and irises appear connected to the keyed background.
+    barrier = alpha >= 112
+    for _ in range(2):
+        padded = np.pad(barrier, 1, mode="constant", constant_values=False)
+        barrier = np.logical_or.reduce(
+            [
+                padded[dy : dy + height, dx : dx + width]
+                for dy in range(3)
+                for dx in range(3)
+            ]
+        )
+    traversable = ~barrier
+    exterior = np.zeros_like(traversable)
+    queue: deque[tuple[int, int]] = deque()
+    for x in range(width):
+        if traversable[0, x]:
+            exterior[0, x] = True
+            queue.append((0, x))
+        if traversable[height - 1, x] and not exterior[height - 1, x]:
+            exterior[height - 1, x] = True
+            queue.append((height - 1, x))
+    for y in range(height):
+        if traversable[y, 0] and not exterior[y, 0]:
+            exterior[y, 0] = True
+            queue.append((y, 0))
+        if traversable[y, width - 1] and not exterior[y, width - 1]:
+            exterior[y, width - 1] = True
+            queue.append((y, width - 1))
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            ny, nx = y + dy, x + dx
+            if (
+                0 <= ny < height
+                and 0 <= nx < width
+                and traversable[ny, nx]
+                and not exterior[ny, nx]
+            ):
+                exterior[ny, nx] = True
+                queue.append((ny, nx))
+    # Erode the sealed silhouette back past the temporary outline dilation.
+    # This keeps enclosed facial colours opaque without turning the salmon
+    # pixels immediately outside the character into a coloured fringe.
+    protected_interior = ~exterior
+    for _ in range(3):
+        padded = np.pad(protected_interior, 1, mode="constant", constant_values=False)
+        protected_interior = np.logical_and.reduce(
+            [
+                padded[dy : dy + height, dx : dx + width]
+                for dy in range(3)
+                for dx in range(3)
+            ]
+        )
+    alpha[protected_interior] = 255
     # Undo the salmon colour mixed into antialiased edge pixels. Without this
     # decontamination a visible red halo remains when WPF composites the
     # transparent atlas over a dark or blue desktop.
@@ -303,11 +365,12 @@ def main() -> None:
         "sourceFrameCount": len(frame_paths),
         "sourceFps": 24,
         "backgroundRemoval": {
-            "method": "border-fitted colour plane plus corner watermark clearing",
+            "method": "border-fitted colour plane plus sealed-outline interior preservation and corner watermark clearing",
             "transparentBelowDistance": 34,
             "opaqueAtDistance": 58,
             "removeCornerWatermark": True,
             "attenuateFloorShadow": True,
+            "preserveEnclosedCharacterRegions": True,
         },
         "retouch": "remove unintended tooth from open-mouth frames",
         "normalizedFrameSize": [FRAME_SIZE, FRAME_SIZE],

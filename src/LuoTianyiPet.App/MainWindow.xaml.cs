@@ -3764,9 +3764,13 @@ public partial class MainWindow : Window
         _bunEating = true;
         PlayAnimation(BunEatAnimation);
         await Task.Delay(420);
-        Point pet = GetPetScreenCentre();
         DesktopRectangle bounds = GetPetImageBoundsInWindow();
-        Point mouth = new(pet.X, Top + bounds.Top + bounds.Height * 0.43);
+        PointerPoint mouthTarget = BunChasePlanner.ResolveMouthTarget(
+            new PointerPoint(Left + bounds.Left, Top + bounds.Top),
+            bounds.Width,
+            bounds.Height,
+            mirrored: PetDirectionTransform.ScaleX < 0);
+        Point mouth = new(mouthTarget.X, mouthTarget.Y);
         await bun.FlyIntoAsync(mouth, TimeSpan.FromMilliseconds(680));
         bun.Close();
         _bunTargets.Remove(bun);

@@ -38,6 +38,15 @@ public static class DesktopFileTreatSafety
 
 public static class BunChasePlanner
 {
+    public static PointerPoint ResolveMouthTarget(
+        PointerPoint imageTopLeft,
+        double imageWidth,
+        double imageHeight,
+        bool mirrored) =>
+        new(
+            imageTopLeft.X + Math.Max(0, imageWidth) * (mirrored ? 0.40 : 0.60),
+            imageTopLeft.Y + Math.Max(0, imageHeight) * 0.535);
+
     public static BunChaseStep Advance(
         PointerPoint current,
         PointerPoint target,

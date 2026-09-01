@@ -4,11 +4,12 @@
   "sourceFrameCount": 121,
   "sourceFps": 24,
   "backgroundRemoval": {
-    "method": "border-fitted colour plane plus corner watermark clearing",
+    "method": "border-fitted colour plane plus sealed-outline interior preservation and corner watermark clearing",
     "transparentBelowDistance": 34,
     "opaqueAtDistance": 58,
     "removeCornerWatermark": true,
-    "attenuateFloorShadow": true
+    "attenuateFloorShadow": true,
+    "preserveEnclosedCharacterRegions": true
   },
   "retouch": "remove unintended tooth from open-mouth frames",
   "normalizedFrameSize": [
@@ -23,7 +24,7 @@
     "frameCount": 15,
     "frameDurationMilliseconds": 42,
     "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
-    "atlasSha256": "7f584005b617b2e5ae285fa9ceb0123c8733b9bf271e32334a2d5272d94d25dd",
+    "atlasSha256": "a9ed336b53849cb45785623b670de40f72df3e55d5b3db620768fa21af7141f3",
     "columns": 8,
     "rows": 2
   },
@@ -35,7 +36,7 @@
     "frameCount": 66,
     "frameDurationMilliseconds": 42,
     "atlas": "animations/runtime/ai-bun-eat.atlas.png",
-    "atlasSha256": "13b8e30630e92c0ed7ce5cc2e87ef19ccec0d7a467d04aecaa10e588afb4790a",
+    "atlasSha256": "d84f9240dde657179b2f0505b419e354e1f93140f643bbd00d0a0f809619f16f",
     "columns": 8,
     "rows": 9
   },
@@ -53,7 +54,7 @@
   ],
   "pickerPreview": {
     "output": "候选素材_官方/11_新添加_AI生成文件吞食动画/预览_吃包子_透明处理版.webp",
-    "outputSha256": "b6591c9dc1c4fa89b90e5c9ccaa81a614279cbd666649a55dfff8e62de4d79ed",
+    "outputSha256": "b23fff48f66020c12ef1c63e78307a8ab3191837e261abfa31c09c4741a2c9a6",
     "frameCount": 61,
     "frameDurationMilliseconds": 84
   }
