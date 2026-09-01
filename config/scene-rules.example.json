@@ -67,7 +67,7 @@
     "sleepAfterMinutes": 15,
     "sleepRequiresMusicStopped": true,
     "sleepAnimation": "tenth-anniversary-goodnight-float",
-    "wakeAnimation": "resonance-awake-pop",
+    "wakeAnimation": null,
     "wakeDuplicateWindowMilliseconds": 5000
   },
   "volume": {
@@ -174,14 +174,16 @@
         }
       ]
     },
-    "loadingAnimation": "resonance-loading-sway",
-    "showLoadingAfterMilliseconds": 400,
+    "loadingAnimation": null,
+    "showLoadingAfterMilliseconds": null,
     "loadingTimeoutMilliseconds": 15000,
     "timeoutFeedback": "failureOrTimeout",
     "confirmedSuccessAnimation": "resonance-ok",
     "pauseAnimation": "ninth-anniversary-not-awake-breathing",
-    "pauseAnimationDurationMilliseconds": 5000,
-    "resumeInterruptsPauseAnimation": true
+    "pauseAnimationDurationMilliseconds": 60000,
+    "doubleClickDismissesPauseAnimation": true,
+    "resumeInterruptsPauseAnimation": true,
+    "userPauseFastConfirmationWindowMilliseconds": 2000
   },
   "pointerInteractions": {
     "hitTesting": {
@@ -270,12 +272,7 @@
         "matchWhenNoSmallerRegionMatches": true,
         "selectionMode": "random-without-immediate-repeat",
         "animations": [
-          "twelfth-anniversary-hug",
-          "tenth-anniversary-spin-dance",
-          "ninth-anniversary-thumbup",
-          "eighth-anniversary-thumbup",
-          "resonance-my-pick",
-          "resonance-so-good"
+          "twelfth-anniversary-hug"
         ],
         "loopCount": 1
       }
@@ -387,8 +384,8 @@
       "showRecycleDropHighlight": true,
       "dropAction": "move-to-windows-recycle-bin",
       "shellOperation": "IFileOperation-with-allow-undo-and-recycle-on-delete",
-      "loadingAnimationAfterMilliseconds": 400,
-      "loadingAnimation": "resonance-loading-sway",
+      "loadingAnimationAfterMilliseconds": null,
+      "loadingAnimation": null,
       "successAnimation": "resonance-ok",
       "failureFeedback": "failureOrTimeout",
       "neverPermanentlyDelete": true,
@@ -437,7 +434,7 @@
       "start": "20:00",
       "end": "06:00",
       "spansMidnight": true,
-      "animation": "codename-sleeping-breathing"
+      "animation": "startup-night-breathe"
     }
   ],
   "systemResume": {
@@ -445,7 +442,7 @@
       "windows-session-unlock",
       "windows-power-resume"
     ],
-    "animation": "resonance-awake-pop",
+    "animation": null,
     "duplicateWindowMilliseconds": 5000,
     "loopCount": 1,
     "preserveSelectedDisplayMode": true,
@@ -460,7 +457,9 @@
     "detectionMode": "filtered-low-frequency-process-enumeration",
     "pollIntervalMilliseconds": 2000,
     "animation": "resonance-no-playing",
-    "loopCount": 3,
+    "loopCount": 1,
+    "holdLastFrame": true,
+    "minimumTotalDurationMilliseconds": 5000,
     "requestTransientTopmost": true,
     "neverActivateWindow": true,
     "triggerOncePerProcessLifetime": true,

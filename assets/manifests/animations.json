@@ -91,7 +91,7 @@
         100,
         100
       ],
-      "loopCount": 3,
+      "loopCount": 1,
       "displayWidth": 180,
       "displayHeight": 180,
       "anchorX": 0.5,
@@ -456,16 +456,16 @@
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143
       ],
       "loopCount": 1,
       "displayWidth": 180,
@@ -583,16 +583,16 @@
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143,
+        143
       ],
       "loopCount": 1,
       "displayWidth": 180,
@@ -617,16 +617,16 @@
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125,
-        125
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
       ],
       "loopCount": 1,
       "displayWidth": 180,
@@ -938,6 +938,31 @@
       ]
     },
     {
+      "id": "ninth-anniversary-not-awake-breathing",
+      "sourcePath": "候选素材_官方/03_官方表情包/255-洛天依9th生日纪念/洛天依9th_没睡醒.png",
+      "sourceSha256": "021ef2e5d179232af645920b5b1ca1ea18a134eff00116fd602e3c5825a1cddc",
+      "atlasPath": "animations/runtime/ninth-anniversary-not-awake-breathing.atlas.png",
+      "atlasSha256": "cc724f5d6dfb0386ad4c212575f167292c975b935ed58ab08f143bc949f45244",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        2400
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        4,
+        162,
+        162
+      ]
+    },
+    {
       "id": "resonance-ok",
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "sourceSha256": "7036ffcd41e0241cecaee0f7e77f7b679adaeb259810734bea42f0c70346e454",
@@ -1048,10 +1073,10 @@
     },
     {
       "id": "startup-night-breathe",
-      "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
-      "sourceSha256": "7027d9ef0d117a45fd4166a9074ed661744980b0b2bcda5ca716171579da4e82",
+      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
+      "sourceSha256": "ad4af569142bdcf31474e1829b76fe4e2c432ad338e87163e0dc613da8e28e39",
       "atlasPath": "animations/runtime/startup-night-breathe.atlas.png",
-      "atlasSha256": "a428178a4ef0fb39eec7eac5c32b547250ecfa764426f394fec582738698b10b",
+      "atlasSha256": "e9cb3610592bb62c06b6ff31b202f63b83da7b3052f533e5eb008d8b6dc51429",
       "frameWidth": 162,
       "frameHeight": 162,
       "columns": 1,
@@ -1065,9 +1090,9 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        0,
-        2,
-        162,
+        8,
+        9,
+        159,
         162
       ]
     },
@@ -1098,10 +1123,10 @@
     },
     {
       "id": "tenth-anniversary-goodnight-float",
-      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
-      "sourceSha256": "ad4af569142bdcf31474e1829b76fe4e2c432ad338e87163e0dc613da8e28e39",
+      "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
+      "sourceSha256": "7027d9ef0d117a45fd4166a9074ed661744980b0b2bcda5ca716171579da4e82",
       "atlasPath": "animations/runtime/tenth-anniversary-goodnight-float.atlas.png",
-      "atlasSha256": "e9cb3610592bb62c06b6ff31b202f63b83da7b3052f533e5eb008d8b6dc51429",
+      "atlasSha256": "a428178a4ef0fb39eec7eac5c32b547250ecfa764426f394fec582738698b10b",
       "frameWidth": 162,
       "frameHeight": 162,
       "columns": 1,
@@ -1115,9 +1140,9 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        8,
-        9,
-        159,
+        0,
+        2,
+        162,
         162
       ]
     },
@@ -1244,10 +1269,10 @@
     },
     {
       "id": "twelfth-anniversary-hug",
-      "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/11_抱抱.gif",
-      "sourceSha256": "77305801ac4e5a0642e732febf91aafd79d2ba0b25b29f6297b799be31575241",
+      "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/12_在吗.gif",
+      "sourceSha256": "8d628a34d99ee500aa8585ecb4e5cccbd4cc88374cf35c4043348e1ff064d060",
       "atlasPath": "animations/runtime/twelfth-anniversary-hug.atlas.png",
-      "atlasSha256": "7fda781d7161a5239d2fcfcb5e7d3d9f3eb9dcf55a726c25c4a643925c3d9b50",
+      "atlasSha256": "cfbe76498e6d587a391a880b0066b76c32d8a1cd71802adc6efaee47d47b6766",
       "frameWidth": 240,
       "frameHeight": 240,
       "columns": 8,
@@ -1276,7 +1301,7 @@
       "alphaBounds": [
         2,
         2,
-        238,
+        235,
         238
       ]
     },

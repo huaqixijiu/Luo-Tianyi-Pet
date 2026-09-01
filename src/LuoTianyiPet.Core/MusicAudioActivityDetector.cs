@@ -67,6 +67,24 @@ public sealed class MusicAudioActivityDetector
         return MusicActivityTransition.None;
     }
 
+    public MusicActivityTransition ConfirmStoppedAfterUserPause(AudioSessionSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (!float.IsFinite(snapshot.PeakLevel) || snapshot.PeakLevel is < 0 or > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(snapshot), "Peak level must be between 0 and 1.");
+        }
+
+        if (!snapshot.ProbeSucceeded || !IsPlaying ||
+            (snapshot.TargetSessionFound && snapshot.PeakLevel >= _audiblePeakThreshold))
+        {
+            return MusicActivityTransition.None;
+        }
+
+        _lastAudibleAt = null;
+        return SetPlaying(false);
+    }
+
     public void Reset()
     {
         IsPlaying = false;

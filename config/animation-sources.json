@@ -28,7 +28,7 @@
       "atlas": "assets/animations/runtime/resonance-no-playing.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
-      "loopCount": 3,
+      "loopCount": 1,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -131,7 +131,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
-      "durationScale": 1.25,
+      "durationScale": 1.4285714286,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -174,7 +174,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
-      "durationScale": 1.25,
+      "durationScale": 1.4285714286,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -185,7 +185,7 @@
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 1,
-      "durationScale": 1.25,
+      "durationScale": 2.0,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -262,6 +262,17 @@
       "anchorY": 1.0
     },
     {
+      "id": "ninth-anniversary-not-awake-breathing",
+      "source": "候选素材_官方/03_官方表情包/255-洛天依9th生日纪念/洛天依9th_没睡醒.png",
+      "atlas": "assets/animations/runtime/ninth-anniversary-not-awake-breathing.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 2400,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "resonance-ok",
       "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "atlas": "assets/animations/runtime/resonance-ok.atlas.png",
@@ -306,7 +317,7 @@
     },
     {
       "id": "startup-night-breathe",
-      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
+      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
       "atlas": "assets/animations/runtime/startup-night-breathe.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
@@ -328,7 +339,7 @@
     },
     {
       "id": "tenth-anniversary-goodnight-float",
-      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_晚安.png",
+      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_眠了.png",
       "atlas": "assets/animations/runtime/tenth-anniversary-goodnight-float.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
@@ -381,7 +392,7 @@
     },
     {
       "id": "twelfth-anniversary-hug",
-      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/11_抱抱.gif",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/12_在吗.gif",
       "atlas": "assets/animations/runtime/twelfth-anniversary-hug.atlas.png",
       "displayWidth": 190,
       "displayHeight": 190,

@@ -21,7 +21,7 @@ public partial class MainWindow : Window
     private const string LandingAnimation = "codename-landing-bounce";
     private const string VolumeIncreaseAnimation = "resonance-voice";
     private const string VolumeDecreaseAnimation = "resonance-voice-reversed";
-    private const string AwakeAnimation = "resonance-awake-pop";
+    private const string MusicPausedAnimation = PetVisualState.MusicPausedAnimation;
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
@@ -46,6 +46,9 @@ public partial class MainWindow : Window
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
+    private static readonly TimeSpan MusicPausePresentationDuration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -67,6 +70,7 @@ public partial class MainWindow : Window
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
+    private readonly DispatcherTimer _musicPausePresentationTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
     private readonly DispatcherTimer _volumeFeedbackMergeTimer;
     private readonly DispatcherTimer _systemVolumePollTimer;
@@ -133,6 +137,7 @@ public partial class MainWindow : Window
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
+    private DateTimeOffset? _userPauseFastConfirmationUntil;
     private EdgeDockSide _edgeDockSide;
     private EdgeDockSide _dragEdgeCandidate;
     private DesktopRectangle? _dragIntentPetBoundsInWindow;
@@ -282,6 +287,11 @@ public partial class MainWindow : Window
                     : MediaPreferences.DefaultPollIntervalMilliseconds),
         };
         _musicDetectionTimer.Tick += OnMusicDetectionTimerTick;
+        _musicPausePresentationTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = MusicPausePresentationDuration,
+        };
+        _musicPausePresentationTimer.Tick += OnMusicPausePresentationTimerTick;
         _feedbackBubbleTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromSeconds(2.4),
@@ -537,8 +547,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        _logger.Info("time.resume_reaction", e.Reason.ToString());
-        _ = PlayReactionAsync(AwakeAnimation, ReactionPriority.System);
+        _logger.Info("time.resume_state_restored", e.Reason.ToString());
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "time.resume_state_restored.transition_completed");
+        }
     }
 
     private void OnSystemSuspended(object? sender, SystemSuspendEventArgs e)
@@ -702,13 +716,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        Guid topmostToken = AcquireTransientTopmost();
-        Guid? reactionToken = await PlayReactionAsync(
-            GenshinLaunchAnimation,
-            ReactionPriority.Genshin);
-        if (reactionToken is not Guid token)
+        DateTimeOffset startedAt = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                GenshinLaunchAnimation,
+                ReactionPriority.Genshin,
+                startedAt.AddSeconds(10)),
+            startedAt);
+        if (outcome.Token is not Guid token)
         {
-            ReleaseTransientTopmost(topmostToken);
             if (retryOnFailure && _protectedGameMonitor?.IsRunning == true)
             {
                 _pendingGenshinLaunch = true;
@@ -716,9 +732,58 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (outcome.Result == ReactionStartResult.Replaced)
+        {
+            CleanupReplacedGenshinPresentation();
+            CleanupReplacedMessageNotificationPresentation();
+        }
+
+        Guid topmostToken = AcquireTransientTopmost();
         _genshinLaunchReactionToken = token;
         _genshinLaunchTopmostToken = topmostToken;
-        _logger.Info("genshin.launch_reaction_started", "Three-loop reaction started without activation.");
+        UpdateBodyHitDebugOverlay();
+        bool transitioned = await _visualSwapTransition.PlayAsync(
+            () => PlayAnimation(
+                GenshinLaunchAnimation,
+                () => _ = CompleteGenshinLaunchAfterMinimumDurationAsync(token, startedAt),
+                preserveVisualTransition: true));
+        if (transitioned && !_isClosing &&
+            _animationPlayer?.CurrentAnimationId == GenshinLaunchAnimation)
+        {
+            _logger.Info(
+                "genshin.launch_reaction_started",
+                "One loop started; the final frame will be held for a five-second total without activation.");
+            return;
+        }
+
+        if (_stateMachine.ActiveReactionToken == token)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+        FinishGenshinPresentation(token);
+        if (retryOnFailure && _protectedGameMonitor?.IsRunning == true)
+        {
+            _pendingGenshinLaunch = true;
+        }
+    }
+
+    private async Task CompleteGenshinLaunchAfterMinimumDurationAsync(
+        Guid token,
+        DateTimeOffset startedAt)
+    {
+        TimeSpan remaining = GenshinLaunchPresentationDuration - (DateTimeOffset.Now - startedAt);
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining);
+        }
+
+        if (_isClosing || _genshinLaunchReactionToken != token ||
+            _stateMachine.ActiveReactionToken != token)
+        {
+            return;
+        }
+
+        CompleteReaction(token, suppressBodyAfter: false);
     }
 
     private async Task BeginGenshinCameoAsync()
@@ -1090,6 +1155,15 @@ public partial class MainWindow : Window
 
     private void ToggleDisplayMode()
     {
+        PetPlaybackPlan currentPlan = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPaused &&
+            currentPlan.Source == PlaybackPlanSource.Continuous &&
+            currentPlan.AnimationId == MusicPausedAnimation)
+        {
+            DismissMusicPausePresentation("double-click");
+            return;
+        }
+
         PetDisplayMode nextMode = _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact
             ? PetDisplayMode.FullBodyInteractive
             : PetDisplayMode.Compact;
@@ -1559,6 +1633,8 @@ public partial class MainWindow : Window
 
     private void StartMusicPlayback(string source, string? artistOverride = null)
     {
+        _musicPausePresentationTimer.Stop();
+        _userPauseFastConfirmationUntil = null;
         DateTimeOffset now = DateTimeOffset.Now;
         string artist = artistOverride ?? _lastTrackSnapshot.Artist;
         string selectedAnimation = _musicAnimationSelector.SelectForArtist(artist);
@@ -1590,7 +1666,10 @@ public partial class MainWindow : Window
     private void StopMusicPlayback(string source)
     {
         _musicAnimationTrackIdentity = string.Empty;
-        _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        _stateMachine.SetContinuousState(PetContinuousState.MusicPaused);
+        _musicPausePresentationTimer.Stop();
+        _musicPausePresentationTimer.Start();
+        _userPauseFastConfirmationUntil = null;
         UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
@@ -1598,7 +1677,34 @@ public partial class MainWindow : Window
             _ = TransitionToResolvedContinuousAnimationAsync("animation.music_stopped_transition_completed");
         }
 
-        _logger.Info("media.playback_stopped", $"Source={source}; Selected display mode restored.");
+        _logger.Info(
+            "media.playback_paused",
+            $"Source={source}; Pause presentation started for {MusicPausePresentationDuration.TotalSeconds:0} seconds.");
+    }
+
+    private void OnMusicPausePresentationTimerTick(object? sender, EventArgs e)
+    {
+        DismissMusicPausePresentation("timeout");
+    }
+
+    private void DismissMusicPausePresentation(string source)
+    {
+        _musicPausePresentationTimer.Stop();
+        if (_stateMachine.VisualState.ContinuousState != PetContinuousState.MusicPaused)
+        {
+            return;
+        }
+
+        _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        UpdatePlayPauseGlyph();
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "animation.music_pause_dismissed_transition_completed");
+        }
+
+        _logger.Info("media.pause_presentation_dismissed", $"Source={source}.");
     }
 
     private void OnMusicDetectionTimerTick(object? sender, EventArgs e)
@@ -1645,7 +1751,27 @@ public partial class MainWindow : Window
             _logger.Info("media.detection_recovered", "Core Audio probe resumed.");
         }
 
-        MusicActivityTransition transition = _musicActivityDetector.Update(snapshot, DateTimeOffset.Now);
+        DateTimeOffset now = DateTimeOffset.Now;
+        MusicActivityTransition transition = _musicActivityDetector.Update(snapshot, now);
+        if (transition == MusicActivityTransition.None &&
+            _userPauseFastConfirmationUntil is DateTimeOffset confirmationUntil)
+        {
+            if (now <= confirmationUntil)
+            {
+                transition = _musicActivityDetector.ConfirmStoppedAfterUserPause(snapshot);
+                if (transition == MusicActivityTransition.Stopped)
+                {
+                    _logger.Info(
+                        "media.user_pause_confirmed_fast",
+                        "The first silent Core Audio sample confirmed the user's pause command.");
+                }
+            }
+            else
+            {
+                _userPauseFastConfirmationUntil = null;
+            }
+        }
+
         if (transition == MusicActivityTransition.Started)
         {
             StartMusicPlayback("core-audio");
@@ -1656,6 +1782,7 @@ public partial class MainWindow : Window
         }
         else if (transition == MusicActivityTransition.Stopped)
         {
+            _userPauseFastConfirmationUntil = null;
             if (_showNextTrackChange)
             {
                 _trackSwitchSawAudioGap = true;
@@ -1763,17 +1890,13 @@ public partial class MainWindow : Window
         }
 
         _stateMachine.SetContinuousState(decision.TargetState);
-        if (decision.PlayWakeReaction)
+        if (decision.RestoredFromSleep)
         {
             _logger.Info("animation.long_idle_wake", $"Restored={decision.TargetState}.");
-            if (_systemResumeEventGate.TryAccept(DateTimeOffset.Now))
-            {
-                _ = PlayReactionAsync(AwakeAnimation, ReactionPriority.System);
-            }
-            else if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+            if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
             {
                 _ = TransitionToResolvedContinuousAnimationAsync(
-                    "animation.long_idle_wake_merged.transition_completed");
+                    "animation.long_idle_wake.transition_completed");
             }
             return;
         }
@@ -2965,6 +3088,8 @@ public partial class MainWindow : Window
 
     private void TrySendMediaCommand(MediaCommand command)
     {
+        bool userRequestedPause = command == MediaCommand.TogglePlayPause &&
+            _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
         MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
         _logger.Info("media.command_result", $"Command={command}; Status={result.Status}.");
 
@@ -2981,6 +3106,11 @@ public partial class MainWindow : Window
             _ => "没有发送快捷键",
         };
         ShowFeedbackBubble(message);
+
+        if (result.WasSent && userRequestedPause)
+        {
+            _userPauseFastConfirmationUntil = DateTimeOffset.Now + UserPauseFastConfirmationWindow;
+        }
 
         if (result.WasSent && command is MediaCommand.PreviousTrack or MediaCommand.NextTrack)
         {
@@ -3185,7 +3315,6 @@ public partial class MainWindow : Window
         try
         {
             DateTimeOffset startedAt = DateTimeOffset.Now;
-            bool loadingShown = false;
             while (DateTimeOffset.Now - startedAt < TimeSpan.FromSeconds(15))
             {
                 await Task.Delay(250, cancellationToken);
@@ -3195,11 +3324,6 @@ public partial class MainWindow : Window
                 }
 
                 await RefreshTrackInfoAsync(showWhenFound: false);
-                if (!loadingShown && DateTimeOffset.Now - startedAt >= TimeSpan.FromMilliseconds(400))
-                {
-                    loadingShown = true;
-                    await PlayReactionAsync("resonance-loading-sway", ReactionPriority.MediaOrVolume);
-                }
             }
 
             if (_showNextTrackChange)
@@ -3409,6 +3533,8 @@ public partial class MainWindow : Window
         _trackSwitchCancellation?.Dispose();
         _musicDetectionTimer.Stop();
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
+        _musicPausePresentationTimer.Stop();
+        _musicPausePresentationTimer.Tick -= OnMusicPausePresentationTimerTick;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
         _volumeFeedbackMergeTimer.Stop();

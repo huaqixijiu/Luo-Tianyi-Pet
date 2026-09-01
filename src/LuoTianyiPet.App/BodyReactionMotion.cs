@@ -49,6 +49,10 @@ internal sealed class BodyReactionMotion
         {
             PlaySleepingFloat();
         }
+        else if (animationId == Core.PetVisualState.MusicPausedAnimation)
+        {
+            PlayPauseBreathing();
+        }
         else if (animationId == "codename-curious-sway")
         {
             PlayCuriousSway();
@@ -237,6 +241,29 @@ internal sealed class BodyReactionMotion
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
+        _translate.BeginAnimation(
+            TranslateTransform.YProperty,
+            floatMotion,
+            HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private void PlayPauseBreathing()
+    {
+        Cancel();
+        DoubleAnimation scale = new(0.985, 1.018, TimeSpan.FromMilliseconds(1500))
+        {
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        };
+        DoubleAnimation floatMotion = new(2, -3, TimeSpan.FromMilliseconds(1500))
+        {
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        };
+        _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
+        _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
         _translate.BeginAnimation(
             TranslateTransform.YProperty,
             floatMotion,

@@ -7,7 +7,7 @@ public interface IUserIdleTimeSource
 
 public sealed record IdleSceneDecision(
     PetContinuousState TargetState,
-    bool PlayWakeReaction)
+    bool RestoredFromSleep)
 {
     public bool ChangesStateFrom(PetContinuousState currentState) => TargetState != currentState;
 }
@@ -27,10 +27,11 @@ public static class IdleSceneResolver
         }
 
         if (currentState is PetContinuousState.MusicPlaying or
+            PetContinuousState.MusicPaused or
             PetContinuousState.Dragging or
             PetContinuousState.HiddenForSafety)
         {
-            return new IdleSceneDecision(currentState, PlayWakeReaction: false);
+            return new IdleSceneDecision(currentState, RestoredFromSleep: false);
         }
 
         PetContinuousState targetState = idleDuration switch
@@ -42,7 +43,7 @@ public static class IdleSceneResolver
 
         return new IdleSceneDecision(
             targetState,
-            PlayWakeReaction: currentState == PetContinuousState.Sleeping &&
+            RestoredFromSleep: currentState == PetContinuousState.Sleeping &&
                 targetState != PetContinuousState.Sleeping);
     }
 }

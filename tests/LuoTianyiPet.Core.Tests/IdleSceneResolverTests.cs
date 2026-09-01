@@ -20,13 +20,13 @@ public sealed class IdleSceneResolverTests
             PetContinuousState.Idle);
 
         Assert.Equal(expected, decision.TargetState);
-        Assert.False(decision.PlayWakeReaction);
+        Assert.False(decision.RestoredFromSleep);
     }
 
     [Theory]
     [InlineData(0, PetContinuousState.Idle)]
     [InlineData(8, PetContinuousState.MediumIdle)]
-    public void LeavingSleepRequestsOneWakeReaction(
+    public void LeavingSleepRequestsAVisualRestoreWithoutWakeAnimation(
         int idleMinutes,
         PetContinuousState expectedTarget)
     {
@@ -35,11 +35,12 @@ public sealed class IdleSceneResolverTests
             PetContinuousState.Sleeping);
 
         Assert.Equal(expectedTarget, decision.TargetState);
-        Assert.True(decision.PlayWakeReaction);
+        Assert.True(decision.RestoredFromSleep);
     }
 
     [Theory]
     [InlineData(PetContinuousState.MusicPlaying)]
+    [InlineData(PetContinuousState.MusicPaused)]
     [InlineData(PetContinuousState.Dragging)]
     [InlineData(PetContinuousState.HiddenForSafety)]
     public void NonIdleContinuousStatesAreNotChanged(PetContinuousState state)
@@ -47,7 +48,7 @@ public sealed class IdleSceneResolverTests
         IdleSceneDecision decision = IdleSceneResolver.Resolve(TimeSpan.FromHours(1), state);
 
         Assert.Equal(state, decision.TargetState);
-        Assert.False(decision.PlayWakeReaction);
+        Assert.False(decision.RestoredFromSleep);
         Assert.False(decision.ChangesStateFrom(state));
     }
 

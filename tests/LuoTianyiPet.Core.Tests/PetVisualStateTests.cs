@@ -5,11 +5,22 @@ namespace LuoTianyiPet.Core.Tests;
 public sealed class PetVisualStateTests
 {
     [Fact]
-    public void SleepingUsesTenthAnniversaryGoodnightAnimation()
+    public void SleepingUsesTheConfiguredLongIdleAnimation()
     {
         PetVisualState state = new(ContinuousState: PetContinuousState.Sleeping);
 
         Assert.Equal(PetVisualState.SleepingAnimation, state.ResolveContinuousAnimation());
+    }
+
+    [Fact]
+    public void MusicPausedUsesNotAwakeBreathingWithoutChangingSelectedMode()
+    {
+        PetVisualState state = new(
+            PetDisplayMode.FullBodyInteractive,
+            PetContinuousState.MusicPaused);
+
+        Assert.Equal(PetVisualState.MusicPausedAnimation, state.ResolveContinuousAnimation());
+        Assert.Equal(PetDisplayMode.FullBodyInteractive, state.SelectedDisplayMode);
     }
 
     [Fact]

@@ -24,11 +24,6 @@ public sealed class BodyInteractionResolver
     public static IReadOnlyList<string> OrdinaryBodyAnimations { get; } =
     [
         "twelfth-anniversary-hug",
-        "tenth-anniversary-spin-dance",
-        "ninth-anniversary-thumbup",
-        "eighth-anniversary-thumbup",
-        "resonance-my-pick",
-        "resonance-so-good",
     ];
 
     private static readonly TimeSpan SensitiveRepeatWindow = TimeSpan.FromSeconds(4);
@@ -60,6 +55,12 @@ public sealed class BodyInteractionResolver
 
     private BodyInteractionDecision ResolveOrdinaryBody()
     {
+        if (OrdinaryBodyAnimations.Count == 1)
+        {
+            _lastOrdinaryIndex = 0;
+            return Play(OrdinaryBodyAnimations[0]);
+        }
+
         int selectableCount = OrdinaryBodyAnimations.Count - (_lastOrdinaryIndex.HasValue ? 1 : 0);
         int selected = _selectIndex(selectableCount);
         if (selected < 0 || selected >= selectableCount)

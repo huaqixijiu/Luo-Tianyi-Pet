@@ -91,6 +91,30 @@ public sealed class MusicAudioActivityDetectorTests
         Assert.False(detector.IsPlaying);
     }
 
+    [Fact]
+    public void UserPauseConfirmationStopsOnFirstSilentSampleWithoutChangingGeneralGrace()
+    {
+        MusicAudioActivityDetector detector = CreateDetector();
+        detector.Update(AudioSessionSnapshot.Found(0.2f), Now);
+
+        Assert.Equal(
+            MusicActivityTransition.Stopped,
+            detector.ConfirmStoppedAfterUserPause(AudioSessionSnapshot.Found(0)));
+        Assert.False(detector.IsPlaying);
+    }
+
+    [Fact]
+    public void UserPauseConfirmationDoesNotStopWhileAudioIsStillAudible()
+    {
+        MusicAudioActivityDetector detector = CreateDetector();
+        detector.Update(AudioSessionSnapshot.Found(0.2f), Now);
+
+        Assert.Equal(
+            MusicActivityTransition.None,
+            detector.ConfirmStoppedAfterUserPause(AudioSessionSnapshot.Found(0.2f)));
+        Assert.True(detector.IsPlaying);
+    }
+
     private static MusicAudioActivityDetector CreateDetector() => new(
         0.001f,
         TimeSpan.FromMilliseconds(1000));
