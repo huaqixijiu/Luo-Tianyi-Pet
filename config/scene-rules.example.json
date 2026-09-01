@@ -306,9 +306,9 @@
           "holdLastFrameAfterOnePlay": true
         },
         "fullBodyInteractive": {
-          "animation": "official-v4-chibi-full-body-drag-leg-flail",
-          "replaceCurrentAnimation": true,
-          "loopWhileDragging": true
+          "animation": "keep-current-full-body-idle",
+          "replaceCurrentAnimation": false,
+          "loopWhileDragging": false
         }
       },
       "allowWindowTiltAndShadow": true
@@ -430,26 +430,38 @@
       "id": "morning",
       "start": "06:00",
       "end": "12:00",
-      "animation": "collection-good-morning-float"
+      "animation": "collection-good-morning-float",
+      "presentationSeconds": 30,
+      "triggerOnAppStartup": true,
+      "triggerOnBoundary": true
     },
     {
       "id": "lunch",
       "start": "12:00",
       "end": "13:30",
-      "animation": "tenth-anniversary-meal-bounce"
+      "animation": "tenth-anniversary-meal-bounce",
+      "presentationSeconds": 30,
+      "triggerOnAppStartup": true,
+      "triggerOnBoundary": true
     },
     {
       "id": "afternoon",
       "start": "13:30",
       "end": "20:00",
-      "animation": "tenth-anniversary-slacking-float"
+      "animation": "tenth-anniversary-slacking-float",
+      "presentationSeconds": 30,
+      "triggerOnAppStartup": true,
+      "triggerOnBoundary": true
     },
     {
       "id": "night",
       "start": "20:00",
       "end": "06:00",
       "spansMidnight": true,
-      "animation": "startup-night-breathe"
+      "animation": "startup-night-breathe",
+      "presentationSeconds": 30,
+      "triggerOnAppStartup": true,
+      "triggerOnBoundary": true
     }
   ],
   "systemResume": {

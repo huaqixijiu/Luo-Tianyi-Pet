@@ -55,6 +55,7 @@ public partial class MainWindow : Window
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan MusicPausePresentationDuration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan TimeGreetingPresentationDuration = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
@@ -89,6 +90,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
     private readonly DispatcherTimer _idleSceneTimer;
+    private readonly DispatcherTimer _timeSceneTimer;
     private readonly DispatcherTimer _genshinStatusTimer;
     private readonly DispatcherTimer _messageNotificationStatusTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
@@ -106,6 +108,7 @@ public partial class MainWindow : Window
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
+    private readonly TimeSceneTransitionTracker _timeSceneTransitionTracker = new();
     private readonly GenshinBackgroundCameoScheduler _genshinCameoScheduler = new();
     private readonly RandomPetPositionSelector _randomPetPositionSelector = new();
     private readonly ProtectedGamePresenceTracker _genshinProcessMatcher;
@@ -148,6 +151,7 @@ public partial class MainWindow : Window
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
+    private readonly CancellationTokenSource _timeGreetingPresentationCancellation = new();
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
@@ -186,6 +190,8 @@ public partial class MainWindow : Window
     private bool _fileDropInProgress;
     private DateTimeOffset? _fileDropHoverStartedAt;
     private TrayIconController? _trayIcon;
+    private StartupTimeSceneDecision? _pendingTimeGreetingDecision;
+    private bool _timeGreetingPresentationInFlight;
 
     public MainWindow(
         AppSettings settings,
@@ -359,6 +365,11 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(1),
         };
         _idleSceneTimer.Tick += OnIdleSceneTimerTick;
+        _timeSceneTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1),
+        };
+        _timeSceneTimer.Tick += OnTimeSceneTimerTick;
         _genshinStatusTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromMilliseconds(
@@ -422,7 +433,9 @@ public partial class MainWindow : Window
         }
         if (_persistSettings)
         {
+            _timeSceneTransitionTracker.Seed(TimeOnly.FromDateTime(DateTime.Now));
             _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
+            _timeSceneTimer.Start();
         }
         StartSystemResumeMonitoring();
         StartGenshinMonitoring();
@@ -517,8 +530,114 @@ public partial class MainWindow : Window
     {
         StartupTimeSceneDecision decision = StartupTimeSceneResolver.Resolve(
             TimeOnly.FromDateTime(now.LocalDateTime));
-        _logger.Info("time.startup_greeting", decision.Scene.ToString());
-        await PlayReactionAsync(decision.AnimationId, ReactionPriority.TimeGreeting);
+        await PlayTimeGreetingPresentationAsync(decision, "time.startup_greeting");
+    }
+
+    private void OnTimeSceneTimerTick(object? sender, EventArgs e)
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        StartupTimeSceneDecision? decision = _timeSceneTransitionTracker.Observe(
+            TimeOnly.FromDateTime(DateTime.Now));
+        if (decision is not null)
+        {
+            _pendingTimeGreetingDecision = decision;
+            _logger.Info("time.period_boundary_detected", decision.Scene.ToString());
+        }
+
+        if (_pendingTimeGreetingDecision is not null && !_timeGreetingPresentationInFlight)
+        {
+            _ = TryPlayPendingTimeGreetingAsync();
+        }
+    }
+
+    private async Task TryPlayPendingTimeGreetingAsync()
+    {
+        if (_pendingTimeGreetingDecision is not StartupTimeSceneDecision decision ||
+            _timeGreetingPresentationInFlight)
+        {
+            return;
+        }
+
+        _timeGreetingPresentationInFlight = true;
+        try
+        {
+            bool accepted = await PlayTimeGreetingPresentationAsync(
+                decision,
+                "time.period_boundary_greeting");
+            if (accepted && _pendingTimeGreetingDecision == decision)
+            {
+                _pendingTimeGreetingDecision = null;
+            }
+        }
+        finally
+        {
+            _timeGreetingPresentationInFlight = false;
+        }
+    }
+
+    private async Task<bool> PlayTimeGreetingPresentationAsync(
+        StartupTimeSceneDecision decision,
+        string eventName)
+    {
+        DateTimeOffset startedAt = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                decision.AnimationId,
+                ReactionPriority.TimeGreeting,
+                startedAt.Add(TimeGreetingPresentationDuration).AddSeconds(5)),
+            startedAt);
+        if (outcome.Token is not Guid token)
+        {
+            _logger.Info(eventName + ".deferred", outcome.Result.ToString());
+            return false;
+        }
+
+        if (outcome.Result == ReactionStartResult.Replaced)
+        {
+            CleanupReplacedGenshinPresentation();
+            CleanupReplacedMessageNotificationPresentation();
+        }
+
+        UpdateBodyHitDebugOverlay();
+        bool transitioned = await _visualSwapTransition.PlayAsync(
+            () => PlayAnimation(decision.AnimationId, preserveVisualTransition: true));
+        if (!transitioned || _isClosing ||
+            _animationPlayer?.CurrentAnimationId != decision.AnimationId)
+        {
+            if (_stateMachine.ActiveReactionToken == token)
+            {
+                _stateMachine.CancelActiveReaction();
+            }
+            return false;
+        }
+
+        _bodyReactionMotion.PlayFor(decision.AnimationId);
+        _logger.Info(
+            eventName,
+            $"Scene={decision.Scene}; DurationSeconds={TimeGreetingPresentationDuration.TotalSeconds:0}.");
+        try
+        {
+            await Task.Delay(
+                TimeGreetingPresentationDuration,
+                _timeGreetingPresentationCancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return true;
+        }
+
+        if (_isClosing || !_stateMachine.CompleteReaction(token, DateTimeOffset.Now))
+        {
+            return true;
+        }
+
+        _bodyReactionMotion.Cancel();
+        await TransitionToResolvedContinuousAnimationAsync(eventName + ".completed");
+        return true;
     }
 
     private void StartSystemResumeMonitoring()
@@ -4025,6 +4144,10 @@ public partial class MainWindow : Window
         _trackInfoHideTimer.Tick -= OnTrackInfoHideTimerTick;
         _idleSceneTimer.Stop();
         _idleSceneTimer.Tick -= OnIdleSceneTimerTick;
+        _timeSceneTimer.Stop();
+        _timeSceneTimer.Tick -= OnTimeSceneTimerTick;
+        _timeGreetingPresentationCancellation.Cancel();
+        _timeGreetingPresentationCancellation.Dispose();
         _genshinStatusTimer.Stop();
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer.Stop();

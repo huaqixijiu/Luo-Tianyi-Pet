@@ -27,6 +27,38 @@ public sealed class TimeSceneTests
     }
 
     [Fact]
+    public void TransitionTracker_TriggersWhenRunningAppCrossesTimeBoundary()
+    {
+        TimeSceneTransitionTracker tracker = new();
+        tracker.Seed(new TimeOnly(19, 59, 59));
+
+        StartupTimeSceneDecision? decision = tracker.Observe(new TimeOnly(20, 0));
+
+        Assert.NotNull(decision);
+        Assert.Equal(StartupTimeScene.Night, decision.Scene);
+        Assert.Equal(StartupTimeSceneResolver.NightAnimation, decision.AnimationId);
+    }
+
+    [Fact]
+    public void TransitionTracker_DoesNotRepeatWithinSameTimeScene()
+    {
+        TimeSceneTransitionTracker tracker = new();
+        tracker.Seed(new TimeOnly(6, 0));
+
+        Assert.Null(tracker.Observe(new TimeOnly(6, 0, 1)));
+        Assert.Null(tracker.Observe(new TimeOnly(11, 59, 59)));
+    }
+
+    [Fact]
+    public void TransitionTracker_FirstObservationOnlyEstablishesBaseline()
+    {
+        TimeSceneTransitionTracker tracker = new();
+
+        Assert.Null(tracker.Observe(new TimeOnly(13, 30)));
+        Assert.Null(tracker.Observe(new TimeOnly(19, 59)));
+    }
+
+    [Fact]
     public void ResumeGate_SuppressesUnlockAndPowerResumeFromSameWakeCycle()
     {
         DateTimeOffset now = new(2026, 8, 30, 10, 0, 0, TimeSpan.FromHours(8));

@@ -45,6 +45,36 @@ public static class StartupTimeSceneResolver
     }
 }
 
+public sealed class TimeSceneTransitionTracker
+{
+    private StartupTimeScene? _observedScene;
+
+    public StartupTimeSceneDecision Seed(TimeOnly localTime)
+    {
+        StartupTimeSceneDecision decision = StartupTimeSceneResolver.Resolve(localTime);
+        _observedScene = decision.Scene;
+        return decision;
+    }
+
+    public StartupTimeSceneDecision? Observe(TimeOnly localTime)
+    {
+        StartupTimeSceneDecision decision = StartupTimeSceneResolver.Resolve(localTime);
+        if (_observedScene is null)
+        {
+            _observedScene = decision.Scene;
+            return null;
+        }
+
+        if (_observedScene == decision.Scene)
+        {
+            return null;
+        }
+
+        _observedScene = decision.Scene;
+        return decision;
+    }
+}
+
 public enum SystemResumeReason
 {
     SessionUnlocked,

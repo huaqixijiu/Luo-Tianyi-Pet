@@ -74,16 +74,6 @@
       "anchorY": 1.0
     },
     {
-      "id": "official-v4-chibi-full-body-drag-leg-flail",
-      "source": "候选素材_官方/04_官方模型派生动画/精细骨骼动作候选/完整全身_拖拽双脚乱甩.webp",
-      "atlas": "assets/animations/runtime/official-v4-chibi-full-body-drag-leg-flail.atlas.png",
-      "displayWidth": 220,
-      "displayHeight": 238,
-      "loopCount": 0,
-      "anchorX": 0.5,
-      "anchorY": 1.0
-    },
-    {
       "id": "ninth-anniversary-music-sway",
       "source": "候选素材_官方/00_快速预览/02_九周年_音乐摇摆.webp",
       "atlas": "assets/animations/runtime/ninth-anniversary-music-sway.atlas.png",

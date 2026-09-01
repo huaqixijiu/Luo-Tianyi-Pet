@@ -121,6 +121,7 @@ internal sealed class BodyReactionMotion
         {
             Duration = TimeSpan.FromMilliseconds(1450),
             FillBehavior = FillBehavior.Stop,
+            RepeatBehavior = RepeatBehavior.Forever,
         };
         motion.KeyFrames.Add(new EasingDoubleKeyFrame(
             3,
@@ -146,6 +147,7 @@ internal sealed class BodyReactionMotion
         {
             Duration = TimeSpan.FromMilliseconds(1050),
             FillBehavior = FillBehavior.Stop,
+            RepeatBehavior = RepeatBehavior.Forever,
         };
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.96, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(
@@ -171,6 +173,7 @@ internal sealed class BodyReactionMotion
         {
             Duration = TimeSpan.FromMilliseconds(1900),
             FillBehavior = FillBehavior.Stop,
+            RepeatBehavior = RepeatBehavior.Forever,
         };
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.98, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(
