@@ -186,6 +186,21 @@ def key_character(frame: Image.Image) -> Image.Image:
             ]
         )
     alpha[protected_interior] = 255
+    # The generated clip contains a detached dark ellipse under the feet. It
+    # is a luminance-only darkening of the fitted background, unlike the blue
+    # shoes and their near-black outline. Remove only warm, background-colour
+    # pixels in the lower part of the frame so the actual feet stay intact.
+    safe_background = np.maximum(background, 1.0)
+    background_ratio = rgb.astype(np.float32) / safe_background
+    ratio_mean = np.mean(background_ratio, axis=2)
+    ratio_spread = np.ptp(background_ratio, axis=2)
+    floor_shadow = (
+        (y_norm >= 0.80)
+        & (ratio_mean >= 0.55)
+        & (ratio_mean <= 0.95)
+        & (ratio_spread <= 0.16)
+    )
+    alpha[floor_shadow] = 0
     # Undo the salmon colour mixed into antialiased edge pixels. Without this
     # decontamination a visible red halo remains when WPF composites the
     # transparent atlas over a dark or blue desktop.
@@ -378,7 +393,7 @@ def main() -> None:
             "transparentBelowDistance": 34,
             "opaqueAtDistance": 58,
             "removeCornerWatermark": True,
-            "attenuateFloorShadow": True,
+            "removeFloorShadow": True,
             "preserveEnclosedCharacterRegions": True,
         },
         "retouch": "remove unintended tooth from open-mouth frames",
