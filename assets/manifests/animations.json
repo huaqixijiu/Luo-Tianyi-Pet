@@ -138,6 +138,40 @@
       ]
     },
     {
+      "id": "resonance-give-me",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_给我.gif",
+      "sourceSha256": "87aecccc5447947779bd48aaef28e29e3999417d261db03f9ef43eda45b6feb1",
+      "atlasPath": "animations/runtime/resonance-give-me.atlas.png",
+      "atlasSha256": "68c7dc3b52acb253b10dc60d2d3f575a84173e662c09365eeb3071d03d4c2cb0",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        6,
+        160,
+        162
+      ]
+    },
+    {
       "id": "codename-landing-bounce",
       "sourcePath": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
       "sourceSha256": "2e4ab6a8da3fe972f4731efe4932e5664b8636486b267698976b00d882f2bcff",

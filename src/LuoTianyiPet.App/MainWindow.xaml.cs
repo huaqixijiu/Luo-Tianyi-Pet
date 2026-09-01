@@ -12,6 +12,10 @@ using System.Windows.Threading;
 using LuoTianyiPet.Animation;
 using LuoTianyiPet.Core;
 using LuoTianyiPet.Platform.Windows;
+using WpfDataObject = System.Windows.IDataObject;
+using WpfDataFormats = System.Windows.DataFormats;
+using WpfDragDropEffects = System.Windows.DragDropEffects;
+using WpfDragEventArgs = System.Windows.DragEventArgs;
 
 namespace LuoTianyiPet.App;
 
@@ -25,6 +29,9 @@ public partial class MainWindow : Window
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
+    private const string FileDropPromptAnimation = "resonance-give-me";
+    private const string FileDropSuccessAnimation = "resonance-ok";
+    private const string FileDropFailureAnimation = "resonance-cry-shake";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -49,6 +56,7 @@ public partial class MainWindow : Window
     private static readonly TimeSpan MusicPausePresentationDuration = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -90,6 +98,7 @@ public partial class MainWindow : Window
     private readonly IProtectedGameProcessMonitor? _protectedGameMonitor;
     private readonly IForegroundApplicationProbe? _foregroundApplicationProbe;
     private readonly IMessageNotificationSource? _messageNotificationSource;
+    private readonly IRecycleBinService _recycleBinService;
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
@@ -164,6 +173,11 @@ public partial class MainWindow : Window
     private Guid? _messageNotificationReactionToken;
     private Guid? _messageNotificationTopmostToken;
     private MessageProvider? _activeMessageProvider;
+    private Guid? _fileDropReactionToken;
+    private bool _fileDragPresentationActive;
+    private bool _fileDropTargetReady;
+    private bool _fileDropInProgress;
+    private DateTimeOffset? _fileDropHoverStartedAt;
     private TrayIconController? _trayIcon;
 
     public MainWindow(
@@ -181,6 +195,7 @@ public partial class MainWindow : Window
         IProtectedGameProcessMonitor? protectedGameMonitor,
         IForegroundApplicationProbe? foregroundApplicationProbe,
         IMessageNotificationSource? messageNotificationSource,
+        IRecycleBinService recycleBinService,
         IWindowWorkAreaProvider windowWorkAreaProvider,
         PetVisualState initialVisualState,
         bool previewExit,
@@ -218,6 +233,7 @@ public partial class MainWindow : Window
         _protectedGameMonitor = protectedGameMonitor;
         _foregroundApplicationProbe = foregroundApplicationProbe;
         _messageNotificationSource = messageNotificationSource;
+        _recycleBinService = recycleBinService ?? throw new ArgumentNullException(nameof(recycleBinService));
         _windowWorkAreaProvider = windowWorkAreaProvider;
         _genshinProcessMatcher = new ProtectedGamePresenceTracker(
             ParseGenshinProcessNames(settings.Genshin.ProcessNames));
@@ -3136,6 +3152,257 @@ public partial class MainWindow : Window
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Start();
+    }
+
+    private void OnFileDragEnter(object sender, WpfDragEventArgs e) =>
+        UpdateFileDragTarget(e);
+
+    private void OnFileDragOver(object sender, WpfDragEventArgs e) =>
+        UpdateFileDragTarget(e);
+
+    private void OnFileDragLeave(object sender, WpfDragEventArgs e)
+    {
+        if (!_fileDropInProgress)
+        {
+            FinishFileDragPresentation(restoreContinuousAnimation: true);
+        }
+
+        e.Handled = true;
+    }
+
+    private async void OnFileDrop(object sender, WpfDragEventArgs e)
+    {
+        e.Handled = true;
+        if (_fileDropInProgress || !IsFileDropReady(e) ||
+            !TryGetDroppedPaths(e.Data, out string[] paths))
+        {
+            e.Effects = WpfDragDropEffects.None;
+            FinishFileDragPresentation(restoreContinuousAnimation: true);
+            return;
+        }
+
+        e.Effects = WpfDragDropEffects.Move;
+        if ((paths.Length > 10 || paths.Any(Directory.Exists)) &&
+            MessageBox.Show(
+                this,
+                paths.Any(Directory.Exists)
+                    ? $"将 {paths.Length} 个项目（其中包含文件夹）放入 Windows 回收站吗？"
+                    : $"一次将 {paths.Length} 个项目放入 Windows 回收站吗？",
+                "确认放入回收站",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
+        {
+            FinishFileDragPresentation(restoreContinuousAnimation: true);
+            ShowFeedbackBubble("已取消，文件仍在原处");
+            _logger.Info("file_drop.cancelled", $"Count={paths.Length}; Confirmation declined.");
+            return;
+        }
+
+        _fileDropInProgress = true;
+        ShowFeedbackBubble("正在放入 Windows 回收站…");
+        RecycleBinOperationResult result;
+        try
+        {
+            nint ownerHandle = new WindowInteropHelper(this).Handle;
+            result = await _recycleBinService.MoveToRecycleBinAsync(paths, ownerHandle);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or COMException)
+        {
+            result = new RecycleBinOperationResult(
+                RecycleBinOperationStatus.Failed,
+                paths.Length,
+                0,
+                exception.Message);
+        }
+        finally
+        {
+            _fileDropInProgress = false;
+        }
+
+        FinishFileDragPresentation(restoreContinuousAnimation: false);
+        if (result.Succeeded)
+        {
+            ShowFeedbackBubble(result.RecycledCount == 1
+                ? "已放进回收站，需要时可以恢复"
+                : $"已将 {result.RecycledCount} 个项目放进回收站");
+            _logger.Info(
+                "file_drop.recycled",
+                $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
+            await PlayReactionAsync(FileDropSuccessAnimation, ReactionPriority.UserInteraction);
+            return;
+        }
+
+        string failureMessage = result.Status switch
+        {
+            RecycleBinOperationStatus.Cancelled => "已取消，文件仍在原处",
+            RecycleBinOperationStatus.PartialFailure =>
+                $"只有 {result.RecycledCount} 个项目进入回收站，请检查其余文件",
+            RecycleBinOperationStatus.Rejected => result.Message,
+            _ => "没有放进回收站，文件仍在原处",
+        };
+        ShowFeedbackBubble(failureMessage);
+        _logger.Info(
+            "file_drop.failed",
+            $"Status={result.Status}; Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
+        await PlayReactionAsync(FileDropFailureAnimation, ReactionPriority.UserInteraction);
+    }
+
+    private void UpdateFileDragTarget(WpfDragEventArgs e)
+    {
+        bool supported = !_fileDropInProgress &&
+            IsSupportedFileDrop(e, requirePetHit: false) &&
+            IsFileDropEnvironmentSafe();
+        if (supported)
+        {
+            StartFileDragPresentation();
+        }
+
+        bool overPet = supported && IsSupportedFileDrop(e, requirePetHit: true);
+        _fileDropHoverStartedAt = overPet
+            ? _fileDropHoverStartedAt ?? DateTimeOffset.Now
+            : null;
+        bool accepted = overPet && IsFileDropReady(e);
+        e.Effects = accepted ? WpfDragDropEffects.Move : WpfDragDropEffects.None;
+        e.Handled = true;
+        if (accepted && !_fileDropTargetReady)
+        {
+            _fileDropTargetReady = true;
+            ShowFeedbackBubble("松手即可放入回收站");
+        }
+        else if (supported && !accepted && _fileDropTargetReady)
+        {
+            _fileDropTargetReady = false;
+            ShowFeedbackBubble("把文件放到我身上，停一下再松手");
+        }
+        else if (!supported && !_fileDropInProgress)
+        {
+            FinishFileDragPresentation(restoreContinuousAnimation: true);
+        }
+    }
+
+    private bool IsFileDropReady(WpfDragEventArgs e) =>
+        IsSupportedFileDrop(e, requirePetHit: true) &&
+        IsFileDropEnvironmentSafe() &&
+        _fileDropHoverStartedAt is DateTimeOffset hoverStartedAt &&
+        DateTimeOffset.Now - hoverStartedAt >= FileDropDwellDuration;
+
+    private bool IsFileDropEnvironmentSafe()
+    {
+        if (_isClosing || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
+            _isWindowDragging || _foregroundApplicationProbe is null)
+        {
+            return false;
+        }
+
+        ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
+        return foreground.Succeeded &&
+            !foreground.IsFullscreen &&
+            !_genshinProcessMatcher.IsTargetProcess(foreground.ProcessName);
+    }
+
+    private bool IsSupportedFileDrop(WpfDragEventArgs e, bool requirePetHit)
+    {
+        if (!e.Data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false))
+        {
+            return false;
+        }
+
+        if (!requirePetHit)
+        {
+            return true;
+        }
+
+        Point position = e.GetPosition(this);
+        DesktopRectangle bounds = _edgeDockSide == EdgeDockSide.None
+            ? GetPetImageBoundsInWindow()
+            : GetPetImageVisibleBoundsInWindow();
+        return position.X >= bounds.Left && position.X <= bounds.Right &&
+            position.Y >= bounds.Top && position.Y <= bounds.Bottom;
+    }
+
+    private static bool TryGetDroppedPaths(WpfDataObject data, out string[] paths)
+    {
+        paths = [];
+        if (!data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false) ||
+            data.GetData(WpfDataFormats.FileDrop, autoConvert: false) is not string[] rawPaths)
+        {
+            return false;
+        }
+
+        try
+        {
+            paths = rawPaths
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(System.IO.Path.GetFullPath)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            return paths.Length > 0;
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return false;
+        }
+    }
+
+    private void StartFileDragPresentation()
+    {
+        if (_fileDragPresentationActive || _isClosing)
+        {
+            return;
+        }
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                FileDropPromptAnimation,
+                ReactionPriority.UserInteraction,
+                now.AddMinutes(10),
+                InterruptibleByDrag: false),
+            now);
+        if (outcome.Token is not Guid token)
+        {
+            _logger.Info("file_drop.prompt_skipped", outcome.Result.ToString());
+            return;
+        }
+
+        if (outcome.Result == ReactionStartResult.Replaced)
+        {
+            CleanupReplacedGenshinPresentation();
+            CleanupReplacedMessageNotificationPresentation();
+        }
+
+        _fileDropReactionToken = token;
+        _fileDragPresentationActive = true;
+        PlayAnimation(
+            FileDropPromptAnimation,
+            () => _logger.Info(
+                "file_drop.prompt_held",
+                "Give-me animation completed and is holding its final frame."));
+        ShowFeedbackBubble("把文件放到我身上，停一下再松手");
+        _logger.Info("file_drop.prompt_started", "A local file drag entered the pet target.");
+    }
+
+    private void FinishFileDragPresentation(bool restoreContinuousAnimation)
+    {
+        if (!_fileDragPresentationActive)
+        {
+            return;
+        }
+
+        _fileDragPresentationActive = false;
+        _fileDropTargetReady = false;
+        _fileDropHoverStartedAt = null;
+        Guid? token = _fileDropReactionToken;
+        _fileDropReactionToken = null;
+        bool completed = token is Guid reactionToken &&
+            _stateMachine.CompleteReaction(reactionToken, DateTimeOffset.Now);
+        if (completed && restoreContinuousAnimation && !_isClosing)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync("file_drop.prompt_cancelled");
+        }
     }
 
     private void ShowMessageNotification(MessageNotificationSummary notification)

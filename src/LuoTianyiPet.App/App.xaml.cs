@@ -139,11 +139,9 @@ public partial class App : Application
                                 ? settings.Genshin.StatusPollIntervalMilliseconds
                                 : GenshinPreferences.DefaultStatusPollIntervalMilliseconds))
                     : null;
-            IForegroundApplicationProbe? foregroundApplicationProbe =
-                (settings.Genshin.EnableIntegration ||
-                    settings.Notifications.EnableMessageReminders) && !isPreviewOrQaRun
-                    ? new WindowsForegroundApplicationProbe()
-                    : null;
+            IForegroundApplicationProbe? foregroundApplicationProbe = !isPreviewOrQaRun
+                ? new WindowsForegroundApplicationProbe()
+                : null;
             MessageProviderMatcher messageProviderMatcher = new(settings.Notifications);
             IMessageNotificationSource? messageNotificationSource = !isPreviewOrQaRun || previewSettings
                 ? new WindowsMessageNotificationSource(messageProviderMatcher)
@@ -163,6 +161,7 @@ public partial class App : Application
                 protectedGameMonitor,
                 foregroundApplicationProbe,
                 messageNotificationSource,
+                new WindowsRecycleBinService(),
                 new WindowsWindowWorkAreaProvider(),
                 initialVisualState,
                 previewExit,
