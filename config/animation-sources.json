@@ -65,11 +65,12 @@
     },
     {
       "id": "official-v4-chibi-full-body-idle",
-      "source": "候选素材_官方/04_官方模型派生动画/洛天依V4公式服Q版_完整全身待机.webp",
+      "source": "assets/animations/processed/用户提供_新全身_透明.png",
       "atlas": "assets/animations/runtime/official-v4-chibi-full-body-idle.atlas.png",
       "displayWidth": 220,
       "displayHeight": 238,
       "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 1000,
       "anchorX": 0.5,
       "anchorY": 1.0
     },

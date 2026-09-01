@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "source": "候选素材_官方/04_官方模型派生动画/用户提供_新全身.png",
+  "sourceSha256": "b2bfc2d8cd4afe0bac3513db877b79fa7155d66f782259305c75b02979f25511",
+  "output": "assets/animations/processed/用户提供_新全身_透明.png",
+  "outputSha256": "e5f1e27bdca7b9c68ef1b102772514be69e4444544dae29ad3bd2871c9c60048",
+  "runtimeAtlas": "animations/runtime/official-v4-chibi-full-body-idle.atlas.png",
+  "runtimeAtlasSha256": "e5f1e27bdca7b9c68ef1b102772514be69e4444544dae29ad3bd2871c9c60048",
+  "transformation": "border-connected-near-white-background-to-alpha-and-fit-canvas",
+  "backgroundRemoval": {
+    "method": "binary near-white candidates flood-filled only from canvas border",
+    "backgroundRgbMedian": [
+      254,
+      254,
+      254
+    ],
+    "minimumChannelValue": 248,
+    "maximumChannelSpread": 12,
+    "softEdgeWidthPixels": 2,
+    "softEdgeColorDistance": 24.0,
+    "edgeDecontamination": "remove estimated white matte from semitransparent boundary pixels"
+  },
+  "sourceSize": [
+    1129,
+    1393
+  ],
+  "canvasSize": [
+    480,
+    520
+  ],
+  "geometry": {
+    "sourceAlphaBounds": [
+      67,
+      50,
+      1090,
+      1353
+    ],
+    "cropBox": [
+      59,
+      42,
+      1098,
+      1361
+    ],
+    "scale": 0.37907505686125853,
+    "resizedSize": [
+      394,
+      500
+    ],
+    "pasteOffset": [
+      43,
+      10
+    ],
+    "normalizedAlphaBounds": [
+      44,
+      10,
+      436,
+      509
+    ]
+  },
+  "frameCount": 1,
+  "frameDurationMilliseconds": 1000,
+  "loop": 0
+}

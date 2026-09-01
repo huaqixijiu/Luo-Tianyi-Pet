@@ -505,7 +505,7 @@
     const baseAiFileEating = "11_新添加_AI生成文件吞食动画/";
 
     const items = [
-      { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身待机画面，不再切换专用骨骼动作；再次双击切回“嘿嘿”。" },
+      { id:"official_fullbody_idle", title:"用户提供 · 新完整全身待机", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, activeUsage:"双击“嘿嘿”进入完整全身互动模式；眼睛、脸、嘴、头顶、双手、胸部、下体、双脚和普通身体区域互动均已按新立绘重新校准。", src:"../assets/animations/processed/用户提供_新全身_透明.png", source:baseDerived+"用户提供_新全身.png", tags:["新添加","已使用","双击切换","全身互动","用户提供"], desc:"已替换原官方模型待机，并保持原来的模式切换、身体区域互动、拖拽、音乐临时覆盖和屏幕边缘隐藏功能。运行时只确定性移除与画布边缘连通的白底，再等比例适配既有 480×520 画布。" },
       { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:false, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["候选","循环"], desc:"已取消普通身体点击触发；素材继续保留，等待以后重新分配场景。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },

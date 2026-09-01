@@ -40,18 +40,18 @@ public sealed class BodyHitMap
 {
     public static BodyHitMap FullBodyDefault { get; } = new(
     [
-        new(BodyRegionId.LeftEye, new(0.35, 0.39, 0.10, 0.10)),
-        new(BodyRegionId.RightEye, new(0.56, 0.39, 0.10, 0.10)),
-        new(BodyRegionId.Mouth, new(0.43, 0.49, 0.15, 0.07)),
-        new(BodyRegionId.Face, new(0.29, 0.34, 0.42, 0.24)),
-        new(BodyRegionId.LeftHand, new(0.20, 0.62, 0.18, 0.15)),
-        new(BodyRegionId.RightHand, new(0.68, 0.62, 0.18, 0.15)),
-        new(BodyRegionId.Chest, new(0.44, 0.59, 0.12, 0.10)),
-        new(BodyRegionId.LowerBodySensitiveArea, new(0.46, 0.76, 0.09, 0.09)),
-        new(BodyRegionId.LeftFoot, new(0.37, 0.89, 0.14, 0.10)),
-        new(BodyRegionId.RightFoot, new(0.51, 0.89, 0.18, 0.10)),
-        new(BodyRegionId.HeadAndHair, new(0.15, 0.03, 0.72, 0.60)),
-        new(BodyRegionId.OtherBody, new(0.14, 0.03, 0.73, 0.96)),
+        new(BodyRegionId.LeftEye, new(0.39, 0.20, 0.10, 0.10)),
+        new(BodyRegionId.RightEye, new(0.51, 0.20, 0.10, 0.10)),
+        new(BodyRegionId.Mouth, new(0.455, 0.28, 0.09, 0.055)),
+        new(BodyRegionId.Face, new(0.36, 0.15, 0.28, 0.20)),
+        new(BodyRegionId.LeftHand, new(0.20, 0.49, 0.12, 0.14)),
+        new(BodyRegionId.RightHand, new(0.68, 0.49, 0.12, 0.14)),
+        new(BodyRegionId.Chest, new(0.455, 0.34, 0.09, 0.12)),
+        new(BodyRegionId.LowerBodySensitiveArea, new(0.465, 0.54, 0.07, 0.09)),
+        new(BodyRegionId.LeftFoot, new(0.39, 0.82, 0.11, 0.16)),
+        new(BodyRegionId.RightFoot, new(0.50, 0.82, 0.11, 0.16)),
+        new(BodyRegionId.HeadAndHair, new(0.29, 0.02, 0.42, 0.39)),
+        new(BodyRegionId.OtherBody, new(0.08, 0.02, 0.84, 0.96)),
     ]);
 
     public BodyHitMap(IReadOnlyList<BodyHitRegion> regions)
