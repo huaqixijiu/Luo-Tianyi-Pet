@@ -20,6 +20,22 @@ public interface IDesktopItemDisappearanceSource : IDisposable
 
 public readonly record struct BunChaseStep(PointerPoint Position, bool Arrived);
 
+public static class DesktopFileTreatSafety
+{
+    public static bool AllowsForeground(
+        ForegroundApplicationSnapshot foreground,
+        bool protectedApplicationForeground)
+    {
+        bool explorerForeground = string.Equals(
+            Path.GetFileNameWithoutExtension(foreground.ProcessName),
+            "explorer",
+            StringComparison.OrdinalIgnoreCase);
+        return foreground.Succeeded &&
+            (!foreground.IsFullscreen || explorerForeground) &&
+            !protectedApplicationForeground;
+    }
+}
+
 public static class BunChasePlanner
 {
     public static BunChaseStep Advance(

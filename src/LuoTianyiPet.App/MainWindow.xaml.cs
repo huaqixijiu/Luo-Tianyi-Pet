@@ -3554,8 +3554,11 @@ public partial class MainWindow : Window
         Dispatcher.BeginInvoke(() =>
         {
             if (_isClosing || DateTimeOffset.Now < _suppressDesktopTreatUntil ||
-                !IsFileDropEnvironmentSafe())
+                !IsBunChaseEnvironmentSafe())
             {
+                _logger.Info(
+                    "file_treat.desktop_event_suppressed",
+                    "Desktop disappearance event was suppressed by the foreground safety policy.");
                 return;
             }
 
@@ -3613,7 +3616,7 @@ public partial class MainWindow : Window
     private void BeginBunChase()
     {
         if (_bunTargets.Count == 0 || _isClosing ||
-            (!_previewBunChase && !IsFileDropEnvironmentSafe()))
+            (!_previewBunChase && !IsBunChaseEnvironmentSafe()))
         {
             return;
         }
@@ -3677,7 +3680,7 @@ public partial class MainWindow : Window
         if (!_previewBunChase && now - _bunLastSafetyCheckAt >= TimeSpan.FromMilliseconds(500))
         {
             _bunLastSafetyCheckAt = now;
-            if (!IsFileDropEnvironmentSafe())
+            if (!IsBunChaseEnvironmentSafe())
             {
                 _logger.Info(
                     "file_treat.cancelled_for_foreground_safety",
@@ -3987,6 +3990,20 @@ public partial class MainWindow : Window
         return foreground.Succeeded &&
             !foreground.IsFullscreen &&
             !_genshinProcessMatcher.IsTargetProcess(foreground.ProcessName);
+    }
+
+    private bool IsBunChaseEnvironmentSafe()
+    {
+        if (_isClosing || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
+            _isWindowDragging || _foregroundApplicationProbe is null)
+        {
+            return false;
+        }
+
+        ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
+        return DesktopFileTreatSafety.AllowsForeground(
+            foreground,
+            _genshinProcessMatcher.IsTargetProcess(foreground.ProcessName));
     }
 
     private bool IsSupportedFileDrop(WpfDragEventArgs e, bool requirePetHit)
