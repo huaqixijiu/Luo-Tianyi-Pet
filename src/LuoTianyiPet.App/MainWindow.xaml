@@ -111,6 +111,7 @@
               RenderTransformOrigin="0.5,1">
             <Grid.RenderTransform>
                 <TransformGroup>
+                    <ScaleTransform x:Name="PetDirectionTransform" ScaleX="1" ScaleY="1" />
                     <ScaleTransform x:Name="PetScaleTransform" ScaleX="1" ScaleY="1" />
                     <TranslateTransform x:Name="PetShakeTransform" />
                 </TransformGroup>

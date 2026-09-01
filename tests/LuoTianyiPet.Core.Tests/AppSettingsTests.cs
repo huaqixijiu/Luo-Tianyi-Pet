@@ -38,6 +38,8 @@ public sealed class AppSettingsTests
         Assert.Equal(3000, settings.Notifications.DuplicateWindowMilliseconds);
         Assert.Equal("QQ.exe", settings.Notifications.QqProcessNames);
         Assert.Equal("WeChat.exe;Weixin.exe", settings.Notifications.WeChatProcessNames);
+        Assert.True(settings.FileTreats.EnableDesktopFileTreats);
+        Assert.Equal(6, settings.FileTreats.MaximumQueuedBuns);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
             settings.Safety.ProtectedForegroundProcessNames);

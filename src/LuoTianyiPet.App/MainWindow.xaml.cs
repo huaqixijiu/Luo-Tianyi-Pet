@@ -30,9 +30,10 @@ public partial class MainWindow : Window
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
     private const string FileDropPromptAnimation = "resonance-give-me";
-    private const string FileDropSuccessAnimation = "resonance-ok";
     private const string FileDropFailureAnimation = "resonance-cry-shake";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
+    private const string BunChaseRunAnimation = "ai-bun-chase-run";
+    private const string BunEatAnimation = "ai-bun-eat";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -93,6 +94,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timeSceneTimer;
     private readonly DispatcherTimer _genshinStatusTimer;
     private readonly DispatcherTimer _messageNotificationStatusTimer;
+    private readonly DispatcherTimer _bunChaseTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly IMediaApplicationLauncher _mediaApplicationLauncher;
@@ -105,6 +107,7 @@ public partial class MainWindow : Window
     private readonly IForegroundApplicationProbe? _foregroundApplicationProbe;
     private readonly IMessageNotificationSource? _messageNotificationSource;
     private readonly IRecycleBinService _recycleBinService;
+    private readonly IDesktopItemDisappearanceSource? _desktopItemDisappearanceSource;
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
@@ -130,6 +133,7 @@ public partial class MainWindow : Window
     private readonly bool _previewLongIdle;
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
+    private readonly bool _previewBunChase;
     private readonly MessageProvider? _previewMessageNotification;
     private readonly EdgeDockSide? _previewEdgeDock;
     private readonly bool _previewBottomControlsLayout;
@@ -192,6 +196,16 @@ public partial class MainWindow : Window
     private TrayIconController? _trayIcon;
     private StartupTimeSceneDecision? _pendingTimeGreetingDecision;
     private bool _timeGreetingPresentationInFlight;
+    private readonly List<BunTargetWindow> _bunTargets = [];
+    private BunTargetWindow? _activeBunTarget;
+    private Point? _bunReturnPosition;
+    private Guid? _bunChaseReactionToken;
+    private DateTimeOffset _bunLastMotionAt;
+    private DateTimeOffset _bunLastSafetyCheckAt;
+    private bool _bunChaseActive;
+    private bool _bunReturning;
+    private bool _bunEating;
+    private DateTimeOffset _suppressDesktopTreatUntil;
 
     public MainWindow(
         AppSettings settings,
@@ -210,6 +224,7 @@ public partial class MainWindow : Window
         IForegroundApplicationProbe? foregroundApplicationProbe,
         IMessageNotificationSource? messageNotificationSource,
         IRecycleBinService recycleBinService,
+        IDesktopItemDisappearanceSource? desktopItemDisappearanceSource,
         IWindowWorkAreaProvider windowWorkAreaProvider,
         PetVisualState initialVisualState,
         bool previewExit,
@@ -225,6 +240,7 @@ public partial class MainWindow : Window
         bool previewLongIdle,
         bool previewGenshinLaunch,
         bool previewGenshinCameo,
+        bool previewBunChase,
         MessageProvider? previewMessageNotification,
         EdgeDockSide? previewEdgeDock,
         bool previewBottomControlsLayout,
@@ -250,6 +266,7 @@ public partial class MainWindow : Window
         _foregroundApplicationProbe = foregroundApplicationProbe;
         _messageNotificationSource = messageNotificationSource;
         _recycleBinService = recycleBinService ?? throw new ArgumentNullException(nameof(recycleBinService));
+        _desktopItemDisappearanceSource = desktopItemDisappearanceSource;
         _windowWorkAreaProvider = windowWorkAreaProvider;
         _genshinProcessMatcher = new ProtectedGamePresenceTracker(
             ParseGenshinProcessNames(settings.Genshin.ProcessNames));
@@ -286,6 +303,7 @@ public partial class MainWindow : Window
         _previewLongIdle = previewLongIdle;
         _previewGenshinLaunch = previewGenshinLaunch;
         _previewGenshinCameo = previewGenshinCameo;
+        _previewBunChase = previewBunChase;
         _previewMessageNotification = previewMessageNotification;
         _previewEdgeDock = previewEdgeDock;
         _previewBottomControlsLayout = previewBottomControlsLayout;
@@ -383,6 +401,11 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(1),
         };
         _messageNotificationStatusTimer.Tick += OnMessageNotificationStatusTimerTick;
+        _bunChaseTimer = new DispatcherTimer(DispatcherPriority.Render)
+        {
+            Interval = TimeSpan.FromMilliseconds(16),
+        };
+        _bunChaseTimer.Tick += OnBunChaseTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -440,6 +463,17 @@ public partial class MainWindow : Window
         StartSystemResumeMonitoring();
         StartGenshinMonitoring();
         StartMessageNotificationMonitoring();
+        if (_desktopItemDisappearanceSource is not null)
+        {
+            _desktopItemDisappearanceSource.ItemDisappeared += OnDesktopItemDisappeared;
+            if (_settings.FileTreats.EnableDesktopFileTreats)
+            {
+                _desktopItemDisappearanceSource.Start();
+                _logger.Info(
+                    "file_treat.desktop_observer_started",
+                    "Desktop disappearance observer started without retaining file paths.");
+            }
+        }
         if (!_previewLongIdle)
         {
             _idleSceneTimer.Start();
@@ -519,6 +553,10 @@ public partial class MainWindow : Window
         if (_previewGenshinCameo)
         {
             _ = BeginGenshinCameoPreviewAsync();
+        }
+        if (_previewBunChase)
+        {
+            _ = BeginBunChasePreviewAsync();
         }
         if (_previewMessageNotification is MessageProvider provider)
         {
@@ -2850,6 +2888,7 @@ public partial class MainWindow : Window
             _settings.Volume,
             _settings.Notifications,
             _settings.Window,
+            _settings.FileTreats,
             _startupRegistrationService?.IsEnabled ?? false,
             _systemVolumeService,
             _messageNotificationSource)
@@ -2859,10 +2898,41 @@ public partial class MainWindow : Window
         if (settingsWindow.ShowDialog() == true)
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
+            ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences);
             ApplyVolumePreferences(settingsWindow.SelectedPreferences);
             ApplyWindowPreferences(
                 settingsWindow.SelectedWindowPreferences,
                 settingsWindow.StartWithWindowsSelected);
+        }
+    }
+
+    private void ApplyFileTreatPreferences(FileTreatPreferences preferences)
+    {
+        bool wasEnabled = _settings.FileTreats.EnableDesktopFileTreats;
+        _settings = _settings with { FileTreats = preferences };
+        if (_desktopItemDisappearanceSource is not null)
+        {
+            if (preferences.EnableDesktopFileTreats)
+            {
+                _desktopItemDisappearanceSource.Start();
+            }
+            else
+            {
+                _desktopItemDisappearanceSource.Stop();
+                CancelBunChase(restorePosition: true, restoreContinuousAnimation: true);
+            }
+        }
+
+        if (wasEnabled != preferences.EnableDesktopFileTreats)
+        {
+            _logger.Info(
+                "file_treat.preferences_applied",
+                preferences.EnableDesktopFileTreats ? "Enabled." : "Disabled.");
+        }
+
+        if (_persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.file_treat_saved", "File treat preferences saved.");
         }
     }
 
@@ -3479,6 +3549,295 @@ public partial class MainWindow : Window
         _feedbackBubbleTimer.Stop();
     }
 
+    private void OnDesktopItemDisappeared(object? sender, DesktopItemDisappearedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (_isClosing || DateTimeOffset.Now < _suppressDesktopTreatUntil ||
+                !IsFileDropEnvironmentSafe())
+            {
+                return;
+            }
+
+            Point target = ConvertScreenPixelsToDips(e.ScreenPositionPixels);
+            QueueBunTreat(target);
+            _logger.Info(
+                "file_treat.bun_created",
+                e.UsedCachedIconPosition
+                    ? "Bun created at the cached desktop icon position."
+                    : "Bun created at the safe cursor-position fallback.");
+        });
+    }
+
+    private Point ConvertScreenPixelsToDips(PointerPoint point)
+    {
+        PresentationSource? source = PresentationSource.FromVisual(this);
+        Matrix fromDevice = source?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
+        return fromDevice.Transform(new Point(point.X, point.Y));
+    }
+
+    private void QueueBunTreat(Point screenPosition)
+    {
+        int maximum = Math.Clamp(_settings.FileTreats.MaximumQueuedBuns, 1, 12);
+        if (_bunTargets.Count >= maximum)
+        {
+            ShowFeedbackBubble("包子太多啦，先吃完这些吧");
+            return;
+        }
+
+        string bunPath = System.IO.Path.Combine(
+            AppContext.BaseDirectory,
+            "assets",
+            "objects",
+            "xiaolongbao.png");
+        if (!File.Exists(bunPath))
+        {
+            _logger.Info("file_treat.bun_asset_missing", "The runtime bun image is unavailable.");
+            return;
+        }
+
+        BunTargetWindow bun = new(bunPath)
+        {
+            Left = screenPosition.X - 32,
+            Top = screenPosition.Y - 32,
+        };
+        _bunTargets.Add(bun);
+        bun.Show();
+        ShowFeedbackBubble("发现小笼包！拖动它，天依也会追过去");
+        if (!_bunChaseActive)
+        {
+            BeginBunChase();
+        }
+    }
+
+    private void BeginBunChase()
+    {
+        if (_bunTargets.Count == 0 || _isClosing ||
+            (!_previewBunChase && !IsFileDropEnvironmentSafe()))
+        {
+            return;
+        }
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
+            new ReactionRequest(
+                BunChaseRunAnimation,
+                ReactionPriority.UserInteraction,
+                now.AddMinutes(10),
+                InterruptibleByDrag: false),
+            now);
+        if (outcome.Token is not Guid token)
+        {
+            _ = RetryBunChaseAsync();
+            return;
+        }
+
+        _bunChaseReactionToken = token;
+        _bunChaseActive = true;
+        _bunReturning = false;
+        _bunEating = false;
+        _bunReturnPosition ??= new Point(Left, Top);
+        SelectNearestBun();
+        _bunLastMotionAt = now;
+        PlayAnimation(BunChaseRunAnimation);
+        _bunChaseTimer.Start();
+    }
+
+    private async Task RetryBunChaseAsync()
+    {
+        await Task.Delay(900);
+        if (!_bunChaseActive && _bunTargets.Count > 0 && !_isClosing)
+        {
+            BeginBunChase();
+        }
+    }
+
+    private void SelectNearestBun()
+    {
+        Point petCentre = GetPetScreenCentre();
+        _activeBunTarget = _bunTargets
+            .OrderBy(target =>
+            {
+                Point centre = target.ScreenCenter;
+                double dx = centre.X - petCentre.X;
+                double dy = centre.Y - petCentre.Y;
+                return dx * dx + dy * dy;
+            })
+            .FirstOrDefault();
+    }
+
+    private void OnBunChaseTimerTick(object? sender, EventArgs e)
+    {
+        if (!_bunChaseActive || _bunEating)
+        {
+            return;
+        }
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        if (!_previewBunChase && now - _bunLastSafetyCheckAt >= TimeSpan.FromMilliseconds(500))
+        {
+            _bunLastSafetyCheckAt = now;
+            if (!IsFileDropEnvironmentSafe())
+            {
+                _logger.Info(
+                    "file_treat.cancelled_for_foreground_safety",
+                    "Bun chase cancelled because the foreground safety check failed.");
+                CancelBunChase(restorePosition: true, restoreContinuousAnimation: true);
+                return;
+            }
+        }
+
+        TimeSpan elapsed = now - _bunLastMotionAt;
+        _bunLastMotionAt = now;
+        if (_bunReturning)
+        {
+            if (_bunReturnPosition is not Point returnPosition)
+            {
+                FinishBunChase();
+                return;
+            }
+
+            PointerPoint current = new(Left, Top);
+            BunChaseStep step = BunChasePlanner.Advance(
+                current,
+                new PointerPoint(returnPosition.X, returnPosition.Y),
+                330,
+                elapsed,
+                3);
+            PetDirectionTransform.ScaleX = returnPosition.X < Left ? -1 : 1;
+            Left = step.Position.X;
+            Top = step.Position.Y;
+            if (step.Arrived)
+            {
+                FinishBunChase();
+            }
+            return;
+        }
+
+        if (_activeBunTarget is null)
+        {
+            SelectNearestBun();
+            if (_activeBunTarget is null)
+            {
+                BeginBunReturn();
+                return;
+            }
+        }
+
+        Point petCentre = GetPetScreenCentre();
+        Point targetCentre = _activeBunTarget.ScreenCenter;
+        BunChaseStep chase = BunChasePlanner.Advance(
+            new PointerPoint(petCentre.X, petCentre.Y),
+            new PointerPoint(targetCentre.X, targetCentre.Y),
+            360,
+            elapsed,
+            42);
+        double moveX = chase.Position.X - petCentre.X;
+        double moveY = chase.Position.Y - petCentre.Y;
+        PetDirectionTransform.ScaleX = targetCentre.X < petCentre.X ? -1 : 1;
+        Left += moveX;
+        Top += moveY;
+        UpdateBottomControlsLayoutForCurrentPosition();
+        if (chase.Arrived && !_activeBunTarget.IsBeingDragged)
+        {
+            _bunChaseTimer.Stop();
+            _ = EatActiveBunAsync(_activeBunTarget);
+        }
+    }
+
+    private Point GetPetScreenCentre()
+    {
+        DesktopRectangle bounds = GetPetImageBoundsInWindow();
+        return new Point(Left + bounds.Left + bounds.Width / 2, Top + bounds.Top + bounds.Height / 2);
+    }
+
+    private async Task EatActiveBunAsync(BunTargetWindow bun)
+    {
+        if (_isClosing || !_bunTargets.Contains(bun))
+        {
+            return;
+        }
+
+        _bunEating = true;
+        PlayAnimation(BunEatAnimation);
+        await Task.Delay(420);
+        Point pet = GetPetScreenCentre();
+        DesktopRectangle bounds = GetPetImageBoundsInWindow();
+        Point mouth = new(pet.X, Top + bounds.Top + bounds.Height * 0.43);
+        await bun.FlyIntoAsync(mouth, TimeSpan.FromMilliseconds(680));
+        bun.Close();
+        _bunTargets.Remove(bun);
+        _activeBunTarget = null;
+        await Task.Delay(1650);
+        _bunEating = false;
+        if (_bunTargets.Count > 0)
+        {
+            SelectNearestBun();
+            PlayAnimation(BunChaseRunAnimation);
+            _bunLastMotionAt = DateTimeOffset.Now;
+            _bunChaseTimer.Start();
+            return;
+        }
+
+        BeginBunReturn();
+    }
+
+    private void BeginBunReturn()
+    {
+        _bunReturning = true;
+        _activeBunTarget = null;
+        PlayAnimation(BunChaseRunAnimation);
+        _bunLastMotionAt = DateTimeOffset.Now;
+        _bunChaseTimer.Start();
+    }
+
+    private void FinishBunChase()
+    {
+        _bunChaseTimer.Stop();
+        _bunReturning = false;
+        _bunEating = false;
+        _bunChaseActive = false;
+        _activeBunTarget = null;
+        _bunReturnPosition = null;
+        PetDirectionTransform.ScaleX = 1;
+        if (_bunChaseReactionToken is Guid token)
+        {
+            _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
+        }
+        _bunChaseReactionToken = null;
+        _ = TransitionToResolvedContinuousAnimationAsync("file_treat.completed");
+    }
+
+    private void CancelBunChase(bool restorePosition, bool restoreContinuousAnimation)
+    {
+        _bunChaseTimer.Stop();
+        foreach (BunTargetWindow bun in _bunTargets.ToArray())
+        {
+            bun.Close();
+        }
+        _bunTargets.Clear();
+        if (restorePosition && _bunReturnPosition is Point position)
+        {
+            Left = position.X;
+            Top = position.Y;
+        }
+        _bunChaseActive = false;
+        _bunReturning = false;
+        _bunEating = false;
+        _activeBunTarget = null;
+        _bunReturnPosition = null;
+        PetDirectionTransform.ScaleX = 1;
+        if (_bunChaseReactionToken is Guid token)
+        {
+            _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
+        }
+        _bunChaseReactionToken = null;
+        if (restoreContinuousAnimation && !_isClosing)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync("file_treat.cancelled");
+        }
+    }
+
     private void OnFileDragEnter(object sender, WpfDragEventArgs e) =>
         UpdateFileDragTarget(e);
 
@@ -3525,6 +3884,7 @@ public partial class MainWindow : Window
         }
 
         _fileDropInProgress = true;
+        _suppressDesktopTreatUntil = DateTimeOffset.Now.AddSeconds(3);
         ShowFeedbackBubble("正在放入 Windows 回收站…");
         RecycleBinOperationResult result;
         try
@@ -3555,9 +3915,11 @@ public partial class MainWindow : Window
             _logger.Info(
                 "file_drop.recycled",
                 $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
-            await PlayReactionAsync(FileDropSuccessAnimation, ReactionPriority.UserInteraction);
+            QueueBunTreat(GetPetScreenCentre());
             return;
         }
+
+        _suppressDesktopTreatUntil = DateTimeOffset.Now;
 
         string failureMessage = result.Status switch
         {
@@ -4085,6 +4447,20 @@ public partial class MainWindow : Window
         _mediaControlsMotion.Show();
     }
 
+    private async Task BeginBunChasePreviewAsync()
+    {
+        await Task.Delay(700);
+        if (_isClosing)
+        {
+            return;
+        }
+
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        QueueBunTreat(new Point(
+            Math.Max(workArea.Left + 90, Left - 320),
+            Math.Max(workArea.Top + 90, Top - 90)));
+    }
+
     private async Task BeginLiveTrackInfoPreviewAsync()
     {
         await Task.Delay(700);
@@ -4152,6 +4528,8 @@ public partial class MainWindow : Window
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer.Stop();
         _messageNotificationStatusTimer.Tick -= OnMessageNotificationStatusTimerTick;
+        _bunChaseTimer.Stop();
+        _bunChaseTimer.Tick -= OnBunChaseTimerTick;
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
@@ -4162,6 +4540,7 @@ public partial class MainWindow : Window
         _trackInfoMotion.Cancel();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
         CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
+        CancelBunChase(restorePosition: false, restoreContinuousAnimation: false);
         CancelVisualTransition();
         _animationPlayer?.Dispose();
         if (_systemResumeSource is not null)
@@ -4183,6 +4562,11 @@ public partial class MainWindow : Window
                 _messageNotificationSubscribed = false;
             }
             _messageNotificationSource.Dispose();
+        }
+        if (_desktopItemDisappearanceSource is not null)
+        {
+            _desktopItemDisappearanceSource.ItemDisappeared -= OnDesktopItemDisappeared;
+            _desktopItemDisappearanceSource.Dispose();
         }
         if (_systemVolumeService is not null)
         {

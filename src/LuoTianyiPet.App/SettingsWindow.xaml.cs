@@ -15,6 +15,7 @@ public partial class SettingsWindow : Window
         VolumePreferences preferences,
         MessageNotificationPreferences notificationPreferences,
         WindowPreferences windowPreferences,
+        FileTreatPreferences fileTreatPreferences,
         bool startupRegistrationEnabled,
         ISystemVolumeService? systemVolumeService,
         IMessageNotificationSource? messageNotificationSource)
@@ -22,9 +23,11 @@ public partial class SettingsWindow : Window
         ArgumentNullException.ThrowIfNull(preferences);
         ArgumentNullException.ThrowIfNull(notificationPreferences);
         ArgumentNullException.ThrowIfNull(windowPreferences);
+        ArgumentNullException.ThrowIfNull(fileTreatPreferences);
         SelectedPreferences = preferences;
         SelectedNotificationPreferences = notificationPreferences;
         SelectedWindowPreferences = windowPreferences;
+        SelectedFileTreatPreferences = fileTreatPreferences;
         StartWithWindowsSelected = startupRegistrationEnabled;
         _systemVolumeService = systemVolumeService;
         _messageNotificationSource = messageNotificationSource;
@@ -35,6 +38,7 @@ public partial class SettingsWindow : Window
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
         AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
+        DesktopFileTreatsCheckBox.IsChecked = fileTreatPreferences.EnableDesktopFileTreats;
         SelectWheelStep(preferences.MouseWheelStepPercent);
     }
 
@@ -43,6 +47,8 @@ public partial class SettingsWindow : Window
     public MessageNotificationPreferences SelectedNotificationPreferences { get; private set; }
 
     public WindowPreferences SelectedWindowPreferences { get; private set; }
+
+    public FileTreatPreferences SelectedFileTreatPreferences { get; private set; }
 
     public bool StartWithWindowsSelected { get; private set; }
 
@@ -145,6 +151,10 @@ public partial class SettingsWindow : Window
         {
             AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true,
             StartWithWindows = StartWithWindowsSelected,
+        };
+        SelectedFileTreatPreferences = SelectedFileTreatPreferences with
+        {
+            EnableDesktopFileTreats = DesktopFileTreatsCheckBox.IsChecked == true,
         };
         DialogResult = true;
     }

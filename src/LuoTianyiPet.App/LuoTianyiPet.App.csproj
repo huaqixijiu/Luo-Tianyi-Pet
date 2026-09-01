@@ -13,6 +13,9 @@
     <Content Include="..\..\assets\manifests\animations.json"
              Link="assets\manifests\animations.json"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\objects\**\*"
+             Link="assets\objects\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

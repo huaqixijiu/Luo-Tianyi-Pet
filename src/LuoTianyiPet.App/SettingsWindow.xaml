@@ -154,11 +154,14 @@
                 <CheckBox x:Name="AlwaysOnTopCheckBox"
                           AutomationProperties.Name="桌宠始终置顶"
                           Content="桌宠始终置顶" />
+                <CheckBox x:Name="DesktopFileTreatsCheckBox"
+                          AutomationProperties.Name="桌面文件消失后生成小笼包"
+                          Content="桌面文件移入回收站后，生成可拖动的小笼包并让天依追过去" />
                 <TextBlock Margin="0,4,0,0"
                            Foreground="#A8174E68"
                            FontSize="11"
                            TextWrapping="Wrap"
-                           Text="这两项也可以直接从 Windows 右下角的洛天依托盘图标切换。" />
+                           Text="开机启动与始终置顶也可以直接从 Windows 右下角的洛天依托盘图标切换。文件功能只观察桌面项目名称与图标位置，不读取文件内容。" />
             </StackPanel>
         </Border>
 

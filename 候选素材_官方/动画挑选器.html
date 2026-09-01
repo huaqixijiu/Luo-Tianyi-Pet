@@ -502,6 +502,7 @@
     const baseBao = "08_新添加_小笼包素材候选/";
     const baseListening = "09_新添加_普通歌曲听歌候选/";
     const baseFileEating = "10_新添加_文件吞食组合候选/";
+    const baseAiFileEating = "11_新添加_AI生成文件吞食动画/";
 
     const items = [
       { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身待机画面，不再切换专用骨骼动作；再次双击切回“嘿嘿”。" },
@@ -520,6 +521,7 @@
       { id:"file_run_preview", title:"文件吞食候选 · 奔向文件", category:"body", kind:"官方表情裁剪组合 WebP", priority:true, newlyAdded:true, src:baseFileEating+"01_奔向文件_来喽姿势预演.webp", source:baseFileEating+"01_奔向文件_来喽姿势预演.webp", tags:["新添加","文件删除","移动","来喽","组合预演"], desc:"使用官方收藏集“来喽”的前扑姿势，配合窗口真实位移模拟奔向桌面文件。角色不是原地横滑：正式接入时整个桌宠会从当前位置移动到文件原来的图标位置。" },
       { id:"file_eat_preview", title:"文件吞食候选 · 吞下文件", category:"expression", kind:"官方动态表情片段 WebP", priority:true, newlyAdded:true, src:baseFileEating+"02_吞文件_十一周年干饭裁剪预演.webp", source:baseFileEating+"源素材_洛天依11周年QQ表情_干饭.gif", tags:["新添加","拖入文件","回收站","干饭","真实进食动作"], desc:"从官方十一周年“干饭”动图中截出一轮完整的拿起、送入口中和咀嚼动作，并叠加逐渐缩小的文件图标。比静态图片摇摆更接近真正“吃掉文件”。" },
       { id:"file_full_flow_preview", title:"文件吞食候选 · 奔向并吃掉", category:"feedback", kind:"两段官方素材组合 WebP", priority:true, newlyAdded:true, src:baseFileEating+"03_奔向并吞下文件_完整流程预演.webp", source:baseFileEating+"来源与制作说明.md", tags:["新添加","完整流程","桌面删除","拖放删除","回收站"], desc:"把“奔向文件”和“吞下文件”串成一次完整预演，供直接判断节奏与画风切换。正式版会在两段之间加入很短的交叉淡化，并始终通过 Windows 回收站处理文件。" },
+      { id:"ai_file_eating_approved", title:"AI 文件吞食 · 奔跑与吃包子", category:"body", kind:"61 帧透明动态 WebP", priority:true, newlyAdded:true, activeUsage:"桌面文件移入回收站后，在原图标位置生成可拖动小笼包；天依追踪包子、张嘴吃掉，再跑回原位。文件直接拖到桌宠并成功进入回收站时也触发。", src:baseAiFileEating+"预览_吃包子_透明处理版.webp", source:baseAiFileEating+"源素材_吃包子_AI生成.mp4", tags:["新添加","已使用","文件回收站","奔跑","张嘴","小笼包","AI生成"], desc:"用户本轮确认可用的完整视频。构建时已扣除纯色背景与角落水印、修掉模型误生成的小虎牙，并拆成循环奔跑和单次进食两段运行时图集；正式效果中的包子是独立可拖动目标。" },
       { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["音量提高","音量降低","倒放"], desc:"已确定：调高音量播放原版；调低音量播放派生的倒放版。静音与解除静音暂不播放动画。" },
       { id:"e_great", title:"心律共鸣 · 好厉害", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_好厉害.gif", source:baseEmoji+"心律共鸣动态表情包_好厉害.gif", tags:["夸奖","操作反馈"], desc:"正向反馈感明显，适合操作成功、恢复播放或用户连续互动之后播放。" },
       { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["胸部","下体","重复点击","0.5倍速"], desc:"胸部或下体敏感区域在 4 秒内被再次点击时播放；运行时使用 0.5 倍速，双脚不触发黑化。" },

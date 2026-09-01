@@ -1,0 +1,60 @@
+{
+  "sourceVideo": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_AI生成.mp4",
+  "sourceVideoSha256": "5a8cb0e5897a7d39d5e915c7d21912813b21282a7d0ad85b07c78699a84d1d6b",
+  "sourceFrameCount": 121,
+  "sourceFps": 24,
+  "backgroundRemoval": {
+    "method": "border-fitted colour plane plus corner watermark clearing",
+    "transparentBelowDistance": 34,
+    "opaqueAtDistance": 58,
+    "removeCornerWatermark": true,
+    "attenuateFloorShadow": true
+  },
+  "retouch": "remove unintended tooth from open-mouth frames",
+  "normalizedFrameSize": [
+    256,
+    256
+  ],
+  "run": {
+    "sourceFramesOneBased": [
+      39,
+      53
+    ],
+    "frameCount": 15,
+    "frameDurationMilliseconds": 42,
+    "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
+    "atlasSha256": "7f584005b617b2e5ae285fa9ceb0123c8733b9bf271e32334a2d5272d94d25dd",
+    "columns": 8,
+    "rows": 2
+  },
+  "eat": {
+    "sourceFramesOneBased": [
+      56,
+      121
+    ],
+    "frameCount": 66,
+    "frameDurationMilliseconds": 42,
+    "atlas": "animations/runtime/ai-bun-eat.atlas.png",
+    "atlasSha256": "13b8e30630e92c0ed7ce5cc2e87ef19ccec0d7a467d04aecaa10e588afb4790a",
+    "columns": 8,
+    "rows": 9
+  },
+  "bun": {
+    "source": "候选素材_官方/08_新添加_小笼包素材候选/包子.png",
+    "sourceSha256": "f78dd8d78c1bc8d30269d7be3933f4516a48f11e7e60c17d5dfadf72e25226fd",
+    "output": "objects/xiaolongbao.png",
+    "outputSha256": "69fd5e23f7bdd732ede6b206a31234b6f5539952282f6c679e2923d7ae0d8512"
+  },
+  "cropBeforeResize": [
+    76,
+    87,
+    602,
+    653
+  ],
+  "pickerPreview": {
+    "output": "候选素材_官方/11_新添加_AI生成文件吞食动画/预览_吃包子_透明处理版.webp",
+    "outputSha256": "b6591c9dc1c4fa89b90e5c9ccaa81a614279cbd666649a55dfff8e62de4d79ed",
+    "frameCount": 61,
+    "frameDurationMilliseconds": 84
+  }
+}

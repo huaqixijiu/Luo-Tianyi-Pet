@@ -96,6 +96,9 @@ public partial class App : Application
             bool previewGenshinCameo = e.Args.Contains(
                 "--qa-genshin-cameo",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewBunChase = e.Args.Contains(
+                "--qa-bun-chase",
+                StringComparer.OrdinalIgnoreCase);
             MessageProvider? previewMessageNotification = ParseMessageNotificationPreview(e.Args);
             EdgeDockSide? previewEdgeDock = ParseEdgeDockPreview(e.Args);
             string? previewBodyReaction = e.Args
@@ -150,6 +153,8 @@ public partial class App : Application
             IMessageNotificationSource? messageNotificationSource = !isPreviewOrQaRun || previewSettings
                 ? new WindowsMessageNotificationSource(messageProviderMatcher)
                 : null;
+            IDesktopItemDisappearanceSource? desktopItemDisappearanceSource =
+                !isPreviewOrQaRun ? new WindowsDesktopItemDisappearanceSource() : null;
             MainWindow window = new(
                 settings,
                 settingsStore,
@@ -167,6 +172,7 @@ public partial class App : Application
                 foregroundApplicationProbe,
                 messageNotificationSource,
                 new WindowsRecycleBinService(),
+                desktopItemDisappearanceSource,
                 new WindowsWindowWorkAreaProvider(),
                 initialVisualState,
                 previewExit,
@@ -182,6 +188,7 @@ public partial class App : Application
                 previewLongIdle,
                 previewGenshinLaunch,
                 previewGenshinCameo,
+                previewBunChase,
                 previewMessageNotification,
                 previewEdgeDock,
                 previewBottomControlsLayout,

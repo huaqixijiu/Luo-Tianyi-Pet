@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 8;
+    public const int CurrentSchemaVersion = 9;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -16,7 +16,16 @@ public sealed record AppSettings
 
     public MessageNotificationPreferences Notifications { get; init; } = new();
 
+    public FileTreatPreferences FileTreats { get; init; } = new();
+
     public SafetyPreferences Safety { get; init; } = new();
+}
+
+public sealed record FileTreatPreferences
+{
+    public bool EnableDesktopFileTreats { get; init; } = true;
+
+    public int MaximumQueuedBuns { get; init; } = 6;
 }
 
 public sealed record MessageNotificationPreferences

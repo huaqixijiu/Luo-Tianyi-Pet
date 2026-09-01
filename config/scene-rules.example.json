@@ -525,6 +525,21 @@
     "suppressWhenGameIsForegroundOrExclusiveFullscreen": true,
     "cancelPendingOnProcessExitLockOrSleep": true
   },
+  "desktopFileTreats": {
+    "enabled": true,
+    "source": "user-and-public-desktop-filesystem-disappearance-with-uia-icon-position-cache",
+    "readFileContents": false,
+    "persistNamesOrPaths": false,
+    "maximumQueuedBuns": 6,
+    "bunCanBeDraggedBeforeEating": true,
+    "trackLiveBunPosition": true,
+    "processNearestFirst": true,
+    "returnToOriginalPosition": true,
+    "runAnimation": "ai-bun-chase-run",
+    "eatAnimation": "ai-bun-eat",
+    "directDropFileOperation": "windows-shell-recycle-bin-only",
+    "cancelOnFullscreenProtectedGameLockOrForegroundCheckFailure": true
+  },
   "messageNotifications": {
     "source": "windows-user-notification-listener",
     "requiresPackageIdentity": true,
