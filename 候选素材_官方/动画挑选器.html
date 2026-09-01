@@ -495,11 +495,17 @@
     const baseTheme = "02_个性装扮动画原包/";
     const baseStatic = "03_官方表情包/";
     const baseDerived = "04_官方模型派生动画/";
+    const baseFullBodyActions = baseDerived + "动作候选/";
     const baseNew12 = "05_新添加_洛天依12周年QQ动态表情/";
     const baseDynamicHeadPat = "07_新添加_官方动态摸头候选/";
 
     const items = [
       { id:"official_fullbody_idle", title:"官方模型 · 完整全身待机", category:"body", kind:"32 帧动态 WebP", priority:true, src:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", source:baseDerived+"洛天依V4公式服Q版_完整全身待机.webp", tags:["双击切换","全身互动","拖拽保持","官方模型"], desc:"已确定为双击“嘿嘿”后进入的完整全身互动模式。拖拽时保持这套全身动画，不切换为“膨胀”；再次双击切回“嘿嘿”。" },
+      { id:"fullbody_bow", title:"完整全身模型 · 轻轻鞠躬", category:"body", kind:"32 帧动态 WebP", priority:false, newlyAdded:true, src:baseFullBodyActions+"完整全身_轻轻鞠躬.webp", source:baseFullBodyActions+"完整全身_轻轻鞠躬.webp", tags:["同模型","鞠躬","候选互动"], desc:"保持完整全身模型、服装和脚底基准，人物轻轻压低后自然回正。适合作为问候、确认或较安静的随机待机候选。" },
+      { id:"fullbody_happy_hop", title:"完整全身模型 · 开心跳跃", category:"body", kind:"32 帧动态 WebP", priority:false, newlyAdded:true, src:baseFullBodyActions+"完整全身_开心跳跃.webp", source:baseFullBodyActions+"完整全身_开心跳跃.webp", tags:["同模型","跳跃","成功反馈"], desc:"使用同一完整全身模型完成一次蓄力、起跳和落地，不切换其它表情包。适合作为成功反馈、点击普通身体或偶发待机动作。" },
+      { id:"fullbody_curious_lean", title:"完整全身模型 · 左右探身", category:"body", kind:"40 帧动态 WebP", priority:false, newlyAdded:true, src:baseFullBodyActions+"完整全身_左右探身.webp", source:baseFullBodyActions+"完整全身_左右探身.webp", tags:["同模型","好奇","鼠标悬停"], desc:"人物以脚底为轴向左右轻轻探身，动作结束回到原姿势。适合作为鼠标悬停、查看通知或低频随机待机候选。" },
+      { id:"fullbody_shy_sway", title:"完整全身模型 · 害羞摇摆", category:"body", kind:"48 帧动态 WebP", priority:false, newlyAdded:true, src:baseFullBodyActions+"完整全身_害羞摇摆.webp", source:baseFullBodyActions+"完整全身_害羞摇摆.webp", tags:["同模型","摇摆","点击互动"], desc:"保持人物原画和大小，以小幅左右扭摆形成害羞反应。适合脸部、眼睛附近的温和互动或偶发待机候选。" },
+      { id:"fullbody_surprise_pop", title:"完整全身模型 · 惊喜弹起", category:"body", kind:"28 帧动态 WebP", priority:false, newlyAdded:true, src:baseFullBodyActions+"完整全身_惊喜弹起.webp", source:baseFullBodyActions+"完整全身_惊喜弹起.webp", tags:["同模型","惊喜","提醒反馈"], desc:"先短暂压低蓄力，再弹起并逐步收稳。适合作为新消息、切歌成功或轻量提醒候选，不改变完整全身模式。" },
       { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["普通部位随机","循环"], desc:"已加入完整全身模式的普通部位点击随机池；只在没有命中更具体身体区域时播放。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
