@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "source": "候选素材_官方/Q版小人全身.png",
-  "sourceSha256": "a3b46cd08963832152f97fde82a85aa19a0f1058c1dd22e54643a735ae8a5118",
+  "source": "候选素材_官方/Q版小人全身_新默认.png",
+  "sourceSha256": "d6fc02a4e9be9dd623a31275365e89a0200ab47dcdf8493123054c56a92cfc8c",
   "output": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-  "outputSha256": "64ae8dbf706e5d1a69821c10c1d82d040cbc06f7f552323aca2f4f9daff13170",
+  "outputSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
   "runtimeAtlas": "animations/runtime/user-chibi-compact-idle.atlas.png",
-  "runtimeAtlasSha256": "64ae8dbf706e5d1a69821c10c1d82d040cbc06f7f552323aca2f4f9daff13170",
+  "runtimeAtlasSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
   "transformation": "border-connected-near-white-background-to-alpha-and-fit-canvas",
   "backgroundRemoval": {
     "method": "binary near-white candidates flood-filled only from canvas border",
     "backgroundRgbMedian": [
-      253,
-      253,
-      253
+      251,
+      251,
+      251
     ],
     "minimumChannelValue": 240,
     "maximumChannelSpread": 12,
@@ -30,30 +30,30 @@
   ],
   "geometry": {
     "sourceAlphaBounds": [
-      237,
-      57,
-      1037,
-      1158
+      142,
+      25,
+      1105,
+      1186
     ],
     "cropBox": [
-      229,
-      49,
-      1045,
-      1166
+      134,
+      17,
+      1113,
+      1194
     ],
-    "scale": 0.4476275738585497,
+    "scale": 0.42480883602378927,
     "resizedSize": [
-      365,
+      416,
       500
     ],
     "pasteOffset": [
-      57,
+      32,
       10
     ],
     "normalizedAlphaBounds": [
-      58,
+      33,
       11,
-      421,
+      447,
       509
     ]
   },

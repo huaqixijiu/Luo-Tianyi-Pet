@@ -119,6 +119,8 @@ public partial class MainWindow : Window
     private readonly MessageNotificationCoordinator _messageNotificationCoordinator;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
     private readonly SystemVolumeChangeTracker _volumeChangeTracker = new();
+    private readonly System.Windows.Input.Cursor? _petPointerCursor;
+    private readonly System.Windows.Input.Cursor? _headPatCursor;
     private readonly string _musicTargetProcessName;
     private readonly bool _previewExit;
     private readonly bool _previewMusicTransition;
@@ -324,6 +326,8 @@ public partial class MainWindow : Window
             TrackInfoBubble,
             TrackInfoTranslate,
             enableHitTesting: false);
+        _petPointerCursor = TryLoadCursorAsset("pet-pointer.cur");
+        _headPatCursor = TryLoadCursorAsset("pet-headpat.cur");
         _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = DoubleClickInterval,
@@ -1196,7 +1200,13 @@ public partial class MainWindow : Window
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (_isClosing || e.LeftButton != MouseButtonState.Pressed)
+        if (_isClosing)
+        {
+            return;
+        }
+
+        UpdatePetCursor(ToPointerPoint(e.GetPosition(this)));
+        if (e.LeftButton != MouseButtonState.Pressed)
         {
             return;
         }
@@ -3235,6 +3245,11 @@ public partial class MainWindow : Window
 
     private void OnRootMouseEnter(object sender, MouseEventArgs e)
     {
+        if (!_isClosing)
+        {
+            UpdatePetCursor(ToPointerPoint(e.GetPosition(this)));
+        }
+
         if (_edgeDockSide != EdgeDockSide.None)
         {
             RevealEdgeDock();
@@ -3270,6 +3285,7 @@ public partial class MainWindow : Window
 
     private void OnRootMouseLeave(object sender, MouseEventArgs e)
     {
+        PetImage.Cursor = null;
         if (_edgeDockSide != EdgeDockSide.None)
         {
             if (!_isWindowDragging)
@@ -3355,6 +3371,45 @@ public partial class MainWindow : Window
         if (!result.WasSent && result.Status is not MediaCommandSendStatus.RateLimited)
         {
             _ = PlayBodyReactionAsync("resonance-cry-shake");
+        }
+    }
+
+    private void UpdatePetCursor(PointerPoint windowPoint)
+    {
+        PointerPoint? normalizedPoint = NormalizeToPetImage(windowPoint);
+        bool isOpaquePixel = normalizedPoint is PointerPoint point && IsOpaquePetPixel(point);
+        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
+        BodyRegionId? region = isOpaquePixel && plan.BodyRegionInteractionsEnabled
+            ? _bodyHitMap.HitTest(normalizedPoint!.Value)
+            : null;
+        PetImage.Cursor = PetCursorResolver.Resolve(
+            isOpaquePixel,
+            plan.BodyRegionInteractionsEnabled,
+            region) switch
+        {
+            PetCursorKind.HeadPat => _headPatCursor ?? System.Windows.Input.Cursors.Hand,
+            PetCursorKind.Interaction => _petPointerCursor ?? System.Windows.Input.Cursors.Hand,
+            _ => null,
+        };
+    }
+
+    private System.Windows.Input.Cursor? TryLoadCursorAsset(string fileName)
+    {
+        string path = System.IO.Path.Combine(
+            AppContext.BaseDirectory,
+            "assets",
+            "cursors",
+            fileName);
+        try
+        {
+            return File.Exists(path) ? new System.Windows.Input.Cursor(path) : null;
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or IOException or System.ComponentModel.Win32Exception or
+            System.Security.SecurityException)
+        {
+            _logger.Info("cursor.asset_unavailable", $"Asset={fileName}; Error={exception.GetType().Name}.");
+            return null;
         }
     }
 
@@ -4564,6 +4619,8 @@ public partial class MainWindow : Window
         CancelBunChase(restorePosition: false, restoreContinuousAnimation: false);
         CancelVisualTransition();
         _animationPlayer?.Dispose();
+        _petPointerCursor?.Dispose();
+        _headPatCursor?.Dispose();
         if (_systemResumeSource is not null)
         {
             _systemResumeSource.Resumed -= OnSystemResumed;

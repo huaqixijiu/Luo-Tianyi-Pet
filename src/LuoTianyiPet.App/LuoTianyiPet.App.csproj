@@ -16,6 +16,9 @@
     <Content Include="..\..\assets\objects\**\*"
              Link="assets\objects\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\cursors\**\*"
+             Link="assets\cursors\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

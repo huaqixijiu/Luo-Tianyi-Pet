@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "source": "候选素材_官方/12_用户提供_鼠标指针/摸摸头.png",
+  "sourceSha256": "ed530cc56938537905722e5760d413e95028c3ca3d934bb51a75228319a7efa1",
+  "preview": "assets/cursors/pet-headpat.png",
+  "previewSha256": "14ebcd9708d6c2d7ace56010bc34774c7774427289cb4d0149e61306ec5b4c05",
+  "cursor": "assets/cursors/pet-headpat.cur",
+  "cursorSha256": "16518c910743dba267de57cc8f1c9d9271c8a533cda0512add280429fcfb3072",
+  "sourceSize": [
+    1374,
+    1145
+  ],
+  "sourceAlphaBounds": [
+    102,
+    215,
+    1322,
+    1145
+  ],
+  "cursorSize": [
+    64,
+    64
+  ],
+  "resizedSize": [
+    60,
+    46
+  ],
+  "sourceHotspot": [
+    120,
+    520
+  ],
+  "cursorHotspot": [
+    3,
+    24
+  ],
+  "transformation": "alpha-bounds-crop-fit-and-32-bit-windows-cur"
+}

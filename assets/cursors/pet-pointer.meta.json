@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "source": "候选素材_官方/12_用户提供_鼠标指针/普通指向.png",
+  "sourceSha256": "3fff4f2d406466f9c4897c1d050aa70b06ba68ef63d8f861168cd7b849e8ebfa",
+  "preview": "assets/cursors/pet-pointer.png",
+  "previewSha256": "85cd602e9ebc8cf344bcff8ac4a85bbde93782f95746fbe8f2df0bb89e546d54",
+  "cursor": "assets/cursors/pet-pointer.cur",
+  "cursorSha256": "80cc508ef0bfd79a23552bb8134a302e29e7b73c7048df234f0c1b399da0913f",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "sourceAlphaBounds": [
+    97,
+    53,
+    1176,
+    1184
+  ],
+  "cursorSize": [
+    64,
+    64
+  ],
+  "resizedSize": [
+    57,
+    60
+  ],
+  "sourceHotspot": [
+    285,
+    152
+  ],
+  "cursorHotspot": [
+    13,
+    7
+  ],
+  "transformation": "alpha-bounds-crop-fit-and-32-bit-windows-cur"
+}
