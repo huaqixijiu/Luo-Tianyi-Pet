@@ -41,12 +41,70 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
         </Style>
+        <Style x:Key="Win11ApplicationVolumeSliderStyle" TargetType="Slider">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="32">
+                            <Border Height="4"
+                                    VerticalAlignment="Center"
+                                    Background="#FFE1E5E7"
+                                    CornerRadius="2" />
+                            <Track x:Name="PART_Track" VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4"
+                                                        Background="#FF39BDF5"
+                                                        CornerRadius="2" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="18" Height="18" Focusable="False">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="#FF39BDF5"
+                                                         Stroke="White"
+                                                         StrokeThickness="3" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                  Background="Transparent"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="12" Background="Transparent" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="22">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -60,7 +118,7 @@
             <TextBlock Margin="0,5,0,0"
                        Foreground="#B3174E68"
                        FontSize="12"
-                       Text="管理角色外观、文件互动和桌面行为。" />
+                       Text="管理角色外观、音乐陪伴、文件互动和桌面行为。" />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource SettingCardStyle}">
@@ -87,6 +145,86 @@
         </Border>
 
         <Border Grid.Row="2" Style="{StaticResource SettingCardStyle}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="36"
+                            Height="36"
+                            Margin="0,0,11,0"
+                            Background="#1F39BDF5"
+                            CornerRadius="10">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="Segoe Fluent Icons"
+                                   FontSize="17"
+                                   Foreground="#FF0875A8"
+                                   Text="&#xE767;" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="网易云音乐独立音量" />
+                        <TextBlock Margin="0,2,0,0"
+                                   Foreground="#A8174E68"
+                                   FontSize="11"
+                                   Text="Windows 11 应用音量合成器" />
+                    </StackPanel>
+                    <Border Grid.Column="2"
+                            MinWidth="54"
+                            Padding="10,5"
+                            Background="#1839BDF5"
+                            CornerRadius="12">
+                        <TextBlock x:Name="CloudMusicVolumeValueText"
+                                   HorizontalAlignment="Center"
+                                   FontWeight="SemiBold"
+                                   Foreground="#FF0875A8"
+                                   Text="--%" />
+                    </Border>
+                </Grid>
+                <Slider x:Name="CloudMusicVolumeSlider"
+                        AutomationProperties.Name="网易云音乐独立音量"
+                        Margin="0,13,0,4"
+                        Minimum="0"
+                        Maximum="100"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        IsMoveToPointEnabled="True"
+                        IsEnabled="False"
+                        Style="{StaticResource Win11ApplicationVolumeSliderStyle}"
+                        ValueChanged="OnCloudMusicVolumeSliderValueChanged" />
+                <Grid Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="CloudMusicVolumeStatusText"
+                               Margin="0,0,12,0"
+                               VerticalAlignment="Center"
+                               Foreground="#B3174E68"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="正在查找网易云音乐音频会话……" />
+                    <Button Grid.Column="1"
+                            AutomationProperties.Name="重新检测网易云音乐音量"
+                            MinWidth="86"
+                            Height="32"
+                            Padding="11,0"
+                            Click="OnRefreshCloudMusicVolumeClick"
+                            Content="重新检测" />
+                </Grid>
+                <TextBlock Margin="0,10,0,0"
+                           Foreground="#8F174E68"
+                           FontSize="10.5"
+                           TextWrapping="Wrap"
+                           Text="只调整 cloudmusic.exe 的公开音频会话，不改变系统主音量、游戏、语音或其它应用。网易云至少播放过一次后才会创建可调节会话。" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
@@ -137,7 +275,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
+        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15" FontWeight="SemiBold" Text="吃包子动画" />
                 <TextBlock Margin="0,4,0,8"
@@ -174,7 +312,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
+        <Border Grid.Row="5" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
@@ -211,7 +349,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="5" Margin="2,2,2,0">
+        <Grid Grid.Row="6" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

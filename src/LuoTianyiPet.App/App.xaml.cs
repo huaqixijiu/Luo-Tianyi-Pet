@@ -75,6 +75,9 @@ public partial class App : Application
             bool liveTrackInfoQa = e.Args.Contains(
                 "--qa-track-info-live",
                 StringComparer.OrdinalIgnoreCase);
+            bool liveApplicationVolumeQa = e.Args.Contains(
+                "--qa-application-volume",
+                StringComparer.OrdinalIgnoreCase);
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);
@@ -108,6 +111,10 @@ public partial class App : Application
                 !isPreviewOrQaRun
                     ? new CoreAudioSessionProbe()
                     : null;
+            IApplicationVolumeService? applicationVolumeService =
+                !isPreviewOrQaRun || liveApplicationVolumeQa
+                ? CreateApplicationVolumeService(settings, _logger)
+                : null;
             Win32ShortcutInputBackend mediaInputBackend = new();
             IMediaCommandSender mediaCommandSender = new WindowsMediaCommandSender(
                 mediaInputBackend,
@@ -155,6 +162,7 @@ public partial class App : Application
                 _logger,
                 animationCatalog,
                 audioSessionProbe,
+                applicationVolumeService,
                 mediaCommandSender,
                 mediaApplicationLauncher,
                 startupRegistrationService,
@@ -244,6 +252,25 @@ public partial class App : Application
         catch (Exception exception) when (
             exception is InvalidOperationException or System.Runtime.InteropServices.COMException)
         {
+            return null;
+        }
+    }
+
+    private static IApplicationVolumeService? CreateApplicationVolumeService(
+        AppSettings settings,
+        IAppLogger logger)
+    {
+        try
+        {
+            return new CoreAudioApplicationVolumeService(
+                settings.Media.TargetProcessName,
+                settings.Safety);
+        }
+        catch (Exception exception) when (
+            exception is System.Runtime.InteropServices.COMException or
+            InvalidOperationException or ArgumentException or UnauthorizedAccessException)
+        {
+            logger.Error("volume.application_session_initialization_failed", exception);
             return null;
         }
     }

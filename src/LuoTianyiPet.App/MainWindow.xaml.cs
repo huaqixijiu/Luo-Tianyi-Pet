@@ -90,6 +90,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _messageNotificationStatusTimer;
     private readonly DispatcherTimer _bunChaseTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
+    private readonly IApplicationVolumeService? _applicationVolumeService;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly IMediaApplicationLauncher _mediaApplicationLauncher;
     private readonly IStartupRegistrationService? _startupRegistrationService;
@@ -207,6 +208,7 @@ public partial class MainWindow : Window
         IAppLogger logger,
         AnimationCatalog? animationCatalog,
         IAudioSessionProbe? audioSessionProbe,
+        IApplicationVolumeService? applicationVolumeService,
         IMediaCommandSender mediaCommandSender,
         IMediaApplicationLauncher mediaApplicationLauncher,
         IStartupRegistrationService? startupRegistrationService,
@@ -250,6 +252,7 @@ public partial class MainWindow : Window
         _logger = logger;
         _animationCatalog = animationCatalog;
         _audioSessionProbe = audioSessionProbe;
+        _applicationVolumeService = applicationVolumeService;
         _mediaCommandSender = mediaCommandSender;
         _mediaApplicationLauncher = mediaApplicationLauncher ??
             throw new ArgumentNullException(nameof(mediaApplicationLauncher));
@@ -2890,7 +2893,8 @@ public partial class MainWindow : Window
             _settings.Appearance,
             _startupRegistrationService?.IsEnabled ?? false,
             _messageNotificationSource,
-            _animationCatalog)
+            _animationCatalog,
+            _applicationVolumeService)
         {
             Owner = this,
         };
@@ -4515,6 +4519,7 @@ public partial class MainWindow : Window
             _desktopItemDisappearanceSource.ItemDisappeared -= OnDesktopItemDisappeared;
             _desktopItemDisappearanceSource.Dispose();
         }
+        _applicationVolumeService?.Dispose();
         if (!_persistSettings)
         {
             return;

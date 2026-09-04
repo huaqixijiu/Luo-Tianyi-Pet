@@ -110,9 +110,11 @@
     "petMouseWheelEnabled": false,
     "externalSystemVolumeFeedbackEnabled": false,
     "cloudMusicSessionVolume": {
-      "status": "proposed-not-enabled",
+      "status": "enabled-in-settings-window",
       "targetProcess": "cloudmusic.exe",
       "api": "windows-core-audio-session-simple-volume",
+      "enumerateAllActiveRenderDevices": true,
+      "adjustAllMatchingSessions": true,
       "mustNeverFallbackToSystemMasterVolume": true
     }
   },

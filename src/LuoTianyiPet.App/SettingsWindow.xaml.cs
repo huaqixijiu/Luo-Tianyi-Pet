@@ -10,6 +10,9 @@ namespace LuoTianyiPet.App;
 public partial class SettingsWindow : Window
 {
     private readonly IMessageNotificationSource? _messageNotificationSource;
+    private readonly IApplicationVolumeService? _applicationVolumeService;
+    private bool _cloudMusicVolumeReady;
+    private bool _updatingCloudMusicVolumeSlider;
 
     public SettingsWindow(
         MessageNotificationPreferences notificationPreferences,
@@ -18,7 +21,8 @@ public partial class SettingsWindow : Window
         AppearancePreferences appearancePreferences,
         bool startupRegistrationEnabled,
         IMessageNotificationSource? messageNotificationSource,
-        AnimationCatalog? animationCatalog)
+        AnimationCatalog? animationCatalog,
+        IApplicationVolumeService? applicationVolumeService)
     {
         ArgumentNullException.ThrowIfNull(notificationPreferences);
         ArgumentNullException.ThrowIfNull(windowPreferences);
@@ -30,6 +34,7 @@ public partial class SettingsWindow : Window
         SelectedAppearancePreferences = AppearancePreferences.Normalize(appearancePreferences);
         StartWithWindowsSelected = startupRegistrationEnabled;
         _messageNotificationSource = messageNotificationSource;
+        _applicationVolumeService = applicationVolumeService;
         InitializeComponent();
 
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
@@ -62,6 +67,87 @@ public partial class SettingsWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         UpdateNotificationAccessDisplay();
+        _cloudMusicVolumeReady = true;
+        RefreshCloudMusicVolume();
+    }
+
+    private void OnRefreshCloudMusicVolumeClick(object sender, RoutedEventArgs e) =>
+        RefreshCloudMusicVolume();
+
+    private void OnCloudMusicVolumeSliderValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_cloudMusicVolumeReady ||
+            _updatingCloudMusicVolumeSlider ||
+            _applicationVolumeService is null)
+        {
+            return;
+        }
+
+        ApplicationVolumeAdjustmentResult result =
+            _applicationVolumeService.TrySetLevel((float)(e.NewValue / 100));
+        if (result.Status is ApplicationVolumeAdjustmentStatus.Succeeded or
+            ApplicationVolumeAdjustmentStatus.AtLimit)
+        {
+            UpdateCloudMusicVolumeDisplay(
+                result.Snapshot,
+                result.Status == ApplicationVolumeAdjustmentStatus.Succeeded
+                    ? "已同步到网易云音乐的应用音量。"
+                    : "网易云音乐已经是这个音量。",
+                updateSlider: false);
+            return;
+        }
+
+        string status = result.Status switch
+        {
+            ApplicationVolumeAdjustmentStatus.TargetSessionMissing =>
+                "没有找到网易云音频会话；请先播放一首歌后重新检测。",
+            ApplicationVolumeAdjustmentStatus.ProtectedApplicationForeground =>
+                "游戏安全模式：受保护游戏位于前台，没有调整音量。",
+            ApplicationVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
+                "暂时无法确认前台程序，为安全起见没有调整音量。",
+            ApplicationVolumeAdjustmentStatus.SessionUnavailable =>
+                "Windows 音频服务暂时不可用，没有调整任何音量。",
+            _ => "Windows 没有接受这次应用音量调整，请重新检测。",
+        };
+        RefreshCloudMusicVolume(status);
+    }
+
+    private void RefreshCloudMusicVolume(string? overrideStatus = null)
+    {
+        ApplicationVolumeSnapshot snapshot =
+            _applicationVolumeService?.Read() ?? ApplicationVolumeSnapshot.Unavailable;
+        string status = overrideStatus ?? (snapshot switch
+        {
+            { IsAvailable: true, SessionCount: > 1 } =>
+                $"已连接网易云音乐的 {snapshot.SessionCount} 个音频会话。",
+            { IsAvailable: true } => "已连接网易云音乐音频会话。",
+            { ProbeSucceeded: true } =>
+                "网易云尚未创建音频会话；请先播放一首歌后点“重新检测”。",
+            _ => "Windows 音频服务暂时不可用；没有修改系统主音量。",
+        });
+        UpdateCloudMusicVolumeDisplay(snapshot, status);
+    }
+
+    private void UpdateCloudMusicVolumeDisplay(
+        ApplicationVolumeSnapshot snapshot,
+        string status,
+        bool updateSlider = true)
+    {
+        CloudMusicVolumeSlider.IsEnabled = snapshot.IsAvailable;
+        CloudMusicVolumeValueText.Text = snapshot.IsAvailable
+            ? $"{snapshot.Percentage}%"
+            : "--%";
+        CloudMusicVolumeStatusText.Text = status;
+        if (!updateSlider || !snapshot.IsAvailable)
+        {
+            return;
+        }
+
+        _updatingCloudMusicVolumeSlider = true;
+        CloudMusicVolumeSlider.Value = snapshot.Percentage;
+        _updatingCloudMusicVolumeSlider = false;
     }
 
     private async void OnRequestNotificationAccessClick(object sender, RoutedEventArgs e)
