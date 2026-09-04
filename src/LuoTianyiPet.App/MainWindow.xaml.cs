@@ -128,6 +128,7 @@ public partial class MainWindow : Window
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
     private readonly bool _previewBunChase;
+    private readonly bool _showQaTaskbar;
     private readonly MessageProvider? _previewMessageNotification;
     private readonly EdgeDockSide? _previewEdgeDock;
     private readonly bool _previewBottomControlsLayout;
@@ -198,6 +199,7 @@ public partial class MainWindow : Window
     private bool _bunReturning;
     private bool _bunEating;
     private DateTimeOffset _suppressDesktopTreatUntil;
+    private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
 
     public MainWindow(
         AppSettings settings,
@@ -303,12 +305,19 @@ public partial class MainWindow : Window
         _previewGenshinLaunch = previewGenshinLaunch;
         _previewGenshinCameo = previewGenshinCameo;
         _previewBunChase = previewBunChase;
+        _showQaTaskbar = showQaTaskbar;
         _previewMessageNotification = previewMessageNotification;
         _previewEdgeDock = previewEdgeDock;
         _previewBottomControlsLayout = previewBottomControlsLayout;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
+        if (!_showQaTaskbar)
+        {
+            _desktopToolWindowBehavior = new DesktopToolWindowBehavior(
+                this,
+                keepVisibleOnShowDesktop: true);
+        }
         _visualSwapTransition = new VisualSwapTransition(
             PetVisual,
             PetScaleTransform,
@@ -399,6 +408,14 @@ public partial class MainWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        if (!_showQaTaskbar)
+        {
+            _logger.Info(
+                "window.desktop_tool_mode",
+                _desktopToolWindowBehavior?.IsToolWindowStyleApplied == true
+                    ? "Desktop tool-window mode enabled; excluded from task switchers and protected from Show Desktop minimization."
+                    : "Desktop tool-window mode requested, but native style verification did not succeed.");
+        }
         ApplyEffectiveTopmost();
         FullBodyModeMenuItem.IsChecked =
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
@@ -4424,6 +4441,8 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _desktopToolWindowBehavior?.Dispose();
+        _desktopToolWindowBehavior = null;
         _isClosing = true;
         _trayIcon?.Dispose();
         _trayIcon = null;

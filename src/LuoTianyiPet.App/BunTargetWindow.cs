@@ -8,6 +8,7 @@ namespace LuoTianyiPet.App;
 
 internal sealed class BunTargetWindow : Window
 {
+    private readonly DesktopToolWindowBehavior _desktopToolWindowBehavior;
     private readonly ScaleTransform _scale = new(1, 1);
     private readonly TranslateTransform _bob = new();
     private readonly DispatcherTimer _bobTimer;
@@ -28,6 +29,9 @@ internal sealed class BunTargetWindow : Window
         ShowActivated = false;
         Focusable = false;
         Topmost = true;
+        _desktopToolWindowBehavior = new DesktopToolWindowBehavior(
+            this,
+            keepVisibleOnShowDesktop: true);
 
         BitmapImage bitmap = new();
         bitmap.BeginInit();
@@ -127,6 +131,7 @@ internal sealed class BunTargetWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _bobTimer.Stop();
+        _desktopToolWindowBehavior.Dispose();
         base.OnClosed(e);
     }
 }
