@@ -13,6 +13,17 @@
       "anchorY": 1.0
     },
     {
+      "id": "user-chibi-compact-idle",
+      "source": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
+      "atlas": "assets/animations/runtime/user-chibi-compact-idle.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 195,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 1000,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "resonance-expand",
       "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
       "atlas": "assets/animations/runtime/resonance-expand.atlas.png",
@@ -375,19 +386,6 @@
       "resizeWidth": 240,
       "resizeHeight": 240,
       "cropAfterResize": [0, 0, 196, 240],
-      "anchorX": 0.5,
-      "anchorY": 1.0
-    },
-    {
-      "id": "twelfth-anniversary-lie-flat",
-      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/05_躺平.gif",
-      "atlas": "assets/animations/runtime/twelfth-anniversary-lie-flat.atlas.png",
-      "displayWidth": 190,
-      "displayHeight": 190,
-      "loopCount": 0,
-      "maximumFrames": 13,
-      "resizeWidth": 240,
-      "resizeHeight": 240,
       "anchorX": 0.5,
       "anchorY": 1.0
     },

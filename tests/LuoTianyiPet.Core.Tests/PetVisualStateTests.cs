@@ -24,10 +24,11 @@ public sealed class PetVisualStateTests
     }
 
     [Fact]
-    public void MediumIdleUsesTwelfthAnniversaryLieFlatAnimation()
+    public void MediumIdleUsesResonanceHeheAnimation()
     {
         PetVisualState state = new(ContinuousState: PetContinuousState.MediumIdle);
 
+        Assert.Equal("resonance-hehe", PetVisualState.MediumIdleAnimation);
         Assert.Equal(PetVisualState.MediumIdleAnimation, state.ResolveContinuousAnimation());
     }
 
@@ -65,5 +66,11 @@ public sealed class PetVisualStateTests
     public void IdleUsesSelectedDisplayMode(PetDisplayMode mode, string expectedAnimation)
     {
         Assert.Equal(expectedAnimation, new PetVisualState(mode).ResolveContinuousAnimation());
+    }
+
+    [Fact]
+    public void CompactModeUsesTheUserSuppliedChibiIdle()
+    {
+        Assert.Equal("user-chibi-compact-idle", PetVisualState.CompactIdleAnimation);
     }
 }

@@ -36,6 +36,31 @@
       ]
     },
     {
+      "id": "user-chibi-compact-idle",
+      "sourcePath": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
+      "sourceSha256": "64ae8dbf706e5d1a69821c10c1d82d040cbc06f7f552323aca2f4f9daff13170",
+      "atlasPath": "animations/runtime/user-chibi-compact-idle.atlas.png",
+      "atlasSha256": "64ae8dbf706e5d1a69821c10c1d82d040cbc06f7f552323aca2f4f9daff13170",
+      "frameWidth": 480,
+      "frameHeight": 520,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        1000
+      ],
+      "loopCount": 0,
+      "displayWidth": 180,
+      "displayHeight": 195,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        58,
+        11,
+        421,
+        509
+      ]
+    },
+    {
       "id": "resonance-expand",
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
       "sourceSha256": "b08b99453d45ea96d6ac2a46107ffafedc9490de6e4ddef1c61bd2c6fabcd718",
@@ -1174,43 +1199,6 @@
         6,
         2,
         196,
-        238
-      ]
-    },
-    {
-      "id": "twelfth-anniversary-lie-flat",
-      "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/05_躺平.gif",
-      "sourceSha256": "e4862199d0057ef50b04d831c8f924a488060f367131c071bbb2e439f75cb7f3",
-      "atlasPath": "animations/runtime/twelfth-anniversary-lie-flat.atlas.png",
-      "atlasSha256": "d026d46863a2fdadf0089817beab28038ea6ba33ed1308f80e0537695e34f529",
-      "frameWidth": 240,
-      "frameHeight": 240,
-      "columns": 8,
-      "rows": 2,
-      "frameDurationsMilliseconds": [
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100
-      ],
-      "loopCount": 0,
-      "displayWidth": 190,
-      "displayHeight": 190,
-      "anchorX": 0.5,
-      "anchorY": 1.0,
-      "alphaBounds": [
-        2,
-        2,
-        238,
         238
       ]
     },

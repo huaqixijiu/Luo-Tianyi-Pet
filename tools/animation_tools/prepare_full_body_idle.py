@@ -33,14 +33,17 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def exterior_background_mask(rgb: np.ndarray) -> tuple[np.ndarray, tuple[int, int, int]]:
+def exterior_background_mask(
+    rgb: np.ndarray,
+    background_minimum: int = BACKGROUND_MINIMUM,
+) -> tuple[np.ndarray, tuple[int, int, int]]:
     border = np.concatenate(
         (rgb[0, :, :], rgb[-1, :, :], rgb[:, 0, :], rgb[:, -1, :]), axis=0
     )
     background_rgb = tuple(int(value) for value in np.median(border, axis=0))
 
     channel_spread = rgb.max(axis=2) - rgb.min(axis=2)
-    candidate = (rgb.min(axis=2) >= BACKGROUND_MINIMUM) & (
+    candidate = (rgb.min(axis=2) >= background_minimum) & (
         channel_spread <= BACKGROUND_CHANNEL_SPREAD
     )
     flood_image = Image.fromarray(candidate.astype(np.uint8) * 255, mode="L")
@@ -66,8 +69,11 @@ def exterior_background_mask(rgb: np.ndarray) -> tuple[np.ndarray, tuple[int, in
     return exterior, background_rgb
 
 
-def build_rgba(rgb: np.ndarray) -> tuple[Image.Image, tuple[int, int, int], tuple[int, int, int, int]]:
-    exterior, background_rgb = exterior_background_mask(rgb)
+def build_rgba(
+    rgb: np.ndarray,
+    background_minimum: int = BACKGROUND_MINIMUM,
+) -> tuple[Image.Image, tuple[int, int, int], tuple[int, int, int, int]]:
+    exterior, background_rgb = exterior_background_mask(rgb, background_minimum)
     foreground = ~exterior
 
     exterior_image = Image.fromarray(exterior.astype(np.uint8) * 255, mode="L")
@@ -142,6 +148,14 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--atlas", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument(
+        "--background-minimum",
+        type=int,
+        default=BACKGROUND_MINIMUM,
+        choices=range(0, 256),
+        metavar="0-255",
+        help="Minimum RGB channel value eligible for border-connected background removal.",
+    )
     args = parser.parse_args()
 
     root = args.root.resolve()
@@ -155,7 +169,7 @@ def main() -> None:
     with Image.open(source) as loaded:
         rgb_image = loaded.convert("RGB")
     rgb = np.asarray(rgb_image)
-    rgba, background_rgb, alpha_bbox = build_rgba(rgb)
+    rgba, background_rgb, alpha_bbox = build_rgba(rgb, args.background_minimum)
     normalized, geometry = normalize(rgba, alpha_bbox)
 
     normalized.save(output, format="PNG", optimize=False, compress_level=9)
@@ -173,7 +187,7 @@ def main() -> None:
         "backgroundRemoval": {
             "method": "binary near-white candidates flood-filled only from canvas border",
             "backgroundRgbMedian": list(background_rgb),
-            "minimumChannelValue": BACKGROUND_MINIMUM,
+            "minimumChannelValue": args.background_minimum,
             "maximumChannelSpread": BACKGROUND_CHANNEL_SPREAD,
             "softEdgeWidthPixels": 2,
             "softEdgeColorDistance": EDGE_ALPHA_DISTANCE,

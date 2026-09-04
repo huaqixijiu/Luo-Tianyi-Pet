@@ -22,14 +22,14 @@ public sealed record PetVisualState(
     PetContinuousState ContinuousState = PetContinuousState.Idle,
     string MusicAnimationId = "ninth-anniversary-music-sway")
 {
-    public const string CompactIdleAnimation = "resonance-hehe";
+    public const string CompactIdleAnimation = "user-chibi-compact-idle";
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";
     public const string MusicSwayAnimation = "ninth-anniversary-music-sway";
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
     public const string MusicPausedAnimation = "ninth-anniversary-not-awake-breathing";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
     public const string CompactDraggingAnimation = "resonance-expand";
-    public const string MediumIdleAnimation = "twelfth-anniversary-lie-flat";
+    public const string MediumIdleAnimation = "resonance-hehe";
 
     public string ResolveContinuousAnimation() => ContinuousState switch
     {

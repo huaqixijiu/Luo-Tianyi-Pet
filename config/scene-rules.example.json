@@ -31,8 +31,8 @@
   },
   "idle": {
     "shortIdleAfterSeconds": 45,
-    "mediumIdleAfterSeconds": 300,
-    "sleepAfterSeconds": 900,
+    "mediumIdleAfterSeconds": 180,
+    "sleepAfterSeconds": 1800,
     "keepDancingWhileMusicIsPlaying": true,
     "musicTemporarilyOverridesSelectedDisplayMode": true,
     "defaultDisplayMode": "compact",
@@ -45,7 +45,7 @@
     },
     "displayModes": {
       "compact": {
-        "idleAnimation": "resonance-hehe",
+        "idleAnimation": "user-chibi-compact-idle",
         "bodyRegionInteractionsEnabled": false
       },
       "fullBodyInteractive": {
@@ -55,8 +55,8 @@
     },
     "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
     "idlePollMilliseconds": 1000,
-    "mediumIdleAfterMinutes": 5,
-    "mediumIdleAnimation": "twelfth-anniversary-lie-flat",
+    "mediumIdleAfterMinutes": 3,
+    "mediumIdleAnimation": "resonance-hehe",
     "birthdayIdleEasterEgg": {
       "animation": "twelfth-anniversary-happy-birthday",
       "dates": ["07-12", "12-12"],
@@ -64,7 +64,7 @@
       "maximumIntervalMinutes": 90,
       "onlyWhileIdle": true
     },
-    "sleepAfterMinutes": 15,
+    "sleepAfterMinutes": 30,
     "sleepRequiresMusicStopped": true,
     "sleepAnimation": "tenth-anniversary-goodnight-float",
     "wakeAnimation": null,

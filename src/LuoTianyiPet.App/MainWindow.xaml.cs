@@ -777,7 +777,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        ApplyIdleScene(TimeSpan.FromMinutes(15));
+        ApplyIdleScene(IdleSceneResolver.SleepThreshold);
         await Task.Delay(2400);
         if (!_isClosing)
         {

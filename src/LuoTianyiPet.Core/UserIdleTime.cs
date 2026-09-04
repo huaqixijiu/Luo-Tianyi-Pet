@@ -14,8 +14,8 @@ public sealed record IdleSceneDecision(
 
 public static class IdleSceneResolver
 {
-    public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(5);
-    public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(15);
+    public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(3);
+    public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(30);
 
     public static IdleSceneDecision Resolve(
         TimeSpan idleDuration,

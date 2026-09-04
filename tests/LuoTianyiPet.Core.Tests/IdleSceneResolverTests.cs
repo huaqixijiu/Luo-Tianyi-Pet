@@ -6,10 +6,10 @@ public sealed class IdleSceneResolverTests
 {
     [Theory]
     [InlineData(0, 0, PetContinuousState.Idle)]
-    [InlineData(4, 59, PetContinuousState.Idle)]
-    [InlineData(5, 0, PetContinuousState.MediumIdle)]
-    [InlineData(14, 59, PetContinuousState.MediumIdle)]
-    [InlineData(15, 0, PetContinuousState.Sleeping)]
+    [InlineData(2, 59, PetContinuousState.Idle)]
+    [InlineData(3, 0, PetContinuousState.MediumIdle)]
+    [InlineData(29, 59, PetContinuousState.MediumIdle)]
+    [InlineData(30, 0, PetContinuousState.Sleeping)]
     public void ResolvesIdleThresholdBoundaries(
         int minutes,
         int seconds,
