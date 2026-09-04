@@ -316,6 +316,11 @@ def main() -> None:
     parser.add_argument("--assets-root", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--preview-output", type=Path)
+    parser.add_argument(
+        "--runtime-stem",
+        default="ai-bun",
+        help="Stable filename/id prefix; use a new value to keep multiple styles side by side.",
+    )
     args = parser.parse_args()
 
     frame_paths = sorted(args.frames.glob("*.png"))
@@ -333,8 +338,6 @@ def main() -> None:
                 raise RuntimeError(f"Transparent input is fully opaque: {path}")
             keyed.append(rgba)
     else:
-        if args.source_video is None:
-            raise RuntimeError("--source-video is required with --input-mode auto-key.")
         keyed = [key_character(Image.open(path)) for path in frame_paths]
     crop = union_bounds(keyed)
     normalized = [normalize_frame(frame, crop) for frame in keyed]
@@ -346,8 +349,10 @@ def main() -> None:
     eat_frames = normalized[eat_start:]
 
     runtime = args.assets_root / "animations" / "runtime"
-    run_atlas = runtime / "ai-bun-chase-run.atlas.png"
-    eat_atlas = runtime / "ai-bun-eat.atlas.png"
+    run_id = f"{args.runtime_stem}-chase-run"
+    eat_id = f"{args.runtime_stem}-eat"
+    run_atlas = runtime / f"{run_id}.atlas.png"
+    eat_atlas = runtime / f"{eat_id}.atlas.png"
     run_columns, run_rows = build_atlas(run_frames, run_atlas)
     eat_columns, eat_rows = build_atlas(eat_frames, eat_atlas)
     bun_output = args.assets_root / "objects" / "xiaolongbao.png"
@@ -365,10 +370,18 @@ def main() -> None:
             "backgroundRemoval": (
                 "user-reviewed After Effects alpha channel; no runtime keying or cleanup"
                 if args.input_mode == "transparent"
-                else "legacy automatic colour-key and floor cleanup"
+                else "automatic fitted-background colour key with enclosed-detail protection"
             ),
-            "alphaPolicy": "preserved verbatim before Lanczos normalization",
-            "retouch": "none; preserve the user-approved mouth and tooth",
+            "alphaPolicy": (
+                "preserved verbatim before Lanczos normalization"
+                if args.input_mode == "transparent"
+                else "derived from colour distance; enclosed character details restored"
+            ),
+            "retouch": (
+                "none; preserve the user-approved mouth and tooth"
+                if args.input_mode == "transparent"
+                else "clear detached corner mark and border-connected floor residue"
+            ),
         },
         "normalizedFrameSize": [FRAME_SIZE, FRAME_SIZE],
         "run": {
@@ -396,6 +409,30 @@ def main() -> None:
             "outputSha256": sha256(bun_output),
         },
         "cropBeforeResize": list(crop),
+        "catalogAnimations": [
+            {
+                "id": run_id,
+                "atlas": run_atlas.relative_to(args.assets_root).as_posix(),
+                "frameCount": len(run_frames),
+                "columns": run_columns,
+                "rows": run_rows,
+                "frameDurationMilliseconds": FRAME_DURATION_MS,
+                "loopCount": 0,
+                "displayWidth": 205,
+                "displayHeight": 205,
+            },
+            {
+                "id": eat_id,
+                "atlas": eat_atlas.relative_to(args.assets_root).as_posix(),
+                "frameCount": len(eat_frames),
+                "columns": eat_columns,
+                "rows": eat_rows,
+                "frameDurationMilliseconds": FRAME_DURATION_MS,
+                "loopCount": 1,
+                "displayWidth": 205,
+                "displayHeight": 205,
+            },
+        ],
     }
     if args.source_video is not None:
         metadata["legacySourceVideo"] = args.source_video.as_posix()

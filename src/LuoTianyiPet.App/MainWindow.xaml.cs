@@ -30,8 +30,6 @@ public partial class MainWindow : Window
     private const string FileDropPromptAnimation = "resonance-give-me";
     private const string FileDropFailureAnimation = "resonance-cry-shake";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
-    private const string BunChaseRunAnimation = "ai-bun-chase-run";
-    private const string BunEatAnimation = "ai-bun-eat";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -76,7 +74,7 @@ public partial class MainWindow : Window
         24,
         1,
         24);
-    private readonly BodyHitMap _bodyHitMap = BodyHitMap.FullBodyDefault;
+    private BodyHitMap _bodyHitMap;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
@@ -241,7 +239,10 @@ public partial class MainWindow : Window
         bool showQaTaskbar,
         bool persistSettings)
     {
-        _settings = settings;
+        _settings = settings with
+        {
+            Appearance = AppearancePreferences.Normalize(settings.Appearance),
+        };
         _permanentTopmost = settings.Window.AlwaysOnTop;
         _settingsStore = settingsStore;
         _logger = logger;
@@ -281,7 +282,13 @@ public partial class MainWindow : Window
         _musicActivityDetector = new MusicAudioActivityDetector(
             audiblePeakThreshold,
             TimeSpan.FromMilliseconds(silenceGraceMilliseconds));
-        _stateMachine = new PetStateMachine(initialVisualState);
+        string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
+            _settings.Appearance.FullBodyStyle);
+        _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+        _stateMachine = new PetStateMachine(initialVisualState with
+        {
+            FullBodyAnimationId = fullBodyAnimation,
+        });
         _previewExit = previewExit;
         _previewMusicTransition = previewMusicTransition;
         _previewBodyHitDebug = previewBodyHitDebug;
@@ -2221,14 +2228,17 @@ public partial class MainWindow : Window
 
     private void ApplyAnimationManifest(AnimationAssetManifest manifest)
     {
-        PetImage.Width = manifest.DisplayWidth;
-        PetImage.Height = manifest.DisplayHeight;
+        double displayScale = _settings.Appearance.DisplayScalePercent / 100.0;
+        double displayWidth = manifest.DisplayWidth * displayScale;
+        double displayHeight = manifest.DisplayHeight * displayScale;
+        PetImage.Width = displayWidth;
+        PetImage.Height = displayHeight;
         PetImage.Visibility = Visibility.Visible;
         PetImage.IsHitTestVisible = true;
         FallbackSurface.Visibility = Visibility.Collapsed;
         ResizeAroundBottomCenter(
-            manifest.DisplayWidth + 16,
-            manifest.DisplayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
+            displayWidth + 16,
+            displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
         UpdateBodyHitDebugOverlay();
     }
 
@@ -2487,6 +2497,9 @@ public partial class MainWindow : Window
                 enabled => Dispatcher.BeginInvoke(() => SetPermanentTopmost(enabled, save: true)),
                 () => _startupRegistrationService?.IsEnabled ?? false,
                 enabled => Dispatcher.BeginInvoke(() => SetStartupEnabled(enabled, save: true)),
+                () => _settings.Appearance.DisplayScalePercent,
+                percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: false)),
+                percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: true)),
                 () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()));
             _logger.Info("tray.ready", "System tray controls are available.");
         }
@@ -2857,8 +2870,10 @@ public partial class MainWindow : Window
             _settings.Notifications,
             _settings.Window,
             _settings.FileTreats,
+            _settings.Appearance,
             _startupRegistrationService?.IsEnabled ?? false,
-            _messageNotificationSource)
+            _messageNotificationSource,
+            _animationCatalog)
         {
             Owner = this,
         };
@@ -2866,9 +2881,102 @@ public partial class MainWindow : Window
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
             ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences);
+            ApplyAppearancePreferences(settingsWindow.SelectedAppearancePreferences);
             ApplyWindowPreferences(
                 settingsWindow.SelectedWindowPreferences,
                 settingsWindow.StartWithWindowsSelected);
+        }
+    }
+
+    private void ApplyAppearancePreferences(AppearancePreferences preferences)
+    {
+        AppearancePreferences normalized = AppearancePreferences.Normalize(preferences);
+        string previousFullBodyAnimation = _stateMachine.VisualState.FullBodyAnimationId;
+        int previousScale = _settings.Appearance.DisplayScalePercent;
+        _settings = _settings with { Appearance = normalized };
+
+        string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
+            normalized.FullBodyStyle);
+        _stateMachine.SetFullBodyAnimation(fullBodyAnimation);
+        _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+
+        bool appearanceChanged = !string.Equals(
+            previousFullBodyAnimation,
+            fullBodyAnimation,
+            StringComparison.Ordinal);
+        bool scaleChanged = previousScale != normalized.DisplayScalePercent;
+        if (appearanceChanged &&
+            _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync("settings.appearance_changed");
+        }
+        else if (scaleChanged)
+        {
+            ApplyCurrentDisplayScale();
+        }
+
+        UpdateBodyHitDebugOverlay();
+        _trayIcon?.RefreshChecks();
+        _logger.Info(
+            "settings.appearance_applied",
+            $"FullBodyStyle={normalized.FullBodyStyle}; BunEatingStyle={normalized.BunEatingStyle}; ScalePercent={normalized.DisplayScalePercent}.");
+        if (_persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.appearance_saved", "Appearance preferences saved.");
+        }
+    }
+
+    private void SetDisplayScalePercent(int percent, bool save)
+    {
+        int normalized = Math.Clamp(
+            percent,
+            AppearancePreferences.MinimumDisplayScalePercent,
+            AppearancePreferences.MaximumDisplayScalePercent);
+        if (_settings.Appearance.DisplayScalePercent == normalized)
+        {
+            if (save && _persistSettings)
+            {
+                _ = SaveSettingsAsync("settings.display_scale_saved", "Display scale preference saved.");
+            }
+            return;
+        }
+
+        _settings = _settings with
+        {
+            Appearance = _settings.Appearance with { DisplayScalePercent = normalized },
+        };
+        ApplyCurrentDisplayScale();
+        _logger.Info("window.display_scale_changed", $"ScalePercent={normalized}.");
+        if (save && _persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.display_scale_saved", "Display scale preference saved.");
+        }
+    }
+
+    private void ApplyCurrentDisplayScale()
+    {
+        if (_animationCatalog is null || _animationPlayer?.CurrentAnimationId is not string animationId)
+        {
+            return;
+        }
+
+        try
+        {
+            ApplyAnimationManifest(_animationCatalog.GetRequired(animationId));
+            if (_edgeDockSide != EdgeDockSide.None)
+            {
+                PositionEdgeDock(hidden: !_edgeDockRevealed);
+            }
+            else
+            {
+                SnapVisiblePetInsideWorkArea();
+                UpdateBottomControlsLayoutForCurrentPosition();
+            }
+        }
+        catch (KeyNotFoundException)
+        {
+            // The frame player owns the normal missing-asset fallback path.
         }
     }
 
@@ -3405,9 +3513,10 @@ public partial class MainWindow : Window
         }
 
         DateTimeOffset now = DateTimeOffset.Now;
+        (string runAnimation, _) = GetSelectedBunAnimations();
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
-                BunChaseRunAnimation,
+                runAnimation,
                 ReactionPriority.UserInteraction,
                 now.AddMinutes(10),
                 InterruptibleByDrag: false),
@@ -3425,7 +3534,7 @@ public partial class MainWindow : Window
         _bunReturnPosition ??= new Point(Left, Top);
         SelectNearestBun();
         _bunLastMotionAt = now;
-        PlayAnimation(BunChaseRunAnimation);
+        PlayAnimation(runAnimation);
         _bunChaseTimer.Start();
     }
 
@@ -3545,14 +3654,11 @@ public partial class MainWindow : Window
         }
 
         _bunEating = true;
-        PlayAnimation(BunEatAnimation);
+        (string runAnimation, string eatAnimation) = GetSelectedBunAnimations();
+        PlayAnimation(eatAnimation);
         await Task.Delay(420);
         DesktopRectangle bounds = GetPetImageBoundsInWindow();
-        PointerPoint mouthTarget = BunChasePlanner.ResolveMouthTarget(
-            new PointerPoint(Left + bounds.Left, Top + bounds.Top),
-            bounds.Width,
-            bounds.Height,
-            mirrored: PetDirectionTransform.ScaleX < 0);
+        PointerPoint mouthTarget = ResolveSelectedBunMouthTarget(bounds);
         Point mouth = new(mouthTarget.X, mouthTarget.Y);
         await bun.FlyIntoAsync(mouth, TimeSpan.FromMilliseconds(680));
         bun.Close();
@@ -3563,7 +3669,7 @@ public partial class MainWindow : Window
         if (_bunTargets.Count > 0)
         {
             SelectNearestBun();
-            PlayAnimation(BunChaseRunAnimation);
+            PlayAnimation(runAnimation);
             _bunLastMotionAt = DateTimeOffset.Now;
             _bunChaseTimer.Start();
             return;
@@ -3576,9 +3682,29 @@ public partial class MainWindow : Window
     {
         _bunReturning = true;
         _activeBunTarget = null;
-        PlayAnimation(BunChaseRunAnimation);
+        PlayAnimation(GetSelectedBunAnimations().RunAnimation);
         _bunLastMotionAt = DateTimeOffset.Now;
         _bunChaseTimer.Start();
+    }
+
+    private (string RunAnimation, string EatAnimation) GetSelectedBunAnimations() =>
+        AppearanceOptionIds.ResolveBunAnimations(_settings.Appearance.BunEatingStyle);
+
+    private PointerPoint ResolveSelectedBunMouthTarget(DesktopRectangle imageBounds)
+    {
+        bool mirrored = PetDirectionTransform.ScaleX < 0;
+        if (_settings.Appearance.BunEatingStyle == AppearanceOptionIds.BunEatingNew)
+        {
+            return new PointerPoint(
+                Left + imageBounds.Left + imageBounds.Width * 0.50,
+                Top + imageBounds.Top + imageBounds.Height * 0.30);
+        }
+
+        return BunChasePlanner.ResolveMouthTarget(
+            new PointerPoint(Left + imageBounds.Left, Top + imageBounds.Top),
+            imageBounds.Width,
+            imageBounds.Height,
+            mirrored);
     }
 
     private void FinishBunChase()

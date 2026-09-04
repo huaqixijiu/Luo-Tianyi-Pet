@@ -72,6 +72,12 @@ public sealed class PetStateMachine
         VisualState = VisualState with { MusicAnimationId = animationId };
     }
 
+    public void SetFullBodyAnimation(string animationId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(animationId);
+        VisualState = VisualState with { FullBodyAnimationId = animationId };
+    }
+
     public void SetContinuousState(PetContinuousState state)
     {
         if (state == PetContinuousState.Dragging)

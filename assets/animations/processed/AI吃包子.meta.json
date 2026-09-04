@@ -49,6 +49,30 @@
     596,
     642
   ],
+  "catalogAnimations": [
+    {
+      "id": "ai-bun-chase-run",
+      "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
+      "frameCount": 14,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 0,
+      "displayWidth": 205,
+      "displayHeight": 205
+    },
+    {
+      "id": "ai-bun-eat",
+      "atlas": "animations/runtime/ai-bun-eat.atlas.png",
+      "frameCount": 66,
+      "columns": 8,
+      "rows": 9,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 205,
+      "displayHeight": 205
+    }
+  ],
   "pickerPreview": {
     "output": "候选素材_官方/11_新添加_AI生成文件吞食动画/预览_吃包子_手工抠像版.webp",
     "outputSha256": "331b873f1afd313cf1e567338dafda60f21a2dd4148dc99309151cb89c4d49a8",

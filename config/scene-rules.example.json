@@ -7,6 +7,40 @@
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true
   },
+  "appearance": {
+    "fullBodyStyleDefault": "full-body-long-hair",
+    "fullBodyStyles": {
+      "full-body-long-hair": {
+        "displayName": "华裳长发版",
+        "animation": "official-v4-chibi-full-body-idle"
+      },
+      "full-body-crystal-dress": {
+        "displayName": "晶蓝礼服版",
+        "animation": "user-chibi-crystal-full-body-idle"
+      },
+      "full-body-classic-cat-ears": {
+        "displayName": "经典猫耳版",
+        "animation": "user-chibi-classic-full-body-idle"
+      }
+    },
+    "bunEatingStyleDefault": "bun-eating-original",
+    "bunEatingStyles": {
+      "bun-eating-original": {
+        "displayName": "元气追包版",
+        "runAnimation": "ai-bun-chase-run",
+        "eatAnimation": "ai-bun-eat"
+      },
+      "bun-eating-new": {
+        "displayName": "甜笑寻包版",
+        "runAnimation": "ai-bun-v2-chase-run",
+        "eatAnimation": "ai-bun-v2-eat"
+      }
+    },
+    "displayScalePercentDefault": 100,
+    "displayScalePercentMinimum": 50,
+    "displayScalePercentMaximum": 200,
+    "displayScaleEntryPoint": "windows-system-tray-slider"
+  },
   "applicationExit": {
     "userRequestedExit": {
       "animation": "resonance-cracked-shake",
@@ -526,8 +560,7 @@
     "trackLiveBunPosition": true,
     "processNearestFirst": true,
     "returnToOriginalPosition": true,
-    "runAnimation": "ai-bun-chase-run",
-    "eatAnimation": "ai-bun-eat",
+    "animationStyleSource": "settings.appearance.bunEatingStyle",
     "directDropFileOperation": "windows-shell-recycle-bin-only",
     "cancelOnFullscreenProtectedGameLockOrForegroundCheckFailure": true
   },

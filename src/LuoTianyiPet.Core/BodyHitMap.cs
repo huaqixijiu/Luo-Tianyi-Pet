@@ -54,6 +54,45 @@ public sealed class BodyHitMap
         new(BodyRegionId.OtherBody, new(0.08, 0.02, 0.84, 0.96)),
     ]);
 
+    public static BodyHitMap CrystalDress { get; } = new(
+    [
+        new(BodyRegionId.LeftEye, new(0.37, 0.20, 0.12, 0.11)),
+        new(BodyRegionId.RightEye, new(0.51, 0.20, 0.12, 0.11)),
+        new(BodyRegionId.Mouth, new(0.455, 0.30, 0.09, 0.05)),
+        new(BodyRegionId.Face, new(0.33, 0.12, 0.34, 0.25)),
+        new(BodyRegionId.LeftHand, new(0.23, 0.50, 0.13, 0.14)),
+        new(BodyRegionId.RightHand, new(0.64, 0.50, 0.13, 0.14)),
+        new(BodyRegionId.Chest, new(0.455, 0.38, 0.09, 0.11)),
+        new(BodyRegionId.LowerBodySensitiveArea, new(0.465, 0.61, 0.07, 0.08)),
+        new(BodyRegionId.LeftFoot, new(0.39, 0.84, 0.11, 0.14)),
+        new(BodyRegionId.RightFoot, new(0.50, 0.84, 0.11, 0.14)),
+        new(BodyRegionId.HeadAndHair, new(0.25, 0.01, 0.50, 0.39)),
+        new(BodyRegionId.OtherBody, new(0.08, 0.01, 0.84, 0.97)),
+    ]);
+
+    public static BodyHitMap ClassicCatEars { get; } = new(
+    [
+        new(BodyRegionId.LeftEye, new(0.34, 0.26, 0.14, 0.13)),
+        new(BodyRegionId.RightEye, new(0.52, 0.26, 0.14, 0.13)),
+        new(BodyRegionId.Mouth, new(0.45, 0.39, 0.10, 0.055)),
+        new(BodyRegionId.Face, new(0.29, 0.16, 0.42, 0.31)),
+        new(BodyRegionId.LeftHand, new(0.25, 0.57, 0.13, 0.13)),
+        new(BodyRegionId.RightHand, new(0.62, 0.57, 0.13, 0.13)),
+        new(BodyRegionId.Chest, new(0.455, 0.48, 0.09, 0.10)),
+        new(BodyRegionId.LowerBodySensitiveArea, new(0.465, 0.68, 0.07, 0.08)),
+        new(BodyRegionId.LeftFoot, new(0.39, 0.84, 0.11, 0.13)),
+        new(BodyRegionId.RightFoot, new(0.50, 0.84, 0.11, 0.13)),
+        new(BodyRegionId.HeadAndHair, new(0.20, 0.02, 0.60, 0.47)),
+        new(BodyRegionId.OtherBody, new(0.10, 0.02, 0.80, 0.95)),
+    ]);
+
+    public static BodyHitMap ForFullBodyAnimation(string? animationId) => animationId switch
+    {
+        AppearanceOptionIds.CrystalDressAnimation => CrystalDress,
+        AppearanceOptionIds.ClassicCatEarsAnimation => ClassicCatEars,
+        _ => FullBodyDefault,
+    };
+
     public BodyHitMap(IReadOnlyList<BodyHitRegion> regions)
     {
         ArgumentNullException.ThrowIfNull(regions);

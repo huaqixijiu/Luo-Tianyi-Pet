@@ -73,4 +73,17 @@ public sealed class PetVisualStateTests
     {
         Assert.Equal("user-chibi-compact-idle", PetVisualState.CompactIdleAnimation);
     }
+
+    [Fact]
+    public void FullBodyModeUsesTheUserSelectedAppearanceForIdleAndDrag()
+    {
+        PetVisualState idle = new(
+            PetDisplayMode.FullBodyInteractive,
+            FullBodyAnimationId: AppearanceOptionIds.ClassicCatEarsAnimation);
+
+        Assert.Equal(AppearanceOptionIds.ClassicCatEarsAnimation, idle.ResolveContinuousAnimation());
+        Assert.Equal(
+            AppearanceOptionIds.ClassicCatEarsAnimation,
+            (idle with { ContinuousState = PetContinuousState.Dragging }).ResolveContinuousAnimation());
+    }
 }

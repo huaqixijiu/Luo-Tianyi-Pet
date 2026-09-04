@@ -156,6 +156,35 @@ def compile_catalog(root: Path, configuration: Path, output: Path) -> None:
         compile_entry(root, entry, maximum_columns)
         for entry in document["animations"]
     ]
+    for metadata_path_value in document.get("prebuiltAnimationMetadata", []):
+        metadata_path = root / metadata_path_value
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        frame_width, frame_height = metadata["normalizedFrameSize"]
+        for entry in metadata.get("catalogAnimations", []):
+            atlas_path = root / "assets" / entry["atlas"]
+            animations.append(
+                {
+                    "id": entry["id"],
+                    "sourcePath": metadata["sourceSequence"],
+                    "sourceSha256": metadata["sourceSequenceSha256"],
+                    "atlasPath": atlas_path.relative_to(root / "assets").as_posix(),
+                    "atlasSha256": sha256(atlas_path),
+                    "frameWidth": int(frame_width),
+                    "frameHeight": int(frame_height),
+                    "columns": int(entry["columns"]),
+                    "rows": int(entry["rows"]),
+                    "frameDurationsMilliseconds": [
+                        int(entry["frameDurationMilliseconds"])
+                    ]
+                    * int(entry["frameCount"]),
+                    "loopCount": int(entry["loopCount"]),
+                    "displayWidth": int(entry["displayWidth"]),
+                    "displayHeight": int(entry["displayHeight"]),
+                    "anchorX": 0.5,
+                    "anchorY": 1.0,
+                    "alphaBounds": [0, 0, int(frame_width), int(frame_height)],
+                }
+            )
     payload = {"schemaVersion": 1, "animations": animations}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(

@@ -49,6 +49,12 @@ public sealed class JsonSettingsStore : ISettingsStore
                 7 => MigrateFromPreviousVersion(
                     settings,
                     MediaPreferences.DefaultSilenceGraceMilliseconds),
+                8 => MigrateFromPreviousVersion(
+                    settings,
+                    MediaPreferences.DefaultSilenceGraceMilliseconds),
+                9 => MigrateFromPreviousVersion(
+                    settings,
+                    MediaPreferences.DefaultSilenceGraceMilliseconds),
                 _ => new AppSettings(),
             };
         }
@@ -66,6 +72,8 @@ public sealed class JsonSettingsStore : ISettingsStore
         Volume = settings.Volume ?? new VolumePreferences(),
         Genshin = settings.Genshin ?? new GenshinPreferences(),
         Notifications = settings.Notifications ?? new MessageNotificationPreferences(),
+        FileTreats = settings.FileTreats ?? new FileTreatPreferences(),
+        Appearance = AppearancePreferences.Normalize(settings.Appearance),
         Safety = settings.Safety ?? new SafetyPreferences(),
     };
 
@@ -100,6 +108,8 @@ public sealed class JsonSettingsStore : ISettingsStore
             Volume = volume,
             Genshin = settings.Genshin ?? new GenshinPreferences(),
             Notifications = settings.Notifications ?? new MessageNotificationPreferences(),
+            FileTreats = settings.FileTreats ?? new FileTreatPreferences(),
+            Appearance = AppearancePreferences.Normalize(settings.Appearance),
             Safety = settings.Safety ?? new SafetyPreferences(),
         };
     }

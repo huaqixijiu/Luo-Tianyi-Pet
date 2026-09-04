@@ -20,7 +20,8 @@ public enum PetContinuousState
 public sealed record PetVisualState(
     PetDisplayMode SelectedDisplayMode = PetDisplayMode.Compact,
     PetContinuousState ContinuousState = PetContinuousState.Idle,
-    string MusicAnimationId = "ninth-anniversary-music-sway")
+    string MusicAnimationId = "ninth-anniversary-music-sway",
+    string FullBodyAnimationId = "official-v4-chibi-full-body-idle")
 {
     public const string CompactIdleAnimation = "user-chibi-compact-idle";
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";
@@ -36,7 +37,7 @@ public sealed record PetVisualState(
         PetContinuousState.Idle => SelectedDisplayMode switch
         {
             PetDisplayMode.Compact => CompactIdleAnimation,
-            PetDisplayMode.FullBodyInteractive => FullBodyIdleAnimation,
+            PetDisplayMode.FullBodyInteractive => FullBodyAnimationId,
             _ => throw new ArgumentOutOfRangeException(nameof(SelectedDisplayMode)),
         },
         PetContinuousState.MusicPlaying => MusicAnimationId,
@@ -44,7 +45,7 @@ public sealed record PetVisualState(
         PetContinuousState.MediumIdle => MediumIdleAnimation,
         PetContinuousState.Sleeping => SleepingAnimation,
         PetContinuousState.Dragging => SelectedDisplayMode == PetDisplayMode.FullBodyInteractive
-            ? FullBodyIdleAnimation
+            ? FullBodyAnimationId
             : CompactDraggingAnimation,
         PetContinuousState.HiddenForSafety => throw new InvalidOperationException(
             "Hidden pets do not have a continuous animation."),

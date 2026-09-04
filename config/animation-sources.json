@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
   "maximumAtlasColumns": 8,
+  "prebuiltAnimationMetadata": [
+    "assets/animations/processed/AI吃包子.meta.json",
+    "assets/animations/processed/AI吃包子_新版.meta.json"
+  ],
   "animations": [
     {
       "id": "resonance-hehe",
@@ -18,6 +22,28 @@
       "atlas": "assets/animations/runtime/user-chibi-compact-idle.atlas.png",
       "displayWidth": 180,
       "displayHeight": 195,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 1000,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "user-chibi-classic-full-body-idle",
+      "source": "assets/animations/processed/用户提供_Q版小人全身_经典_透明.png",
+      "atlas": "assets/animations/runtime/user-chibi-classic-full-body-idle.atlas.png",
+      "displayWidth": 220,
+      "displayHeight": 238,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 1000,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "user-chibi-crystal-full-body-idle",
+      "source": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
+      "atlas": "assets/animations/runtime/user-chibi-crystal-full-body-idle.atlas.png",
+      "displayWidth": 220,
+      "displayHeight": 238,
       "loopCount": 0,
       "defaultFrameDurationMilliseconds": 1000,
       "anchorX": 0.5,

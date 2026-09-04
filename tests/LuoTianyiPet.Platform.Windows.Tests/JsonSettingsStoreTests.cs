@@ -37,6 +37,12 @@ public sealed class JsonSettingsStoreTests
                     QqProcessNames = "CustomQQ.exe",
                     WeChatProcessNames = "CustomWeChat.exe",
                 },
+                Appearance = new AppearancePreferences
+                {
+                    FullBodyStyle = AppearanceOptionIds.FullBodyClassicCatEars,
+                    BunEatingStyle = AppearanceOptionIds.BunEatingNew,
+                    DisplayScalePercent = 135,
+                },
                 Window = new WindowPreferences
                 {
                     AlwaysOnTop = true,
@@ -378,6 +384,47 @@ public sealed class JsonSettingsStoreTests
             Assert.False(actual.Volume.EnableMouseWheelControl);
             Assert.Equal(5, actual.Volume.MouseWheelStepPercent);
             Assert.Equal(1800, actual.Volume.MergeChangesWithinMilliseconds);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version9_AddsAppearanceDefaultsWithoutLosingExistingPreferences()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 9,
+                  "window": {
+                    "alwaysOnTop": true,
+                    "left": 88.5
+                  },
+                  "fileTreats": {
+                    "enableDesktopFileTreats": false,
+                    "maximumQueuedBuns": 4
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(88.5, actual.Window.Left);
+            Assert.False(actual.FileTreats.EnableDesktopFileTreats);
+            Assert.Equal(AppearanceOptionIds.FullBodyLongHair, actual.Appearance.FullBodyStyle);
+            Assert.Equal(AppearanceOptionIds.BunEatingOriginal, actual.Appearance.BunEatingStyle);
+            Assert.Equal(100, actual.Appearance.DisplayScalePercent);
         }
         finally
         {

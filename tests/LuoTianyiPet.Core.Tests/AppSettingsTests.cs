@@ -40,8 +40,45 @@ public sealed class AppSettingsTests
         Assert.Equal("WeChat.exe;Weixin.exe", settings.Notifications.WeChatProcessNames);
         Assert.True(settings.FileTreats.EnableDesktopFileTreats);
         Assert.Equal(6, settings.FileTreats.MaximumQueuedBuns);
+        Assert.Equal(AppearanceOptionIds.FullBodyLongHair, settings.Appearance.FullBodyStyle);
+        Assert.Equal(AppearanceOptionIds.BunEatingOriginal, settings.Appearance.BunEatingStyle);
+        Assert.Equal(100, settings.Appearance.DisplayScalePercent);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
             settings.Safety.ProtectedForegroundProcessNames);
+    }
+
+    [Theory]
+    [InlineData(10, AppearancePreferences.MinimumDisplayScalePercent)]
+    [InlineData(125, 125)]
+    [InlineData(250, AppearancePreferences.MaximumDisplayScalePercent)]
+    public void AppearanceNormalization_ClampsScaleAndRejectsUnknownStyles(
+        int storedScale,
+        int expectedScale)
+    {
+        AppearancePreferences normalized = AppearancePreferences.Normalize(new AppearancePreferences
+        {
+            FullBodyStyle = "unknown-character",
+            BunEatingStyle = "unknown-bun",
+            DisplayScalePercent = storedScale,
+        });
+
+        Assert.Equal(AppearanceOptionIds.FullBodyLongHair, normalized.FullBodyStyle);
+        Assert.Equal(AppearanceOptionIds.BunEatingOriginal, normalized.BunEatingStyle);
+        Assert.Equal(expectedScale, normalized.DisplayScalePercent);
+    }
+
+    [Fact]
+    public void AppearanceOptions_ResolveAllSelectableRuntimeAnimations()
+    {
+        Assert.Equal(
+            AppearanceOptionIds.CrystalDressAnimation,
+            AppearanceOptionIds.ResolveFullBodyAnimation(AppearanceOptionIds.FullBodyCrystalDress));
+        Assert.Equal(
+            AppearanceOptionIds.ClassicCatEarsAnimation,
+            AppearanceOptionIds.ResolveFullBodyAnimation(AppearanceOptionIds.FullBodyClassicCatEars));
+        Assert.Equal(
+            (AppearanceOptionIds.NewBunRunAnimation, AppearanceOptionIds.NewBunEatAnimation),
+            AppearanceOptionIds.ResolveBunAnimations(AppearanceOptionIds.BunEatingNew));
     }
 }

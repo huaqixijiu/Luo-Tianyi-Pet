@@ -24,6 +24,9 @@ __pycache__/
 # Local heavyweight authoring tools (portable, reproducible setup only)
 .local-tools/
 
+# Local AI video frame exports (runtime atlases and previews are committed instead)
+/候选素材_官方/11_新添加_AI生成文件吞食动画/新版/*/新版_*.png
+
 # Windows metadata
 Thumbs.db
 Desktop.ini

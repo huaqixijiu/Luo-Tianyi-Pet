@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 9;
+    public const int CurrentSchemaVersion = 10;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -18,7 +18,78 @@ public sealed record AppSettings
 
     public FileTreatPreferences FileTreats { get; init; } = new();
 
+    public AppearancePreferences Appearance { get; init; } = new();
+
     public SafetyPreferences Safety { get; init; } = new();
+}
+
+public static class AppearanceOptionIds
+{
+    public const string FullBodyLongHair = "full-body-long-hair";
+    public const string FullBodyCrystalDress = "full-body-crystal-dress";
+    public const string FullBodyClassicCatEars = "full-body-classic-cat-ears";
+    public const string BunEatingOriginal = "bun-eating-original";
+    public const string BunEatingNew = "bun-eating-new";
+
+    public const string LongHairAnimation = "official-v4-chibi-full-body-idle";
+    public const string CrystalDressAnimation = "user-chibi-crystal-full-body-idle";
+    public const string ClassicCatEarsAnimation = "user-chibi-classic-full-body-idle";
+    public const string OriginalBunRunAnimation = "ai-bun-chase-run";
+    public const string OriginalBunEatAnimation = "ai-bun-eat";
+    public const string NewBunRunAnimation = "ai-bun-v2-chase-run";
+    public const string NewBunEatAnimation = "ai-bun-v2-eat";
+
+    public static string NormalizeFullBodyStyle(string? value) => value switch
+    {
+        FullBodyLongHair or FullBodyCrystalDress or FullBodyClassicCatEars => value,
+        _ => FullBodyLongHair,
+    };
+
+    public static string NormalizeBunEatingStyle(string? value) => value switch
+    {
+        BunEatingOriginal or BunEatingNew => value,
+        _ => BunEatingOriginal,
+    };
+
+    public static string ResolveFullBodyAnimation(string? style) =>
+        NormalizeFullBodyStyle(style) switch
+        {
+            FullBodyCrystalDress => CrystalDressAnimation,
+            FullBodyClassicCatEars => ClassicCatEarsAnimation,
+            _ => LongHairAnimation,
+        };
+
+    public static (string RunAnimation, string EatAnimation) ResolveBunAnimations(string? style) =>
+        NormalizeBunEatingStyle(style) == BunEatingNew
+            ? (NewBunRunAnimation, NewBunEatAnimation)
+            : (OriginalBunRunAnimation, OriginalBunEatAnimation);
+}
+
+public sealed record AppearancePreferences
+{
+    public const int MinimumDisplayScalePercent = 50;
+    public const int MaximumDisplayScalePercent = 200;
+    public const int DefaultDisplayScalePercent = 100;
+
+    public string FullBodyStyle { get; init; } = AppearanceOptionIds.FullBodyLongHair;
+
+    public string BunEatingStyle { get; init; } = AppearanceOptionIds.BunEatingOriginal;
+
+    public int DisplayScalePercent { get; init; } = DefaultDisplayScalePercent;
+
+    public static AppearancePreferences Normalize(AppearancePreferences? preferences)
+    {
+        preferences ??= new AppearancePreferences();
+        return preferences with
+        {
+            FullBodyStyle = AppearanceOptionIds.NormalizeFullBodyStyle(preferences.FullBodyStyle),
+            BunEatingStyle = AppearanceOptionIds.NormalizeBunEatingStyle(preferences.BunEatingStyle),
+            DisplayScalePercent = Math.Clamp(
+                preferences.DisplayScalePercent,
+                MinimumDisplayScalePercent,
+                MaximumDisplayScalePercent),
+        };
+    }
 }
 
 public sealed record FileTreatPreferences
