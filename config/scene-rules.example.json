@@ -71,25 +71,16 @@
     "wakeDuplicateWindowMilliseconds": 5000
   },
   "volume": {
-    "controlMethods": [
-      "pet-mouse-wheel",
-      "settings-window-slider",
-      "cloudmusic-session-horizontal-slider",
-      "external-system-volume-events"
-    ],
-    "increaseAnimation": "resonance-voice",
-    "decreaseAnimation": {
-      "id": "resonance-voice-reversed",
-      "asset": "assets/animations/processed/心律共鸣_共鸣之声_倒放.gif",
-      "transformation": "reverse-frame-order"
-    },
-    "muteAnimation": null,
-    "unmuteAnimation": null,
-    "mouseWheelStepPercent": 2,
-    "externalSystemVolumePollIntervalMilliseconds": 250,
-    "mergeChangesWithinMilliseconds": 1800,
-    "cooldownMilliseconds": 2000,
-    "showPercentageBubble": true
+    "systemMasterVolumeEnabled": false,
+    "settingsVisible": false,
+    "petMouseWheelEnabled": false,
+    "externalSystemVolumeFeedbackEnabled": false,
+    "cloudMusicSessionVolume": {
+      "status": "proposed-not-enabled",
+      "targetProcess": "cloudmusic.exe",
+      "api": "windows-core-audio-session-simple-volume",
+      "mustNeverFallbackToSystemMasterVolume": true
+    }
   },
   "media": {
     "targetProcess": "cloudmusic.exe",

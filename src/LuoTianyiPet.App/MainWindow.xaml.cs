@@ -23,8 +23,6 @@ public partial class MainWindow : Window
 {
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
-    private const string VolumeIncreaseAnimation = "resonance-voice";
-    private const string VolumeDecreaseAnimation = "resonance-voice-reversed";
     private const string MusicPausedAnimation = PetVisualState.MusicPausedAnimation;
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
@@ -85,8 +83,6 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _musicDetectionTimer;
     private readonly DispatcherTimer _musicPausePresentationTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
-    private readonly DispatcherTimer _volumeFeedbackMergeTimer;
-    private readonly DispatcherTimer _systemVolumePollTimer;
     private readonly DispatcherTimer _mediaControlsHideTimer;
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
@@ -98,7 +94,6 @@ public partial class MainWindow : Window
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IMediaCommandSender _mediaCommandSender;
     private readonly IMediaApplicationLauncher _mediaApplicationLauncher;
-    private readonly ISystemVolumeService? _systemVolumeService;
     private readonly IStartupRegistrationService? _startupRegistrationService;
     private readonly IMediaTrackInfoSource? _mediaTrackInfoSource;
     private readonly IUserIdleTimeSource _userIdleTimeSource;
@@ -118,7 +113,6 @@ public partial class MainWindow : Window
     private readonly MessageProviderMatcher _messageProviderMatcher;
     private readonly MessageNotificationCoordinator _messageNotificationCoordinator;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
-    private readonly SystemVolumeChangeTracker _volumeChangeTracker = new();
     private readonly System.Windows.Input.Cursor? _petPointerCursor;
     private readonly System.Windows.Input.Cursor? _headPatCursor;
     private readonly string _musicTargetProcessName;
@@ -153,7 +147,6 @@ public partial class MainWindow : Window
     private bool _trackInfoShowRequested;
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
-    private bool _externalVolumeFeedbackSubscribed;
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
@@ -177,7 +170,6 @@ public partial class MainWindow : Window
     private double _dragStartLeft;
     private double _dragStartTop;
     private BodyRegionId? _lastDebugHitRegion;
-    private Guid? _activeVolumeReactionToken;
     private readonly HashSet<Guid> _transientTopmostRequests = [];
     private Guid? _genshinLaunchReactionToken;
     private Guid? _genshinLaunchTopmostToken;
@@ -217,7 +209,6 @@ public partial class MainWindow : Window
         IAudioSessionProbe? audioSessionProbe,
         IMediaCommandSender mediaCommandSender,
         IMediaApplicationLauncher mediaApplicationLauncher,
-        ISystemVolumeService? systemVolumeService,
         IStartupRegistrationService? startupRegistrationService,
         IMediaTrackInfoSource? mediaTrackInfoSource,
         IUserIdleTimeSource userIdleTimeSource,
@@ -259,7 +250,6 @@ public partial class MainWindow : Window
         _mediaCommandSender = mediaCommandSender;
         _mediaApplicationLauncher = mediaApplicationLauncher ??
             throw new ArgumentNullException(nameof(mediaApplicationLauncher));
-        _systemVolumeService = systemVolumeService;
         _startupRegistrationService = startupRegistrationService;
         _mediaTrackInfoSource = mediaTrackInfoSource;
         _userIdleTimeSource = userIdleTimeSource;
@@ -351,22 +341,6 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(2.4),
         };
         _feedbackBubbleTimer.Tick += OnFeedbackBubbleTimerTick;
-        _volumeFeedbackMergeTimer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = TimeSpan.FromMilliseconds(
-                settings.Volume.MergeChangesWithinMilliseconds > 0
-                    ? settings.Volume.MergeChangesWithinMilliseconds
-                    : VolumePreferences.DefaultMergeChangesWithinMilliseconds),
-        };
-        _volumeFeedbackMergeTimer.Tick += OnVolumeFeedbackMergeTimerTick;
-        _systemVolumePollTimer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = TimeSpan.FromMilliseconds(
-                settings.Volume.ExternalPollIntervalMilliseconds > 0
-                    ? settings.Volume.ExternalPollIntervalMilliseconds
-                    : VolumePreferences.DefaultExternalPollIntervalMilliseconds),
-        };
-        _systemVolumePollTimer.Tick += OnSystemVolumePollTimerTick;
         _mediaControlsHideTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = TimeSpan.FromMilliseconds(220),
@@ -428,21 +402,6 @@ public partial class MainWindow : Window
         UpdatePlayPauseGlyph();
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
-
-        if (_systemVolumeService is not null)
-        {
-            ConfigureExternalVolumeFeedback(_settings.Volume.EnableExternalChangeFeedback);
-
-            SystemVolumeSnapshot initialVolume = _systemVolumeService.Read();
-            _volumeChangeTracker.Observe(initialVolume);
-            _logger.Info(
-                initialVolume.IsAvailable
-                    ? "volume.endpoint_ready"
-                    : "volume.endpoint_temporarily_unavailable",
-                initialVolume.IsAvailable
-                    ? "Default multimedia output endpoint is ready."
-                    : "Default multimedia output endpoint could not be read.");
-        }
 
         DesktopRectangle workArea = GetCurrentWorkArea();
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
@@ -2895,12 +2854,10 @@ public partial class MainWindow : Window
         }
 
         SettingsWindow settingsWindow = new(
-            _settings.Volume,
             _settings.Notifications,
             _settings.Window,
             _settings.FileTreats,
             _startupRegistrationService?.IsEnabled ?? false,
-            _systemVolumeService,
             _messageNotificationSource)
         {
             Owner = this,
@@ -2909,7 +2866,6 @@ public partial class MainWindow : Window
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
             ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences);
-            ApplyVolumePreferences(settingsWindow.SelectedPreferences);
             ApplyWindowPreferences(
                 settingsWindow.SelectedWindowPreferences,
                 settingsWindow.StartWithWindowsSelected);
@@ -2992,69 +2948,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplyVolumePreferences(VolumePreferences preferences)
-    {
-        bool externalFeedbackWasEnabled = _settings.Volume.EnableExternalChangeFeedback;
-        WindowPreferences currentWindow = _edgeDockSide == EdgeDockSide.None
-            ? _settings.Window with
-            {
-                AlwaysOnTop = _permanentTopmost,
-                Left = Left,
-                Top = Top,
-            }
-            : _settings.Window with { AlwaysOnTop = _permanentTopmost };
-        _settings = _settings with
-        {
-            Volume = preferences,
-            Window = currentWindow,
-        };
-        _systemVolumeService?.UpdatePreferences(preferences);
-
-        _volumeFeedbackMergeTimer.Interval = TimeSpan.FromMilliseconds(
-            preferences.MergeChangesWithinMilliseconds > 0
-                ? preferences.MergeChangesWithinMilliseconds
-                : VolumePreferences.DefaultMergeChangesWithinMilliseconds);
-        _systemVolumePollTimer.Interval = TimeSpan.FromMilliseconds(
-            preferences.ExternalPollIntervalMilliseconds > 0
-                ? preferences.ExternalPollIntervalMilliseconds
-                : VolumePreferences.DefaultExternalPollIntervalMilliseconds);
-        if (externalFeedbackWasEnabled != preferences.EnableExternalChangeFeedback)
-        {
-            ConfigureExternalVolumeFeedback(preferences.EnableExternalChangeFeedback);
-        }
-
-        if (_persistSettings)
-        {
-            _ = SaveSettingsAsync("settings.volume_saved", "Volume preferences saved.");
-        }
-        ShowFeedbackBubble("桌宠设置已保存");
-        _logger.Info(
-            "volume.preferences_applied",
-            $"Wheel={preferences.EnableMouseWheelControl}; ExternalFeedback={preferences.EnableExternalChangeFeedback}; Step={preferences.MouseWheelStepPercent}.");
-    }
-
-    private void ConfigureExternalVolumeFeedback(bool enabled)
-    {
-        if (_systemVolumeService is null)
-        {
-            return;
-        }
-
-        if (enabled && !_externalVolumeFeedbackSubscribed)
-        {
-            _systemVolumeService.VolumeChanged += OnSystemVolumeChanged;
-            _externalVolumeFeedbackSubscribed = true;
-            _systemVolumePollTimer.Start();
-            _volumeChangeTracker.Observe(_systemVolumeService.Read());
-        }
-        else if (!enabled && _externalVolumeFeedbackSubscribed)
-        {
-            _systemVolumeService.VolumeChanged -= OnSystemVolumeChanged;
-            _externalVolumeFeedbackSubscribed = false;
-            _systemVolumePollTimer.Stop();
-        }
-    }
-
     private async Task SaveSettingsAsync(string eventName, string message)
     {
         try
@@ -3077,171 +2970,6 @@ public partial class MainWindow : Window
 
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
-
-    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (_systemVolumeService is null || _isClosing || e.Delta == 0)
-        {
-            return;
-        }
-
-        e.Handled = true;
-        int steps = e.Delta > 0 ? 1 : -1;
-        SystemVolumeAdjustmentResult result = _systemVolumeService.TryAdjustBySteps(steps);
-        _logger.Info("volume.wheel_result", $"Status={result.Status}.");
-        if (result.Status is SystemVolumeAdjustmentStatus.Succeeded or SystemVolumeAdjustmentStatus.AtLimit)
-        {
-            HandleVolumeSnapshot(
-                result.Snapshot,
-                showWhenUnchanged: true,
-                requireFeedbackSafety: false);
-            return;
-        }
-
-        string message = result.Status switch
-        {
-            SystemVolumeAdjustmentStatus.Disabled => "鼠标滚轮音量控制尚未启用",
-            SystemVolumeAdjustmentStatus.ProtectedApplicationForeground =>
-                "游戏安全模式：这次没有调整系统音量",
-            SystemVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
-                "暂时无法确认前台程序，没有调整音量",
-            SystemVolumeAdjustmentStatus.EndpointUnavailable => "暂时找不到系统输出设备",
-            SystemVolumeAdjustmentStatus.SystemRejected => "系统没有接受音量调整，请再试一次",
-            _ => "没有调整系统音量",
-        };
-        ShowFeedbackBubble(message);
-        if (result.Status is SystemVolumeAdjustmentStatus.EndpointUnavailable or
-            SystemVolumeAdjustmentStatus.SystemRejected)
-        {
-            _ = PlayReactionAsync("resonance-cry-shake", ReactionPriority.MediaOrVolume);
-        }
-    }
-
-    private void OnSystemVolumeChanged(object? sender, SystemVolumeChangedEventArgs e)
-    {
-        if (_isClosing || _systemVolumeService is null)
-        {
-            return;
-        }
-
-        Dispatcher.BeginInvoke(() =>
-        {
-            if (_isClosing)
-            {
-                return;
-            }
-
-            _logger.Info("volume.endpoint_notification", "Default endpoint volume changed.");
-            HandleVolumeSnapshot(
-                e.Snapshot,
-                showWhenUnchanged: false,
-                requireFeedbackSafety: true);
-        });
-    }
-
-    private void OnSystemVolumePollTimerTick(object? sender, EventArgs e)
-    {
-        if (_systemVolumeService is not null && !_isClosing)
-        {
-            HandleVolumeSnapshot(
-                _systemVolumeService.Read(),
-                showWhenUnchanged: false,
-                requireFeedbackSafety: true);
-        }
-    }
-
-    private void HandleVolumeSnapshot(
-        SystemVolumeSnapshot snapshot,
-        bool showWhenUnchanged,
-        bool requireFeedbackSafety)
-    {
-        if (!snapshot.IsAvailable)
-        {
-            return;
-        }
-
-        SystemVolumeFeedbackDecision decision = _volumeChangeTracker.Observe(snapshot);
-        if (!decision.ShouldShow && !showWhenUnchanged)
-        {
-            return;
-        }
-
-        if (requireFeedbackSafety &&
-            _systemVolumeService?.CheckFeedbackSafety() != SystemVolumeSafetyStatus.Allowed)
-        {
-            _logger.Info("volume.feedback_suppressed", "Foreground safety check blocked feedback.");
-            return;
-        }
-
-        string icon = snapshot.IsMuted ? "🔇" : "🔊";
-        string state = decision.Kind switch
-        {
-            SystemVolumeChangeKind.Muted => "已静音 · ",
-            SystemVolumeChangeKind.Unmuted => "已解除静音 · ",
-            _ when snapshot.IsMuted => "已静音 · ",
-            _ => string.Empty,
-        };
-        ShowFeedbackBubble($"{icon} {state}音量 {snapshot.Percentage}%");
-
-        if (decision.ShouldAnimate)
-        {
-            StartOrMergeVolumeReaction(decision.Kind);
-        }
-    }
-
-    private void StartOrMergeVolumeReaction(SystemVolumeChangeKind kind)
-    {
-        string animationId = kind == SystemVolumeChangeKind.Increased
-            ? VolumeIncreaseAnimation
-            : VolumeDecreaseAnimation;
-        string mergeKey = kind == SystemVolumeChangeKind.Increased
-            ? "volume:increase"
-            : "volume:decrease";
-        int cooldownMilliseconds = _settings.Volume.AnimationCooldownMilliseconds >= 0
-            ? _settings.Volume.AnimationCooldownMilliseconds
-            : VolumePreferences.DefaultAnimationCooldownMilliseconds;
-        DateTimeOffset now = DateTimeOffset.Now;
-        ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
-            new ReactionRequest(
-                animationId,
-                ReactionPriority.MediaOrVolume,
-                now.AddSeconds(10),
-                mergeKey,
-                TimeSpan.FromMilliseconds(cooldownMilliseconds)),
-            now);
-        if (outcome.Token is not Guid token)
-        {
-            _logger.Info("volume.animation_skipped", outcome.Result.ToString());
-            return;
-        }
-
-        _activeVolumeReactionToken = token;
-        _volumeFeedbackMergeTimer.Stop();
-        _volumeFeedbackMergeTimer.Start();
-        if (outcome.Result == ReactionStartResult.Merged)
-        {
-            return;
-        }
-
-        _ = _visualSwapTransition.PlayAsync(
-            () => PlayAnimation(animationId, preserveVisualTransition: true));
-        _logger.Info("volume.animation_started", kind.ToString());
-    }
-
-    private void OnVolumeFeedbackMergeTimerTick(object? sender, EventArgs e)
-    {
-        _volumeFeedbackMergeTimer.Stop();
-        if (_activeVolumeReactionToken is not Guid token)
-        {
-            return;
-        }
-
-        _activeVolumeReactionToken = null;
-        if (_stateMachine.CompleteReaction(token, DateTimeOffset.Now))
-        {
-            _ = TransitionToResolvedContinuousAnimationAsync("volume.animation_completed");
-        }
-    }
 
     private void OnRootMouseEnter(object sender, MouseEventArgs e)
     {
@@ -4584,10 +4312,6 @@ public partial class MainWindow : Window
         _musicPausePresentationTimer.Tick -= OnMusicPausePresentationTimerTick;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
-        _volumeFeedbackMergeTimer.Stop();
-        _volumeFeedbackMergeTimer.Tick -= OnVolumeFeedbackMergeTimerTick;
-        _systemVolumePollTimer.Stop();
-        _systemVolumePollTimer.Tick -= OnSystemVolumePollTimerTick;
         _mediaControlsHideTimer.Stop();
         _mediaControlsHideTimer.Tick -= OnMediaControlsHideTimerTick;
         _trackInfoRefreshTimer.Stop();
@@ -4645,15 +4369,6 @@ public partial class MainWindow : Window
         {
             _desktopItemDisappearanceSource.ItemDisappeared -= OnDesktopItemDisappeared;
             _desktopItemDisappearanceSource.Dispose();
-        }
-        if (_systemVolumeService is not null)
-        {
-            if (_externalVolumeFeedbackSubscribed)
-            {
-                _systemVolumeService.VolumeChanged -= OnSystemVolumeChanged;
-                _externalVolumeFeedbackSubscribed = false;
-            }
-            _systemVolumeService.Dispose();
         }
         if (!_persistSettings)
         {

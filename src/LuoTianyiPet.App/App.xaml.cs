@@ -75,9 +75,6 @@ public partial class App : Application
             bool liveTrackInfoQa = e.Args.Contains(
                 "--qa-track-info-live",
                 StringComparer.OrdinalIgnoreCase);
-            bool liveSystemVolumeQa = e.Args.Contains(
-                "--qa-system-volume",
-                StringComparer.OrdinalIgnoreCase);
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);
@@ -119,9 +116,6 @@ public partial class App : Application
             IMediaApplicationLauncher mediaApplicationLauncher = new WindowsMediaApplicationLauncher(
                 mediaInputBackend,
                 settings.Safety);
-            ISystemVolumeService? systemVolumeService = !isPreviewOrQaRun || liveSystemVolumeQa
-                ? CreateSystemVolumeService(settings, _logger)
-                : null;
             IStartupRegistrationService? startupRegistrationService = !isPreviewOrQaRun &&
                 Environment.ProcessPath is string executablePath
                     ? new WindowsStartupRegistrationService(
@@ -163,7 +157,6 @@ public partial class App : Application
                 audioSessionProbe,
                 mediaCommandSender,
                 mediaApplicationLauncher,
-                systemVolumeService,
                 startupRegistrationService,
                 mediaTrackInfoSource,
                 new WindowsUserIdleTimeSource(),
@@ -295,27 +288,6 @@ public partial class App : Application
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
         {
             logger.Error("animation.catalog_failed", exception);
-            return null;
-        }
-    }
-
-    private static ISystemVolumeService? CreateSystemVolumeService(
-        AppSettings settings,
-        IAppLogger logger)
-    {
-        try
-        {
-            return new WindowsSystemVolumeService(
-                new CoreAudioSystemVolumeBackend(),
-                settings.Volume,
-                settings.Safety);
-        }
-        catch (Exception exception) when (
-            exception is System.Runtime.InteropServices.COMException or
-            InvalidOperationException or
-            UnauthorizedAccessException)
-        {
-            logger.Error("volume.endpoint_initialization_failed", exception);
             return null;
         }
     }

@@ -3,12 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="洛天依桌宠设置"
         Width="430"
-        MaxHeight="760"
+        MaxHeight="650"
         SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FFF5FBFF"
-        Closed="OnClosed"
         Loaded="OnLoaded">
     <Window.Resources>
         <Style TargetType="TextBlock">
@@ -47,8 +46,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,2,16">
@@ -56,93 +53,10 @@
             <TextBlock Margin="0,5,0,0"
                        Foreground="#B3174E68"
                        FontSize="12"
-                       Text="管理声音反馈、桌面行为和消息提醒。" />
+                       Text="管理桌面行为和消息提醒。" />
         </StackPanel>
 
         <Border Grid.Row="1" Style="{StaticResource SettingCardStyle}">
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="系统音量" />
-                    <Border Grid.Column="1"
-                            Padding="9,3"
-                            Background="#2466CCFF"
-                            CornerRadius="9">
-                        <TextBlock x:Name="VolumeValueText"
-                                   FontWeight="Bold"
-                                   Foreground="#FF0875A8"
-                                   Text="--%" />
-                    </Border>
-                </Grid>
-                <Slider x:Name="VolumeSlider"
-                        AutomationProperties.Name="系统音量"
-                        Margin="0,14,0,5"
-                        Minimum="0"
-                        Maximum="100"
-                        TickFrequency="1"
-                        IsSnapToTickEnabled="True"
-                        IsMoveToPointEnabled="True"
-                        ValueChanged="OnVolumeSliderValueChanged" />
-                <TextBlock x:Name="VolumeStatusText"
-                           MinHeight="18"
-                           Foreground="#B3174E68"
-                           FontSize="11"
-                           Text="正在读取默认多媒体输出设备……" />
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="2" Style="{StaticResource SettingCardStyle}">
-            <StackPanel>
-                <TextBlock Margin="0,0,0,5"
-                           FontSize="15"
-                           FontWeight="SemiBold"
-                           Text="桌宠反馈" />
-                <CheckBox x:Name="MouseWheelControlCheckBox"
-                          AutomationProperties.Name="启用桌宠滚轮音量控制"
-                          Content="鼠标位于桌宠上时，使用滚轮调整系统音量" />
-                <CheckBox x:Name="ExternalFeedbackCheckBox"
-                          AutomationProperties.Name="启用外部系统音量变化反馈"
-                          Content="系统音量从其它位置改变时，播放动画并显示气泡" />
-                <Grid Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="110" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock FontSize="13" Text="滚轮每格调整" />
-                        <TextBlock Margin="0,3,8,0"
-                                   Foreground="#A8174E68"
-                                   FontSize="11"
-                                   Text="数值越大，音量变化越快。" />
-                    </StackPanel>
-                    <ComboBox x:Name="WheelStepComboBox"
-                              AutomationProperties.Name="滚轮每格音量步长"
-                              Grid.Column="1"
-                              Height="32"
-                              VerticalContentAlignment="Center">
-                        <ComboBoxItem Tag="1">1%</ComboBoxItem>
-                        <ComboBoxItem Tag="2">2%</ComboBoxItem>
-                        <ComboBoxItem Tag="3">3%</ComboBoxItem>
-                        <ComboBoxItem Tag="5">5%</ComboBoxItem>
-                        <ComboBoxItem Tag="10">10%</ComboBoxItem>
-                    </ComboBox>
-                </Grid>
-                <Border Margin="0,14,0,0"
-                        Padding="10,8"
-                        Background="#1266CCFF"
-                        CornerRadius="8">
-                    <TextBlock Foreground="#C2174E68"
-                               FontSize="11"
-                               TextWrapping="Wrap"
-                               Text="安全提示：原神等受保护游戏位于前台，或无法确认前台程序时，桌宠不会写入系统音量。" />
-                </Border>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock Margin="0,0,0,5"
                            FontSize="15"
@@ -165,7 +79,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
+        <Border Grid.Row="2" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
@@ -202,20 +116,13 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="5" Margin="2,2,2,0">
+        <Grid Grid.Row="3" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="1"
-                    AutomationProperties.Name="恢复反馈默认值"
-                    Margin="0,0,10,0"
-                    Padding="14,8"
-                    Click="OnRestoreDefaultsClick"
-                    Content="恢复反馈默认值" />
-            <Button Grid.Column="2"
-                    AutomationProperties.Name="保存声音与反馈设置"
+                    AutomationProperties.Name="保存桌宠设置"
                     Style="{StaticResource PrimaryButtonStyle}"
                     Click="OnSaveClick"
                     Content="保存并关闭" />
