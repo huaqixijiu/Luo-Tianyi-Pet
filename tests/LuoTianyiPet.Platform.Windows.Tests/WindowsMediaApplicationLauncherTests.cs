@@ -128,6 +128,34 @@ public sealed class WindowsMediaApplicationLauncherTests
         Assert.Equal("C:\\CloudMusic\\cloudmusic.exe", startedPath);
     }
 
+    [Fact]
+    public void TryLaunch_BackgroundOnlyProcessPresence_StartsExecutableAgain()
+    {
+        bool started = false;
+        WindowsMediaApplicationLauncher launcher = CreateLauncher(
+            isRunning: _ => WindowsMediaApplicationLauncher.HasControllableInstance(
+                [nint.Zero, nint.Zero, nint.Zero]),
+            startExecutable: _ =>
+            {
+                started = true;
+                return true;
+            });
+
+        MediaApplicationLaunchResult result = launcher.TryLaunch("cloudmusic.exe");
+
+        Assert.Equal(MediaApplicationLaunchStatus.Started, result.Status);
+        Assert.True(started);
+    }
+
+    [Fact]
+    public void HasControllableInstance_AnyMainWindowMeansApplicationIsReady()
+    {
+        bool ready = WindowsMediaApplicationLauncher.HasControllableInstance(
+            [nint.Zero, new nint(1234), nint.Zero]);
+
+        Assert.True(ready);
+    }
+
     private static WindowsMediaApplicationLauncher CreateLauncher(
         FakeShortcutInputBackend? backend = null,
         Func<string, bool>? isRunning = null,

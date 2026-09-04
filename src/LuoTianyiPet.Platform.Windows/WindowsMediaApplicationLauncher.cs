@@ -140,18 +140,45 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
         try
         {
             Process[] processes = Process.GetProcessesByName(normalizedProcessName);
-            foreach (Process process in processes)
+            try
             {
-                process.Dispose();
-            }
+                List<nint> mainWindowHandles = new(processes.Length);
+                foreach (Process process in processes)
+                {
+                    try
+                    {
+                        process.Refresh();
+                        mainWindowHandles.Add(process.MainWindowHandle);
+                    }
+                    catch (Exception exception) when (
+                        exception is InvalidOperationException or NotSupportedException or
+                        Win32Exception)
+                    {
+                        mainWindowHandles.Add(nint.Zero);
+                    }
+                }
 
-            return processes.Length > 0;
+                return HasControllableInstance(mainWindowHandles);
+            }
+            finally
+            {
+                foreach (Process process in processes)
+                {
+                    process.Dispose();
+                }
+            }
         }
         catch (Exception exception) when (
             exception is ArgumentException or InvalidOperationException or Win32Exception)
         {
             return false;
         }
+    }
+
+    internal static bool HasControllableInstance(IEnumerable<nint> mainWindowHandles)
+    {
+        ArgumentNullException.ThrowIfNull(mainWindowHandles);
+        return mainWindowHandles.Any(handle => handle != nint.Zero);
     }
 
     private static string? ResolveExecutable(string executableName)
