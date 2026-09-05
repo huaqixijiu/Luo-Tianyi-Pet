@@ -139,6 +139,19 @@ public static class EdgeDockResolver
         return visiblePet.Bottom >= workArea.Bottom - distance;
     }
 
+    public static bool IsNearTop(
+        DesktopRectangle visiblePet,
+        DesktopRectangle workArea,
+        double distance)
+    {
+        if (distance < 0 || !double.IsFinite(distance))
+        {
+            throw new ArgumentOutOfRangeException(nameof(distance));
+        }
+
+        return visiblePet.Top <= workArea.Top + distance;
+    }
+
     private static void ValidateFraction(double value, string parameterName)
     {
         if (!double.IsFinite(value) || value is <= 0 or > 1)

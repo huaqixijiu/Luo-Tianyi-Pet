@@ -37,7 +37,7 @@ public partial class MainWindow : Window
     private const double EdgeDockMinimumDragOverscan = 96;
     private const double EdgeAlignmentTolerance = 3;
     private const double EdgeDockAlphaInset = 2;
-    private const double BottomControlsLayoutDistance = 80;
+    private const double EdgeAccessoryLayoutDistance = 80;
     private const double SideDockWallClipLeftRatio = 0.923;
     private const double SideDockWallClipWidthRatio = 0.046;
     private const double SideDockRevealPlaybackRate = 1.3;
@@ -139,6 +139,7 @@ public partial class MainWindow : Window
     private readonly MessageProvider? _previewMessageNotification;
     private readonly EdgeDockSide? _previewEdgeDock;
     private readonly bool _previewBottomControlsLayout;
+    private readonly bool _previewTopControlsLayout;
     private readonly string? _previewBodyReaction;
     private readonly bool _persistSettings;
     private AppSettings _settings;
@@ -170,7 +171,7 @@ public partial class MainWindow : Window
     private bool _classicDragExpansionStarted;
     private bool _dragReleaseRequestsLanding;
     private bool _edgeDockRevealed;
-    private bool _useBottomControlsLayout;
+    private AccessoryLayout _accessoryLayout = AccessoryLayout.Split;
     private int _edgeDockAnimationGeneration;
     private MediaTrackSnapshot _lastTrackSnapshot = MediaTrackSnapshot.Unavailable;
     private string _lastTrackIdentity = string.Empty;
@@ -248,6 +249,7 @@ public partial class MainWindow : Window
         MessageProvider? previewMessageNotification,
         EdgeDockSide? previewEdgeDock,
         bool previewBottomControlsLayout,
+        bool previewTopControlsLayout,
         string? previewBodyReaction,
         bool showQaTaskbar,
         bool persistSettings)
@@ -334,6 +336,7 @@ public partial class MainWindow : Window
         _previewMessageNotification = previewMessageNotification;
         _previewEdgeDock = previewEdgeDock;
         _previewBottomControlsLayout = previewBottomControlsLayout;
+        _previewTopControlsLayout = previewTopControlsLayout;
         _previewBodyReaction = previewBodyReaction;
         _persistSettings = persistSettings;
         InitializeComponent();
@@ -449,15 +452,24 @@ public partial class MainWindow : Window
         double desiredLeft = _settings.Window.Left ?? workArea.Right - ActualWidth - 32;
         double desiredTop = _settings.Window.Top ?? workArea.Bottom - ActualHeight - 32;
         Left = Clamp(desiredLeft, workArea.Left, workArea.Right - ActualWidth);
-        Top = Clamp(desiredTop, workArea.Top, workArea.Bottom - ActualHeight);
+        Top = Clamp(
+            desiredTop,
+            workArea.Top - TrackInfoReservedHeight - 32,
+            workArea.Bottom - ActualHeight);
 
         PlayResolvedContinuousAnimation();
-        UpdateBottomControlsLayoutForCurrentPosition();
+        UpdateAccessoryLayoutForCurrentPosition(preservePetPosition: false);
         if (_previewBottomControlsLayout)
         {
-            ApplyBottomControlsLayout(useAbovePetLayout: true);
+            ApplyAccessoryLayout(AccessoryLayout.AbovePet);
             DesktopRectangle petBounds = GetPetImageBoundsInWindow();
             Top = workArea.Bottom - petBounds.Bottom;
+        }
+        else if (_previewTopControlsLayout)
+        {
+            ApplyAccessoryLayout(AccessoryLayout.BelowPet, preservePetPosition: false);
+            DesktopRectangle petBounds = GetPetImageAlphaBoundsInWindow();
+            Top = workArea.Top - petBounds.Top;
         }
         if (_persistSettings)
         {
@@ -1468,10 +1480,12 @@ public partial class MainWindow : Window
                 horizontalOverscan);
         Top = Clamp(
             desiredTop,
-            SystemParameters.VirtualScreenTop,
+            GetCurrentWorkArea().Top - Math.Max(
+                0,
+                (_dragIntentPetBoundsInWindow ?? GetPetImageAlphaBoundsInWindow()).Top),
             SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - ActualHeight +
                 verticalOverscan);
-        UpdateBottomControlsLayoutForCurrentPosition();
+        UpdateAccessoryLayoutForCurrentPosition();
         if (_dragEdgeCandidate == EdgeDockSide.None)
         {
             _dragIntentPetBoundsInWindow = GetPetImageAlphaBoundsInWindow();
@@ -1505,7 +1519,7 @@ public partial class MainWindow : Window
             _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
-            UpdateBottomControlsLayoutForCurrentPosition();
+            UpdateAccessoryLayoutForCurrentPosition();
 
             if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
             {
@@ -2373,7 +2387,10 @@ public partial class MainWindow : Window
             center - width / 2,
             workArea.Left - leftOverflow,
             workArea.Right - width + rightOverflow);
-        Top = Clamp(bottom - height, workArea.Top, workArea.Bottom - height + bottomOverflow);
+        double minimumTop = _accessoryLayout == AccessoryLayout.BelowPet
+            ? workArea.Top - Math.Max(0, GetPetImageAlphaBoundsInWindow().Top)
+            : workArea.Top;
+        Top = Clamp(bottom - height, minimumTop, workArea.Bottom - height + bottomOverflow);
     }
 
     private (double Left, double Right, double Bottom) ResolveTargetTransparentOverflow(
@@ -2383,7 +2400,7 @@ public partial class MainWindow : Window
     {
         if (manifest is null || !TryGetAlphaBounds(manifest, out Int32Rect alphaBounds))
         {
-            return (0, 0, _useBottomControlsLayout ? PetVisual.Margin.Bottom : 0);
+            return (0, 0, _accessoryLayout == AccessoryLayout.AbovePet ? PetVisual.Margin.Bottom : 0);
         }
 
         double displayWidth = targetWidth - 16;
@@ -2399,7 +2416,9 @@ public partial class MainWindow : Window
         return (
             8 + transparentLeft,
             8 + transparentRight,
-            _useBottomControlsLayout ? PetVisual.Margin.Bottom + transparentBottom : 0);
+            _accessoryLayout == AccessoryLayout.AbovePet
+                ? PetVisual.Margin.Bottom + transparentBottom
+                : 0);
     }
 
     private bool TryEnterEdgeDock()
@@ -2417,7 +2436,7 @@ public partial class MainWindow : Window
         _edgeDockRevealed = false;
         if (side == EdgeDockSide.Bottom)
         {
-            ApplyBottomControlsLayout(useAbovePetLayout: true);
+            ApplyAccessoryLayout(AccessoryLayout.AbovePet);
         }
 
         int generation = ++_edgeDockAnimationGeneration;
@@ -2849,11 +2868,14 @@ public partial class MainWindow : Window
     {
         DesktopRectangle workArea = GetCurrentWorkArea();
         Left = Clamp(position.X, workArea.Left, workArea.Right - ActualWidth);
-        Top = Clamp(position.Y, workArea.Top, workArea.Bottom - ActualHeight);
-        UpdateBottomControlsLayoutForCurrentPosition();
+        double minimumTop = _accessoryLayout == AccessoryLayout.BelowPet
+            ? workArea.Top - Math.Max(0, GetPetImageAlphaBoundsInWindow().Top)
+            : workArea.Top;
+        Top = Clamp(position.Y, minimumTop, workArea.Bottom - ActualHeight);
+        UpdateAccessoryLayoutForCurrentPosition();
     }
 
-    private void UpdateBottomControlsLayoutForCurrentPosition()
+    private void UpdateAccessoryLayoutForCurrentPosition(bool preservePetPosition = true)
     {
         if (!IsLoaded || PetImage.ActualHeight <= 0)
         {
@@ -2861,55 +2883,89 @@ public partial class MainWindow : Window
         }
 
         DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle petBounds = GetPetImageDesktopBounds();
         bool useAbovePetLayout = _edgeDockSide == EdgeDockSide.Bottom ||
             EdgeDockResolver.IsNearBottom(
-                GetPetImageDesktopBounds(),
+                petBounds,
                 workArea,
-                BottomControlsLayoutDistance);
-        ApplyBottomControlsLayout(useAbovePetLayout);
+                EdgeAccessoryLayoutDistance);
+        bool useBelowPetLayout = !useAbovePetLayout &&
+            EdgeDockResolver.IsNearTop(
+                petBounds,
+                workArea,
+                EdgeAccessoryLayoutDistance);
+        AccessoryLayout layout = useAbovePetLayout
+            ? AccessoryLayout.AbovePet
+            : useBelowPetLayout
+                ? AccessoryLayout.BelowPet
+                : AccessoryLayout.Split;
+        bool shouldPreservePetPosition = preservePetPosition || layout != AccessoryLayout.BelowPet;
+        ApplyAccessoryLayout(layout, shouldPreservePetPosition);
     }
 
-    private void ApplyBottomControlsLayout(bool useAbovePetLayout)
+    private void ApplyAccessoryLayout(
+        AccessoryLayout layout,
+        bool preservePetPosition = true)
     {
-        if (_useBottomControlsLayout == useAbovePetLayout)
+        if (_accessoryLayout == layout)
         {
             return;
         }
 
         UpdateLayout();
         double petBottomBefore = Top + GetPetImageBoundsInWindow().Bottom;
-        _useBottomControlsLayout = useAbovePetLayout;
-        if (useAbovePetLayout)
+        _accessoryLayout = layout;
+        switch (layout)
         {
-            PetVisual.Margin = new Thickness(8, 118, 8, 8);
-            MusicTransitionFlash.Margin = new Thickness(8, 118, 8, 8);
-            MediaControls.VerticalAlignment = VerticalAlignment.Top;
-            MediaControls.Margin = new Thickness(0, 7, 0, 0);
-            TrackInfoBubble.Margin = new Thickness(5, 60, 5, 0);
-            FeedbackBubble.Margin = new Thickness(6, 110, 6, 6);
-        }
-        else
-        {
-            PetVisual.Margin = new Thickness(8, 60, 8, 66);
-            MusicTransitionFlash.Margin = new Thickness(8, 60, 8, 66);
-            MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
-            MediaControls.Margin = new Thickness(0, 0, 0, 7);
-            TrackInfoBubble.Margin = new Thickness(5, 6, 5, 0);
-            FeedbackBubble.Margin = new Thickness(6, 56, 6, 6);
+            case AccessoryLayout.AbovePet:
+                PetVisual.Margin = new Thickness(8, 118, 8, 8);
+                MusicTransitionFlash.Margin = new Thickness(8, 118, 8, 8);
+                TrackInfoBubble.VerticalAlignment = VerticalAlignment.Top;
+                TrackInfoBubble.Margin = new Thickness(5, 7, 5, 0);
+                MediaControls.VerticalAlignment = VerticalAlignment.Top;
+                MediaControls.Margin = new Thickness(0, 60, 0, 0);
+                FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
+                FeedbackBubble.Margin = new Thickness(6, 110, 6, 6);
+                break;
+            case AccessoryLayout.BelowPet:
+                PetVisual.Margin = new Thickness(8, 8, 8, 118);
+                MusicTransitionFlash.Margin = new Thickness(8, 8, 8, 118);
+                TrackInfoBubble.VerticalAlignment = VerticalAlignment.Bottom;
+                TrackInfoBubble.Margin = new Thickness(5, 0, 5, 60);
+                MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
+                MediaControls.Margin = new Thickness(0, 0, 0, 7);
+                FeedbackBubble.VerticalAlignment = VerticalAlignment.Bottom;
+                FeedbackBubble.Margin = new Thickness(6, 0, 6, 82);
+                break;
+            case AccessoryLayout.Split:
+                PetVisual.Margin = new Thickness(8, 60, 8, 66);
+                MusicTransitionFlash.Margin = new Thickness(8, 60, 8, 66);
+                TrackInfoBubble.VerticalAlignment = VerticalAlignment.Top;
+                TrackInfoBubble.Margin = new Thickness(5, 6, 5, 0);
+                MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
+                MediaControls.Margin = new Thickness(0, 0, 0, 7);
+                FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
+                FeedbackBubble.Margin = new Thickness(6, 56, 6, 6);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(layout));
         }
 
         UpdateLayout();
-        double petBottomAfter = Top + GetPetImageBoundsInWindow().Bottom;
-        double topAdjustment = petBottomBefore - petBottomAfter;
-        Top += topAdjustment;
-        if (_isWindowDragging)
+        if (preservePetPosition)
         {
-            _dragStartTop += topAdjustment;
+            double petBottomAfter = Top + GetPetImageBoundsInWindow().Bottom;
+            double topAdjustment = petBottomBefore - petBottomAfter;
+            Top += topAdjustment;
+            if (_isWindowDragging)
+            {
+                _dragStartTop += topAdjustment;
+            }
         }
 
         _logger.Info(
-            "window.bottom_controls_layout_changed",
-            useAbovePetLayout ? "AbovePet" : "BelowPet");
+            "window.accessory_layout_changed",
+            layout.ToString());
     }
 
     private void SnapVisiblePetInsideWorkArea()
@@ -3400,7 +3456,7 @@ public partial class MainWindow : Window
                     alignBottom,
                     workArea);
                 SnapVisiblePetInsideWorkArea();
-                UpdateBottomControlsLayoutForCurrentPosition();
+                UpdateAccessoryLayoutForCurrentPosition();
             }
         }
         catch (KeyNotFoundException)
@@ -4158,7 +4214,7 @@ public partial class MainWindow : Window
         PetDirectionTransform.ScaleX = targetCentre.X < petCentre.X ? -1 : 1;
         Left += moveX;
         Top += moveY;
-        UpdateBottomControlsLayoutForCurrentPosition();
+        UpdateAccessoryLayoutForCurrentPosition();
         if (chase.Arrived && !_activeBunTarget.IsBeingDragged)
         {
             _bunChaseTimer.Stop();
@@ -5146,6 +5202,13 @@ public partial class MainWindow : Window
 
     private static double Clamp(double value, double minimum, double maximum) =>
         Math.Clamp(value, minimum, Math.Max(minimum, maximum));
+
+    private enum AccessoryLayout
+    {
+        Split,
+        AbovePet,
+        BelowPet,
+    }
 
     private void CancelVisualTransition()
     {

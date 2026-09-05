@@ -163,4 +163,18 @@ public sealed class EdgeDockResolverTests
                 WorkArea,
                 100));
     }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(80, true)]
+    [InlineData(81, false)]
+    public void DetectsWhenControlsNeedTheBelowPetLayout(double top, bool expected)
+    {
+        Assert.Equal(
+            expected,
+            EdgeDockResolver.IsNearTop(
+                new DesktopRectangle(800, top, 200, 200),
+                WorkArea,
+                80));
+    }
 }

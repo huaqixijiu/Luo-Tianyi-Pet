@@ -65,14 +65,19 @@ public partial class App : Application
             bool previewBottomControlsLayout = e.Args.Contains(
                 "--qa-bottom-controls",
                 StringComparer.OrdinalIgnoreCase);
+            bool previewTopControlsLayout = e.Args.Contains(
+                "--qa-top-controls",
+                StringComparer.OrdinalIgnoreCase);
             bool previewMediaControls = e.Args.Contains(
                 "--qa-media-controls",
                 StringComparer.OrdinalIgnoreCase) || e.Args.Contains(
                     "--qa-shortcut-menu",
-                    StringComparer.OrdinalIgnoreCase) || previewBottomControlsLayout;
+                    StringComparer.OrdinalIgnoreCase) ||
+                previewBottomControlsLayout || previewTopControlsLayout;
             bool previewTrackInfo = e.Args.Contains(
                 "--qa-track-info",
-                StringComparer.OrdinalIgnoreCase) || previewBottomControlsLayout;
+                StringComparer.OrdinalIgnoreCase) ||
+                previewBottomControlsLayout || previewTopControlsLayout;
             bool liveTrackInfoQa = e.Args.Contains(
                 "--qa-track-info-live",
                 StringComparer.OrdinalIgnoreCase);
@@ -194,6 +199,7 @@ public partial class App : Application
                 previewMessageNotification,
                 previewEdgeDock,
                 previewBottomControlsLayout,
+                previewTopControlsLayout,
                 previewBodyReaction,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);
