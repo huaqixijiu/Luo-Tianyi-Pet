@@ -451,7 +451,7 @@
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem x:Name="FullBodyModeMenuItem"
-                          Header="完整全身互动模式"
+                          Header="完整全身模式"
                           IsCheckable="True"
                           Click="OnToggleDisplayMode" />
                 <MenuItem Header="动画与状态验证">

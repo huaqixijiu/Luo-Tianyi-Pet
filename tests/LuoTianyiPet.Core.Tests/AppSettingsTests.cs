@@ -24,6 +24,7 @@ public sealed class AppSettingsTests
         Assert.Equal("Ctrl+Alt+P", settings.Media.TogglePlayPauseShortcut);
         Assert.Equal("Ctrl+Alt+Right", settings.Media.NextTrackShortcut);
         Assert.Equal(350, settings.Media.CommandCooldownMilliseconds);
+        Assert.Equal(MusicAnimationOptions.RandomSelection, settings.Media.MusicAnimationSelection);
         Assert.True(settings.Volume.EnableMouseWheelControl);
         Assert.True(settings.Volume.EnableExternalChangeFeedback);
         Assert.Equal(2, settings.Volume.MouseWheelStepPercent);
@@ -80,5 +81,34 @@ public sealed class AppSettingsTests
         Assert.Equal(
             (AppearanceOptionIds.NewBunRunAnimation, AppearanceOptionIds.NewBunEatAnimation),
             AppearanceOptionIds.ResolveBunAnimations(AppearanceOptionIds.BunEatingNew));
+        Assert.Equal(
+            FullBodyInteractionMode.Disabled,
+            AppearanceOptionIds.ResolveFullBodyInteractionMode(
+                AppearanceOptionIds.FullBodyLongHair));
+        Assert.Equal(
+            FullBodyInteractionMode.SeamlessMotionPending,
+            AppearanceOptionIds.ResolveFullBodyInteractionMode(
+                AppearanceOptionIds.FullBodyCrystalDress));
+        Assert.Equal(
+            FullBodyInteractionMode.ExpressionPack,
+            AppearanceOptionIds.ResolveFullBodyInteractionMode(
+                AppearanceOptionIds.FullBodyClassicCatEars));
+    }
+
+    [Theory]
+    [InlineData("random", "random")]
+    [InlineData(PetVisualState.EnjoyMusicAnimation, PetVisualState.EnjoyMusicAnimation)]
+    [InlineData(PetVisualState.MusicSwayAnimation, PetVisualState.MusicSwayAnimation)]
+    [InlineData("unknown", "random")]
+    public void MediaNormalizationPreservesOnlyRegisteredMusicSelections(
+        string stored,
+        string expected)
+    {
+        MediaPreferences normalized = MediaPreferences.Normalize(new MediaPreferences
+        {
+            MusicAnimationSelection = stored,
+        });
+
+        Assert.Equal(expected, normalized.MusicAnimationSelection);
     }
 }

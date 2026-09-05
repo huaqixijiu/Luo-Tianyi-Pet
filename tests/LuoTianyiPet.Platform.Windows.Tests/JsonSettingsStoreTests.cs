@@ -17,6 +17,7 @@ public sealed class JsonSettingsStoreTests
                 {
                     EnableCloudMusicDetection = false,
                     TargetProcessName = "custom-player.exe",
+                    MusicAnimationSelection = PetVisualState.MusicSwayAnimation,
                 },
                 Volume = new VolumePreferences
                 {
@@ -425,6 +426,45 @@ public sealed class JsonSettingsStoreTests
             Assert.Equal(AppearanceOptionIds.FullBodyLongHair, actual.Appearance.FullBodyStyle);
             Assert.Equal(AppearanceOptionIds.BunEatingOriginal, actual.Appearance.BunEatingStyle);
             Assert.Equal(100, actual.Appearance.DisplayScalePercent);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version10_AddsRandomMusicAnimationSelection()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 10,
+                  "media": {
+                    "targetProcessName": "cloudmusic.exe"
+                  },
+                  "appearance": {
+                    "fullBodyStyle": "full-body-classic-cat-ears"
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.Equal(
+                MusicAnimationOptions.RandomSelection,
+                actual.Media.MusicAnimationSelection);
+            Assert.Equal(
+                AppearanceOptionIds.FullBodyClassicCatEars,
+                actual.Appearance.FullBodyStyle);
         }
         finally
         {

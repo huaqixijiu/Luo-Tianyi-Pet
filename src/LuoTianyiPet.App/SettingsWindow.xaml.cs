@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using LuoTianyiPet.Animation;
@@ -19,6 +20,7 @@ public partial class SettingsWindow : Window
         WindowPreferences windowPreferences,
         FileTreatPreferences fileTreatPreferences,
         AppearancePreferences appearancePreferences,
+        MediaPreferences mediaPreferences,
         bool startupRegistrationEnabled,
         IMessageNotificationSource? messageNotificationSource,
         AnimationCatalog? animationCatalog,
@@ -28,14 +30,17 @@ public partial class SettingsWindow : Window
         ArgumentNullException.ThrowIfNull(windowPreferences);
         ArgumentNullException.ThrowIfNull(fileTreatPreferences);
         ArgumentNullException.ThrowIfNull(appearancePreferences);
+        ArgumentNullException.ThrowIfNull(mediaPreferences);
         SelectedNotificationPreferences = notificationPreferences;
         SelectedWindowPreferences = windowPreferences;
         SelectedFileTreatPreferences = fileTreatPreferences;
         SelectedAppearancePreferences = AppearancePreferences.Normalize(appearancePreferences);
+        SelectedMediaPreferences = MediaPreferences.Normalize(mediaPreferences);
         StartWithWindowsSelected = startupRegistrationEnabled;
         _messageNotificationSource = messageNotificationSource;
         _applicationVolumeService = applicationVolumeService;
         InitializeComponent();
+        LoadMusicAnimationOptions();
 
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
@@ -61,6 +66,8 @@ public partial class SettingsWindow : Window
     public FileTreatPreferences SelectedFileTreatPreferences { get; private set; }
 
     public AppearancePreferences SelectedAppearancePreferences { get; private set; }
+
+    public MediaPreferences SelectedMediaPreferences { get; private set; }
 
     public bool StartWithWindowsSelected { get; private set; }
 
@@ -197,7 +204,38 @@ public partial class SettingsWindow : Window
                     ? AppearanceOptionIds.BunEatingNew
                     : AppearanceOptionIds.BunEatingOriginal,
             });
+        if (MusicAnimationSelectionComboBox.SelectedItem is ComboBoxItem selectedMusicAnimation &&
+            selectedMusicAnimation.Tag is string selection)
+        {
+            SelectedMediaPreferences = MediaPreferences.Normalize(
+                SelectedMediaPreferences with { MusicAnimationSelection = selection });
+        }
         DialogResult = true;
+    }
+
+    private void LoadMusicAnimationOptions()
+    {
+        MusicAnimationSelectionComboBox.Items.Clear();
+        MusicAnimationSelectionComboBox.Items.Add(new ComboBoxItem
+        {
+            Content = "每次开始播放或切歌时随机",
+            Tag = MusicAnimationOptions.RandomSelection,
+        });
+        foreach (MusicAnimationOption option in MusicAnimationOptions.FixedOptions)
+        {
+            MusicAnimationSelectionComboBox.Items.Add(new ComboBoxItem
+            {
+                Content = $"固定循环：{option.DisplayName}",
+                Tag = option.SelectionId,
+            });
+        }
+
+        string selected = MusicAnimationOptions.NormalizeSelection(
+            SelectedMediaPreferences.MusicAnimationSelection);
+        MusicAnimationSelectionComboBox.SelectedItem =
+            MusicAnimationSelectionComboBox.Items
+                .OfType<ComboBoxItem>()
+                .First(item => string.Equals(item.Tag as string, selected, StringComparison.Ordinal));
     }
 
     private void LoadAppearancePreviews(AnimationCatalog? catalog)

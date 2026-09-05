@@ -1,13 +1,38 @@
 namespace LuoTianyiPet.Core;
 
-public sealed class MusicPlaybackAnimationSelector
+public sealed record MusicAnimationOption(
+    string SelectionId,
+    string DisplayName,
+    string AnimationId);
+
+public static class MusicAnimationOptions
 {
-    public static IReadOnlyList<string> LuoTianyiPerformanceCandidates { get; } =
+    public const string RandomSelection = "random";
+
+    public static IReadOnlyList<MusicAnimationOption> FixedOptions { get; } =
     [
-        PetVisualState.EnjoyMusicAnimation,
-        PetVisualState.MusicSwayAnimation,
+        new(
+            PetVisualState.EnjoyMusicAnimation,
+            "心律共鸣 · 享受音乐",
+            PetVisualState.EnjoyMusicAnimation),
+        new(
+            PetVisualState.MusicSwayAnimation,
+            "九周年 · 音乐摇摆",
+            PetVisualState.MusicSwayAnimation),
     ];
 
+    public static string NormalizeSelection(string? selection) =>
+        selection == RandomSelection ||
+        FixedOptions.Any(option => option.SelectionId == selection)
+            ? selection!
+            : RandomSelection;
+
+    public static MusicAnimationOption ResolveFixed(string selection) =>
+        FixedOptions.First(option => option.SelectionId == selection);
+}
+
+public sealed class MusicPlaybackAnimationSelector
+{
     private readonly Func<int, int> _selectIndex;
 
     public MusicPlaybackAnimationSelector(Func<int, int>? selectIndex = null)
@@ -15,20 +40,21 @@ public sealed class MusicPlaybackAnimationSelector
         _selectIndex = selectIndex ?? Random.Shared.Next;
     }
 
-    public string SelectForArtist(string? artist)
+    public string Select(string? selection)
     {
-        if (!MusicArtistMatcher.IsLuoTianyi(artist))
+        string normalized = MusicAnimationOptions.NormalizeSelection(selection);
+        if (normalized != MusicAnimationOptions.RandomSelection)
         {
-            return PetVisualState.EnjoyMusicAnimation;
+            return MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
         }
 
-        int index = _selectIndex(LuoTianyiPerformanceCandidates.Count);
-        if (index < 0 || index >= LuoTianyiPerformanceCandidates.Count)
+        int index = _selectIndex(MusicAnimationOptions.FixedOptions.Count);
+        if (index < 0 || index >= MusicAnimationOptions.FixedOptions.Count)
         {
             throw new InvalidOperationException("The music animation selector returned an invalid index.");
         }
 
-        return LuoTianyiPerformanceCandidates[index];
+        return MusicAnimationOptions.FixedOptions[index].AnimationId;
     }
 }
 

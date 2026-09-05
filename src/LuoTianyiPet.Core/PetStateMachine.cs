@@ -78,6 +78,9 @@ public sealed class PetStateMachine
         VisualState = VisualState with { FullBodyAnimationId = animationId };
     }
 
+    public void SetFullBodyInteractionsEnabled(bool enabled) =>
+        VisualState = VisualState with { FullBodyInteractionsEnabled = enabled };
+
     public void SetContinuousState(PetContinuousState state)
     {
         if (state == PetContinuousState.Dragging)
@@ -241,6 +244,7 @@ public sealed class PetStateMachine
 
         bool bodyRegionsEnabled = VisualState.ContinuousState == PetContinuousState.Idle &&
             VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+            VisualState.FullBodyInteractionsEnabled &&
             now >= _bodyInteractionsSuppressedUntil;
         return ContinuousPlan(bodyRegionsEnabled);
     }

@@ -21,7 +21,8 @@ public sealed record PetVisualState(
     PetDisplayMode SelectedDisplayMode = PetDisplayMode.Compact,
     PetContinuousState ContinuousState = PetContinuousState.Idle,
     string MusicAnimationId = "ninth-anniversary-music-sway",
-    string FullBodyAnimationId = "official-v4-chibi-full-body-idle")
+    string FullBodyAnimationId = "official-v4-chibi-full-body-idle",
+    bool FullBodyInteractionsEnabled = true)
 {
     public const string CompactIdleAnimation = "user-chibi-compact-idle";
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";

@@ -55,6 +55,9 @@ public sealed class JsonSettingsStore : ISettingsStore
                 9 => MigrateFromPreviousVersion(
                     settings,
                     MediaPreferences.DefaultSilenceGraceMilliseconds),
+                10 => MigrateFromPreviousVersion(
+                    settings,
+                    MediaPreferences.DefaultSilenceGraceMilliseconds),
                 _ => new AppSettings(),
             };
         }
@@ -68,7 +71,7 @@ public sealed class JsonSettingsStore : ISettingsStore
     private static AppSettings Normalize(AppSettings settings) => settings with
     {
         Window = settings.Window ?? new WindowPreferences(),
-        Media = settings.Media ?? new MediaPreferences(),
+        Media = MediaPreferences.Normalize(settings.Media),
         Volume = settings.Volume ?? new VolumePreferences(),
         Genshin = settings.Genshin ?? new GenshinPreferences(),
         Notifications = settings.Notifications ?? new MessageNotificationPreferences(),
@@ -104,7 +107,7 @@ public sealed class JsonSettingsStore : ISettingsStore
         {
             SchemaVersion = AppSettings.CurrentSchemaVersion,
             Window = settings.Window ?? new WindowPreferences(),
-            Media = media,
+            Media = MediaPreferences.Normalize(media),
             Volume = volume,
             Genshin = settings.Genshin ?? new GenshinPreferences(),
             Notifications = settings.Notifications ?? new MessageNotificationPreferences(),

@@ -12,15 +12,18 @@
     "fullBodyStyles": {
       "full-body-long-hair": {
         "displayName": "华裳长发版",
-        "animation": "official-v4-chibi-full-body-idle"
+        "animation": "official-v4-chibi-full-body-idle",
+        "interactionMode": "disabled"
       },
       "full-body-crystal-dress": {
         "displayName": "晶蓝礼服版",
-        "animation": "user-chibi-crystal-full-body-idle"
+        "animation": "user-chibi-crystal-full-body-idle",
+        "interactionMode": "seamless-motion-pending-assets"
       },
       "full-body-classic-cat-ears": {
         "displayName": "经典猫耳版",
-        "animation": "user-chibi-classic-full-body-idle"
+        "animation": "user-chibi-classic-full-body-idle",
+        "interactionMode": "expression-pack"
       }
     },
     "bunEatingStyleDefault": "bun-eating-original",
@@ -188,20 +191,17 @@
       "disableInSafeGameMode": true
     },
     "playingAnimations": {
-      "selectionMode": "artist-aware",
+      "selectionModeDefault": "random",
+      "selectionSettingEntryPoint": "settings-window",
       "selectAgainAfterPause": true,
+      "selectAgainAfterTrackChange": true,
       "loopSelectedAnimation": true,
-      "luoTianyiArtistAliases": [
-        "洛天依",
-        "Luo Tianyi",
-        "LuoTianyi"
+      "selectableModes": [
+        "random",
+        "resonance-enjoy-music",
+        "ninth-anniversary-music-sway"
       ],
-      "otherOrUnknownArtistAnimation": {
-        "id": "resonance-enjoy-music",
-        "playbackRate": 0.5,
-        "asset": "assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif"
-      },
-      "luoTianyiPerformanceCandidates": [
+      "registeredLoopAnimations": [
         {
           "id": "resonance-enjoy-music",
           "playbackRate": 0.5,

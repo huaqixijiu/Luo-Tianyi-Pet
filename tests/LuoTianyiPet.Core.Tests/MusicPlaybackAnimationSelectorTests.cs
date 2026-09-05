@@ -5,21 +5,21 @@ namespace LuoTianyiPet.Core.Tests;
 public sealed class MusicPlaybackAnimationSelectorTests
 {
     [Fact]
-    public void LuoTianyiPoolContainsOnlyTheTwoConfirmedPerformanceAnimations()
+    public void PoolContainsTheTwoCurrentLoopingAnimations()
     {
         Assert.Equal(
             [PetVisualState.EnjoyMusicAnimation, PetVisualState.MusicSwayAnimation],
-            MusicPlaybackAnimationSelector.LuoTianyiPerformanceCandidates);
+            MusicAnimationOptions.FixedOptions.Select(option => option.AnimationId));
     }
 
     [Theory]
     [InlineData(0, PetVisualState.EnjoyMusicAnimation)]
     [InlineData(1, PetVisualState.MusicSwayAnimation)]
-    public void LuoTianyiSelectionUsesTheInjectedRandomIndex(int index, string expected)
+    public void RandomSelectionUsesTheInjectedIndex(int index, string expected)
     {
         MusicPlaybackAnimationSelector selector = new(_ => index);
 
-        Assert.Equal(expected, selector.SelectForArtist("洛天依"));
+        Assert.Equal(expected, selector.Select(MusicAnimationOptions.RandomSelection));
     }
 
     [Fact]
@@ -28,22 +28,30 @@ public sealed class MusicPlaybackAnimationSelectorTests
         int nextIndex = 0;
         MusicPlaybackAnimationSelector selector = new(_ => nextIndex++);
 
-        Assert.Equal(PetVisualState.EnjoyMusicAnimation, selector.SelectForArtist("洛天依"));
-        Assert.Equal(PetVisualState.MusicSwayAnimation, selector.SelectForArtist("洛天依"));
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, selector.Select("random"));
+        Assert.Equal(PetVisualState.MusicSwayAnimation, selector.Select("random"));
+    }
+
+    [Theory]
+    [InlineData(PetVisualState.EnjoyMusicAnimation)]
+    [InlineData(PetVisualState.MusicSwayAnimation)]
+    public void FixedSelectionDoesNotUseRandom(string selectedAnimation)
+    {
+        MusicPlaybackAnimationSelector selector = new(_ =>
+            throw new InvalidOperationException("Random selection should not be used."));
+
+        Assert.Equal(selectedAnimation, selector.Select(selectedAnimation));
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("孙楠/刘畊宏/王赫野")]
-    public void OtherOrUnknownArtistUsesTheHeadphoneCompanionAnimation(string? artist)
+    [InlineData("unknown-animation")]
+    public void InvalidSelectionSafelyFallsBackToRandom(string? selection)
     {
-        MusicPlaybackAnimationSelector selector = new(_ =>
-            throw new InvalidOperationException("Random selection should not be used."));
+        MusicPlaybackAnimationSelector selector = new(_ => 1);
 
-        Assert.Equal(
-            PetVisualState.EnjoyMusicAnimation,
-            selector.SelectForArtist(artist));
+        Assert.Equal(PetVisualState.MusicSwayAnimation, selector.Select(selection));
     }
 
     [Theory]

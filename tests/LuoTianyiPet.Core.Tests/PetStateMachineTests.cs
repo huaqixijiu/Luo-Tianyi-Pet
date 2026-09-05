@@ -138,6 +138,18 @@ public sealed class PetStateMachineTests
     }
 
     [Fact]
+    public void DisplayOnlyFullBodyAppearanceNeverEnablesBodyRegions()
+    {
+        PetStateMachine machine = new(new PetVisualState(
+            PetDisplayMode.FullBodyInteractive,
+            FullBodyInteractionsEnabled: false));
+
+        Assert.False(machine.Resolve(Now).BodyRegionInteractionsEnabled);
+        machine.SetFullBodyInteractionsEnabled(true);
+        Assert.True(machine.Resolve(Now).BodyRegionInteractionsEnabled);
+    }
+
+    [Fact]
     public void BodyInteractionRecoveryDelayDoesNotBlockDoubleClickStateChangeOrDrag()
     {
         PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));

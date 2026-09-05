@@ -111,6 +111,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,2,16">
@@ -228,12 +229,34 @@
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
-                           Text="完整全身互动外观" />
+                           Text="音乐播放动画" />
+                <TextBlock Margin="0,4,0,9"
+                           Foreground="#A8174E68"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Text="选择播放音乐时持续循环的动作。随机模式会在每次开始播放、继续播放或切歌时重新抽取一项。" />
+                <ComboBox x:Name="MusicAnimationSelectionComboBox"
+                          AutomationProperties.Name="音乐播放动画选择"
+                          MinHeight="36"
+                          Padding="10,5" />
+                <TextBlock Margin="0,8,0,0"
+                           Foreground="#8F174E68"
+                           FontSize="10.5"
+                           TextWrapping="Wrap"
+                           Text="当前可选：心律共鸣·享受音乐、九周年·音乐摇摆。以后新增循环动作会继续加入这里。" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
+            <StackPanel>
+                <TextBlock FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="完整全身外观与互动方式" />
                 <TextBlock Margin="0,4,0,8"
                            Foreground="#A8174E68"
                            FontSize="11"
                            TextWrapping="Wrap"
-                           Text="双击桌宠进入完整全身互动模式时使用。三套外观都保留身体区域互动。" />
+                           Text="双击桌宠进入完整全身模式时使用。三套外观拥有不同的触摸策略，不再共用同一批表情包。" />
                 <UniformGrid Columns="3">
                     <RadioButton x:Name="FullBodyLongHairRadio"
                                  GroupName="FullBodyStyle"
@@ -243,7 +266,7 @@
                             <StackPanel>
                                 <Image x:Name="FullBodyLongHairPreview" Height="145" Stretch="Uniform" />
                                 <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="华裳长发版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="精细长发 · 华丽衣装" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="展示模式 · 不响应触摸" />
                             </StackPanel>
                         </Border>
                     </RadioButton>
@@ -255,7 +278,7 @@
                             <StackPanel>
                                 <Image x:Name="FullBodyCrystalDressPreview" Height="145" Stretch="Uniform" />
                                 <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="晶蓝礼服版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="新 Q 版 · 白蓝礼服" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="连贯互动 · AI 动作待接入" />
                             </StackPanel>
                         </Border>
                     </RadioButton>
@@ -267,7 +290,7 @@
                             <StackPanel>
                                 <Image x:Name="FullBodyClassicCatEarsPreview" Height="145" Stretch="Uniform" />
                                 <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="经典猫耳版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="经典 Q 版 · 简洁造型" />
+                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="表情包互动 · 当前可用" />
                             </StackPanel>
                         </Border>
                     </RadioButton>
@@ -275,7 +298,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource SettingCardStyle}">
+        <Border Grid.Row="5" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15" FontWeight="SemiBold" Text="吃包子动画" />
                 <TextBlock Margin="0,4,0,8"
@@ -312,7 +335,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="5" Style="{StaticResource SettingCardStyle}">
+        <Border Grid.Row="6" Style="{StaticResource SettingCardStyle}">
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
@@ -349,7 +372,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="6" Margin="2,2,2,0">
+        <Grid Grid.Row="7" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

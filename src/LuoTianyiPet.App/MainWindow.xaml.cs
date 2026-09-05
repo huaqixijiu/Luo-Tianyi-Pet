@@ -246,6 +246,7 @@ public partial class MainWindow : Window
         _settings = settings with
         {
             Appearance = AppearancePreferences.Normalize(settings.Appearance),
+            Media = MediaPreferences.Normalize(settings.Media),
         };
         _permanentTopmost = settings.Window.AlwaysOnTop;
         _settingsStore = settingsStore;
@@ -293,6 +294,9 @@ public partial class MainWindow : Window
         _stateMachine = new PetStateMachine(initialVisualState with
         {
             FullBodyAnimationId = fullBodyAnimation,
+            FullBodyInteractionsEnabled =
+                AppearanceOptionIds.ResolveFullBodyInteractionMode(
+                    _settings.Appearance.FullBodyStyle) == FullBodyInteractionMode.ExpressionPack,
         });
         _previewExit = previewExit;
         _previewMusicTransition = previewMusicTransition;
@@ -1816,7 +1820,8 @@ public partial class MainWindow : Window
         _userPauseFastConfirmationUntil = null;
         DateTimeOffset now = DateTimeOffset.Now;
         string artist = artistOverride ?? _lastTrackSnapshot.Artist;
-        string selectedAnimation = _musicAnimationSelector.SelectForArtist(artist);
+        string selectedAnimation = _musicAnimationSelector.Select(
+            _settings.Media.MusicAnimationSelection);
         _musicAnimationTrackIdentity = artistOverride is null
             ? _lastTrackIdentity
             : "preview-luo-tianyi";
@@ -2886,11 +2891,14 @@ public partial class MainWindow : Window
             return;
         }
 
+        _logger.Info("settings.window_opening", "Settings window requested.");
+
         SettingsWindow settingsWindow = new(
             _settings.Notifications,
             _settings.Window,
             _settings.FileTreats,
             _settings.Appearance,
+            _settings.Media,
             _startupRegistrationService?.IsEnabled ?? false,
             _messageNotificationSource,
             _animationCatalog,
@@ -2903,6 +2911,7 @@ public partial class MainWindow : Window
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
             ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences);
             ApplyAppearancePreferences(settingsWindow.SelectedAppearancePreferences);
+            ApplyMediaPreferences(settingsWindow.SelectedMediaPreferences);
             ApplyWindowPreferences(
                 settingsWindow.SelectedWindowPreferences,
                 settingsWindow.StartWithWindowsSelected);
@@ -2919,6 +2928,9 @@ public partial class MainWindow : Window
         string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
             normalized.FullBodyStyle);
         _stateMachine.SetFullBodyAnimation(fullBodyAnimation);
+        _stateMachine.SetFullBodyInteractionsEnabled(
+            AppearanceOptionIds.ResolveFullBodyInteractionMode(normalized.FullBodyStyle) ==
+                FullBodyInteractionMode.ExpressionPack);
         _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
 
         bool appearanceChanged = !string.Equals(
@@ -2945,6 +2957,36 @@ public partial class MainWindow : Window
         if (_persistSettings)
         {
             _ = SaveSettingsAsync("settings.appearance_saved", "Appearance preferences saved.");
+        }
+    }
+
+    private void ApplyMediaPreferences(MediaPreferences preferences)
+    {
+        MediaPreferences normalized = MediaPreferences.Normalize(preferences);
+        bool musicAnimationChanged = !string.Equals(
+            _settings.Media.MusicAnimationSelection,
+            normalized.MusicAnimationSelection,
+            StringComparison.Ordinal);
+        _settings = _settings with { Media = normalized };
+        if (musicAnimationChanged &&
+            _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+        {
+            string selectedAnimation = _musicAnimationSelector.Select(
+                normalized.MusicAnimationSelection);
+            _stateMachine.SetMusicAnimation(selectedAnimation);
+            if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+            {
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "settings.music_animation_changed");
+            }
+        }
+
+        _logger.Info(
+            "settings.media_applied",
+            $"MusicAnimationSelection={normalized.MusicAnimationSelection}.");
+        if (_persistSettings)
+        {
+            _ = SaveSettingsAsync("settings.media_saved", "Media preferences saved.");
         }
     }
 
@@ -4247,7 +4289,8 @@ public partial class MainWindow : Window
     private void UpdateMusicAnimationForTrack(MediaTrackSnapshot snapshot, string identity)
     {
         _musicAnimationTrackIdentity = identity;
-        string selectedAnimation = _musicAnimationSelector.SelectForArtist(snapshot.Artist);
+        string selectedAnimation = _musicAnimationSelector.Select(
+            _settings.Media.MusicAnimationSelection);
         bool animationChanged = !string.Equals(
             selectedAnimation,
             _stateMachine.VisualState.MusicAnimationId,

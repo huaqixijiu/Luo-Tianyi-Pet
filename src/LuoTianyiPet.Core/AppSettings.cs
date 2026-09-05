@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 10;
+    public const int CurrentSchemaVersion = 11;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -63,6 +63,21 @@ public static class AppearanceOptionIds
         NormalizeBunEatingStyle(style) == BunEatingNew
             ? (NewBunRunAnimation, NewBunEatAnimation)
             : (OriginalBunRunAnimation, OriginalBunEatAnimation);
+
+    public static FullBodyInteractionMode ResolveFullBodyInteractionMode(string? style) =>
+        NormalizeFullBodyStyle(style) switch
+        {
+            FullBodyCrystalDress => FullBodyInteractionMode.SeamlessMotionPending,
+            FullBodyClassicCatEars => FullBodyInteractionMode.ExpressionPack,
+            _ => FullBodyInteractionMode.Disabled,
+        };
+}
+
+public enum FullBodyInteractionMode
+{
+    Disabled,
+    SeamlessMotionPending,
+    ExpressionPack,
 }
 
 public sealed record AppearancePreferences
@@ -191,6 +206,19 @@ public sealed record MediaPreferences
     public string NextTrackShortcut { get; init; } = "Ctrl+Alt+Right";
 
     public int CommandCooldownMilliseconds { get; init; } = 350;
+
+    public string MusicAnimationSelection { get; init; } =
+        MusicAnimationOptions.RandomSelection;
+
+    public static MediaPreferences Normalize(MediaPreferences? preferences)
+    {
+        preferences ??= new MediaPreferences();
+        return preferences with
+        {
+            MusicAnimationSelection = MusicAnimationOptions.NormalizeSelection(
+                preferences.MusicAnimationSelection),
+        };
+    }
 }
 
 public sealed record SafetyPreferences
