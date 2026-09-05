@@ -42,6 +42,11 @@ public partial class MainWindow : Window
     private const double SideDockWallClipWidthRatio = 0.092;
     private const double SideDockRevealPlaybackRate = 1.3;
     private const double BottomDockHidePlaybackRate = 0.7;
+    private const double BunStartingSpeed = 72;
+    private const double BunChaseCruiseSpeed = 270;
+    private const double BunChaseAcceleration = 360;
+    private const double BunReturnCruiseSpeed = 290;
+    private const double BunReturnAcceleration = 420;
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -202,6 +207,7 @@ public partial class MainWindow : Window
     private bool _bunChaseActive;
     private bool _bunReturning;
     private bool _bunEating;
+    private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
 
@@ -4024,6 +4030,7 @@ public partial class MainWindow : Window
         _bunChaseActive = true;
         _bunReturning = false;
         _bunEating = false;
+        _bunMotionSpeed = BunStartingSpeed;
         _bunReturnPosition ??= new Point(Left, Top);
         SelectNearestBun();
         _bunLastMotionAt = now;
@@ -4086,10 +4093,15 @@ public partial class MainWindow : Window
             }
 
             PointerPoint current = new(Left, Top);
+            _bunMotionSpeed = BunChasePlanner.AdvanceSpeed(
+                _bunMotionSpeed,
+                BunReturnCruiseSpeed,
+                BunReturnAcceleration,
+                elapsed);
             BunChaseStep step = BunChasePlanner.Advance(
                 current,
                 new PointerPoint(returnPosition.X, returnPosition.Y),
-                330,
+                _bunMotionSpeed,
                 elapsed,
                 3);
             PetDirectionTransform.ScaleX = returnPosition.X < Left ? -1 : 1;
@@ -4114,10 +4126,15 @@ public partial class MainWindow : Window
 
         Point petCentre = GetPetScreenCentre();
         Point targetCentre = _activeBunTarget.ScreenCenter;
+        _bunMotionSpeed = BunChasePlanner.AdvanceSpeed(
+            _bunMotionSpeed,
+            BunChaseCruiseSpeed,
+            BunChaseAcceleration,
+            elapsed);
         BunChaseStep chase = BunChasePlanner.Advance(
             new PointerPoint(petCentre.X, petCentre.Y),
             new PointerPoint(targetCentre.X, targetCentre.Y),
-            360,
+            _bunMotionSpeed,
             elapsed,
             42);
         double moveX = chase.Position.X - petCentre.X;
@@ -4163,6 +4180,7 @@ public partial class MainWindow : Window
         {
             SelectNearestBun();
             PlayAnimation(runAnimation);
+            _bunMotionSpeed = BunStartingSpeed;
             _bunLastMotionAt = DateTimeOffset.Now;
             _bunChaseTimer.Start();
             return;
@@ -4175,6 +4193,7 @@ public partial class MainWindow : Window
     {
         _bunReturning = true;
         _activeBunTarget = null;
+        _bunMotionSpeed = BunStartingSpeed;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
         _bunLastMotionAt = DateTimeOffset.Now;
         _bunChaseTimer.Start();
@@ -4191,9 +4210,13 @@ public partial class MainWindow : Window
         if (AppearanceOptionIds.ResolveDefaultBunEatingStyle(
                 _settings.Appearance.FullBodyStyle) == AppearanceOptionIds.BunEatingNew)
         {
-            return new PointerPoint(
-                Left + imageBounds.Left + imageBounds.Width * 0.50,
-                Top + imageBounds.Top + imageBounds.Height * 0.30);
+            return BunChasePlanner.ResolveMouthTarget(
+                new PointerPoint(Left + imageBounds.Left, Top + imageBounds.Top),
+                imageBounds.Width,
+                imageBounds.Height,
+                mirrored,
+                unmirroredXFraction: 0.625,
+                yFraction: 0.452);
         }
 
         return BunChasePlanner.ResolveMouthTarget(

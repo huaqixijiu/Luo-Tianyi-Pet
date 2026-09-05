@@ -21,6 +21,25 @@ public sealed class BunChasePlannerTests
         Assert.Equal(190.5, mouth.Y, 3);
     }
 
+    [Theory]
+    [InlineData(false, 145)]
+    [InlineData(true, 95)]
+    public void ResolveMouthTarget_UsesPerStyleCalibration(
+        bool mirrored,
+        double expectedX)
+    {
+        PointerPoint mouth = BunChasePlanner.ResolveMouthTarget(
+            new PointerPoint(20, 30),
+            200,
+            300,
+            mirrored,
+            unmirroredXFraction: 0.625,
+            yFraction: 0.452);
+
+        Assert.Equal(expectedX, mouth.X, 3);
+        Assert.Equal(165.6, mouth.Y, 3);
+    }
+
     [Fact]
     public void DesktopFileTreatSafety_AllowsScreenSizedExplorerDesktop()
     {
@@ -75,5 +94,15 @@ public sealed class BunChasePlannerTests
 
         Assert.Equal(7, step.Position.X, 3);
         Assert.True(step.Arrived);
+    }
+
+    [Fact]
+    public void AdvanceSpeed_EasesFromReducedStartTowardCruiseSpeed()
+    {
+        double first = BunChasePlanner.AdvanceSpeed(72, 270, 360, TimeSpan.FromMilliseconds(100));
+        double later = BunChasePlanner.AdvanceSpeed(first, 270, 360, TimeSpan.FromSeconds(1));
+
+        Assert.Equal(108, first, 3);
+        Assert.Equal(270, later, 3);
     }
 }

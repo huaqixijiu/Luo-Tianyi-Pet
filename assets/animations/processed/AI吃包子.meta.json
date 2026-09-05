@@ -14,33 +14,33 @@
     384
   ],
   "temporalProcessing": {
-    "mode": "flow2x",
-    "description": "bidirectional optical-flow midpoint frames with premultiplied alpha; source duration preserved",
-    "outputFrameDurationMilliseconds": 21
+    "mode": "flow60",
+    "description": "bidirectional optical-flow resampling with premultiplied alpha at 62.5 FPS; run loop slowed to at least 60 frames, eating duration preserved",
+    "outputFrameDurationMilliseconds": 16
   },
   "run": {
     "sourceFramesOneBased": [
       38,
       51
     ],
-    "frameCount": 28,
-    "frameDurationMilliseconds": 21,
+    "frameCount": 60,
+    "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
-    "atlasSha256": "48d71c7c95e015fdbff7450518e5658d71b6db8fbe13f642642ebdc68d24761b",
+    "atlasSha256": "767e0f11f6f0164edfae6567ba69fac09e26f702bf10fa9f24356fe04a24a2a7",
     "columns": 8,
-    "rows": 4
+    "rows": 8
   },
   "eat": {
     "sourceFramesOneBased": [
       56,
       121
     ],
-    "frameCount": 132,
-    "frameDurationMilliseconds": 21,
+    "frameCount": 173,
+    "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-eat.atlas.png",
-    "atlasSha256": "01ba6c850707469bbd5bb8242550ab651974daf0dc54f46d25154d74b8157fd0",
+    "atlasSha256": "ed98b6928631385f2bf6e19d0b48a2f16a90fb9630547e7b7600cb8710558d2d",
     "columns": 8,
-    "rows": 17
+    "rows": 22
   },
   "bun": {
     "source": "候选素材_官方/08_新添加_小笼包素材候选/包子.png",
@@ -58,10 +58,10 @@
     {
       "id": "ai-bun-chase-run",
       "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
-      "frameCount": 28,
+      "frameCount": 60,
       "columns": 8,
-      "rows": 4,
-      "frameDurationMilliseconds": 21,
+      "rows": 8,
+      "frameDurationMilliseconds": 16,
       "loopCount": 0,
       "displayWidth": 205,
       "displayHeight": 205
@@ -69,10 +69,10 @@
     {
       "id": "ai-bun-eat",
       "atlas": "animations/runtime/ai-bun-eat.atlas.png",
-      "frameCount": 132,
+      "frameCount": 173,
       "columns": 8,
-      "rows": 17,
-      "frameDurationMilliseconds": 21,
+      "rows": 22,
+      "frameDurationMilliseconds": 16,
       "loopCount": 1,
       "displayWidth": 205,
       "displayHeight": 205

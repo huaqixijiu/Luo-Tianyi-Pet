@@ -24,6 +24,8 @@ DEFAULT_FRAME_SIZE = 384
 ATLAS_COLUMNS = 8
 FRAME_DURATION_MS = 42
 SMOOTHED_FRAME_DURATION_MS = 21
+SIXTY_FPS_FRAME_DURATION_MS = 16
+MINIMUM_RUN_FRAME_COUNT = 60
 
 
 def sha256(path: Path) -> str:
@@ -204,13 +206,17 @@ def clear_between_feet_floor_residue(frame: Image.Image) -> Image.Image:
     return result
 
 
-def optical_flow_midpoint(left: Image.Image, right: Image.Image) -> Image.Image:
-    """Move both RGBA frames halfway before a halo-free composite."""
+def optical_flow_interpolate(
+    left: Image.Image,
+    right: Image.Image,
+    fractions: list[float],
+) -> list[Image.Image]:
+    """Interpolate RGBA frames with one shared bidirectional flow solve."""
     try:
         import cv2
     except ImportError as exc:
         raise RuntimeError(
-            "flow2x smoothing requires opencv-python-headless; install "
+            "optical-flow smoothing requires opencv-python-headless; install "
             "tools/animation_tools/requirements.txt"
         ) from exc
 
@@ -237,28 +243,43 @@ def optical_flow_midpoint(left: Image.Image, right: Image.Image) -> Image.Image:
     )
     yy, xx = np.mgrid[0 : left.height, 0 : left.width].astype(np.float32)
 
-    def warp_halfway(rgba: np.ndarray, flow: np.ndarray) -> np.ndarray:
+    def warp(rgba: np.ndarray, flow: np.ndarray, amount: float) -> np.ndarray:
         alpha = rgba[:, :, 3:4]
         premultiplied = np.concatenate((rgba[:, :, :3] * alpha, alpha), axis=2)
         return cv2.remap(
             premultiplied,
-            xx - 0.5 * flow[:, :, 0],
-            yy - 0.5 * flow[:, :, 1],
+            xx - amount * flow[:, :, 0],
+            yy - amount * flow[:, :, 1],
             cv2.INTER_CUBIC,
             borderMode=cv2.BORDER_CONSTANT,
             borderValue=0,
         )
 
-    midpoint = (warp_halfway(left_rgba, forward) + warp_halfway(right_rgba, backward)) * 0.5
-    alpha = midpoint[:, :, 3:4]
-    rgb = np.divide(
-        midpoint[:, :, :3],
-        alpha,
-        out=np.zeros_like(midpoint[:, :, :3]),
-        where=alpha > (1.0 / 255.0),
-    )
-    rgba = np.concatenate((rgb, alpha), axis=2)
-    return Image.fromarray(np.clip(rgba * 255.0 + 0.5, 0, 255).astype(np.uint8), "RGBA")
+    output: list[Image.Image] = []
+    for fraction in fractions:
+        left_warped = warp(left_rgba, forward, fraction)
+        right_warped = warp(right_rgba, backward, 1.0 - fraction)
+        blended = left_warped * (1.0 - fraction) + right_warped * fraction
+        alpha = blended[:, :, 3:4]
+        rgb = np.divide(
+            blended[:, :, :3],
+            alpha,
+            out=np.zeros_like(blended[:, :, :3]),
+            where=alpha > (1.0 / 255.0),
+        )
+        rgba = np.concatenate((rgb, alpha), axis=2)
+        output.append(
+            Image.fromarray(
+                np.clip(rgba * 255.0 + 0.5, 0, 255).astype(np.uint8),
+                "RGBA",
+            )
+        )
+    return output
+
+
+def optical_flow_midpoint(left: Image.Image, right: Image.Image) -> Image.Image:
+    """Move both RGBA frames halfway before a halo-free composite."""
+    return optical_flow_interpolate(left, right, [0.5])[0]
 
 
 def smooth_frames_2x(frames: list[Image.Image], loop: bool) -> list[Image.Image]:
@@ -277,6 +298,53 @@ def smooth_frames_2x(frames: list[Image.Image], loop: bool) -> list[Image.Image]
             # 2N frames at 21 ms exactly match N source frames at 42 ms.
             smoothed.append(frame.copy())
     return smoothed
+
+
+def smooth_frames_60fps(
+    frames: list[Image.Image],
+    loop: bool,
+    minimum_frame_count: int = 0,
+) -> list[Image.Image]:
+    """Resample to 62.5 FPS, optionally slowing a short loop to 60 frames."""
+    if not frames:
+        return []
+
+    source_duration = len(frames) * FRAME_DURATION_MS
+    output_count = max(
+        minimum_frame_count,
+        round(source_duration / SIXTY_FPS_FRAME_DURATION_MS),
+    )
+    positions = [index * len(frames) / output_count for index in range(output_count)]
+    grouped: dict[int, list[tuple[int, float]]] = {}
+    output: list[Image.Image | None] = [None] * output_count
+    for output_index, position in enumerate(positions):
+        left_index = min(len(frames) - 1, int(math.floor(position)))
+        fraction = position - left_index
+        right_index = (left_index + 1) % len(frames) if loop else min(
+            len(frames) - 1,
+            left_index + 1,
+        )
+        if fraction <= 1e-6 or right_index == left_index:
+            output[output_index] = frames[left_index].copy()
+            continue
+        grouped.setdefault(left_index, []).append((output_index, fraction))
+
+    for left_index, requests in grouped.items():
+        right_index = (left_index + 1) % len(frames) if loop else min(
+            len(frames) - 1,
+            left_index + 1,
+        )
+        interpolated = optical_flow_interpolate(
+            frames[left_index],
+            frames[right_index],
+            [fraction for _, fraction in requests],
+        )
+        for (output_index, _), frame in zip(requests, interpolated, strict=True):
+            output[output_index] = frame
+
+    if any(frame is None for frame in output):
+        raise RuntimeError("60 FPS optical-flow resampling left an empty frame.")
+    return [frame for frame in output if frame is not None]
 
 
 def frame_signature(frame: Image.Image) -> np.ndarray:
@@ -414,9 +482,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--motion-smoothing",
-        choices=("none", "flow2x"),
-        default="flow2x",
-        help="Insert motion-estimated midpoint frames while preserving duration.",
+        choices=("none", "flow2x", "flow60"),
+        default="flow60",
+        help="Use source timing, 2x midpoint smoothing, or 62.5 FPS optical-flow resampling.",
     )
     args = parser.parse_args()
 
@@ -452,6 +520,14 @@ def main() -> None:
         run_frames = smooth_frames_2x(run_frames, loop=True)
         eat_frames = smooth_frames_2x(eat_frames, loop=False)
         frame_duration_ms = SMOOTHED_FRAME_DURATION_MS
+    elif args.motion_smoothing == "flow60":
+        run_frames = smooth_frames_60fps(
+            run_frames,
+            loop=True,
+            minimum_frame_count=MINIMUM_RUN_FRAME_COUNT,
+        )
+        eat_frames = smooth_frames_60fps(eat_frames, loop=False)
+        frame_duration_ms = SIXTY_FPS_FRAME_DURATION_MS
 
     runtime = args.assets_root / "animations" / "runtime"
     run_id = f"{args.runtime_stem}-chase-run"
@@ -495,7 +571,12 @@ def main() -> None:
                 "bidirectional optical-flow midpoint frames with premultiplied alpha; "
                 "source duration preserved"
                 if args.motion_smoothing == "flow2x"
-                else "source frames unchanged"
+                else (
+                    "bidirectional optical-flow resampling with premultiplied alpha at "
+                    "62.5 FPS; run loop slowed to at least 60 frames, eating duration preserved"
+                    if args.motion_smoothing == "flow60"
+                    else "source frames unchanged"
+                )
             ),
             "outputFrameDurationMilliseconds": frame_duration_ms,
         },

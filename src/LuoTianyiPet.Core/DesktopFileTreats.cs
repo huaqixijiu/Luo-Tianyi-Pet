@@ -42,10 +42,29 @@ public static class BunChasePlanner
         PointerPoint imageTopLeft,
         double imageWidth,
         double imageHeight,
-        bool mirrored) =>
+        bool mirrored,
+        double unmirroredXFraction = 0.60,
+        double yFraction = 0.535) =>
         new(
-            imageTopLeft.X + Math.Max(0, imageWidth) * (mirrored ? 0.40 : 0.60),
-            imageTopLeft.Y + Math.Max(0, imageHeight) * 0.535);
+            imageTopLeft.X + Math.Max(0, imageWidth) * (
+                mirrored
+                    ? 1.0 - Math.Clamp(unmirroredXFraction, 0, 1)
+                    : Math.Clamp(unmirroredXFraction, 0, 1)),
+            imageTopLeft.Y + Math.Max(0, imageHeight) * Math.Clamp(yFraction, 0, 1));
+
+    public static double AdvanceSpeed(
+        double currentSpeedPerSecond,
+        double targetSpeedPerSecond,
+        double accelerationPerSecondSquared,
+        TimeSpan elapsed)
+    {
+        double current = Math.Max(0, currentSpeedPerSecond);
+        double target = Math.Max(0, targetSpeedPerSecond);
+        double delta = Math.Max(0, accelerationPerSecondSquared) * Math.Max(0, elapsed.TotalSeconds);
+        return current <= target
+            ? Math.Min(target, current + delta)
+            : Math.Max(target, current - delta);
+    }
 
     public static BunChaseStep Advance(
         PointerPoint current,

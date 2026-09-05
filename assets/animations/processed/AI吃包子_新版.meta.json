@@ -14,33 +14,33 @@
     384
   ],
   "temporalProcessing": {
-    "mode": "flow2x",
-    "description": "bidirectional optical-flow midpoint frames with premultiplied alpha; source duration preserved",
-    "outputFrameDurationMilliseconds": 21
+    "mode": "flow60",
+    "description": "bidirectional optical-flow resampling with premultiplied alpha at 62.5 FPS; run loop slowed to at least 60 frames, eating duration preserved",
+    "outputFrameDurationMilliseconds": 16
   },
   "run": {
     "sourceFramesOneBased": [
       18,
       32
     ],
-    "frameCount": 30,
-    "frameDurationMilliseconds": 21,
+    "frameCount": 60,
+    "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-    "atlasSha256": "ac0433ebb8eaddbd70a6989bc126133ac939b2a5dd49cbed996f6ce514718a54",
+    "atlasSha256": "c943cbc4aaeaea8cdb9abd1df157cb676e5f4372d1b2985c8121162e6cd2829d",
     "columns": 8,
-    "rows": 4
+    "rows": 8
   },
   "eat": {
     "sourceFramesOneBased": [
       56,
       121
     ],
-    "frameCount": 132,
-    "frameDurationMilliseconds": 21,
+    "frameCount": 173,
+    "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-v2-eat.atlas.png",
-    "atlasSha256": "04a122c784be8993199c8e755bc6ab600d7313e8b344878816bc13c972f72d3d",
+    "atlasSha256": "72838cdd00ff25163734e9bfef602fb33f2cb04b9497a6c345b9a0ee5fd60b2a",
     "columns": 8,
-    "rows": 17
+    "rows": 22
   },
   "bun": {
     "source": "候选素材_官方/08_新添加_小笼包素材候选/包子.png",
@@ -58,10 +58,10 @@
     {
       "id": "ai-bun-v2-chase-run",
       "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-      "frameCount": 30,
+      "frameCount": 60,
       "columns": 8,
-      "rows": 4,
-      "frameDurationMilliseconds": 21,
+      "rows": 8,
+      "frameDurationMilliseconds": 16,
       "loopCount": 0,
       "displayWidth": 205,
       "displayHeight": 205
@@ -69,10 +69,10 @@
     {
       "id": "ai-bun-v2-eat",
       "atlas": "animations/runtime/ai-bun-v2-eat.atlas.png",
-      "frameCount": 132,
+      "frameCount": 173,
       "columns": 8,
-      "rows": 17,
-      "frameDurationMilliseconds": 21,
+      "rows": 22,
+      "frameDurationMilliseconds": 16,
       "loopCount": 1,
       "displayWidth": 205,
       "displayHeight": 205
