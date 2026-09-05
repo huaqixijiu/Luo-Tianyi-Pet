@@ -187,11 +187,17 @@ def compile_catalog(root: Path, configuration: Path, output: Path) -> None:
         frame_width, frame_height = metadata["normalizedFrameSize"]
         for entry in metadata.get("catalogAnimations", []):
             atlas_path = root / "assets" / entry["atlas"]
+            source_path = entry.get("sourcePath", metadata.get("sourceSequence"))
+            source_sha256 = entry.get("sourceSha256", metadata.get("sourceSequenceSha256"))
+            if not source_path or not source_sha256:
+                raise ValueError(
+                    f"Prebuilt animation metadata is missing source provenance for {entry['id']}"
+                )
             animations.append(
                 {
                     "id": entry["id"],
-                    "sourcePath": metadata["sourceSequence"],
-                    "sourceSha256": metadata["sourceSequenceSha256"],
+                    "sourcePath": source_path,
+                    "sourceSha256": source_sha256,
                     "atlasPath": atlas_path.relative_to(root / "assets").as_posix(),
                     "atlasSha256": sha256(atlas_path),
                     "frameWidth": int(frame_width),

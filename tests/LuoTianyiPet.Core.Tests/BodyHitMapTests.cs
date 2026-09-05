@@ -79,6 +79,40 @@ public sealed class BodyHitMapTests
         Assert.Null(map.HitTest(new PointerPoint(x, y)));
     }
 
+    [Theory]
+    [InlineData(0.40, 0.39, BodyRegionId.LeftEye)]
+    [InlineData(0.61, 0.39, BodyRegionId.RightEye)]
+    [InlineData(0.50, 0.46, BodyRegionId.Mouth)]
+    [InlineData(0.39, 0.455, BodyRegionId.Face)]
+    [InlineData(0.35, 0.68, BodyRegionId.LeftHand)]
+    [InlineData(0.65, 0.68, BodyRegionId.RightHand)]
+    [InlineData(0.51, 0.57, BodyRegionId.Chest)]
+    [InlineData(0.50, 0.76, BodyRegionId.LowerBodySensitiveArea)]
+    [InlineData(0.45, 0.90, BodyRegionId.LeftFoot)]
+    [InlineData(0.56, 0.90, BodyRegionId.RightFoot)]
+    [InlineData(0.50, 0.20, BodyRegionId.HeadAndHair)]
+    [InlineData(0.50, 0.68, BodyRegionId.OtherBody)]
+    public void ExportedCrystalDressMapUsesUserPolygons(
+        double x,
+        double y,
+        BodyRegionId expected)
+    {
+        BodyHitMap map = LoadExportedCrystalMap();
+
+        Assert.Equal(expected, map.HitTest(new PointerPoint(x, y)));
+    }
+
+    [Theory]
+    [InlineData(0.10, 0.10)]
+    [InlineData(0.85, 0.50)]
+    [InlineData(0.30, 0.80)]
+    public void ExportedCrystalDressMapRejectsPointsOutsideDrawnPolygons(double x, double y)
+    {
+        BodyHitMap map = LoadExportedCrystalMap();
+
+        Assert.Null(map.HitTest(new PointerPoint(x, y)));
+    }
+
     [Fact]
     public void PolygonHitTestDoesNotUseItsBoundingRectangleAsTheRegion()
     {
@@ -117,5 +151,13 @@ public sealed class BodyHitMapTests
         return BodyHitMapJsonParser.Parse(
             File.ReadAllText(path),
             AppearanceOptionIds.ClassicCatEarsAnimation);
+    }
+
+    private static BodyHitMap LoadExportedCrystalMap()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "TestData", "full-body-crystal.json");
+        return BodyHitMapJsonParser.Parse(
+            File.ReadAllText(path),
+            AppearanceOptionIds.CrystalDressAnimation);
     }
 }

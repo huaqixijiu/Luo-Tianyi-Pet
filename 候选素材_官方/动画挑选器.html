@@ -526,11 +526,19 @@
     const baseListening = "09_新添加_普通歌曲听歌候选/";
     const baseFileEating = "10_新添加_文件吞食组合候选/";
     const baseAiFileEating = "11_新添加_AI生成文件吞食动画/";
+    const baseCrystalInteractions = "区域标注/第二模型/动作动画归档/";
 
     const items = [
-      { id:"user_compact_idle", title:"用户提供 · Q版小人全身待机（新图）", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, src:"../assets/animations/processed/用户提供_Q版小人全身_透明.png", source:"Q版小人全身_新默认.png", tags:["新添加","已使用","默认待机","外观可选","晶蓝礼服版","用户提供"], desc:"2026-09-05 更新的默认紧凑模式；同时以“晶蓝礼服版”进入设置页，用户可把它选为双击后的完整全身互动外观。源图中的烘焙棋盘格已通过边缘连通近白背景流程移除。" },
+      { id:"user_compact_idle", title:"用户提供 · Q版小人全身待机（新图）", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, activeUsage:"双击循环中的第二模型“晶蓝礼服版”待机；使用用户描边多边形和同模型连贯动作，不再跳转第三模型表情包。", src:"../assets/animations/processed/用户提供_Q版小人全身_透明.png", source:"Q版小人全身_新默认.png", tags:["新添加","已使用","默认待机","晶蓝礼服版","用户提供"], desc:"晶蓝礼服版正式待机图。源图中的烘焙棋盘格已通过边缘连通近白背景流程移除，当前已接入七组同模型身体动作。" },
       { id:"user_classic_fullbody_idle", title:"用户提供 · Q版小人全身待机（经典图）", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, src:"../assets/animations/processed/用户提供_Q版小人全身_经典_透明.png", source:"Q版小人全身.png", tags:["新添加","已使用","外观可选","经典猫耳版","用户提供"], desc:"原先保留的 Q 版小人现以“经典猫耳版”回归设置页，可选作双击后的完整全身互动外观；运行时独立编译，不会覆盖当前默认紧凑图。" },
-      { id:"official_fullbody_idle", title:"用户提供 · 新完整全身待机", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, activeUsage:"设置页名称为“华裳长发版”，默认用于双击后的完整全身互动模式；身体区域按本立绘命中。", src:"../assets/animations/processed/用户提供_新全身_透明.png", source:baseDerived+"用户提供_新全身.png", tags:["新添加","已使用","外观可选","华裳长发版","全身互动","用户提供"], desc:"作为默认完整全身外观，并与“晶蓝礼服版”“经典猫耳版”在设置页并存；模式切换、身体区域互动、拖拽、音乐临时覆盖和屏幕边缘隐藏功能保持不变。" },
+      { id:"official_fullbody_idle", title:"用户提供 · 新完整全身待机", category:"body", kind:"透明静态 PNG", priority:true, newlyAdded:true, activeUsage:"双击循环中的第一模型“华裳长发版”待机；按用户要求不划分身体区域，也不触发触摸动作。", src:"../assets/animations/processed/用户提供_新全身_透明.png", source:baseDerived+"用户提供_新全身.png", tags:["新添加","已使用","华裳长发版","展示模式","无区域互动","用户提供"], desc:"作为第一套完整全身外观；保留拖拽、音乐临时覆盖和屏幕边缘隐藏，但不开放身体区域互动。" },
+      { id:"crystal_cover_eyes", title:"晶蓝礼服互动 · 遮眼睛", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击左眼或右眼时完整播放一次，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"06_遮眼睛.webp", source:"区域标注/第二模型/动作动画png/遮眼睛/6", tags:["新添加","已使用","晶蓝礼服版","眼睛","连贯动作"] , desc:"保留同一模型完成遮眼动作；24 FPS，预乘 Alpha 缩放后编译为运行时图集。" },
+      { id:"crystal_cover_mouth", title:"晶蓝礼服互动 · 捂嘴", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击嘴巴时完整播放一次，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"01_捂嘴.webp", source:"区域标注/第二模型/动作动画png/捂嘴/1", tags:["新添加","已使用","晶蓝礼服版","嘴巴","连贯动作"], desc:"替代第三模型的啾啾表情包，人物造型在动作期间保持晶蓝礼服版。" },
+      { id:"crystal_pinch_cheeks", title:"晶蓝礼服互动 · 捏脸", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击脸部时完整播放一次，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"07_捏脸.webp", source:"区域标注/第二模型/动作动画png/捏脸/7", tags:["新添加","已使用","晶蓝礼服版","脸部","连贯动作"], desc:"使用用户提供的双手捏脸动画，不再切换到十二周年贴贴表情包。" },
+      { id:"crystal_hand_heart", title:"晶蓝礼服互动 · 手比心", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击左手或右手时完整播放一次，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"02_手比心.webp", source:"区域标注/第二模型/动作动画png/手比心/2", tags:["新添加","已使用","晶蓝礼服版","双手","连贯动作"], desc:"双手互动使用同模型手比心，不调用经典猫耳版的击掌表情。" },
+      { id:"crystal_touch_leg", title:"晶蓝礼服互动 · 摸腿脚", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击左脚或右脚时完整播放一次，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"03_摸腿脚.webp", source:"区域标注/第二模型/动作动画png/摸腿脚/3", tags:["新添加","已使用","晶蓝礼服版","双脚","连贯动作"], desc:"替代经典猫耳版的“糟了”表情包，保留晶蓝礼服人物连续动作。" },
+      { id:"crystal_headpat", title:"晶蓝礼服互动 · 摸摸头", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击头部或完成头顶往返抚摸时播放，结束后回到晶蓝礼服待机。", src:baseCrystalInteractions+"05_摸摸头.webp", source:"区域标注/第二模型/动作动画png/摸摸头/5", tags:["新添加","已使用","晶蓝礼服版","头部","摸摸头","连贯动作"], desc:"晶蓝礼服版使用专属摸头动作；头顶区域继续显示专属摸头鼠标。" },
+      { id:"crystal_hold_belly", title:"晶蓝礼服互动 · 捂肚子", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击标注为“其他身体”的腹部区域时播放；未标注区域以及胸部、下体不触发动画。", src:baseCrystalInteractions+"04_捂肚子.webp", source:"区域标注/第二模型/动作动画png/捂肚子/4", tags:["新添加","已使用","晶蓝礼服版","其他身体","腹部","连贯动作"], desc:"严格遵循用户说明：只把 OtherBody 映射为捂肚子，不借用旧敏感区域动画。" },
       { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:false, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["候选","循环"], desc:"已取消普通身体点击触发；素材继续保留，等待以后重新分配场景。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["音乐","待机","循环"], desc:"节奏感自然的左右摇摆，是目前最直接的“跟着音乐跳舞”候选，也能低速播放作为待机。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
@@ -612,27 +620,36 @@
     ];
 
     const activeUsage = {
-      user_compact_idle:"启动和普通无音乐待机时显示；双击进入完整全身互动模式，完整全身再次双击后返回本状态。",
-      official_fullbody_idle:"双击 Q 版小人进入完整全身互动；拖拽时保持这张立绘并只移动窗口；音乐播放时由音乐动画临时覆盖，停止后恢复；再次双击返回 Q 版小人。",
+      user_compact_idle:"双击循环中的第二模型“晶蓝礼服版”待机；使用用户描边多边形和七组同模型连贯动作。",
+      user_classic_fullbody_idle:"双击循环中的第三模型“经典猫耳版”待机；使用用户描边多边形和既有表情包互动。",
+      official_fullbody_idle:"双击循环中的第一模型“华裳长发版”待机；保留拖拽、音乐与边缘功能，但按用户要求不划分可执行身体区域。",
+      crystal_cover_eyes:"仅第二模型：点击左眼或右眼时完整播放一次，结束后回到晶蓝礼服待机。",
+      crystal_cover_mouth:"仅第二模型：点击嘴巴时完整播放一次，结束后回到晶蓝礼服待机。",
+      crystal_pinch_cheeks:"仅第二模型：点击脸部时完整播放一次，结束后回到晶蓝礼服待机。",
+      crystal_hand_heart:"仅第二模型：点击左手或右手时完整播放一次，结束后回到晶蓝礼服待机。",
+      crystal_touch_leg:"仅第二模型：点击左脚或右脚时完整播放一次，结束后回到晶蓝礼服待机。",
+      crystal_headpat:"仅第二模型：点击头部或完成头顶往返抚摸时播放，结束后回到晶蓝礼服待机。",
+      crystal_hold_belly:"仅第二模型：点击 OtherBody 腹部区域时播放；胸部、下体和未标注区域无动作。",
       dance9:"检测到歌手包含洛天依时，与“享受音乐”二选一随机作为持续音乐动画。",
       e_baituo:"原神在后台运行时，每小时低频随机出现一次；游戏前台或全屏时不出现。",
       e_give:"用户把文件拖入桌宠窗口时播放一次并定格末帧；文件离开投放区时恢复，成功移入回收站后进入吃包子流程。",
       ai_file_eating_approved:"桌面文件移入回收站或文件直接拖到桌宠并回收成功后，在原位置生成可拖动小笼包；天依循环奔跑追踪、张嘴吃掉，再返回原位。",
+      ai_file_eating_v2:"华裳长发版与晶蓝礼服版触发文件吞食时使用；与经典猫耳版的元气追包版并存。",
       e_dark:"胸部或下体在 4 秒内第二次点击时以 0.5 倍速播放。",
       e_hehe:"连续无输入约 3 分钟且没有播放音乐时循环；发生输入后恢复用户选择的 Q 版小人或完整全身模式。",
-      e_kiss:"完整全身模式点击嘴部播放，当前以 0.8 倍速度展示。",
+      e_kiss:"仅经典猫耳版点击嘴部播放，当前以 0.8 倍速度展示。",
       e_noPlay:"检测到原神从未运行变为运行时播放一次，结束后保持末帧，使总显示时间约 5 秒。",
       e_expand:"仅第三种“经典猫耳版”拖拽时播放一次并停末帧；与模式三共用 220×238 DIP 外层尺寸，切换时窗口不缩放；拖到屏幕边缘会切换为对应探头动画。",
       e_music:"普通歌曲固定陪听；洛天依歌曲与“音乐摇摆”随机二选一。",
-      e_soft:"完整全身模式点击左眼或右眼时播放。",
-      e_guilty:"完整全身模式首次点击胸部或下体时以 0.7 倍速播放。",
+      e_soft:"仅经典猫耳版点击左眼或右眼时播放。",
+      e_guilty:"仅经典猫耳版首次点击胸部或下体时以 0.7 倍速播放。",
       e_ok:"上一首、下一首或其它需要确认的操作成功后播放；文件回收成功则优先进入吃包子演出。",
       new12_entrance:"拖到底部边缘时立即预览；松手后倒放躲入底边，悬停触发条后正放出现。",
       new12_peek:"拖到左/右边缘时立即预览；松手后倒放躲藏，悬停墙面触发条后正放探头。",
-      new12_hug:"完整全身模式点击普通身体区域时固定播放；实际画面为“抱抱”，源文件名被素材包错写为“12_在吗”。",
+      new12_hug:"仅经典猫耳版点击普通身体区域时固定播放；实际画面为“抱抱”，源文件名被素材包错写为“12_在吗”。",
       new12_birthday:"7 月 12 日和 12 月 12 日待机时每 45～90 分钟随机播放一次。",
-      new12_close:"完整全身模式点击脸部时播放“贴贴”。",
-      new_headpat_guoyue:"完整全身模式点击头部，或按住头部轻轻左右抚摸时播放。",
+      new12_close:"仅经典猫耳版点击脸部时播放“贴贴”。",
+      new_headpat_guoyue:"仅经典猫耳版点击头部，或按住头部轻轻左右抚摸时播放。",
       p_morning:"06:00～12:00 启动或运行中跨到 06:00 时持续播放 30 秒。",
       p_sleep:"无输入约 30 分钟且没有播放音乐时循环。",
       p_goodnight:"20:00～次日 06:00 启动或运行中跨到 20:00 时持续播放 30 秒，包括 Windows 开机自启动。",
@@ -640,11 +657,11 @@
       p_land:"仅在迷你模式从较高位置快速向下甩动并松手时作为隐藏彩蛋播放；普通松手、完整全身和音乐拖拽均不播放。",
       p_idle:"13:30～20:00 启动或运行中跨到 13:30 时持续播放 30 秒。",
       p_loading:"网易云未运行时点击播放/暂停后静止显示，并配合“正在打开网易云音乐”文字；检测到开始出声后结束。",
-      p_warning:"完整全身模式点击左脚或右脚时播放。",
+      p_warning:"仅经典猫耳版点击左脚或右脚时播放。",
       p_network:"用户主动退出桌宠时播放一次。",
       p_lowbattery:"媒体操作失败或 15 秒超时时播放，并显示原因气泡。",
       p_food:"12:00～13:30 启动或运行中跨到 12:00 时持续播放 30 秒。",
-      p_highfive:"完整全身模式点击左手或右手时播放。"
+      p_highfive:"仅经典猫耳版点击左手或右手时播放。"
     };
     items.forEach(item => item.activeUsage = activeUsage[item.id] || "");
 

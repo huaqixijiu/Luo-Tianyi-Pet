@@ -35,7 +35,8 @@ assert(
 );
 assert(
   current.elements.get("usedOverviewList").innerHTML.includes("当前用途") === false &&
-    current.elements.get("usedOverviewList").innerHTML.includes("完整全身互动"),
+    current.elements.get("usedOverviewList").innerHTML.includes("第二模型") &&
+    current.elements.get("usedOverviewList").innerHTML.includes("经典猫耳版"),
   "used overview must render real trigger descriptions",
 );
 assert(current.elements.get("grid").innerHTML.includes("data-delete="), "cards must render delete checkboxes");

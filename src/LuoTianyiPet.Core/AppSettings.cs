@@ -80,10 +80,13 @@ public static class AppearanceOptionIds
     public static FullBodyInteractionMode ResolveFullBodyInteractionMode(string? style) =>
         NormalizeFullBodyStyle(style) switch
         {
-            FullBodyCrystalDress => FullBodyInteractionMode.SeamlessMotionPending,
+            FullBodyCrystalDress => FullBodyInteractionMode.SeamlessMotion,
             FullBodyClassicCatEars => FullBodyInteractionMode.ExpressionPack,
             _ => FullBodyInteractionMode.Disabled,
         };
+
+    public static bool HasFullBodyInteractions(string? style) =>
+        ResolveFullBodyInteractionMode(style) != FullBodyInteractionMode.Disabled;
 
     public static bool UsesExpansionDragAnimation(string? style) =>
         NormalizeFullBodyStyle(style) == FullBodyClassicCatEars;
@@ -92,7 +95,7 @@ public static class AppearanceOptionIds
 public enum FullBodyInteractionMode
 {
     Disabled,
-    SeamlessMotionPending,
+    SeamlessMotion,
     ExpressionPack,
 }
 

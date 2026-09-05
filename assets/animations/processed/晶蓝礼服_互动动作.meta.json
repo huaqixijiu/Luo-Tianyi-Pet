@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "model": "full-body-crystal-dress",
+  "sourceRoot": "候选素材_官方/区域标注/第二模型/动作动画png",
+  "sourcePreparation": {
+    "inputMode": "user-supplied transparent PNG sequence",
+    "sourceFrameSize": [
+      720,
+      720
+    ],
+    "sourceFps": 24,
+    "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
+    "retouch": "none"
+  },
+  "normalizedFrameSize": [
+    256,
+    256
+  ],
+  "actions": [
+    {
+      "id": "crystal-cover-mouth",
+      "title": "捂嘴",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/捂嘴/1",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "ee57eee434e7ac9a9f7bce050ce50dc1435021422b4a6b1828592b251bdf0b11",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/01_捂嘴.webp",
+      "previewSha256": "d25d659c4c964bf819d58b7d4cfe4266b104f2bcd32e0cbf9a045fabe95ae41a",
+      "atlas": "animations/runtime/crystal-cover-mouth.atlas.png",
+      "atlasSha256": "5ecc8931826cd07330f444056de902f049d00f57467eebe60141c6d17abe3cb9"
+    },
+    {
+      "id": "crystal-hand-heart",
+      "title": "手比心",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/手比心/2",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "490f609a40ebd390569ed71fe6b620d6f039a9b80c528e30592d944e197462e1",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/02_手比心.webp",
+      "previewSha256": "fc6487d64854bcc37043a43ded242b4ebbfc7975635076dd46b6708be7cbd7e3",
+      "atlas": "animations/runtime/crystal-hand-heart.atlas.png",
+      "atlasSha256": "d712849e4b8833bd8323c27affbf5ef2b7f7c47310ecd36477455cfa69a93353"
+    },
+    {
+      "id": "crystal-touch-leg",
+      "title": "摸腿脚",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/摸腿脚/3",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "717507867662655d5654fa2c3719dc7622e1da3000638595bfbf52219c7b1d13",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/03_摸腿脚.webp",
+      "previewSha256": "262f4afcc8b0143623ee0992f49700c0bea902c8705d286f4948e899c7ccd353",
+      "atlas": "animations/runtime/crystal-touch-leg.atlas.png",
+      "atlasSha256": "c309b589fa06d5d03c19fe9e5cf536fe2b3859ecd91076bad519ceacc217104b"
+    },
+    {
+      "id": "crystal-hold-belly",
+      "title": "捂肚子",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/捂肚子/4",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "cca37a04c62d4b479bb86daccae3ae7d3005840539e197788231b8faaf0e30c3",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/04_捂肚子.webp",
+      "previewSha256": "caaee963bcf238c02353714a99bba08565233a17c393c4e43bdafe5d4cd4f830",
+      "atlas": "animations/runtime/crystal-hold-belly.atlas.png",
+      "atlasSha256": "8011ee476186cd5259045e3e724c43511e4c6b9a02b51a6547dc76bee608ae8a"
+    },
+    {
+      "id": "crystal-headpat",
+      "title": "摸摸头",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/摸摸头/5",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "f1a893eb6e59108308f0c3fa114ff0b6093c63a7a872a439cb59aa879b9187bf",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/05_摸摸头.webp",
+      "previewSha256": "b85b289abc9e2b9ab6ff6a698939c357905cf2ef8ecce40be7556f3b1c2111a7",
+      "atlas": "animations/runtime/crystal-headpat.atlas.png",
+      "atlasSha256": "10148330684c7a0967101d0fc66e33c1b4e06d9674ee208b5d48c1b858331b57"
+    },
+    {
+      "id": "crystal-cover-eyes",
+      "title": "遮眼睛",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/遮眼睛/6",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "a96d471f6a90e97387a89c4aff1ab79b2a4d167d8ba7ec760f09b261c912c23e",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/06_遮眼睛.webp",
+      "previewSha256": "cfec7801d3ab7027c1eb418e761f5b1fd2296991f37cd6d675733ceb02087fb9",
+      "atlas": "animations/runtime/crystal-cover-eyes.atlas.png",
+      "atlasSha256": "effb0c0aca55f7e2d3111730851046c57c8a07053109d98c3aa7a96cb1261696"
+    },
+    {
+      "id": "crystal-pinch-cheeks",
+      "title": "捏脸",
+      "sourceDirectory": "候选素材_官方/区域标注/第二模型/动作动画png/捏脸/7",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "e52ce20e860699184d42913c1aa79e363a1a33c82fc9a39a941b996ae207ea48",
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/07_捏脸.webp",
+      "previewSha256": "54b2275bdade01e0e5533c40b38e5ff81a78d1c13cb65cce8d37c7c0d36dd85a",
+      "atlas": "animations/runtime/crystal-pinch-cheeks.atlas.png",
+      "atlasSha256": "87f82a9913d52ce5e6e8892c44ce55a76df3e05855c8a08c4633927ab14afe44"
+    }
+  ],
+  "catalogAnimations": [
+    {
+      "id": "crystal-cover-mouth",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捂嘴/1",
+      "sourceSha256": "ee57eee434e7ac9a9f7bce050ce50dc1435021422b4a6b1828592b251bdf0b11",
+      "atlas": "animations/runtime/crystal-cover-mouth.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-hand-heart",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/手比心/2",
+      "sourceSha256": "490f609a40ebd390569ed71fe6b620d6f039a9b80c528e30592d944e197462e1",
+      "atlas": "animations/runtime/crystal-hand-heart.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-touch-leg",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/摸腿脚/3",
+      "sourceSha256": "717507867662655d5654fa2c3719dc7622e1da3000638595bfbf52219c7b1d13",
+      "atlas": "animations/runtime/crystal-touch-leg.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-hold-belly",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捂肚子/4",
+      "sourceSha256": "cca37a04c62d4b479bb86daccae3ae7d3005840539e197788231b8faaf0e30c3",
+      "atlas": "animations/runtime/crystal-hold-belly.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-headpat",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/摸摸头/5",
+      "sourceSha256": "f1a893eb6e59108308f0c3fa114ff0b6093c63a7a872a439cb59aa879b9187bf",
+      "atlas": "animations/runtime/crystal-headpat.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-cover-eyes",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/遮眼睛/6",
+      "sourceSha256": "a96d471f6a90e97387a89c4aff1ab79b2a4d167d8ba7ec760f09b261c912c23e",
+      "atlas": "animations/runtime/crystal-cover-eyes.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-pinch-cheeks",
+      "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捏脸/7",
+      "sourceSha256": "e52ce20e860699184d42913c1aa79e363a1a33c82fc9a39a941b996ae207ea48",
+      "atlas": "animations/runtime/crystal-pinch-cheeks.atlas.png",
+      "frameCount": 145,
+      "columns": 8,
+      "rows": 19,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 238,
+      "displayHeight": 238
+    }
+  ]
+}

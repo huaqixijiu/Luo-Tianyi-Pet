@@ -27,6 +27,10 @@ __pycache__/
 # Local AI video frame exports (runtime atlases and previews are committed instead)
 /候选素材_官方/11_新添加_AI生成文件吞食动画/新版/*/新版_*.png
 
+# Local 720p AI interaction frame exports for the crystal-dress model. The
+# normalized atlases, animated previews and provenance metadata are committed.
+/候选素材_官方/区域标注/第二模型/动作动画png/**/*.png
+
 # Windows metadata
 Thumbs.db
 Desktop.ini

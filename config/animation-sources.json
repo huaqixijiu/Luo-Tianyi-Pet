@@ -3,7 +3,8 @@
   "maximumAtlasColumns": 8,
   "prebuiltAnimationMetadata": [
     "assets/animations/processed/AI吃包子.meta.json",
-    "assets/animations/processed/AI吃包子_新版.meta.json"
+    "assets/animations/processed/AI吃包子_新版.meta.json",
+    "assets/animations/processed/晶蓝礼服_互动动作.meta.json"
   ],
   "animations": [
     {

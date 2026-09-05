@@ -73,9 +73,11 @@ public partial class MainWindow : Window
         24,
         1,
         24);
+    private readonly BodyHitMap _crystalBodyHitMap;
     private readonly BodyHitMap _classicBodyHitMap;
     private BodyHitMap _bodyHitMap;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
+    private readonly CrystalBodyInteractionResolver _crystalBodyInteractionResolver = new();
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
@@ -291,14 +293,22 @@ public partial class MainWindow : Window
             TimeSpan.FromMilliseconds(silenceGraceMilliseconds));
         string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
             _settings.Appearance.FullBodyStyle);
-        _classicBodyHitMap = LoadClassicBodyHitMap();
+        _crystalBodyHitMap = LoadBodyHitMap(
+            "full-body-crystal.json",
+            AppearanceOptionIds.CrystalDressAnimation,
+            BodyHitMap.CrystalDress,
+            "CrystalDress");
+        _classicBodyHitMap = LoadBodyHitMap(
+            "full-body-classic.json",
+            AppearanceOptionIds.ClassicCatEarsAnimation,
+            BodyHitMap.ClassicCatEars,
+            "ClassicCatEars");
         _bodyHitMap = ResolveBodyHitMap(fullBodyAnimation);
         _stateMachine = new PetStateMachine(initialVisualState with
         {
             FullBodyAnimationId = fullBodyAnimation,
-            FullBodyInteractionsEnabled =
-                AppearanceOptionIds.ResolveFullBodyInteractionMode(
-                    _settings.Appearance.FullBodyStyle) == FullBodyInteractionMode.ExpressionPack,
+            FullBodyInteractionsEnabled = AppearanceOptionIds.HasFullBodyInteractions(
+                _settings.Appearance.FullBodyStyle),
         });
         _previewExit = previewExit;
         _previewMusicTransition = previewMusicTransition;
@@ -1320,7 +1330,7 @@ public partial class MainWindow : Window
         _pettingGestureConsumedPress = true;
         _pointerGesture.Cancel();
         _singleClickTimer.Stop();
-        BodyInteractionDecision decision = _bodyInteractionResolver.ResolvePetting();
+        BodyInteractionDecision decision = ResolvePettingInteraction();
         if (decision.AnimationId is string animationId)
         {
             _ = PlayBodyReactionAsync(animationId);
@@ -1593,14 +1603,14 @@ public partial class MainWindow : Window
         if (_lastDebugHitRegion is BodyRegionId region)
         {
             _logger.Info("interaction.body_hit", region.ToString());
-            BodyInteractionDecision decision = _bodyInteractionResolver.Resolve(region, DateTimeOffset.Now);
+            BodyInteractionDecision decision = ResolveBodyInteraction(region, DateTimeOffset.Now);
             if (decision.Kind == BodyInteractionDecisionKind.PlayAnimation &&
                 decision.AnimationId is string animationId)
             {
                 _ = PlayBodyReactionAsync(animationId);
             }
             else if (decision.Kind == BodyInteractionDecisionKind.PettingGestureRequired &&
-                _bodyInteractionResolver.ResolvePetting().AnimationId is string headPatAnimation)
+                ResolvePettingInteraction().AnimationId is string headPatAnimation)
             {
                 _ = PlayBodyReactionAsync(headPatAnimation);
             }
@@ -3178,21 +3188,25 @@ public partial class MainWindow : Window
         }
     }
 
-    private BodyHitMap LoadClassicBodyHitMap()
+    private BodyHitMap LoadBodyHitMap(
+        string fileName,
+        string expectedAnimationId,
+        BodyHitMap fallback,
+        string styleName)
     {
         string path = System.IO.Path.Combine(
             AppContext.BaseDirectory,
             "assets",
             "body-hit-maps",
-            "full-body-classic.json");
+            fileName);
         try
         {
             BodyHitMap map = BodyHitMapJsonParser.Parse(
                 File.ReadAllText(path),
-                AppearanceOptionIds.ClassicCatEarsAnimation);
+                expectedAnimationId);
             _logger.Info(
                 "interaction.body_hit_map_loaded",
-                $"Style=ClassicCatEars; Regions={map.Regions.Count}; Geometry=Polygon.");
+                $"Style={styleName}; Regions={map.Regions.Count}; Geometry=Polygon.");
             return map;
         }
         catch (Exception exception) when (
@@ -3205,17 +3219,40 @@ public partial class MainWindow : Window
             ArgumentException)
         {
             _logger.Error("interaction.body_hit_map_failed", exception);
-            return BodyHitMap.ClassicCatEars;
+            return fallback;
         }
     }
 
-    private BodyHitMap ResolveBodyHitMap(string fullBodyAnimation) =>
-        string.Equals(
-            fullBodyAnimation,
-            AppearanceOptionIds.ClassicCatEarsAnimation,
-            StringComparison.Ordinal)
-            ? _classicBodyHitMap
-            : BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+    private BodyHitMap ResolveBodyHitMap(string fullBodyAnimation) => fullBodyAnimation switch
+    {
+        AppearanceOptionIds.CrystalDressAnimation => _crystalBodyHitMap,
+        AppearanceOptionIds.ClassicCatEarsAnimation => _classicBodyHitMap,
+        _ => BodyHitMap.FullBodyDefault,
+    };
+
+    private BodyInteractionDecision ResolveBodyInteraction(
+        BodyRegionId region,
+        DateTimeOffset now) =>
+        AppearanceOptionIds.ResolveFullBodyInteractionMode(
+            _settings.Appearance.FullBodyStyle) switch
+        {
+            FullBodyInteractionMode.SeamlessMotion =>
+                _crystalBodyInteractionResolver.Resolve(region),
+            FullBodyInteractionMode.ExpressionPack =>
+                _bodyInteractionResolver.Resolve(region, now),
+            _ => new BodyInteractionDecision(BodyInteractionDecisionKind.NoAction),
+        };
+
+    private BodyInteractionDecision ResolvePettingInteraction() =>
+        AppearanceOptionIds.ResolveFullBodyInteractionMode(
+            _settings.Appearance.FullBodyStyle) switch
+        {
+            FullBodyInteractionMode.SeamlessMotion =>
+                _crystalBodyInteractionResolver.ResolvePetting(),
+            FullBodyInteractionMode.ExpressionPack =>
+                _bodyInteractionResolver.ResolvePetting(),
+            _ => new BodyInteractionDecision(BodyInteractionDecisionKind.NoAction),
+        };
 
     private void ApplyAppearancePreferences(AppearancePreferences preferences)
     {
@@ -3228,8 +3265,7 @@ public partial class MainWindow : Window
             normalized.FullBodyStyle);
         _stateMachine.SetFullBodyAnimation(fullBodyAnimation);
         _stateMachine.SetFullBodyInteractionsEnabled(
-            AppearanceOptionIds.ResolveFullBodyInteractionMode(normalized.FullBodyStyle) ==
-                FullBodyInteractionMode.ExpressionPack);
+            AppearanceOptionIds.HasFullBodyInteractions(normalized.FullBodyStyle));
         _bodyHitMap = ResolveBodyHitMap(fullBodyAnimation);
         RestoreIdleWhenHeheIsNotEligible();
 

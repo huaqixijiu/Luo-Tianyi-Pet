@@ -118,13 +118,19 @@ public sealed class AppSettingsTests
             AppearanceOptionIds.ResolveFullBodyInteractionMode(
                 AppearanceOptionIds.FullBodyLongHair));
         Assert.Equal(
-            FullBodyInteractionMode.SeamlessMotionPending,
+            FullBodyInteractionMode.SeamlessMotion,
             AppearanceOptionIds.ResolveFullBodyInteractionMode(
                 AppearanceOptionIds.FullBodyCrystalDress));
         Assert.Equal(
             FullBodyInteractionMode.ExpressionPack,
             AppearanceOptionIds.ResolveFullBodyInteractionMode(
                 AppearanceOptionIds.FullBodyClassicCatEars));
+        Assert.False(AppearanceOptionIds.HasFullBodyInteractions(
+            AppearanceOptionIds.FullBodyLongHair));
+        Assert.True(AppearanceOptionIds.HasFullBodyInteractions(
+            AppearanceOptionIds.FullBodyCrystalDress));
+        Assert.True(AppearanceOptionIds.HasFullBodyInteractions(
+            AppearanceOptionIds.FullBodyClassicCatEars));
     }
 
     [Theory]

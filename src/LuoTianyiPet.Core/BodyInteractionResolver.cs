@@ -5,6 +5,7 @@ public enum BodyInteractionDecisionKind
     PlayAnimation,
     PettingGestureRequired,
     SuppressedByCooldown,
+    NoAction,
 }
 
 public sealed record BodyInteractionDecision(
