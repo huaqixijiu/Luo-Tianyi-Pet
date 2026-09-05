@@ -19,6 +19,9 @@
     <Content Include="..\..\assets\cursors\**\*"
              Link="assets\cursors\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\候选素材_官方\区域标注\第三模型\身体区域_full-body-classic.json"
+             Link="assets\body-hit-maps\full-body-classic.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

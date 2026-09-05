@@ -44,6 +44,7 @@ public partial class App : Application
         {
             _logger.Info("app.storage_mode", isPortable ? "Portable." : "Installed.");
             AppSettings settings = await settingsStore.LoadAsync();
+            settings = ApplyQaFullBodyStyleOverride(settings, e.Args, isPreviewOrQaRun);
             bool simulateMissingAssets = e.Args.Contains("--qa-missing-assets", StringComparer.OrdinalIgnoreCase);
             AnimationCatalog? animationCatalog = simulateMissingAssets ? null : LoadAnimationCatalog(_logger);
             if (simulateMissingAssets)
@@ -328,5 +329,34 @@ public partial class App : Application
                 : PetContinuousState.Idle;
 
         return new PetVisualState(PetDisplayMode.FullBodyInteractive, continuousState);
+    }
+
+    private static AppSettings ApplyQaFullBodyStyleOverride(
+        AppSettings settings,
+        IReadOnlyCollection<string> arguments,
+        bool isPreviewOrQaRun)
+    {
+        if (!isPreviewOrQaRun)
+        {
+            return settings;
+        }
+
+        string? style = arguments
+            .FirstOrDefault(argument => argument.StartsWith(
+                "--qa-full-body-style=",
+                StringComparison.OrdinalIgnoreCase))?
+            .Split('=', 2)[1];
+        if (style is not (
+            AppearanceOptionIds.FullBodyLongHair or
+            AppearanceOptionIds.FullBodyCrystalDress or
+            AppearanceOptionIds.FullBodyClassicCatEars))
+        {
+            return settings;
+        }
+
+        return settings with
+        {
+            Appearance = settings.Appearance with { FullBodyStyle = style },
+        };
     }
 }

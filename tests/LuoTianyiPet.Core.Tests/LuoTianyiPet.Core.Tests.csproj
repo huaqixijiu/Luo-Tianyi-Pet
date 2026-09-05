@@ -20,6 +20,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\LuoTianyiPet.Core\LuoTianyiPet.Core.csproj" />
+    <Content Include="..\..\候选素材_官方\区域标注\第三模型\身体区域_full-body-classic.json"
+             Link="TestData\full-body-classic.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

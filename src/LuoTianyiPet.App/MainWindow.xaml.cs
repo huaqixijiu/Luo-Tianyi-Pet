@@ -73,6 +73,7 @@ public partial class MainWindow : Window
         24,
         1,
         24);
+    private readonly BodyHitMap _classicBodyHitMap;
     private BodyHitMap _bodyHitMap;
     private readonly BodyInteractionResolver _bodyInteractionResolver = new();
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
@@ -290,7 +291,8 @@ public partial class MainWindow : Window
             TimeSpan.FromMilliseconds(silenceGraceMilliseconds));
         string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
             _settings.Appearance.FullBodyStyle);
-        _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+        _classicBodyHitMap = LoadClassicBodyHitMap();
+        _bodyHitMap = ResolveBodyHitMap(fullBodyAnimation);
         _stateMachine = new PetStateMachine(initialVisualState with
         {
             FullBodyAnimationId = fullBodyAnimation,
@@ -1295,7 +1297,7 @@ public partial class MainWindow : Window
         PointerPoint? normalizedPoint = NormalizeToPetImage(windowPoint);
         BodyHitRegion headRegion = _bodyHitMap.Regions.First(region => region.Id == BodyRegionId.HeadAndHair);
         if (normalizedPoint is null ||
-            !headRegion.Bounds.Contains(normalizedPoint.Value) ||
+            !headRegion.Contains(normalizedPoint.Value) ||
             !IsOpaquePetPixel(normalizedPoint.Value))
         {
             _pettingGesture.Cancel();
@@ -1736,17 +1738,21 @@ public partial class MainWindow : Window
         {
             NormalizedRectangle bounds = region.Bounds;
             bool selected = region.Id == _lastDebugHitRegion;
-            Rectangle rectangle = new()
+            foreach (NormalizedPolygon normalizedPolygon in region.Polygons)
             {
-                Width = bounds.Width * PetImage.ActualWidth,
-                Height = bounds.Height * PetImage.ActualHeight,
-                Fill = new SolidColorBrush(Color.FromArgb(selected ? (byte)105 : (byte)42, 43, 220, 235)),
-                Stroke = selected ? Brushes.Yellow : Brushes.White,
-                StrokeThickness = selected ? 3 : 1,
-            };
-            Canvas.SetLeft(rectangle, bounds.X * PetImage.ActualWidth);
-            Canvas.SetTop(rectangle, bounds.Y * PetImage.ActualHeight);
-            BodyHitDebugOverlay.Children.Add(rectangle);
+                System.Windows.Shapes.Polygon polygon = new()
+                {
+                    Points = new PointCollection(
+                        normalizedPolygon.Vertices.Select(vertex => new Point(
+                            vertex.X * PetImage.ActualWidth,
+                            vertex.Y * PetImage.ActualHeight))),
+                    Fill = new SolidColorBrush(
+                        Color.FromArgb(selected ? (byte)105 : (byte)42, 43, 220, 235)),
+                    Stroke = selected ? Brushes.Yellow : Brushes.White,
+                    StrokeThickness = selected ? 3 : 1,
+                };
+                BodyHitDebugOverlay.Children.Add(polygon);
+            }
 
             TextBlock label = new()
             {
@@ -3172,6 +3178,45 @@ public partial class MainWindow : Window
         }
     }
 
+    private BodyHitMap LoadClassicBodyHitMap()
+    {
+        string path = System.IO.Path.Combine(
+            AppContext.BaseDirectory,
+            "assets",
+            "body-hit-maps",
+            "full-body-classic.json");
+        try
+        {
+            BodyHitMap map = BodyHitMapJsonParser.Parse(
+                File.ReadAllText(path),
+                AppearanceOptionIds.ClassicCatEarsAnimation);
+            _logger.Info(
+                "interaction.body_hit_map_loaded",
+                $"Style=ClassicCatEars; Regions={map.Regions.Count}; Geometry=Polygon.");
+            return map;
+        }
+        catch (Exception exception) when (
+            exception is IOException or
+            UnauthorizedAccessException or
+            System.Text.Json.JsonException or
+            InvalidOperationException or
+            FormatException or
+            OverflowException or
+            ArgumentException)
+        {
+            _logger.Error("interaction.body_hit_map_failed", exception);
+            return BodyHitMap.ClassicCatEars;
+        }
+    }
+
+    private BodyHitMap ResolveBodyHitMap(string fullBodyAnimation) =>
+        string.Equals(
+            fullBodyAnimation,
+            AppearanceOptionIds.ClassicCatEarsAnimation,
+            StringComparison.Ordinal)
+            ? _classicBodyHitMap
+            : BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+
     private void ApplyAppearancePreferences(AppearancePreferences preferences)
     {
         AppearancePreferences normalized = AppearancePreferences.Normalize(preferences);
@@ -3185,7 +3230,7 @@ public partial class MainWindow : Window
         _stateMachine.SetFullBodyInteractionsEnabled(
             AppearanceOptionIds.ResolveFullBodyInteractionMode(normalized.FullBodyStyle) ==
                 FullBodyInteractionMode.ExpressionPack);
-        _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+        _bodyHitMap = ResolveBodyHitMap(fullBodyAnimation);
         RestoreIdleWhenHeheIsNotEligible();
 
         bool appearanceChanged = !string.Equals(

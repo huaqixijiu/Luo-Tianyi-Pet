@@ -34,7 +34,134 @@ public readonly record struct NormalizedRectangle(double X, double Y, double Wid
     }
 }
 
-public sealed record BodyHitRegion(BodyRegionId Id, NormalizedRectangle Bounds);
+public sealed class NormalizedPolygon
+{
+    public NormalizedPolygon(IReadOnlyList<PointerPoint> vertices)
+    {
+        ArgumentNullException.ThrowIfNull(vertices);
+        if (vertices.Count < 3)
+        {
+            throw new ArgumentException("A polygon requires at least three vertices.", nameof(vertices));
+        }
+
+        foreach (PointerPoint vertex in vertices)
+        {
+            if (!double.IsFinite(vertex.X) || !double.IsFinite(vertex.Y) ||
+                vertex.X < 0 || vertex.X > 1 || vertex.Y < 0 || vertex.Y > 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(vertices));
+            }
+        }
+
+        Vertices = vertices.ToArray();
+        double minX = Vertices.Min(vertex => vertex.X);
+        double maxX = Vertices.Max(vertex => vertex.X);
+        double minY = Vertices.Min(vertex => vertex.Y);
+        double maxY = Vertices.Max(vertex => vertex.Y);
+        Bounds = new NormalizedRectangle(minX, minY, maxX - minX, maxY - minY);
+        Bounds.Validate();
+    }
+
+    public IReadOnlyList<PointerPoint> Vertices { get; }
+
+    public NormalizedRectangle Bounds { get; }
+
+    public bool Contains(PointerPoint point)
+    {
+        if (!Bounds.Contains(point))
+        {
+            return false;
+        }
+
+        bool inside = false;
+        for (int current = 0, previous = Vertices.Count - 1;
+             current < Vertices.Count;
+             previous = current++)
+        {
+            PointerPoint a = Vertices[previous];
+            PointerPoint b = Vertices[current];
+            if (IsOnSegment(point, a, b))
+            {
+                return true;
+            }
+
+            bool crossesScanline = (a.Y > point.Y) != (b.Y > point.Y);
+            if (crossesScanline &&
+                point.X < ((b.X - a.X) * (point.Y - a.Y) / (b.Y - a.Y)) + a.X)
+            {
+                inside = !inside;
+            }
+        }
+
+        return inside;
+    }
+
+    public static NormalizedPolygon FromRectangle(NormalizedRectangle bounds)
+    {
+        bounds.Validate();
+        return new NormalizedPolygon(
+        [
+            new(bounds.X, bounds.Y),
+            new(bounds.X + bounds.Width, bounds.Y),
+            new(bounds.X + bounds.Width, bounds.Y + bounds.Height),
+            new(bounds.X, bounds.Y + bounds.Height),
+        ]);
+    }
+
+    private static bool IsOnSegment(PointerPoint point, PointerPoint a, PointerPoint b)
+    {
+        const double epsilon = 1e-9;
+        double cross = ((point.Y - a.Y) * (b.X - a.X)) -
+            ((point.X - a.X) * (b.Y - a.Y));
+        if (Math.Abs(cross) > epsilon)
+        {
+            return false;
+        }
+
+        return point.X >= Math.Min(a.X, b.X) - epsilon &&
+            point.X <= Math.Max(a.X, b.X) + epsilon &&
+            point.Y >= Math.Min(a.Y, b.Y) - epsilon &&
+            point.Y <= Math.Max(a.Y, b.Y) + epsilon;
+    }
+}
+
+public sealed class BodyHitRegion
+{
+    public BodyHitRegion(BodyRegionId id, NormalizedRectangle bounds)
+        : this(id, [NormalizedPolygon.FromRectangle(bounds)])
+    {
+    }
+
+    private BodyHitRegion(BodyRegionId id, IReadOnlyList<NormalizedPolygon> polygons)
+    {
+        ArgumentNullException.ThrowIfNull(polygons);
+        if (polygons.Count == 0)
+        {
+            throw new ArgumentException("A body region requires at least one polygon.", nameof(polygons));
+        }
+
+        Id = id;
+        Polygons = polygons.ToArray();
+        double minX = Polygons.Min(polygon => polygon.Bounds.X);
+        double maxX = Polygons.Max(polygon => polygon.Bounds.X + polygon.Bounds.Width);
+        double minY = Polygons.Min(polygon => polygon.Bounds.Y);
+        double maxY = Polygons.Max(polygon => polygon.Bounds.Y + polygon.Bounds.Height);
+        Bounds = new NormalizedRectangle(minX, minY, maxX - minX, maxY - minY);
+        Bounds.Validate();
+    }
+
+    public BodyRegionId Id { get; }
+
+    public IReadOnlyList<NormalizedPolygon> Polygons { get; }
+
+    public NormalizedRectangle Bounds { get; }
+
+    public bool Contains(PointerPoint point) => Polygons.Any(polygon => polygon.Contains(point));
+
+    public static BodyHitRegion FromPolygons(
+        BodyRegionId id,
+        IReadOnlyList<NormalizedPolygon> polygons) => new(id, polygons);
+}
 
 public sealed class BodyHitMap
 {
@@ -101,9 +228,13 @@ public sealed class BodyHitMap
             throw new ArgumentException("At least one body region is required.", nameof(regions));
         }
 
+        HashSet<BodyRegionId> ids = [];
         foreach (BodyHitRegion region in regions)
         {
-            region.Bounds.Validate();
+            if (!ids.Add(region.Id))
+            {
+                throw new ArgumentException($"Duplicate body region: {region.Id}.", nameof(regions));
+            }
         }
 
         Regions = regions.ToArray();
@@ -122,7 +253,7 @@ public sealed class BodyHitMap
 
         foreach (BodyHitRegion region in Regions)
         {
-            if (region.Bounds.Contains(normalizedPoint))
+            if (region.Contains(normalizedPoint))
             {
                 return region.Id;
             }

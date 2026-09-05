@@ -264,6 +264,19 @@
       ]
     },
     "bodyRegions": {
+      "geometryByAppearanceStyle": {
+        "full-body-classic-cat-ears": {
+          "mode": "normalized-polygons",
+          "source": "assets/body-hit-maps/full-body-classic.json",
+          "fallback": "built-in-rectangles"
+        },
+        "full-body-crystal-dress": {
+          "mode": "built-in-rectangles"
+        },
+        "full-body-long-hair": {
+          "mode": "disabled"
+        }
+      },
       "recoveryDelayAfterAnimationMilliseconds": 800,
       "recoveryDelayBlocks": [
         "single-body-click",

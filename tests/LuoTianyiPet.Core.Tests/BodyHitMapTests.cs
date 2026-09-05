@@ -46,6 +46,61 @@ public sealed class BodyHitMapTests
     }
 
     [Theory]
+    [InlineData(0.40, 0.42, BodyRegionId.LeftEye)]
+    [InlineData(0.63, 0.42, BodyRegionId.RightEye)]
+    [InlineData(0.515, 0.515, BodyRegionId.Mouth)]
+    [InlineData(0.40, 0.50, BodyRegionId.Face)]
+    [InlineData(0.34, 0.75, BodyRegionId.LeftHand)]
+    [InlineData(0.68, 0.75, BodyRegionId.RightHand)]
+    [InlineData(0.51, 0.64, BodyRegionId.Chest)]
+    [InlineData(0.51, 0.79, BodyRegionId.LowerBodySensitiveArea)]
+    [InlineData(0.42, 0.90, BodyRegionId.LeftFoot)]
+    [InlineData(0.58, 0.90, BodyRegionId.RightFoot)]
+    [InlineData(0.50, 0.20, BodyRegionId.HeadAndHair)]
+    [InlineData(0.45, 0.72, BodyRegionId.OtherBody)]
+    public void ExportedClassicCatEarsMapUsesUserPolygons(
+        double x,
+        double y,
+        BodyRegionId expected)
+    {
+        BodyHitMap map = LoadExportedClassicMap();
+
+        Assert.Equal(expected, map.HitTest(new PointerPoint(x, y)));
+    }
+
+    [Theory]
+    [InlineData(0.80, 0.10)]
+    [InlineData(0.72, 0.55)]
+    [InlineData(0.20, 0.70)]
+    public void ExportedClassicCatEarsMapRejectsPointsOutsideDrawnPolygons(double x, double y)
+    {
+        BodyHitMap map = LoadExportedClassicMap();
+
+        Assert.Null(map.HitTest(new PointerPoint(x, y)));
+    }
+
+    [Fact]
+    public void PolygonHitTestDoesNotUseItsBoundingRectangleAsTheRegion()
+    {
+        BodyHitMap map = new(
+        [
+            BodyHitRegion.FromPolygons(
+                BodyRegionId.OtherBody,
+                [
+                    new NormalizedPolygon(
+                    [
+                        new(0.1, 0.1),
+                        new(0.9, 0.1),
+                        new(0.1, 0.9),
+                    ]),
+                ]),
+        ]);
+
+        Assert.Equal(BodyRegionId.OtherBody, map.HitTest(new PointerPoint(0.2, 0.2)));
+        Assert.Null(map.HitTest(new PointerPoint(0.8, 0.8)));
+    }
+
+    [Theory]
     [InlineData(-0.1, 0.5)]
     [InlineData(1.1, 0.5)]
     [InlineData(0.5, -0.1)]
@@ -54,5 +109,13 @@ public sealed class BodyHitMapTests
     public void OutOfCanvasOrOutsideCharacterReturnsNull(double x, double y)
     {
         Assert.Null(BodyHitMap.FullBodyDefault.HitTest(new PointerPoint(x, y)));
+    }
+
+    private static BodyHitMap LoadExportedClassicMap()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "TestData", "full-body-classic.json");
+        return BodyHitMapJsonParser.Parse(
+            File.ReadAllText(path),
+            AppearanceOptionIds.ClassicCatEarsAnimation);
     }
 }
