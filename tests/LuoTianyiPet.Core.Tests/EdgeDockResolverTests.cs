@@ -85,13 +85,13 @@ public sealed class EdgeDockResolverTests
     }
 
     [Theory]
-    [InlineData(-67, 300, 200, 200, EdgeDockSide.Left)]
-    [InlineData(1787, 300, 200, 200, EdgeDockSide.Right)]
-    [InlineData(800, 907, 200, 200, EdgeDockSide.Bottom)]
-    [InlineData(-66, 300, 200, 200, EdgeDockSide.None)]
-    [InlineData(-133, 300, 400, 400, EdgeDockSide.None)]
-    [InlineData(-134, 300, 400, 400, EdgeDockSide.Left)]
-    public void FractionalHideIntentRequiresOneThirdOfVisibleArtworkOutside(
+    [InlineData(-50, 300, 200, 200, EdgeDockSide.Left)]
+    [InlineData(1770, 300, 200, 200, EdgeDockSide.Right)]
+    [InlineData(800, 890, 200, 200, EdgeDockSide.Bottom)]
+    [InlineData(-49, 300, 200, 200, EdgeDockSide.None)]
+    [InlineData(-99, 300, 400, 400, EdgeDockSide.None)]
+    [InlineData(-100, 300, 400, 400, EdgeDockSide.Left)]
+    public void FractionalHideIntentRequiresOneQuarterOfVisibleArtworkOutside(
         double left,
         double top,
         double width,
@@ -103,27 +103,27 @@ public sealed class EdgeDockResolverTests
             EdgeDockResolver.ResolveHideIntentByFraction(
                 new DesktopRectangle(left, top, width, height),
                 WorkArea,
-                1.0 / 3.0));
+                0.25));
     }
 
     [Fact]
-    public void FractionalHysteresisKeepsIntentUntilOnlyOneQuarterRemainsOutside()
+    public void FractionalHysteresisKeepsIntentUntilOnlyOneSixthRemainsOutside()
     {
         Assert.Equal(
             EdgeDockSide.Left,
             EdgeDockResolver.ResolveHideIntentByFractionWithHysteresis(
-                new DesktopRectangle(-51, 300, 200, 200),
+                new DesktopRectangle(-34, 300, 200, 200),
                 WorkArea,
-                1.0 / 3.0,
                 0.25,
+                1.0 / 6.0,
                 EdgeDockSide.Left));
         Assert.Equal(
             EdgeDockSide.None,
             EdgeDockResolver.ResolveHideIntentByFractionWithHysteresis(
-                new DesktopRectangle(-49, 300, 200, 200),
+                new DesktopRectangle(-33, 300, 200, 200),
                 WorkArea,
-                1.0 / 3.0,
                 0.25,
+                1.0 / 6.0,
                 EdgeDockSide.Left));
     }
 

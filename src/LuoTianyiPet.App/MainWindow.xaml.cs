@@ -33,8 +33,8 @@ public partial class MainWindow : Window
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
-    private const double EdgeDockActivationFraction = 1.0 / 3.0;
-    private const double EdgeDockReleaseFraction = 0.25;
+    private const double EdgeDockActivationFraction = 0.25;
+    private const double EdgeDockReleaseFraction = 1.0 / 6.0;
     private const double EdgeDockMinimumDragOverscan = 96;
     private const double EdgeAlignmentTolerance = 3;
     private const double EdgeDockAlphaInset = 2;
@@ -1481,20 +1481,21 @@ public partial class MainWindow : Window
         _dragReleaseRequestsLanding = false;
         _downwardFlingTracker.Cancel();
         _isWindowDragging = false;
-        _classicDragExpansionStarted = false;
         if (_stateMachine.EndDrag())
         {
             if (TryEnterEdgeDock())
             {
+                _classicDragExpansionStarted = false;
                 _dragIntentPetBoundsInWindow = null;
                 _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
                 return;
             }
 
+            SnapDragIntentPetInsideWorkArea();
+            _classicDragExpansionStarted = false;
             _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
-            SnapVisiblePetInsideWorkArea();
             UpdateBottomControlsLayoutForCurrentPosition();
 
             if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
@@ -1524,6 +1525,10 @@ public partial class MainWindow : Window
                 RestoreAfterFullBodyDrag();
                 _logger.Info("interaction.drag_ended", "Full-body mode restored without landing feedback.");
             }
+        }
+        else
+        {
+            _classicDragExpansionStarted = false;
         }
     }
 
@@ -2060,12 +2065,7 @@ public partial class MainWindow : Window
     private EdgeDockSide ResolveCurrentEdgeDockSide()
     {
         DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle localPet = _dragIntentPetBoundsInWindow ?? GetPetImageBoundsInWindow();
-        DesktopRectangle stablePet = new(
-            Left + localPet.Left,
-            Top + localPet.Top,
-            localPet.Width,
-            localPet.Height);
+        DesktopRectangle stablePet = GetDragIntentPetDesktopBounds();
         return EdgeDockResolver.ResolveHideIntentByFractionWithHysteresis(
             stablePet,
             workArea,
@@ -2317,7 +2317,8 @@ public partial class MainWindow : Window
         FallbackSurface.Visibility = Visibility.Collapsed;
         ResizeAroundBottomCenter(
             displayWidth + 16,
-            displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight);
+            displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight,
+            manifest);
         UpdateBodyHitDebugOverlay();
     }
 
@@ -2333,7 +2334,10 @@ public partial class MainWindow : Window
         _logger.Info("animation.fallback_shown", logMessage);
     }
 
-    private void ResizeAroundBottomCenter(double width, double height)
+    private void ResizeAroundBottomCenter(
+        double width,
+        double height,
+        AnimationAssetManifest? manifest = null)
     {
         DesktopRectangle workArea = GetCurrentWorkArea();
         double oldWidth = ActualWidth > 0 ? ActualWidth : Width;
@@ -2341,11 +2345,42 @@ public partial class MainWindow : Window
         double center = Left + oldWidth / 2;
         double bottom = Top + oldHeight;
 
+        (double leftOverflow, double rightOverflow, double bottomOverflow) =
+            ResolveTargetTransparentOverflow(manifest, width, height);
+
         Width = width;
         Height = height;
-        Left = Clamp(center - width / 2, workArea.Left, workArea.Right - width);
-        double bottomOverflow = _useBottomControlsLayout ? PetVisual.Margin.Bottom : 0;
+        Left = Clamp(
+            center - width / 2,
+            workArea.Left - leftOverflow,
+            workArea.Right - width + rightOverflow);
         Top = Clamp(bottom - height, workArea.Top, workArea.Bottom - height + bottomOverflow);
+    }
+
+    private (double Left, double Right, double Bottom) ResolveTargetTransparentOverflow(
+        AnimationAssetManifest? manifest,
+        double targetWidth,
+        double targetHeight)
+    {
+        if (manifest is null || !TryGetAlphaBounds(manifest, out Int32Rect alphaBounds))
+        {
+            return (0, 0, _useBottomControlsLayout ? PetVisual.Margin.Bottom : 0);
+        }
+
+        double displayWidth = targetWidth - 16;
+        double displayHeight = targetHeight - 16 -
+            MediaControlsReservedHeight - TrackInfoReservedHeight;
+        double transparentLeft = alphaBounds.X * displayWidth / manifest.FrameWidth;
+        double transparentRight =
+            (manifest.FrameWidth - alphaBounds.X - alphaBounds.Width) *
+            displayWidth / manifest.FrameWidth;
+        double transparentBottom =
+            (manifest.FrameHeight - alphaBounds.Y - alphaBounds.Height) *
+            displayHeight / manifest.FrameHeight;
+        return (
+            8 + transparentLeft,
+            8 + transparentRight,
+            _useBottomControlsLayout ? PetVisual.Margin.Bottom + transparentBottom : 0);
     }
 
     private bool TryEnterEdgeDock()
@@ -2882,6 +2917,48 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SnapDragIntentPetInsideWorkArea()
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle pet = GetDragIntentPetDesktopBounds();
+        if (pet.Left < workArea.Left)
+        {
+            Left += workArea.Left - pet.Left;
+        }
+        else if (pet.Right > workArea.Right)
+        {
+            Left -= pet.Right - workArea.Right;
+        }
+
+        if (pet.Top < workArea.Top)
+        {
+            Top += workArea.Top - pet.Top;
+        }
+        else if (pet.Bottom > workArea.Bottom)
+        {
+            Top -= pet.Bottom - workArea.Bottom;
+        }
+    }
+
+    private DesktopRectangle GetDragIntentPetDesktopBounds()
+    {
+        if (_classicDragExpansionStarted &&
+            TryGetAnimationAlphaBoundsOnDesktop(
+                _stateMachine.VisualState.FullBodyAnimationId,
+                out DesktopRectangle fullBodyBounds))
+        {
+            return fullBodyBounds;
+        }
+
+        DesktopRectangle local =
+            _dragIntentPetBoundsInWindow ?? GetPetImageAlphaBoundsInWindow();
+        return new DesktopRectangle(
+            Left + local.Left,
+            Top + local.Top,
+            local.Width,
+            local.Height);
+    }
+
     private DesktopRectangle GetPetImageDesktopBounds()
     {
         DesktopRectangle local = GetPetImageAlphaBoundsInWindow();
@@ -2958,28 +3035,18 @@ public partial class MainWindow : Window
         try
         {
             AnimationAssetManifest manifest = _animationCatalog.GetRequired(animationId);
-            if (manifest.AlphaBounds.Count != 4 || manifest.FrameWidth <= 0 || manifest.FrameHeight <= 0)
-            {
-                return imageBounds;
-            }
-
-            if (manifest.AlphaBounds[2] <= manifest.AlphaBounds[0] ||
-                manifest.AlphaBounds[3] <= manifest.AlphaBounds[1])
+            if (!TryGetAlphaBounds(manifest, out Int32Rect alphaBounds))
             {
                 return imageBounds;
             }
 
             double imageWidth = PetImage.ActualWidth > 0 ? PetImage.ActualWidth : PetImage.Width;
             double imageHeight = PetImage.ActualHeight > 0 ? PetImage.ActualHeight : PetImage.Height;
-            int alphaLeft = Math.Clamp(manifest.AlphaBounds[0], 0, manifest.FrameWidth - 1);
-            int alphaTop = Math.Clamp(manifest.AlphaBounds[1], 0, manifest.FrameHeight - 1);
-            int alphaRight = Math.Clamp(manifest.AlphaBounds[2], alphaLeft + 1, manifest.FrameWidth);
-            int alphaBottom = Math.Clamp(manifest.AlphaBounds[3], alphaTop + 1, manifest.FrameHeight);
             Rect sourceBounds = new(
-                alphaLeft * imageWidth / manifest.FrameWidth,
-                alphaTop * imageHeight / manifest.FrameHeight,
-                (alphaRight - alphaLeft) * imageWidth / manifest.FrameWidth,
-                (alphaBottom - alphaTop) * imageHeight / manifest.FrameHeight);
+                alphaBounds.X * imageWidth / manifest.FrameWidth,
+                alphaBounds.Y * imageHeight / manifest.FrameHeight,
+                alphaBounds.Width * imageWidth / manifest.FrameWidth,
+                alphaBounds.Height * imageHeight / manifest.FrameHeight);
             Rect transformed = PetImage.TransformToAncestor(this).TransformBounds(sourceBounds);
             return new DesktopRectangle(
                 transformed.Left,
@@ -2991,6 +3058,73 @@ public partial class MainWindow : Window
         {
             return imageBounds;
         }
+    }
+
+    private bool TryGetAnimationAlphaBoundsOnDesktop(
+        string animationId,
+        out DesktopRectangle bounds)
+    {
+        bounds = default;
+        if (_animationCatalog is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            AnimationAssetManifest manifest = _animationCatalog.GetRequired(animationId);
+            if (!TryGetAlphaBounds(manifest, out Int32Rect alphaBounds))
+            {
+                return false;
+            }
+
+            UpdateLayout();
+            double displayScale = _settings.Appearance.DisplayScalePercent / 100.0;
+            double displayWidth = manifest.DisplayWidth * displayScale;
+            double displayHeight = manifest.DisplayHeight * displayScale;
+            double targetWindowWidth = displayWidth + 16;
+            double targetWindowHeight = displayHeight + 16 +
+                MediaControlsReservedHeight + TrackInfoReservedHeight;
+            double currentWidth = ActualWidth > 0 ? ActualWidth : Width;
+            double currentHeight = ActualHeight > 0 ? ActualHeight : Height;
+            double targetWindowLeft = Left + currentWidth / 2 - targetWindowWidth / 2;
+            double targetWindowTop = Top + currentHeight - targetWindowHeight;
+            double imageLeft = targetWindowLeft + 8;
+            double imageTop = targetWindowTop + PetVisual.Margin.Top;
+            bounds = new DesktopRectangle(
+                imageLeft + alphaBounds.X * displayWidth / manifest.FrameWidth,
+                imageTop + alphaBounds.Y * displayHeight / manifest.FrameHeight,
+                alphaBounds.Width * displayWidth / manifest.FrameWidth,
+                alphaBounds.Height * displayHeight / manifest.FrameHeight);
+            return true;
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or KeyNotFoundException)
+        {
+            return false;
+        }
+    }
+
+    private static bool TryGetAlphaBounds(
+        AnimationAssetManifest manifest,
+        out Int32Rect bounds)
+    {
+        bounds = default;
+        if (manifest.AlphaBounds.Count != 4 ||
+            manifest.FrameWidth <= 0 ||
+            manifest.FrameHeight <= 0 ||
+            manifest.AlphaBounds[2] <= manifest.AlphaBounds[0] ||
+            manifest.AlphaBounds[3] <= manifest.AlphaBounds[1])
+        {
+            return false;
+        }
+
+        int left = Math.Clamp(manifest.AlphaBounds[0], 0, manifest.FrameWidth - 1);
+        int top = Math.Clamp(manifest.AlphaBounds[1], 0, manifest.FrameHeight - 1);
+        int right = Math.Clamp(manifest.AlphaBounds[2], left + 1, manifest.FrameWidth);
+        int bottom = Math.Clamp(manifest.AlphaBounds[3], top + 1, manifest.FrameHeight);
+        bounds = new Int32Rect(left, top, right - left, bottom - top);
+        return true;
     }
 
     private DesktopRectangle GetPetImageVisibleBoundsInWindow()
@@ -4843,21 +4977,23 @@ public partial class MainWindow : Window
 
         BeginWindowDrag();
         DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle localPet = GetPetImageAlphaBoundsInWindow();
+        DesktopRectangle initialPet = GetDragIntentPetDesktopBounds();
+        double initialLeft = Left;
+        double initialTop = Top;
         double activationOvershoot = side == EdgeDockSide.Bottom
-            ? localPet.Height * EdgeDockActivationFraction
-            : localPet.Width * EdgeDockActivationFraction;
+            ? initialPet.Height * EdgeDockActivationFraction
+            : initialPet.Width * EdgeDockActivationFraction;
         double qaOvershoot = activationOvershoot + 4;
         switch (side)
         {
             case EdgeDockSide.Left:
-                Left = workArea.Left - localPet.Left - qaOvershoot;
+                Left = initialLeft + workArea.Left - initialPet.Left - qaOvershoot;
                 break;
             case EdgeDockSide.Right:
-                Left = workArea.Right - localPet.Right + qaOvershoot;
+                Left = initialLeft + workArea.Right - initialPet.Right + qaOvershoot;
                 break;
             case EdgeDockSide.Bottom:
-                Top = workArea.Bottom - localPet.Bottom + qaOvershoot;
+                Top = initialTop + workArea.Bottom - initialPet.Bottom + qaOvershoot;
                 break;
             default:
                 return;
@@ -4871,13 +5007,16 @@ public partial class MainWindow : Window
             switch (side)
             {
                 case EdgeDockSide.Left:
-                    Left = workArea.Left - localPet.Left - activationOvershoot - offset;
+                    Left = initialLeft + workArea.Left - initialPet.Left -
+                        activationOvershoot - offset;
                     break;
                 case EdgeDockSide.Right:
-                    Left = workArea.Right - localPet.Right + activationOvershoot + offset;
+                    Left = initialLeft + workArea.Right - initialPet.Right +
+                        activationOvershoot + offset;
                     break;
                 case EdgeDockSide.Bottom:
-                    Top = workArea.Bottom - localPet.Bottom + activationOvershoot + offset;
+                    Top = initialTop + workArea.Bottom - initialPet.Bottom +
+                        activationOvershoot + offset;
                     break;
             }
 
