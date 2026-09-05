@@ -58,6 +58,9 @@ public sealed class JsonSettingsStore : ISettingsStore
                 10 => MigrateFromPreviousVersion(
                     settings,
                     MediaPreferences.DefaultSilenceGraceMilliseconds),
+                11 => MigrateFromPreviousVersion(
+                    settings,
+                    MediaPreferences.DefaultSilenceGraceMilliseconds),
                 _ => new AppSettings(),
             };
         }

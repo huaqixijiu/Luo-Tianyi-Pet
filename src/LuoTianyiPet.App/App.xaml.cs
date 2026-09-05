@@ -321,20 +321,12 @@ public partial class App : Application
 
     private static PetVisualState GetInitialVisualState(IReadOnlyCollection<string> arguments)
     {
-        bool useFullBodyMode = arguments.Contains("--preview-full-body", StringComparer.OrdinalIgnoreCase) ||
-            arguments.Contains("--preview-body-hit-debug", StringComparer.OrdinalIgnoreCase) ||
-            arguments.Any(argument => argument.StartsWith(
-                "--preview-body-reaction=",
-                StringComparison.OrdinalIgnoreCase));
-        PetDisplayMode displayMode = useFullBodyMode
-            ? PetDisplayMode.FullBodyInteractive
-            : PetDisplayMode.Compact;
         PetContinuousState continuousState = arguments.Contains(
             "--preview-music",
             StringComparer.OrdinalIgnoreCase)
                 ? PetContinuousState.MusicPlaying
                 : PetContinuousState.Idle;
 
-        return new PetVisualState(displayMode, continuousState);
+        return new PetVisualState(PetDisplayMode.FullBodyInteractive, continuousState);
     }
 }

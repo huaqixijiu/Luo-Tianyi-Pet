@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 11;
+    public const int CurrentSchemaVersion = 12;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -51,6 +51,19 @@ public static class AppearanceOptionIds
         _ => BunEatingOriginal,
     };
 
+    public static string GetNextFullBodyStyle(string? style) =>
+        NormalizeFullBodyStyle(style) switch
+        {
+            FullBodyLongHair => FullBodyCrystalDress,
+            FullBodyCrystalDress => FullBodyClassicCatEars,
+            _ => FullBodyLongHair,
+        };
+
+    public static string ResolveDefaultBunEatingStyle(string? fullBodyStyle) =>
+        NormalizeFullBodyStyle(fullBodyStyle) == FullBodyClassicCatEars
+            ? BunEatingOriginal
+            : BunEatingNew;
+
     public static string ResolveFullBodyAnimation(string? style) =>
         NormalizeFullBodyStyle(style) switch
         {
@@ -88,17 +101,21 @@ public sealed record AppearancePreferences
 
     public string FullBodyStyle { get; init; } = AppearanceOptionIds.FullBodyLongHair;
 
-    public string BunEatingStyle { get; init; } = AppearanceOptionIds.BunEatingOriginal;
+    public string BunEatingStyle { get; init; } = AppearanceOptionIds.BunEatingNew;
+
+    public bool EnableFullBodyStyleCycling { get; init; } = true;
 
     public int DisplayScalePercent { get; init; } = DefaultDisplayScalePercent;
 
     public static AppearancePreferences Normalize(AppearancePreferences? preferences)
     {
         preferences ??= new AppearancePreferences();
+        string fullBodyStyle = AppearanceOptionIds.NormalizeFullBodyStyle(
+            preferences.FullBodyStyle);
         return preferences with
         {
-            FullBodyStyle = AppearanceOptionIds.NormalizeFullBodyStyle(preferences.FullBodyStyle),
-            BunEatingStyle = AppearanceOptionIds.NormalizeBunEatingStyle(preferences.BunEatingStyle),
+            FullBodyStyle = fullBodyStyle,
+            BunEatingStyle = AppearanceOptionIds.ResolveDefaultBunEatingStyle(fullBodyStyle),
             DisplayScalePercent = Math.Clamp(
                 preferences.DisplayScalePercent,
                 MinimumDisplayScalePercent,

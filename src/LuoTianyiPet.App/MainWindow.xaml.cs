@@ -425,8 +425,6 @@ public partial class MainWindow : Window
                     : "Desktop tool-window mode requested, but native style verification did not succeed.");
         }
         ApplyEffectiveTopmost();
-        FullBodyModeMenuItem.IsChecked =
-            _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive;
         BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
         PreviousTrackButton.ToolTip = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
         TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
@@ -1335,9 +1333,7 @@ public partial class MainWindow : Window
         _logger.Info("interaction.petting_completed", "Cute reaction requested.");
     }
 
-    private void OnToggleDisplayMode(object sender, RoutedEventArgs e) => ToggleDisplayMode();
-
-    private void ToggleDisplayMode()
+    private void CycleFullBodyStyle()
     {
         PetPlaybackPlan currentPlan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPaused &&
@@ -1348,21 +1344,21 @@ public partial class MainWindow : Window
             return;
         }
 
-        PetDisplayMode nextMode = _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact
-            ? PetDisplayMode.FullBodyInteractive
-            : PetDisplayMode.Compact;
-        _stateMachine.SetDisplayMode(nextMode);
-        FullBodyModeMenuItem.IsChecked = nextMode == PetDisplayMode.FullBodyInteractive;
-        RestoreIdleWhenHeheIsNotEligible();
-
-        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle)
+        if (!_settings.Appearance.EnableFullBodyStyleCycling)
         {
-            PlayResolvedContinuousAnimation();
+            _logger.Info(
+                "display.style_cycle_disabled",
+                $"CurrentStyle={_settings.Appearance.FullBodyStyle}.");
+            return;
         }
 
-        _logger.Info("display.mode_changed", nextMode.ToString());
-        UpdateBodyHitDebugOverlay();
+        string nextStyle = AppearanceOptionIds.GetNextFullBodyStyle(
+            _settings.Appearance.FullBodyStyle);
+        _stateMachine.SetDisplayMode(PetDisplayMode.FullBodyInteractive);
+        ApplyAppearancePreferences(_settings.Appearance with { FullBodyStyle = nextStyle });
+        _logger.Info(
+            "display.style_cycled",
+            $"FullBodyStyle={nextStyle}; BunEatingStyle={AppearanceOptionIds.ResolveDefaultBunEatingStyle(nextStyle)}.");
     }
 
     private void OnSingleClickTimerTick(object? sender, EventArgs e)
@@ -1392,7 +1388,7 @@ public partial class MainWindow : Window
                 break;
             case PointerGestureActionType.ToggleDisplayMode:
                 _singleClickTimer.Stop();
-                ToggleDisplayMode();
+                CycleFullBodyStyle();
                 break;
             case PointerGestureActionType.BeginDrag:
                 BeginWindowDrag();
@@ -2922,7 +2918,6 @@ public partial class MainWindow : Window
             _settings.Media,
             _startupRegistrationService?.IsEnabled ?? false,
             _messageNotificationSource,
-            _animationCatalog,
             _applicationVolumeService)
         {
             Owner = this,
@@ -2962,6 +2957,7 @@ public partial class MainWindow : Window
         bool scaleChanged = previousScale != normalized.DisplayScalePercent;
         if (appearanceChanged &&
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle &&
             _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
         {
             _ = TransitionToResolvedContinuousAnimationAsync("settings.appearance_changed");
@@ -3078,8 +3074,12 @@ public partial class MainWindow : Window
             else
             {
                 _desktopItemDisappearanceSource.Stop();
-                CancelBunChase(restorePosition: true, restoreContinuousAnimation: true);
             }
+        }
+
+        if (!preferences.EnableDesktopFileTreats)
+        {
+            CancelBunChase(restorePosition: true, restoreContinuousAnimation: true);
         }
 
         if (wasEnabled != preferences.EnableDesktopFileTreats)
@@ -3855,12 +3855,15 @@ public partial class MainWindow : Window
     }
 
     private (string RunAnimation, string EatAnimation) GetSelectedBunAnimations() =>
-        AppearanceOptionIds.ResolveBunAnimations(_settings.Appearance.BunEatingStyle);
+        AppearanceOptionIds.ResolveBunAnimations(
+            AppearanceOptionIds.ResolveDefaultBunEatingStyle(
+                _settings.Appearance.FullBodyStyle));
 
     private PointerPoint ResolveSelectedBunMouthTarget(DesktopRectangle imageBounds)
     {
         bool mirrored = PetDirectionTransform.ScaleX < 0;
-        if (_settings.Appearance.BunEatingStyle == AppearanceOptionIds.BunEatingNew)
+        if (AppearanceOptionIds.ResolveDefaultBunEatingStyle(
+                _settings.Appearance.FullBodyStyle) == AppearanceOptionIds.BunEatingNew)
         {
             return new PointerPoint(
                 Left + imageBounds.Left + imageBounds.Width * 0.50,
@@ -4088,7 +4091,8 @@ public partial class MainWindow : Window
 
     private bool IsSupportedFileDrop(WpfDragEventArgs e, bool requirePetHit)
     {
-        if (!e.Data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false))
+        if (!_settings.FileTreats.EnableDesktopFileTreats ||
+            !e.Data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false))
         {
             return false;
         }

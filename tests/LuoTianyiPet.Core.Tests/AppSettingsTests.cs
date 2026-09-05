@@ -42,7 +42,8 @@ public sealed class AppSettingsTests
         Assert.True(settings.FileTreats.EnableDesktopFileTreats);
         Assert.Equal(6, settings.FileTreats.MaximumQueuedBuns);
         Assert.Equal(AppearanceOptionIds.FullBodyLongHair, settings.Appearance.FullBodyStyle);
-        Assert.Equal(AppearanceOptionIds.BunEatingOriginal, settings.Appearance.BunEatingStyle);
+        Assert.Equal(AppearanceOptionIds.BunEatingNew, settings.Appearance.BunEatingStyle);
+        Assert.True(settings.Appearance.EnableFullBodyStyleCycling);
         Assert.Equal(100, settings.Appearance.DisplayScalePercent);
         Assert.Equal(
             "YuanShen.exe;GenshinImpact.exe",
@@ -65,8 +66,39 @@ public sealed class AppSettingsTests
         });
 
         Assert.Equal(AppearanceOptionIds.FullBodyLongHair, normalized.FullBodyStyle);
-        Assert.Equal(AppearanceOptionIds.BunEatingOriginal, normalized.BunEatingStyle);
+        Assert.Equal(AppearanceOptionIds.BunEatingNew, normalized.BunEatingStyle);
         Assert.Equal(expectedScale, normalized.DisplayScalePercent);
+    }
+
+    [Theory]
+    [InlineData(AppearanceOptionIds.FullBodyLongHair, AppearanceOptionIds.FullBodyCrystalDress)]
+    [InlineData(AppearanceOptionIds.FullBodyCrystalDress, AppearanceOptionIds.FullBodyClassicCatEars)]
+    [InlineData(AppearanceOptionIds.FullBodyClassicCatEars, AppearanceOptionIds.FullBodyLongHair)]
+    [InlineData("unknown", AppearanceOptionIds.FullBodyCrystalDress)]
+    public void AppearanceOptions_CycleInTheUserFacingOrder(string current, string expected)
+    {
+        Assert.Equal(expected, AppearanceOptionIds.GetNextFullBodyStyle(current));
+    }
+
+    [Theory]
+    [InlineData(AppearanceOptionIds.FullBodyLongHair, AppearanceOptionIds.BunEatingNew)]
+    [InlineData(AppearanceOptionIds.FullBodyCrystalDress, AppearanceOptionIds.BunEatingNew)]
+    [InlineData(AppearanceOptionIds.FullBodyClassicCatEars, AppearanceOptionIds.BunEatingOriginal)]
+    public void AppearanceOptions_DeriveBunStyleFromTheCurrentCharacter(
+        string fullBodyStyle,
+        string expectedBunStyle)
+    {
+        Assert.Equal(
+            expectedBunStyle,
+            AppearanceOptionIds.ResolveDefaultBunEatingStyle(fullBodyStyle));
+
+        AppearancePreferences normalized = AppearancePreferences.Normalize(
+            new AppearancePreferences
+            {
+                FullBodyStyle = fullBodyStyle,
+                BunEatingStyle = AppearanceOptionIds.BunEatingOriginal,
+            });
+        Assert.Equal(expectedBunStyle, normalized.BunEatingStyle);
     }
 
     [Fact]

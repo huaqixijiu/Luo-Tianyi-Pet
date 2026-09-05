@@ -41,7 +41,8 @@ public sealed class JsonSettingsStoreTests
                 Appearance = new AppearancePreferences
                 {
                     FullBodyStyle = AppearanceOptionIds.FullBodyClassicCatEars,
-                    BunEatingStyle = AppearanceOptionIds.BunEatingNew,
+                    BunEatingStyle = AppearanceOptionIds.BunEatingOriginal,
+                    EnableFullBodyStyleCycling = false,
                     DisplayScalePercent = 135,
                 },
                 Window = new WindowPreferences
@@ -424,7 +425,8 @@ public sealed class JsonSettingsStoreTests
             Assert.Equal(88.5, actual.Window.Left);
             Assert.False(actual.FileTreats.EnableDesktopFileTreats);
             Assert.Equal(AppearanceOptionIds.FullBodyLongHair, actual.Appearance.FullBodyStyle);
-            Assert.Equal(AppearanceOptionIds.BunEatingOriginal, actual.Appearance.BunEatingStyle);
+            Assert.Equal(AppearanceOptionIds.BunEatingNew, actual.Appearance.BunEatingStyle);
+            Assert.True(actual.Appearance.EnableFullBodyStyleCycling);
             Assert.Equal(100, actual.Appearance.DisplayScalePercent);
         }
         finally
@@ -465,6 +467,44 @@ public sealed class JsonSettingsStoreTests
             Assert.Equal(
                 AppearanceOptionIds.FullBodyClassicCatEars,
                 actual.Appearance.FullBodyStyle);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version11_DerivesBunStyleAndEnablesAppearanceCycling()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 11,
+                  "appearance": {
+                    "fullBodyStyle": "full-body-crystal-dress",
+                    "bunEatingStyle": "bun-eating-original",
+                    "displayScalePercent": 125
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.Equal(
+                AppearanceOptionIds.FullBodyCrystalDress,
+                actual.Appearance.FullBodyStyle);
+            Assert.Equal(AppearanceOptionIds.BunEatingNew, actual.Appearance.BunEatingStyle);
+            Assert.True(actual.Appearance.EnableFullBodyStyleCycling);
+            Assert.Equal(125, actual.Appearance.DisplayScalePercent);
         }
         finally
         {

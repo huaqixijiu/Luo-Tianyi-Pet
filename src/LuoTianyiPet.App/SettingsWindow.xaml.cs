@@ -1,9 +1,5 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using LuoTianyiPet.Animation;
 using LuoTianyiPet.Core;
 
 namespace LuoTianyiPet.App;
@@ -23,7 +19,6 @@ public partial class SettingsWindow : Window
         MediaPreferences mediaPreferences,
         bool startupRegistrationEnabled,
         IMessageNotificationSource? messageNotificationSource,
-        AnimationCatalog? animationCatalog,
         IApplicationVolumeService? applicationVolumeService)
     {
         ArgumentNullException.ThrowIfNull(notificationPreferences);
@@ -45,18 +40,9 @@ public partial class SettingsWindow : Window
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
         AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
+        FullBodyStyleCyclingCheckBox.IsChecked =
+            SelectedAppearancePreferences.EnableFullBodyStyleCycling;
         DesktopFileTreatsCheckBox.IsChecked = fileTreatPreferences.EnableDesktopFileTreats;
-        FullBodyLongHairRadio.IsChecked =
-            SelectedAppearancePreferences.FullBodyStyle == AppearanceOptionIds.FullBodyLongHair;
-        FullBodyCrystalDressRadio.IsChecked =
-            SelectedAppearancePreferences.FullBodyStyle == AppearanceOptionIds.FullBodyCrystalDress;
-        FullBodyClassicCatEarsRadio.IsChecked =
-            SelectedAppearancePreferences.FullBodyStyle == AppearanceOptionIds.FullBodyClassicCatEars;
-        BunEatingOriginalRadio.IsChecked =
-            SelectedAppearancePreferences.BunEatingStyle == AppearanceOptionIds.BunEatingOriginal;
-        BunEatingNewRadio.IsChecked =
-            SelectedAppearancePreferences.BunEatingStyle == AppearanceOptionIds.BunEatingNew;
-        LoadAppearancePreviews(animationCatalog);
     }
 
     public MessageNotificationPreferences SelectedNotificationPreferences { get; private set; }
@@ -195,14 +181,7 @@ public partial class SettingsWindow : Window
         SelectedAppearancePreferences = AppearancePreferences.Normalize(
             SelectedAppearancePreferences with
             {
-                FullBodyStyle = FullBodyCrystalDressRadio.IsChecked == true
-                    ? AppearanceOptionIds.FullBodyCrystalDress
-                    : FullBodyClassicCatEarsRadio.IsChecked == true
-                        ? AppearanceOptionIds.FullBodyClassicCatEars
-                        : AppearanceOptionIds.FullBodyLongHair,
-                BunEatingStyle = BunEatingNewRadio.IsChecked == true
-                    ? AppearanceOptionIds.BunEatingNew
-                    : AppearanceOptionIds.BunEatingOriginal,
+                EnableFullBodyStyleCycling = FullBodyStyleCyclingCheckBox.IsChecked == true,
             });
         if (MusicAnimationSelectionComboBox.SelectedItem is ComboBoxItem selectedMusicAnimation &&
             selectedMusicAnimation.Tag is string selection)
@@ -236,74 +215,6 @@ public partial class SettingsWindow : Window
             MusicAnimationSelectionComboBox.Items
                 .OfType<ComboBoxItem>()
                 .First(item => string.Equals(item.Tag as string, selected, StringComparison.Ordinal));
-    }
-
-    private void LoadAppearancePreviews(AnimationCatalog? catalog)
-    {
-        if (catalog is null)
-        {
-            return;
-        }
-
-        FullBodyLongHairPreview.Source = TryCreateFramePreview(
-            catalog,
-            AppearanceOptionIds.LongHairAnimation,
-            0);
-        FullBodyCrystalDressPreview.Source = TryCreateFramePreview(
-            catalog,
-            AppearanceOptionIds.CrystalDressAnimation,
-            0);
-        FullBodyClassicCatEarsPreview.Source = TryCreateFramePreview(
-            catalog,
-            AppearanceOptionIds.ClassicCatEarsAnimation,
-            0);
-        BunEatingOriginalPreview.Source = TryCreateFramePreview(
-            catalog,
-            AppearanceOptionIds.OriginalBunEatAnimation,
-            18);
-        BunEatingNewPreview.Source = TryCreateFramePreview(
-            catalog,
-            AppearanceOptionIds.NewBunEatAnimation,
-            18);
-    }
-
-    private static ImageSource? TryCreateFramePreview(
-        AnimationCatalog catalog,
-        string animationId,
-        int requestedFrameIndex)
-    {
-        try
-        {
-            AnimationAssetManifest manifest = catalog.GetRequired(animationId);
-            int frameIndex = Math.Clamp(
-                requestedFrameIndex,
-                0,
-                manifest.FrameDurationsMilliseconds.Count - 1);
-            BitmapImage atlas = new();
-            atlas.BeginInit();
-            atlas.CacheOption = BitmapCacheOption.OnLoad;
-            atlas.UriSource = new Uri(catalog.GetAtlasPath(manifest), UriKind.Absolute);
-            atlas.EndInit();
-            atlas.Freeze();
-
-            int column = frameIndex % manifest.Columns;
-            int row = frameIndex / manifest.Columns;
-            CroppedBitmap preview = new(
-                atlas,
-                new Int32Rect(
-                    column * manifest.FrameWidth,
-                    row * manifest.FrameHeight,
-                    manifest.FrameWidth,
-                    manifest.FrameHeight));
-            preview.Freeze();
-            return preview;
-        }
-        catch (Exception exception) when (
-            exception is IOException or InvalidDataException or ArgumentException or
-            KeyNotFoundException or NotSupportedException)
-        {
-            return null;
-        }
     }
 
     private void UpdateNotificationAccessDisplay(MessageNotificationAccessStatus? knownStatus = null)

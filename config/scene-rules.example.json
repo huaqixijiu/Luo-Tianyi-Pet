@@ -9,6 +9,17 @@
   },
   "appearance": {
     "fullBodyStyleDefault": "full-body-long-hair",
+    "fullBodyStyleCycling": {
+      "enabledDefault": true,
+      "gesture": "double-left-click",
+      "order": [
+        "full-body-long-hair",
+        "full-body-crystal-dress",
+        "full-body-classic-cat-ears"
+      ],
+      "persistCurrentStyle": true,
+      "disabledBehavior": "keep-current-style"
+    },
     "fullBodyStyles": {
       "full-body-long-hair": {
         "displayName": "华裳长发版",
@@ -26,7 +37,12 @@
         "interactionMode": "expression-pack"
       }
     },
-    "bunEatingStyleDefault": "bun-eating-original",
+    "bunEatingEnabledDefault": true,
+    "bunEatingStyleByFullBodyStyle": {
+      "full-body-long-hair": "bun-eating-new",
+      "full-body-crystal-dress": "bun-eating-new",
+      "full-body-classic-cat-ears": "bun-eating-original"
+    },
     "bunEatingStyles": {
       "bun-eating-original": {
         "displayName": "元气追包版",
@@ -72,10 +88,11 @@
     "sleepAfterSeconds": 1800,
     "keepDancingWhileMusicIsPlaying": true,
     "musicTemporarilyOverridesSelectedDisplayMode": true,
-    "defaultDisplayMode": "compact",
-    "rememberLastDisplayModeOnRestart": false,
+    "defaultDisplayMode": "fullBodyInteractive",
+    "rememberLastDisplayModeOnRestart": true,
     "restoreSelectedDisplayModeAfterTransientAnimation": true,
-    "displayModeToggle": {
+    "legacyDisplayModeToggle": {
+      "enabled": false,
       "gesture": "double-left-click",
       "maximumIntervalMilliseconds": 300,
       "suppressPendingSingleClickWhenToggled": true

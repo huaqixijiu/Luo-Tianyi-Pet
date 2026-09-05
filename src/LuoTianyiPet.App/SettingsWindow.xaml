@@ -36,11 +36,6 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style x:Key="PreviewChoiceStyle" TargetType="RadioButton">
-            <Setter Property="Margin" Value="5" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Stretch" />
-        </Style>
         <Style x:Key="Win11ApplicationVolumeSliderStyle" TargetType="Slider">
             <Setter Property="Height" Value="32" />
             <Setter Property="Focusable" Value="True" />
@@ -110,8 +105,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,2,16">
@@ -134,14 +127,17 @@
                 <CheckBox x:Name="AlwaysOnTopCheckBox"
                           AutomationProperties.Name="桌宠始终置顶"
                           Content="桌宠始终置顶" />
+                <CheckBox x:Name="FullBodyStyleCyclingCheckBox"
+                          AutomationProperties.Name="允许双击循环三种桌宠外观"
+                          Content="双击桌宠时循环切换三种外观" />
                 <CheckBox x:Name="DesktopFileTreatsCheckBox"
-                          AutomationProperties.Name="桌面文件消失后生成小笼包"
-                          Content="桌面文件移入回收站后，生成可拖动的小笼包并让天依追过去" />
+                          AutomationProperties.Name="启用吃包子功能"
+                          Content="启用吃包子功能（桌面删除后追包与拖到桌宠回收）" />
                 <TextBlock Margin="0,4,0,0"
                            Foreground="#A8174E68"
                            FontSize="11"
                            TextWrapping="Wrap"
-                           Text="开机启动与始终置顶也可以直接从 Windows 右下角的洛天依托盘图标切换。文件功能只观察桌面项目名称与图标位置，不读取文件内容。" />
+                           Text="关闭外观循环后会固定当前正在显示的外观，并在下次启动继续使用。吃包子功能只观察桌面项目名称与图标位置，不读取文件内容。" />
             </StackPanel>
         </Border>
 
@@ -251,94 +247,6 @@
             <StackPanel>
                 <TextBlock FontSize="15"
                            FontWeight="SemiBold"
-                           Text="完整全身外观与互动方式" />
-                <TextBlock Margin="0,4,0,8"
-                           Foreground="#A8174E68"
-                           FontSize="11"
-                           TextWrapping="Wrap"
-                           Text="双击桌宠进入完整全身模式时使用。三套外观拥有不同的触摸策略，不再共用同一批表情包。" />
-                <UniformGrid Columns="3">
-                    <RadioButton x:Name="FullBodyLongHairRadio"
-                                 GroupName="FullBodyStyle"
-                                 Style="{StaticResource PreviewChoiceStyle}"
-                                 AutomationProperties.Name="使用华裳长发版完整全身外观">
-                        <Border Padding="8" Background="#0D66CCFF" CornerRadius="10">
-                            <StackPanel>
-                                <Image x:Name="FullBodyLongHairPreview" Height="145" Stretch="Uniform" />
-                                <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="华裳长发版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="展示模式 · 不响应触摸" />
-                            </StackPanel>
-                        </Border>
-                    </RadioButton>
-                    <RadioButton x:Name="FullBodyCrystalDressRadio"
-                                 GroupName="FullBodyStyle"
-                                 Style="{StaticResource PreviewChoiceStyle}"
-                                 AutomationProperties.Name="使用晶蓝礼服版完整全身外观">
-                        <Border Padding="8" Background="#0D66CCFF" CornerRadius="10">
-                            <StackPanel>
-                                <Image x:Name="FullBodyCrystalDressPreview" Height="145" Stretch="Uniform" />
-                                <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="晶蓝礼服版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="连贯互动 · AI 动作待接入" />
-                            </StackPanel>
-                        </Border>
-                    </RadioButton>
-                    <RadioButton x:Name="FullBodyClassicCatEarsRadio"
-                                 GroupName="FullBodyStyle"
-                                 Style="{StaticResource PreviewChoiceStyle}"
-                                 AutomationProperties.Name="使用经典猫耳版完整全身外观">
-                        <Border Padding="8" Background="#0D66CCFF" CornerRadius="10">
-                            <StackPanel>
-                                <Image x:Name="FullBodyClassicCatEarsPreview" Height="145" Stretch="Uniform" />
-                                <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="经典猫耳版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="表情包互动 · 当前可用" />
-                            </StackPanel>
-                        </Border>
-                    </RadioButton>
-                </UniformGrid>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="5" Style="{StaticResource SettingCardStyle}">
-            <StackPanel>
-                <TextBlock FontSize="15" FontWeight="SemiBold" Text="吃包子动画" />
-                <TextBlock Margin="0,4,0,8"
-                           Foreground="#A8174E68"
-                           FontSize="11"
-                           TextWrapping="Wrap"
-                           Text="桌面文件变成小笼包后，选择天依追逐和吃掉包子时使用的画风。" />
-                <UniformGrid Columns="2">
-                    <RadioButton x:Name="BunEatingOriginalRadio"
-                                 GroupName="BunEatingStyle"
-                                 Style="{StaticResource PreviewChoiceStyle}"
-                                 AutomationProperties.Name="使用经典吃包子动画">
-                        <Border Padding="8" Background="#0D66CCFF" CornerRadius="10">
-                            <StackPanel>
-                                <Image x:Name="BunEatingOriginalPreview" Height="125" Stretch="Uniform" />
-                                <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="元气追包版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="现用手工抠像版本" />
-                            </StackPanel>
-                        </Border>
-                    </RadioButton>
-                    <RadioButton x:Name="BunEatingNewRadio"
-                                 GroupName="BunEatingStyle"
-                                 Style="{StaticResource PreviewChoiceStyle}"
-                                 AutomationProperties.Name="使用新版吃包子动画">
-                        <Border Padding="8" Background="#0D66CCFF" CornerRadius="10">
-                            <StackPanel>
-                                <Image x:Name="BunEatingNewPreview" Height="125" Stretch="Uniform" />
-                                <TextBlock Margin="0,7,0,0" HorizontalAlignment="Center" FontWeight="SemiBold" Text="甜笑寻包版" />
-                                <TextBlock HorizontalAlignment="Center" FontSize="10" Foreground="#A8174E68" Text="新增 AI 动画版本" />
-                            </StackPanel>
-                        </Border>
-                    </RadioButton>
-                </UniformGrid>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="6" Style="{StaticResource SettingCardStyle}">
-            <StackPanel>
-                <TextBlock FontSize="15"
-                           FontWeight="SemiBold"
                            Text="QQ / 微信消息提醒" />
                 <CheckBox x:Name="MessageReminderCheckBox"
                           AutomationProperties.Name="启用 QQ 和微信消息来源提醒"
@@ -372,7 +280,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="7" Margin="2,2,2,0">
+        <Grid Grid.Row="5" Margin="2,2,2,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

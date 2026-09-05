@@ -576,10 +576,6 @@
 
         <Grid.ContextMenu>
             <ContextMenu>
-                <MenuItem x:Name="FullBodyModeMenuItem"
-                          Header="完整全身模式"
-                          IsCheckable="True"
-                          Click="OnToggleDisplayMode" />
                 <MenuItem Header="动画与状态验证">
                     <MenuItem Header="模拟开始播放音乐" Click="OnPreviewMusicStart" />
                     <MenuItem Header="模拟停止音乐" Click="OnPreviewMusicStop" />
