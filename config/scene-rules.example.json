@@ -357,6 +357,8 @@
         "full-body-classic-cat-ears": {
           "animation": "resonance-expand",
           "replaceCurrentAnimation": true,
+          "matchCurrentAppearanceDisplaySize": true,
+          "preserveSourceAspectRatioWithTransparentPadding": true,
           "loopWhileDragging": false,
           "holdLastFrameAfterOnePlay": true
         },

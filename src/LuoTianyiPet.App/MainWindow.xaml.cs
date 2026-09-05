@@ -2310,6 +2310,7 @@ public partial class MainWindow : Window
         double displayScale = _settings.Appearance.DisplayScalePercent / 100.0;
         double displayWidth = manifest.DisplayWidth * displayScale;
         double displayHeight = manifest.DisplayHeight * displayScale;
+        AnimationAssetManifest boundaryManifest = ResolveResizeBoundaryManifest(manifest);
         PetImage.Width = displayWidth;
         PetImage.Height = displayHeight;
         PetImage.Visibility = Visibility.Visible;
@@ -2318,8 +2319,29 @@ public partial class MainWindow : Window
         ResizeAroundBottomCenter(
             displayWidth + 16,
             displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight,
-            manifest);
+            boundaryManifest);
         UpdateBodyHitDebugOverlay();
+    }
+
+    private AnimationAssetManifest ResolveResizeBoundaryManifest(
+        AnimationAssetManifest displayedManifest)
+    {
+        if (!_classicDragExpansionStarted ||
+            displayedManifest.Id != PetVisualState.CompactDraggingAnimation ||
+            _animationCatalog is null)
+        {
+            return displayedManifest;
+        }
+
+        try
+        {
+            return _animationCatalog.GetRequired(
+                _stateMachine.VisualState.FullBodyAnimationId);
+        }
+        catch (KeyNotFoundException)
+        {
+            return displayedManifest;
+        }
     }
 
     private void ShowFallback(string logMessage)

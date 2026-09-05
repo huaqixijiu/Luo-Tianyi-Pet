@@ -117,6 +117,31 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
             raise ValueError(f"cropAfterResize is outside the frame for {entry['id']}")
         frames = [frame.crop(crop_box) for frame in frames]
 
+    padding = entry.get("padAfterResize")
+    if padding is not None:
+        if (
+            not isinstance(padding, list)
+            or len(padding) != 4
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in padding)
+        ):
+            raise ValueError(f"Invalid padAfterResize for {entry['id']}")
+        canvas_width, canvas_height, offset_x, offset_y = padding
+        if (
+            canvas_width <= 0
+            or canvas_height <= 0
+            or offset_x < 0
+            or offset_y < 0
+            or offset_x + frames[0].width > canvas_width
+            or offset_y + frames[0].height > canvas_height
+        ):
+            raise ValueError(f"padAfterResize cannot contain the frame for {entry['id']}")
+        padded_frames: list[Image.Image] = []
+        for frame in frames:
+            canvas = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
+            canvas.alpha_composite(frame, (offset_x, offset_y))
+            padded_frames.append(canvas)
+        frames = padded_frames
+
     columns = min(maximum_columns, len(frames))
     rows = math.ceil(len(frames) / columns)
     frame_width, frame_height = frames[0].size

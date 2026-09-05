@@ -53,8 +53,9 @@
       "id": "resonance-expand",
       "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
       "atlas": "assets/animations/runtime/resonance-expand.atlas.png",
-      "displayWidth": 180,
-      "displayHeight": 180,
+      "padAfterResize": [162, 175, 0, 9],
+      "displayWidth": 220,
+      "displayHeight": 238,
       "loopCount": 0,
       "anchorX": 0.5,
       "anchorY": 1.0

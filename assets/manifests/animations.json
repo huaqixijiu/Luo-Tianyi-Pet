@@ -115,9 +115,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
       "sourceSha256": "b08b99453d45ea96d6ac2a46107ffafedc9490de6e4ddef1c61bd2c6fabcd718",
       "atlasPath": "animations/runtime/resonance-expand.atlas.png",
-      "atlasSha256": "42df8ac2f69a6959cd2eb7b61cb69a472c05174f6975cdfff1915be1073f8ed0",
+      "atlasSha256": "5daaf260a8ceeea0785fa1261ee1e36cdbe003a80c3f7f35965a6d0b2e58104a",
       "frameWidth": 162,
-      "frameHeight": 162,
+      "frameHeight": 175,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -133,15 +133,15 @@
         100
       ],
       "loopCount": 0,
-      "displayWidth": 180,
-      "displayHeight": 180,
+      "displayWidth": 220,
+      "displayHeight": 238,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
         0,
-        0,
+        9,
         162,
-        162
+        171
       ]
     },
     {
