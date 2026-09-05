@@ -1339,7 +1339,7 @@ public partial class MainWindow : Window
         BodyInteractionDecision decision = ResolvePettingInteraction();
         if (decision.AnimationId is string animationId)
         {
-            _ = PlayBodyReactionAsync(animationId);
+            _ = PlayBodyReactionAsync(animationId, blocksDisplayModeToggle: true);
         }
 
         _logger.Info("interaction.petting_completed", "Cute reaction requested.");
@@ -1347,6 +1347,14 @@ public partial class MainWindow : Window
 
     private void CycleFullBodyStyle()
     {
+        if (_stateMachine.IsDisplayModeToggleBlocked(DateTimeOffset.Now))
+        {
+            _logger.Info(
+                "display.style_cycle_blocked",
+                "A body-part reaction is still playing.");
+            return;
+        }
+
         if (!_settings.Appearance.EnableFullBodyStyleCycling)
         {
             _logger.Info(
@@ -1613,12 +1621,12 @@ public partial class MainWindow : Window
             if (decision.Kind == BodyInteractionDecisionKind.PlayAnimation &&
                 decision.AnimationId is string animationId)
             {
-                _ = PlayBodyReactionAsync(animationId);
+                _ = PlayBodyReactionAsync(animationId, blocksDisplayModeToggle: true);
             }
             else if (decision.Kind == BodyInteractionDecisionKind.PettingGestureRequired &&
                 ResolvePettingInteraction().AnimationId is string headPatAnimation)
             {
-                _ = PlayBodyReactionAsync(headPatAnimation);
+                _ = PlayBodyReactionAsync(headPatAnimation, blocksDisplayModeToggle: true);
             }
             else
             {
@@ -1627,20 +1635,28 @@ public partial class MainWindow : Window
         }
     }
 
-    private Task<Guid?> PlayBodyReactionAsync(string animationId) =>
-        PlayReactionAsync(animationId, ReactionPriority.UserInteraction, suppressBodyAfter: true);
+    private Task<Guid?> PlayBodyReactionAsync(
+        string animationId,
+        bool blocksDisplayModeToggle = false) =>
+        PlayReactionAsync(
+            animationId,
+            ReactionPriority.UserInteraction,
+            suppressBodyAfter: true,
+            blocksDisplayModeToggle: blocksDisplayModeToggle);
 
     private async Task<Guid?> PlayReactionAsync(
         string animationId,
         ReactionPriority priority,
-        bool suppressBodyAfter = false)
+        bool suppressBodyAfter = false,
+        bool blocksDisplayModeToggle = false)
     {
         DateTimeOffset now = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
                 animationId,
                 priority,
-                now.AddSeconds(20)),
+                now.AddSeconds(20),
+                BlocksDisplayModeToggle: blocksDisplayModeToggle),
             now);
         if (outcome.Token is not Guid token)
         {
@@ -4880,7 +4896,7 @@ public partial class MainWindow : Window
         await Task.Delay(500);
         if (!_isClosing)
         {
-            await PlayBodyReactionAsync(animationId);
+            await PlayBodyReactionAsync(animationId, blocksDisplayModeToggle: true);
         }
     }
 

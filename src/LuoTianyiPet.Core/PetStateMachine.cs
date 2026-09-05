@@ -33,7 +33,8 @@ public sealed record ReactionRequest(
     DateTimeOffset ExpiresAt,
     string? MergeKey = null,
     TimeSpan Cooldown = default,
-    bool InterruptibleByDrag = true);
+    bool InterruptibleByDrag = true,
+    bool BlocksDisplayModeToggle = false);
 
 public sealed record ReactionStartOutcome(ReactionStartResult Result, Guid? Token);
 
@@ -62,6 +63,12 @@ public sealed class PetStateMachine
     public PetVisualState VisualState { get; private set; }
 
     public Guid? ActiveReactionToken => _activeReaction?.Token;
+
+    public bool IsDisplayModeToggleBlocked(DateTimeOffset now)
+    {
+        ExpireReaction(now);
+        return _activeReaction?.Request.BlocksDisplayModeToggle == true;
+    }
 
     public void SetDisplayMode(PetDisplayMode mode) =>
         VisualState = VisualState with { SelectedDisplayMode = mode };

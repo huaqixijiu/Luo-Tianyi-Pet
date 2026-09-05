@@ -165,6 +165,19 @@ public sealed class PetStateMachineTests
     }
 
     [Fact]
+    public void BodyPartReactionBlocksDisplayModeToggleOnlyUntilAnimationCompletes()
+    {
+        PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
+        ReactionStartOutcome reaction = machine.TryStartReaction(
+            Request("body-part-action") with { BlocksDisplayModeToggle = true },
+            Now);
+
+        Assert.True(machine.IsDisplayModeToggleBlocked(Now.AddMilliseconds(500)));
+        Assert.True(machine.CompleteReaction(reaction.Token!.Value, Now.AddSeconds(2)));
+        Assert.False(machine.IsDisplayModeToggleBlocked(Now.AddSeconds(2)));
+    }
+
+    [Fact]
     public void LaterBodyInteractionSuppressionExtendsExistingRecoveryDelay()
     {
         PetStateMachine machine = new(new PetVisualState(PetDisplayMode.FullBodyInteractive));
