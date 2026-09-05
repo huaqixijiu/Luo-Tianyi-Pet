@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>洛天依桌宠 · 身体区域描边编辑器</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue: #33b9d0;
+      --blue-deep: #087f9d;
+      --ink: #17324a;
+      --muted: #668094;
+      --line: #ccebf2;
+      --panel: rgba(255,255,255,.94);
+      --bg: #effbfe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font: 14px/1.5 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(71,204,224,.2), transparent 28rem),
+        linear-gradient(135deg, #edfaff, #f9fcff 52%, #eef8ff);
+    }
+    button, select, input { font: inherit; }
+    button, select {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: #fff;
+    }
+    button {
+      min-height: 36px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--blue); box-shadow: 0 3px 12px rgba(38,164,189,.12); }
+    button.primary { color: #fff; border-color: var(--blue-deep); background: linear-gradient(135deg, #35c4dc, #1599b7); }
+    button.danger { color: #a53b4a; background: #fff7f8; border-color: #f1c8cf; }
+    button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    .app { max-width: 1480px; margin: auto; padding: 18px; }
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0 0 4px; font-size: 24px; }
+    header p { margin: 0; color: var(--muted); }
+    .badge {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border: 1px solid #aee7f1;
+      border-radius: 999px;
+      color: #087890;
+      background: rgba(255,255,255,.82);
+    }
+    .toolbar, .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 12px 35px rgba(44,123,150,.09);
+      backdrop-filter: blur(12px);
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 12px;
+    }
+    .field { display: grid; gap: 4px; min-width: 210px; }
+    .field label { color: var(--muted); font-size: 12px; }
+    select { min-height: 38px; padding: 7px 34px 7px 10px; }
+    .toolbar .spacer { flex: 1 1 20px; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) 340px;
+      gap: 14px;
+      align-items: start;
+    }
+    .workspace { padding: 14px; }
+    .canvas-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 660px;
+      overflow: hidden;
+      border: 1px solid #bde4ed;
+      border-radius: 12px;
+      background-color: #fff;
+      background-image:
+        linear-gradient(45deg, #e8f1f4 25%, transparent 25%),
+        linear-gradient(-45deg, #e8f1f4 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e8f1f4 75%),
+        linear-gradient(-45deg, transparent 75%, #e8f1f4 75%);
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+      background-size: 20px 20px;
+    }
+    canvas {
+      display: block;
+      max-width: min(100%, 780px);
+      max-height: 72vh;
+      width: auto;
+      height: auto;
+      touch-action: none;
+      cursor: crosshair;
+      filter: drop-shadow(0 8px 20px rgba(18,67,85,.16));
+    }
+    .canvas-empty {
+      position: absolute;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .statusbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .statusbar strong { color: var(--ink); }
+    aside { display: grid; gap: 14px; }
+    .panel { padding: 14px; }
+    .panel h2 { margin: 0 0 10px; font-size: 16px; }
+    .help {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+    .help li + li { margin-top: 5px; }
+    .region-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .region {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 7px 9px;
+      text-align: left;
+    }
+    .region.active {
+      border-color: var(--blue);
+      background: #eafaff;
+      box-shadow: 0 0 0 2px rgba(51,185,208,.13);
+    }
+    .swatch { width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; }
+    .region-name { min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .count { color: var(--muted); font-size: 11px; }
+    .active-card {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      color: #245166;
+      background: #eefbfe;
+    }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .wide { grid-column: 1 / -1; }
+    .legend {
+      margin-top: 10px;
+      padding: 9px 10px;
+      border: 1px dashed #abdce7;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 20;
+      max-width: min(560px, calc(100vw - 30px));
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(12,62,78,.92);
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .18s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .canvas-wrap { min-height: 540px; }
+      aside { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .app { padding: 10px; }
+      header { display: block; }
+      .badge { display: inline-block; margin-top: 8px; }
+      .layout, aside { grid-template-columns: 1fr; }
+      .canvas-wrap { min-height: 430px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>身体区域描边编辑器</h1>
+        <p>在人物上描出实际部位轮廓，导出后即可替换桌宠当前的矩形命中区。</p>
+      </div>
+      <span class="badge">天依蓝 · 本地离线工具</span>
+    </header>
+
+    <section class="toolbar">
+      <div class="field">
+        <label for="modelSelect">当前人物外观</label>
+        <select id="modelSelect"></select>
+      </div>
+      <button id="loadImageButton">载入其它图片</button>
+      <input id="imageInput" type="file" accept="image/png,image/webp,image/jpeg" hidden>
+      <div class="spacer"></div>
+      <button id="importButton">导入区域 JSON</button>
+      <input id="jsonInput" type="file" accept=".json,application/json" hidden>
+      <button id="copyButton">复制 JSON</button>
+      <button id="exportButton" class="primary">导出区域 JSON</button>
+      <button id="exportPngButton">导出标注图</button>
+    </section>
+
+    <div class="layout">
+      <section class="panel workspace">
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="canvas"></canvas>
+          <span class="canvas-empty" id="canvasEmpty">正在载入人物图片…</span>
+        </div>
+        <div class="statusbar">
+          <span>坐标：<strong id="coordinateText">—</strong></span>
+          <span>命中：<strong id="hitText">—</strong></span>
+          <span>图片：<strong id="imageSizeText">—</strong></span>
+          <span>状态：<strong id="modeText">编辑顶点</strong></span>
+        </div>
+      </section>
+
+      <aside>
+        <section class="panel">
+          <h2>1. 选择需要描边的部位</h2>
+          <div class="region-list" id="regionList"></div>
+          <div class="active-card" id="activeCard"></div>
+          <div class="action-grid">
+            <button id="redrawButton" class="primary">重画此部位</button>
+            <button id="addContourButton">添加一块轮廓</button>
+            <button id="finishButton" disabled>闭合当前轮廓</button>
+            <button id="undoButton" disabled>撤销一个点</button>
+            <button id="deleteButton" class="danger wide">清除此部位</button>
+          </div>
+          <div class="legend">
+            实线和彩色区域是已经闭合的轮廓；虚线是正在绘制的轮廓。一个部位可以有多块互不相连的轮廓。
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>2. 最简单的画法</h2>
+          <ol class="help">
+            <li>选择“左手”或其它部位，点击“重画此部位”。</li>
+            <li>沿部位外缘依次点击，点越多轮廓越精确。</li>
+            <li>按 <strong>Enter</strong> 或“闭合当前轮廓”。</li>
+            <li>闭合后可直接拖动圆点微调。</li>
+            <li>所有部位画好后导出 JSON，把文件路径告诉我即可。</li>
+          </ol>
+        </section>
+
+        <section class="panel">
+          <h2>快捷键与说明</h2>
+          <ul class="help">
+            <li><strong>Ctrl+Z</strong>：绘制时撤回一个点。</li>
+            <li><strong>Esc</strong>：取消尚未闭合的轮廓。</li>
+            <li><strong>右键</strong>：绘制时撤回一个点。</li>
+            <li>坐标是 0～1 的比例值，改变桌宠显示大小后仍然有效。</li>
+            <li>眼睛、嘴等小区域优先于脸和头发；“其他身体”优先级最低。</li>
+          </ul>
+          <div class="action-grid">
+            <button id="resetButton" class="danger wide">恢复当前外观的初始区域</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var regionDefinitions = [
+        { id: "LeftEye", name: "左眼", color: "#2f80ed" },
+        { id: "RightEye", name: "右眼", color: "#5b68e8" },
+        { id: "Mouth", name: "嘴巴", color: "#ff596f" },
+        { id: "Face", name: "脸部", color: "#ff9f43" },
+        { id: "LeftHand", name: "左手", color: "#00a8a8" },
+        { id: "RightHand", name: "右手", color: "#18a85b" },
+        { id: "Chest", name: "胸部", color: "#e85da8" },
+        { id: "LowerBodySensitiveArea", name: "下体", color: "#a55eea" },
+        { id: "LeftFoot", name: "左脚", color: "#2367a9" },
+        { id: "RightFoot", name: "右脚", color: "#3742a3" },
+        { id: "HeadAndHair", name: "头部与头发", color: "#ffc312" },
+        { id: "OtherBody", name: "其他身体", color: "#718093" }
+      ];
+
+      var presets = [
+        {
+          id: "full-body-long-hair",
+          name: "模式一 · 华裳长发版",
+          animationId: "official-v4-chibi-full-body-idle",
+          src: "../assets/animations/processed/用户提供_新全身_透明.png",
+          rects: [
+            [.39,.20,.10,.10],[.51,.20,.10,.10],[.455,.28,.09,.055],[.36,.15,.28,.20],
+            [.20,.49,.12,.14],[.68,.49,.12,.14],[.455,.34,.09,.12],[.465,.54,.07,.09],
+            [.39,.82,.11,.16],[.50,.82,.11,.16],[.29,.02,.42,.39],[.08,.02,.84,.96]
+          ]
+        },
+        {
+          id: "full-body-crystal",
+          name: "模式二 · 晶蓝礼服版",
+          animationId: "user-chibi-crystal-full-body-idle",
+          src: "../assets/animations/processed/用户提供_Q版小人全身_透明.png",
+          rects: [
+            [.37,.20,.12,.11],[.51,.20,.12,.11],[.455,.30,.09,.05],[.33,.12,.34,.25],
+            [.23,.50,.13,.14],[.64,.50,.13,.14],[.455,.38,.09,.11],[.465,.61,.07,.08],
+            [.39,.84,.11,.14],[.50,.84,.11,.14],[.25,.01,.50,.39],[.08,.01,.84,.97]
+          ]
+        },
+        {
+          id: "full-body-classic",
+          name: "模式三 · 经典猫耳版",
+          animationId: "user-chibi-classic-full-body-idle",
+          src: "../assets/animations/processed/用户提供_Q版小人全身_经典_透明.png",
+          rects: [
+            [.33,.36,.16,.14],[.56,.36,.15,.14],[.46,.49,.09,.06],[.29,.29,.42,.27],
+            [.27,.72,.12,.13],[.62,.72,.12,.13],[.46,.57,.08,.08],[.465,.72,.07,.08],
+            [.36,.89,.13,.10],[.54,.89,.14,.10],[.14,.02,.72,.54],[.10,.02,.80,.97]
+          ]
+        }
+      ];
+
+      var canvas = document.getElementById("canvas");
+      var context = canvas.getContext("2d");
+      var modelSelect = document.getElementById("modelSelect");
+      var regionList = document.getElementById("regionList");
+      var activeCard = document.getElementById("activeCard");
+      var coordinateText = document.getElementById("coordinateText");
+      var hitText = document.getElementById("hitText");
+      var imageSizeText = document.getElementById("imageSizeText");
+      var modeText = document.getElementById("modeText");
+      var canvasEmpty = document.getElementById("canvasEmpty");
+      var toast = document.getElementById("toast");
+      var currentPreset = presets[0];
+      var currentImage = new Image();
+      var activeRegionId = "LeftHand";
+      var polygons = {};
+      var draft = [];
+      var drawing = false;
+      var draggingPoint = null;
+      var customImageName = null;
+
+      presets.forEach(function (preset) {
+        var option = document.createElement("option");
+        option.value = preset.id;
+        option.textContent = preset.name;
+        modelSelect.appendChild(option);
+      });
+
+      regionDefinitions.forEach(function (region) {
+        polygons[region.id] = [];
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "region";
+        button.dataset.regionId = region.id;
+        button.innerHTML =
+          '<span class="swatch" style="background:' + region.color + '"></span>' +
+          '<span class="region-name">' + region.name + '</span>' +
+          '<span class="count">0</span>';
+        button.addEventListener("click", function () {
+          activeRegionId = region.id;
+          cancelDraft();
+          updateUi();
+          render();
+        });
+        regionList.appendChild(button);
+      });
+
+      function rectanglePolygon(rect) {
+        var x = rect[0], y = rect[1], width = rect[2], height = rect[3];
+        return [[x,y],[x+width,y],[x+width,y+height],[x,y+height]];
+      }
+
+      function seedForPreset(preset) {
+        var result = {};
+        regionDefinitions.forEach(function (region, index) {
+          result[region.id] = [rectanglePolygon(preset.rects[index])];
+        });
+        return result;
+      }
+
+      function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function storageKey() {
+        return "luotianyi-body-region-editor:" + currentPreset.id;
+      }
+
+      function saveLocal() {
+        if (currentPreset.id.indexOf("custom:") === 0) {
+          return;
+        }
+        try {
+          localStorage.setItem(storageKey(), JSON.stringify(polygons));
+        } catch (_) {
+          // file:// environments may deny storage; exporting still works.
+        }
+      }
+
+      function loadLocalOrSeed() {
+        var loaded = null;
+        try {
+          loaded = JSON.parse(localStorage.getItem(storageKey()) || "null");
+        } catch (_) {
+          loaded = null;
+        }
+        polygons = loaded || seedForPreset(currentPreset);
+        regionDefinitions.forEach(function (region) {
+          if (!Array.isArray(polygons[region.id])) {
+            polygons[region.id] = [];
+          }
+        });
+      }
+
+      function loadPreset(preset) {
+        currentPreset = preset;
+        customImageName = null;
+        var customOption = modelSelect.querySelector('option[data-custom="true"]');
+        if (customOption) {
+          customOption.remove();
+        }
+        modelSelect.value = preset.id;
+        cancelDraft();
+        loadLocalOrSeed();
+        loadImage(preset.src);
+        updateUi();
+      }
+
+      function loadImage(source) {
+        canvasEmpty.hidden = false;
+        currentImage = new Image();
+        currentImage.onload = function () {
+          canvas.width = currentImage.naturalWidth;
+          canvas.height = currentImage.naturalHeight;
+          imageSizeText.textContent = canvas.width + " × " + canvas.height;
+          canvasEmpty.hidden = true;
+          render();
+        };
+        currentImage.onerror = function () {
+          canvasEmpty.textContent = "图片载入失败，请点击“载入其它图片”手动选择。";
+          showToast("无法载入人物图片");
+        };
+        currentImage.src = source;
+      }
+
+      function normalizedPoint(event) {
+        var bounds = canvas.getBoundingClientRect();
+        return [
+          clamp((event.clientX - bounds.left) / bounds.width, 0, 1),
+          clamp((event.clientY - bounds.top) / bounds.height, 0, 1)
+        ];
+      }
+
+      function clamp(value, minimum, maximum) {
+        return Math.min(maximum, Math.max(minimum, value));
+      }
+
+      function regionById(id) {
+        return regionDefinitions.find(function (region) { return region.id === id; });
+      }
+
+      function render() {
+        if (!currentImage.complete || !canvas.width) {
+          return;
+        }
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+
+        regionDefinitions.slice().reverse().forEach(function (region) {
+          var isActive = region.id === activeRegionId;
+          (polygons[region.id] || []).forEach(function (polygon) {
+            drawPolygon(polygon, region.color, isActive, false);
+          });
+        });
+        if (drawing && draft.length) {
+          drawPolygon(draft, regionById(activeRegionId).color, true, true);
+        }
+      }
+
+      function drawPolygon(points, color, isActive, isDraft) {
+        if (!points.length) {
+          return;
+        }
+        context.save();
+        context.beginPath();
+        points.forEach(function (point, index) {
+          var x = point[0] * canvas.width;
+          var y = point[1] * canvas.height;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        if (!isDraft && points.length >= 3) {
+          context.closePath();
+        }
+        context.lineWidth = isActive ? Math.max(2, canvas.width / 180) : Math.max(1, canvas.width / 320);
+        context.strokeStyle = color;
+        context.fillStyle = color + (isActive ? "3d" : "20");
+        context.setLineDash(isDraft ? [10, 7] : []);
+        if (!isDraft && points.length >= 3) context.fill();
+        context.stroke();
+        if (isActive) {
+          points.forEach(function (point, index) {
+            var x = point[0] * canvas.width;
+            var y = point[1] * canvas.height;
+            context.beginPath();
+            context.arc(x, y, Math.max(4, canvas.width / 110), 0, Math.PI * 2);
+            context.fillStyle = index === 0 ? "#fff" : color;
+            context.fill();
+            context.lineWidth = Math.max(1.5, canvas.width / 300);
+            context.strokeStyle = "#17324a";
+            context.stroke();
+          });
+        }
+        context.restore();
+      }
+
+      function updateUi() {
+        var active = regionById(activeRegionId);
+        regionList.querySelectorAll(".region").forEach(function (button) {
+          var id = button.dataset.regionId;
+          button.classList.toggle("active", id === activeRegionId);
+          button.querySelector(".count").textContent = String((polygons[id] || []).length);
+        });
+        activeCard.innerHTML =
+          '<strong style="color:' + active.color + '">' + active.name + "</strong><br>" +
+          (drawing
+            ? "正在描边：已有 " + draft.length + " 个点，至少 3 个点后闭合。"
+            : "已完成 " + (polygons[activeRegionId] || []).length + " 块轮廓；可拖动圆点微调。");
+        modeText.textContent = drawing ? "正在描边" : "编辑顶点";
+        document.getElementById("finishButton").disabled = !drawing || draft.length < 3;
+        document.getElementById("undoButton").disabled = !drawing || draft.length === 0;
+      }
+
+      function beginRedraw(clearExisting) {
+        if (clearExisting) {
+          polygons[activeRegionId] = [];
+        }
+        draft = [];
+        drawing = true;
+        draggingPoint = null;
+        updateUi();
+        render();
+      }
+
+      function finishDraft() {
+        if (!drawing || draft.length < 3) {
+          showToast("至少需要 3 个点才能闭合轮廓");
+          return;
+        }
+        polygons[activeRegionId].push(draft.map(roundPoint));
+        draft = [];
+        drawing = false;
+        saveLocal();
+        updateUi();
+        render();
+        showToast("轮廓已闭合，可拖动圆点继续微调");
+      }
+
+      function cancelDraft() {
+        draft = [];
+        drawing = false;
+        draggingPoint = null;
+        updateUi();
+      }
+
+      function undoPoint() {
+        if (drawing && draft.length) {
+          draft.pop();
+          updateUi();
+          render();
+        }
+      }
+
+      function roundPoint(point) {
+        return [Number(point[0].toFixed(5)), Number(point[1].toFixed(5))];
+      }
+
+      function nearestActivePoint(point) {
+        var bounds = canvas.getBoundingClientRect();
+        var threshold = 14 / Math.max(bounds.width, bounds.height);
+        var nearest = null;
+        (polygons[activeRegionId] || []).forEach(function (polygon, polygonIndex) {
+          polygon.forEach(function (candidate, pointIndex) {
+            var distance = Math.hypot(candidate[0] - point[0], candidate[1] - point[1]);
+            if (distance <= threshold && (!nearest || distance < nearest.distance)) {
+              nearest = { polygonIndex: polygonIndex, pointIndex: pointIndex, distance: distance };
+            }
+          });
+        });
+        return nearest;
+      }
+
+      function pointInPolygon(point, polygon) {
+        var inside = false;
+        for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          var xi = polygon[i][0], yi = polygon[i][1];
+          var xj = polygon[j][0], yj = polygon[j][1];
+          var intersects = ((yi > point[1]) !== (yj > point[1])) &&
+            (point[0] < (xj - xi) * (point[1] - yi) / ((yj - yi) || Number.EPSILON) + xi);
+          if (intersects) inside = !inside;
+        }
+        return inside;
+      }
+
+      function hitTest(point) {
+        for (var r = 0; r < regionDefinitions.length; r += 1) {
+          var region = regionDefinitions[r];
+          var shapes = polygons[region.id] || [];
+          for (var p = 0; p < shapes.length; p += 1) {
+            if (shapes[p].length >= 3 && pointInPolygon(point, shapes[p])) {
+              return region;
+            }
+          }
+        }
+        return null;
+      }
+
+      canvas.addEventListener("pointerdown", function (event) {
+        if (event.button !== 0) return;
+        var point = normalizedPoint(event);
+        if (drawing) {
+          draft.push(roundPoint(point));
+          updateUi();
+          render();
+          return;
+        }
+        var nearest = nearestActivePoint(point);
+        if (nearest) {
+          draggingPoint = nearest;
+          canvas.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        }
+      });
+
+      canvas.addEventListener("pointermove", function (event) {
+        var point = normalizedPoint(event);
+        coordinateText.textContent = point[0].toFixed(4) + ", " + point[1].toFixed(4);
+        var hit = hitTest(point);
+        hitText.textContent = hit ? hit.name : "未命中";
+        if (draggingPoint) {
+          polygons[activeRegionId][draggingPoint.polygonIndex][draggingPoint.pointIndex] = roundPoint(point);
+          render();
+        }
+      });
+
+      canvas.addEventListener("pointerup", function (event) {
+        if (draggingPoint) {
+          draggingPoint = null;
+          saveLocal();
+          render();
+          try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+        }
+      });
+
+      canvas.addEventListener("pointerleave", function () {
+        if (!draggingPoint) {
+          coordinateText.textContent = "—";
+          hitText.textContent = "—";
+        }
+      });
+
+      canvas.addEventListener("contextmenu", function (event) {
+        if (drawing) {
+          event.preventDefault();
+          undoPoint();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && drawing) {
+          event.preventDefault();
+          finishDraft();
+        } else if (event.key === "Escape" && drawing) {
+          event.preventDefault();
+          cancelDraft();
+          render();
+          showToast("已取消尚未闭合的轮廓");
+        } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && drawing) {
+          event.preventDefault();
+          undoPoint();
+        }
+      });
+
+      modelSelect.addEventListener("change", function () {
+        var preset = presets.find(function (item) { return item.id === modelSelect.value; });
+        if (preset) loadPreset(preset);
+      });
+      document.getElementById("redrawButton").addEventListener("click", function () { beginRedraw(true); });
+      document.getElementById("addContourButton").addEventListener("click", function () { beginRedraw(false); });
+      document.getElementById("finishButton").addEventListener("click", finishDraft);
+      document.getElementById("undoButton").addEventListener("click", undoPoint);
+      document.getElementById("deleteButton").addEventListener("click", function () {
+        polygons[activeRegionId] = [];
+        cancelDraft();
+        saveLocal();
+        updateUi();
+        render();
+        showToast("已清除此部位");
+      });
+      document.getElementById("resetButton").addEventListener("click", function () {
+        if (currentPreset.id.indexOf("custom:") === 0) {
+          regionDefinitions.forEach(function (region) { polygons[region.id] = []; });
+        } else {
+          polygons = seedForPreset(currentPreset);
+          try { localStorage.removeItem(storageKey()); } catch (_) {}
+        }
+        cancelDraft();
+        updateUi();
+        render();
+        showToast("已恢复当前外观的初始区域");
+      });
+
+      document.getElementById("loadImageButton").addEventListener("click", function () {
+        document.getElementById("imageInput").click();
+      });
+      document.getElementById("imageInput").addEventListener("change", function (event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        customImageName = file.name;
+        currentPreset = {
+          id: "custom:" + file.name,
+          name: "自定义图片 · " + file.name,
+          animationId: null,
+          src: file.name,
+          rects: []
+        };
+        var option = modelSelect.querySelector('option[data-custom="true"]');
+        if (!option) {
+          option = document.createElement("option");
+          option.dataset.custom = "true";
+          modelSelect.appendChild(option);
+        }
+        option.value = currentPreset.id;
+        option.textContent = currentPreset.name;
+        modelSelect.value = currentPreset.id;
+        regionDefinitions.forEach(function (region) { polygons[region.id] = []; });
+        cancelDraft();
+        loadImage(URL.createObjectURL(file));
+        updateUi();
+      });
+
+      function exportObject() {
+        return {
+          schemaVersion: 1,
+          coordinateSpace: "normalized-image",
+          hitTestRule: "first-matching-region",
+          model: {
+            presetId: currentPreset.id,
+            name: currentPreset.name,
+            animationId: currentPreset.animationId,
+            imageSource: customImageName || currentPreset.src,
+            imageWidth: canvas.width,
+            imageHeight: canvas.height
+          },
+          regions: regionDefinitions.map(function (region, priority) {
+            return {
+              id: region.id,
+              name: region.name,
+              priority: priority,
+              color: region.color,
+              polygons: (polygons[region.id] || []).map(function (polygon) {
+                return polygon.map(roundPoint);
+              })
+            };
+          })
+        };
+      }
+
+      function exportJsonText() {
+        return JSON.stringify(exportObject(), null, 2) + "\n";
+      }
+
+      function downloadBlob(blob, filename) {
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 500);
+      }
+
+      document.getElementById("exportButton").addEventListener("click", function () {
+        downloadBlob(
+          new Blob([exportJsonText()], { type: "application/json;charset=utf-8" }),
+          "身体区域_" + currentPreset.id.replace(/[^a-zA-Z0-9_-]+/g, "_") + ".json"
+        );
+        showToast("区域 JSON 已导出");
+      });
+
+      document.getElementById("copyButton").addEventListener("click", function () {
+        var text = exportJsonText();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast("JSON 已复制到剪贴板");
+          }, function () {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      });
+
+      function fallbackCopy(text) {
+        var area = document.createElement("textarea");
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        showToast("JSON 已复制到剪贴板");
+      }
+
+      document.getElementById("importButton").addEventListener("click", function () {
+        document.getElementById("jsonInput").click();
+      });
+      document.getElementById("jsonInput").addEventListener("change", function (event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        file.text().then(function (text) {
+          var data = JSON.parse(text);
+          if (!data || data.schemaVersion !== 1 || !Array.isArray(data.regions)) {
+            throw new Error("不支持的区域 JSON 格式");
+          }
+          var next = {};
+          regionDefinitions.forEach(function (region) { next[region.id] = []; });
+          data.regions.forEach(function (region) {
+            if (!Object.prototype.hasOwnProperty.call(next, region.id) || !Array.isArray(region.polygons)) return;
+            next[region.id] = region.polygons.map(function (polygon) {
+              return polygon.map(function (point) {
+                return roundPoint([clamp(Number(point[0]),0,1), clamp(Number(point[1]),0,1)]);
+              });
+            }).filter(function (polygon) { return polygon.length >= 3; });
+          });
+          polygons = next;
+          cancelDraft();
+          saveLocal();
+          updateUi();
+          render();
+          showToast("区域 JSON 已导入");
+        }).catch(function (error) {
+          showToast("导入失败：" + error.message);
+        });
+        event.target.value = "";
+      });
+
+      document.getElementById("exportPngButton").addEventListener("click", function () {
+        if (!canvas.width) return;
+        var output = document.createElement("canvas");
+        output.width = canvas.width;
+        output.height = canvas.height;
+        var outputContext = output.getContext("2d");
+        outputContext.drawImage(currentImage, 0, 0, output.width, output.height);
+        regionDefinitions.slice().reverse().forEach(function (region) {
+          (polygons[region.id] || []).forEach(function (polygon) {
+            if (polygon.length < 3) return;
+            outputContext.beginPath();
+            polygon.forEach(function (point, index) {
+              var x = point[0] * output.width;
+              var y = point[1] * output.height;
+              if (index === 0) outputContext.moveTo(x, y);
+              else outputContext.lineTo(x, y);
+            });
+            outputContext.closePath();
+            outputContext.fillStyle = region.color + "38";
+            outputContext.strokeStyle = region.color;
+            outputContext.lineWidth = Math.max(2, output.width / 200);
+            outputContext.fill();
+            outputContext.stroke();
+          });
+        });
+        output.toBlob(function (blob) {
+          if (blob) {
+            downloadBlob(blob, "身体区域标注_" + currentPreset.id.replace(/[^a-zA-Z0-9_-]+/g, "_") + ".png");
+            showToast("标注图片已导出");
+          }
+        }, "image/png");
+      });
+
+      var toastTimer = null;
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 1800);
+      }
+
+      loadPreset(presets[0]);
+    }());
+  </script>
+</body>
+</html>
