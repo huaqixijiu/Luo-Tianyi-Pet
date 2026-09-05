@@ -1352,6 +1352,7 @@ public partial class MainWindow : Window
             : PetDisplayMode.Compact;
         _stateMachine.SetDisplayMode(nextMode);
         FullBodyModeMenuItem.IsChecked = nextMode == PetDisplayMode.FullBodyInteractive;
+        RestoreIdleWhenHeheIsNotEligible();
 
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle)
@@ -2074,7 +2075,10 @@ public partial class MainWindow : Window
     private void ApplyIdleScene(TimeSpan idleDuration)
     {
         PetContinuousState previousState = _stateMachine.VisualState.ContinuousState;
-        IdleSceneDecision decision = IdleSceneResolver.Resolve(idleDuration, previousState);
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            idleDuration,
+            previousState,
+            IsClassicCatEarsFullBodyMode());
         if (!decision.ChangesStateFrom(previousState))
         {
             return;
@@ -2102,6 +2106,22 @@ public partial class MainWindow : Window
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
         {
             _ = TransitionToResolvedContinuousAnimationAsync(eventName + ".transition_completed");
+        }
+    }
+
+    private bool IsClassicCatEarsFullBodyMode() =>
+        _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+        string.Equals(
+            _settings.Appearance.FullBodyStyle,
+            AppearanceOptionIds.FullBodyClassicCatEars,
+            StringComparison.Ordinal);
+
+    private void RestoreIdleWhenHeheIsNotEligible()
+    {
+        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdle &&
+            !IsClassicCatEarsFullBodyMode())
+        {
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
         }
     }
 
@@ -2932,6 +2952,7 @@ public partial class MainWindow : Window
             AppearanceOptionIds.ResolveFullBodyInteractionMode(normalized.FullBodyStyle) ==
                 FullBodyInteractionMode.ExpressionPack);
         _bodyHitMap = BodyHitMap.ForFullBodyAnimation(fullBodyAnimation);
+        RestoreIdleWhenHeheIsNotEligible();
 
         bool appearanceChanged = !string.Equals(
             previousFullBodyAnimation,

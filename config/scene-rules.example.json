@@ -94,6 +94,10 @@
     "idlePollMilliseconds": 1000,
     "mediumIdleAfterMinutes": 3,
     "mediumIdleAnimation": "resonance-hehe",
+    "mediumIdleEligibility": {
+      "displayMode": "fullBodyInteractive",
+      "fullBodyStyle": "full-body-classic-cat-ears"
+    },
     "birthdayIdleEasterEgg": {
       "animation": "twelfth-anniversary-happy-birthday",
       "dates": ["07-12", "12-12"],

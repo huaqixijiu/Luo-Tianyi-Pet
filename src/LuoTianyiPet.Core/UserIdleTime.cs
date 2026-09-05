@@ -19,7 +19,8 @@ public static class IdleSceneResolver
 
     public static IdleSceneDecision Resolve(
         TimeSpan idleDuration,
-        PetContinuousState currentState)
+        PetContinuousState currentState,
+        bool mediumIdleEnabled = true)
     {
         if (idleDuration < TimeSpan.Zero)
         {
@@ -37,7 +38,8 @@ public static class IdleSceneResolver
         PetContinuousState targetState = idleDuration switch
         {
             _ when idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
-            _ when idleDuration >= MediumIdleThreshold => PetContinuousState.MediumIdle,
+            _ when mediumIdleEnabled && idleDuration >= MediumIdleThreshold =>
+                PetContinuousState.MediumIdle,
             _ => PetContinuousState.Idle,
         };
 

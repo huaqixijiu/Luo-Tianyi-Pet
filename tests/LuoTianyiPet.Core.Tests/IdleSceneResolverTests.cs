@@ -39,6 +39,33 @@ public sealed class IdleSceneResolverTests
     }
 
     [Theory]
+    [InlineData(3, PetContinuousState.Idle)]
+    [InlineData(29, PetContinuousState.Idle)]
+    [InlineData(30, PetContinuousState.Sleeping)]
+    public void MediumIdleCanBeDisabledWithoutDisablingLongSleep(
+        int idleMinutes,
+        PetContinuousState expectedTarget)
+    {
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            TimeSpan.FromMinutes(idleMinutes),
+            PetContinuousState.Idle,
+            mediumIdleEnabled: false);
+
+        Assert.Equal(expectedTarget, decision.TargetState);
+    }
+
+    [Fact]
+    public void DisablingMediumIdleRestoresAnExistingMediumIdleState()
+    {
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            TimeSpan.FromMinutes(8),
+            PetContinuousState.MediumIdle,
+            mediumIdleEnabled: false);
+
+        Assert.Equal(PetContinuousState.Idle, decision.TargetState);
+    }
+
+    [Theory]
     [InlineData(PetContinuousState.MusicPlaying)]
     [InlineData(PetContinuousState.MusicPaused)]
     [InlineData(PetContinuousState.Dragging)]
