@@ -20,9 +20,10 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 
-FRAME_SIZE = 256
+DEFAULT_FRAME_SIZE = 384
 ATLAS_COLUMNS = 8
 FRAME_DURATION_MS = 42
+SMOOTHED_FRAME_DURATION_MS = 21
 
 
 def sha256(path: Path) -> str:
@@ -178,12 +179,16 @@ def union_bounds(frames: list[Image.Image]) -> tuple[int, int, int, int]:
     return left, top, right, bottom
 
 
-def normalize_frame(frame: Image.Image, crop: tuple[int, int, int, int]) -> Image.Image:
+def normalize_frame(
+    frame: Image.Image,
+    crop: tuple[int, int, int, int],
+    frame_size: int,
+) -> Image.Image:
     cropped = frame.crop(crop)
-    cropped.thumbnail((FRAME_SIZE - 8, FRAME_SIZE - 8), Image.Resampling.LANCZOS)
-    canvas = Image.new("RGBA", (FRAME_SIZE, FRAME_SIZE), (0, 0, 0, 0))
-    x = (FRAME_SIZE - cropped.width) // 2
-    y = FRAME_SIZE - cropped.height - 4
+    cropped.thumbnail((frame_size - 12, frame_size - 12), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (frame_size, frame_size), (0, 0, 0, 0))
+    x = (frame_size - cropped.width) // 2
+    y = frame_size - cropped.height - 6
     canvas.alpha_composite(cropped, (x, y))
     return canvas
 
@@ -191,11 +196,87 @@ def normalize_frame(frame: Image.Image, crop: tuple[int, int, int, int]) -> Imag
 def clear_between_feet_floor_residue(frame: Image.Image) -> Image.Image:
     """Clear the last compressed shadow island in the stable shoe gap."""
     result = frame.copy()
-    # Every source frame normalizes to the same 256 px canvas and the unwanted
-    # island stays inside this empty gap.  The rectangle deliberately stops
-    # before both shoe outlines and starts below the central leg outline.
-    result.paste((0, 0, 0, 0), (140, 228, 149, 240))
+    # The unwanted island stays in the same normalized shoe-gap region.  Scale
+    # the historical 256 px cleanup box with the selected runtime resolution.
+    scale = frame.width / 256
+    box = tuple(round(value * scale) for value in (140, 228, 149, 240))
+    result.paste((0, 0, 0, 0), box)
     return result
+
+
+def optical_flow_midpoint(left: Image.Image, right: Image.Image) -> Image.Image:
+    """Move both RGBA frames halfway before a halo-free composite."""
+    try:
+        import cv2
+    except ImportError as exc:
+        raise RuntimeError(
+            "flow2x smoothing requires opencv-python-headless; install "
+            "tools/animation_tools/requirements.txt"
+        ) from exc
+
+    left_rgba = np.asarray(left, dtype=np.float32) / 255.0
+    right_rgba = np.asarray(right, dtype=np.float32) / 255.0
+    gray_frames: list[np.ndarray] = []
+    for rgba in (left_rgba, right_rgba):
+        alpha = rgba[:, :, 3:4]
+        # A neutral matte gives optical flow a stable silhouette while avoiding
+        # the false high-contrast motion introduced by transparent RGB data.
+        composited = rgba[:, :, :3] * alpha + 0.5 * (1.0 - alpha)
+        gray_frames.append(
+            cv2.cvtColor(
+                np.clip(composited * 255.0, 0, 255).astype(np.uint8),
+                cv2.COLOR_RGB2GRAY,
+            )
+        )
+
+    forward = cv2.calcOpticalFlowFarneback(
+        gray_frames[0], gray_frames[1], None, 0.5, 5, 25, 5, 7, 1.5, 0
+    )
+    backward = cv2.calcOpticalFlowFarneback(
+        gray_frames[1], gray_frames[0], None, 0.5, 5, 25, 5, 7, 1.5, 0
+    )
+    yy, xx = np.mgrid[0 : left.height, 0 : left.width].astype(np.float32)
+
+    def warp_halfway(rgba: np.ndarray, flow: np.ndarray) -> np.ndarray:
+        alpha = rgba[:, :, 3:4]
+        premultiplied = np.concatenate((rgba[:, :, :3] * alpha, alpha), axis=2)
+        return cv2.remap(
+            premultiplied,
+            xx - 0.5 * flow[:, :, 0],
+            yy - 0.5 * flow[:, :, 1],
+            cv2.INTER_CUBIC,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        )
+
+    midpoint = (warp_halfway(left_rgba, forward) + warp_halfway(right_rgba, backward)) * 0.5
+    alpha = midpoint[:, :, 3:4]
+    rgb = np.divide(
+        midpoint[:, :, :3],
+        alpha,
+        out=np.zeros_like(midpoint[:, :, :3]),
+        where=alpha > (1.0 / 255.0),
+    )
+    rgba = np.concatenate((rgb, alpha), axis=2)
+    return Image.fromarray(np.clip(rgba * 255.0 + 0.5, 0, 255).astype(np.uint8), "RGBA")
+
+
+def smooth_frames_2x(frames: list[Image.Image], loop: bool) -> list[Image.Image]:
+    """Double temporal samples without changing the animation's total time."""
+    if not frames:
+        return []
+    smoothed: list[Image.Image] = []
+    for index, frame in enumerate(frames):
+        smoothed.append(frame)
+        if index + 1 < len(frames):
+            smoothed.append(optical_flow_midpoint(frame, frames[index + 1]))
+        elif loop:
+            smoothed.append(optical_flow_midpoint(frame, frames[0]))
+        else:
+            # Keep the final pose for one additional half-frame.  This makes
+            # 2N frames at 21 ms exactly match N source frames at 42 ms.
+            smoothed.append(frame.copy())
+    return smoothed
 
 
 def frame_signature(frame: Image.Image) -> np.ndarray:
@@ -218,16 +299,20 @@ def select_run_cycle(frames: list[Image.Image], search_start: int, search_end: i
     return best[1], best[2]
 
 
-def build_atlas(frames: list[Image.Image], output: Path) -> tuple[int, int]:
+def build_atlas(
+    frames: list[Image.Image],
+    output: Path,
+    frame_size: int,
+) -> tuple[int, int]:
     rows = math.ceil(len(frames) / ATLAS_COLUMNS)
     atlas = Image.new(
         "RGBA",
-        (FRAME_SIZE * ATLAS_COLUMNS, FRAME_SIZE * rows),
+        (frame_size * ATLAS_COLUMNS, frame_size * rows),
         (0, 0, 0, 0),
     )
     for index, frame in enumerate(frames):
-        x = index % ATLAS_COLUMNS * FRAME_SIZE
-        y = index // ATLAS_COLUMNS * FRAME_SIZE
+        x = index % ATLAS_COLUMNS * frame_size
+        y = index // ATLAS_COLUMNS * frame_size
         atlas.alpha_composite(frame, (x, y))
     output.parent.mkdir(parents=True, exist_ok=True)
     atlas.save(output, optimize=True)
@@ -237,7 +322,7 @@ def build_atlas(frames: list[Image.Image], output: Path) -> tuple[int, int]:
 def build_picker_preview(frames: list[Image.Image], output: Path) -> None:
     preview_frames: list[Image.Image] = []
     tile = 12
-    for frame in frames[::2]:
+    for frame in frames:
         checker = Image.new("RGB", (192, 192), "#eafafa")
         draw = ImageDraw.Draw(checker)
         for y in range(0, 192, tile):
@@ -252,7 +337,7 @@ def build_picker_preview(frames: list[Image.Image], output: Path) -> None:
         output,
         save_all=True,
         append_images=preview_frames[1:],
-        duration=FRAME_DURATION_MS * 2,
+        duration=FRAME_DURATION_MS,
         loop=0,
         lossless=True,
         method=6,
@@ -321,7 +406,22 @@ def main() -> None:
         default="ai-bun",
         help="Stable filename/id prefix; use a new value to keep multiple styles side by side.",
     )
+    parser.add_argument(
+        "--frame-size",
+        type=int,
+        default=DEFAULT_FRAME_SIZE,
+        help="Square runtime frame size. 384 stays sharp up to the app's 200%% scale.",
+    )
+    parser.add_argument(
+        "--motion-smoothing",
+        choices=("none", "flow2x"),
+        default="flow2x",
+        help="Insert motion-estimated midpoint frames while preserving duration.",
+    )
     args = parser.parse_args()
+
+    if args.frame_size < 192 or args.frame_size > 512:
+        raise RuntimeError("--frame-size must be between 192 and 512 pixels.")
 
     frame_paths = sorted(args.frames.glob("*.png"))
     if len(frame_paths) != 121:
@@ -340,21 +440,26 @@ def main() -> None:
     else:
         keyed = [key_character(Image.open(path)) for path in frame_paths]
     crop = union_bounds(keyed)
-    normalized = [normalize_frame(frame, crop) for frame in keyed]
+    normalized = [normalize_frame(frame, crop, args.frame_size) for frame in keyed]
     if args.input_mode == "auto-key":
         normalized = [clear_between_feet_floor_residue(frame) for frame in normalized]
     run_start, run_end = select_run_cycle(normalized, 12, 57)
     run_frames = normalized[run_start:run_end]
     eat_start = 55
     eat_frames = normalized[eat_start:]
+    frame_duration_ms = FRAME_DURATION_MS
+    if args.motion_smoothing == "flow2x":
+        run_frames = smooth_frames_2x(run_frames, loop=True)
+        eat_frames = smooth_frames_2x(eat_frames, loop=False)
+        frame_duration_ms = SMOOTHED_FRAME_DURATION_MS
 
     runtime = args.assets_root / "animations" / "runtime"
     run_id = f"{args.runtime_stem}-chase-run"
     eat_id = f"{args.runtime_stem}-eat"
     run_atlas = runtime / f"{run_id}.atlas.png"
     eat_atlas = runtime / f"{eat_id}.atlas.png"
-    run_columns, run_rows = build_atlas(run_frames, run_atlas)
-    eat_columns, eat_rows = build_atlas(eat_frames, eat_atlas)
+    run_columns, run_rows = build_atlas(run_frames, run_atlas, args.frame_size)
+    eat_columns, eat_rows = build_atlas(eat_frames, eat_atlas, args.frame_size)
     bun_output = args.assets_root / "objects" / "xiaolongbao.png"
     prepare_bun(args.bun_source, bun_output)
     if args.preview_output is not None:
@@ -383,11 +488,21 @@ def main() -> None:
                 else "clear detached corner mark and border-connected floor residue"
             ),
         },
-        "normalizedFrameSize": [FRAME_SIZE, FRAME_SIZE],
+        "normalizedFrameSize": [args.frame_size, args.frame_size],
+        "temporalProcessing": {
+            "mode": args.motion_smoothing,
+            "description": (
+                "bidirectional optical-flow midpoint frames with premultiplied alpha; "
+                "source duration preserved"
+                if args.motion_smoothing == "flow2x"
+                else "source frames unchanged"
+            ),
+            "outputFrameDurationMilliseconds": frame_duration_ms,
+        },
         "run": {
             "sourceFramesOneBased": [run_start + 1, run_end],
             "frameCount": len(run_frames),
-            "frameDurationMilliseconds": FRAME_DURATION_MS,
+            "frameDurationMilliseconds": frame_duration_ms,
             "atlas": run_atlas.relative_to(args.assets_root).as_posix(),
             "atlasSha256": sha256(run_atlas),
             "columns": run_columns,
@@ -396,7 +511,7 @@ def main() -> None:
         "eat": {
             "sourceFramesOneBased": [eat_start + 1, len(frame_paths)],
             "frameCount": len(eat_frames),
-            "frameDurationMilliseconds": FRAME_DURATION_MS,
+            "frameDurationMilliseconds": frame_duration_ms,
             "atlas": eat_atlas.relative_to(args.assets_root).as_posix(),
             "atlasSha256": sha256(eat_atlas),
             "columns": eat_columns,
@@ -416,7 +531,7 @@ def main() -> None:
                 "frameCount": len(run_frames),
                 "columns": run_columns,
                 "rows": run_rows,
-                "frameDurationMilliseconds": FRAME_DURATION_MS,
+                "frameDurationMilliseconds": frame_duration_ms,
                 "loopCount": 0,
                 "displayWidth": 205,
                 "displayHeight": 205,
@@ -427,7 +542,7 @@ def main() -> None:
                 "frameCount": len(eat_frames),
                 "columns": eat_columns,
                 "rows": eat_rows,
-                "frameDurationMilliseconds": FRAME_DURATION_MS,
+                "frameDurationMilliseconds": frame_duration_ms,
                 "loopCount": 1,
                 "displayWidth": 205,
                 "displayHeight": 205,
@@ -441,8 +556,8 @@ def main() -> None:
         metadata["pickerPreview"] = {
             "output": args.preview_output.as_posix(),
             "outputSha256": sha256(args.preview_output),
-            "frameCount": len(normalized[::2]),
-            "frameDurationMilliseconds": FRAME_DURATION_MS * 2,
+            "frameCount": len(normalized),
+            "frameDurationMilliseconds": FRAME_DURATION_MS,
         }
     args.metadata.parent.mkdir(parents=True, exist_ok=True)
     args.metadata.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
