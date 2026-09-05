@@ -301,17 +301,6 @@
       "anchorY": 1.0
     },
     {
-      "id": "ninth-anniversary-not-awake-breathing",
-      "source": "候选素材_官方/03_官方表情包/255-洛天依9th生日纪念/洛天依9th_没睡醒.png",
-      "atlas": "assets/animations/runtime/ninth-anniversary-not-awake-breathing.atlas.png",
-      "displayWidth": 180,
-      "displayHeight": 180,
-      "loopCount": 0,
-      "defaultFrameDurationMilliseconds": 2400,
-      "anchorX": 0.5,
-      "anchorY": 1.0
-    },
-    {
       "id": "resonance-ok",
       "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "atlas": "assets/animations/runtime/resonance-ok.atlas.png",

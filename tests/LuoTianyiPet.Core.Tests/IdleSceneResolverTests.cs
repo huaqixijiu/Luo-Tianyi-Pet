@@ -67,7 +67,6 @@ public sealed class IdleSceneResolverTests
 
     [Theory]
     [InlineData(PetContinuousState.MusicPlaying)]
-    [InlineData(PetContinuousState.MusicPaused)]
     [InlineData(PetContinuousState.Dragging)]
     [InlineData(PetContinuousState.HiddenForSafety)]
     public void NonIdleContinuousStatesAreNotChanged(PetContinuousState state)

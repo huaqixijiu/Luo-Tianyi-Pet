@@ -28,7 +28,6 @@ public static class IdleSceneResolver
         }
 
         if (currentState is PetContinuousState.MusicPlaying or
-            PetContinuousState.MusicPaused or
             PetContinuousState.Dragging or
             PetContinuousState.HiddenForSafety)
         {

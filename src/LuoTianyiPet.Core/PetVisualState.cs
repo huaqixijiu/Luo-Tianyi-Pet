@@ -11,7 +11,6 @@ public enum PetContinuousState
     Idle,
     MediumIdle,
     MusicPlaying,
-    MusicPaused,
     Sleeping,
     Dragging,
     HiddenForSafety,
@@ -28,7 +27,6 @@ public sealed record PetVisualState(
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";
     public const string MusicSwayAnimation = "ninth-anniversary-music-sway";
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
-    public const string MusicPausedAnimation = "ninth-anniversary-not-awake-breathing";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
     public const string CompactDraggingAnimation = "resonance-expand";
     public const string MediumIdleAnimation = "resonance-hehe";
@@ -42,7 +40,6 @@ public sealed record PetVisualState(
             _ => throw new ArgumentOutOfRangeException(nameof(SelectedDisplayMode)),
         },
         PetContinuousState.MusicPlaying => MusicAnimationId,
-        PetContinuousState.MusicPaused => MusicPausedAnimation,
         PetContinuousState.MediumIdle => MediumIdleAnimation,
         PetContinuousState.Sleeping => SleepingAnimation,
         PetContinuousState.Dragging => SelectedDisplayMode == PetDisplayMode.FullBodyInteractive

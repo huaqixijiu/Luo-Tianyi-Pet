@@ -13,17 +13,6 @@ public sealed class PetVisualStateTests
     }
 
     [Fact]
-    public void MusicPausedUsesNotAwakeBreathingWithoutChangingSelectedMode()
-    {
-        PetVisualState state = new(
-            PetDisplayMode.FullBodyInteractive,
-            PetContinuousState.MusicPaused);
-
-        Assert.Equal(PetVisualState.MusicPausedAnimation, state.ResolveContinuousAnimation());
-        Assert.Equal(PetDisplayMode.FullBodyInteractive, state.SelectedDisplayMode);
-    }
-
-    [Fact]
     public void MediumIdleUsesResonanceHeheAnimation()
     {
         PetVisualState state = new(ContinuousState: PetContinuousState.MediumIdle);

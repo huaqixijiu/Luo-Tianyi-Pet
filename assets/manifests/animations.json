@@ -960,31 +960,6 @@
       ]
     },
     {
-      "id": "ninth-anniversary-not-awake-breathing",
-      "sourcePath": "候选素材_官方/03_官方表情包/255-洛天依9th生日纪念/洛天依9th_没睡醒.png",
-      "sourceSha256": "021ef2e5d179232af645920b5b1ca1ea18a134eff00116fd602e3c5825a1cddc",
-      "atlasPath": "animations/runtime/ninth-anniversary-not-awake-breathing.atlas.png",
-      "atlasSha256": "cc724f5d6dfb0386ad4c212575f167292c975b935ed58ab08f143bc949f45244",
-      "frameWidth": 162,
-      "frameHeight": 162,
-      "columns": 1,
-      "rows": 1,
-      "frameDurationsMilliseconds": [
-        2400
-      ],
-      "loopCount": 0,
-      "displayWidth": 180,
-      "displayHeight": 180,
-      "anchorX": 0.5,
-      "anchorY": 1.0,
-      "alphaBounds": [
-        0,
-        4,
-        162,
-        162
-      ]
-    },
-    {
       "id": "resonance-ok",
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "sourceSha256": "7036ffcd41e0241cecaee0f7e77f7b679adaeb259810734bea42f0c70346e454",

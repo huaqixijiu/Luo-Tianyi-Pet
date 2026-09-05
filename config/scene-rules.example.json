@@ -247,10 +247,10 @@
     "loadingTimeoutMilliseconds": 15000,
     "timeoutFeedback": "failureOrTimeout",
     "confirmedSuccessAnimation": "resonance-ok",
-    "pauseAnimation": "ninth-anniversary-not-awake-breathing",
-    "pauseAnimationDurationMilliseconds": 60000,
-    "doubleClickDismissesPauseAnimation": true,
-    "resumeInterruptsPauseAnimation": true,
+    "pauseAnimation": null,
+    "pauseAnimationDurationMilliseconds": 0,
+    "doubleClickDismissesPauseAnimation": false,
+    "resumeInterruptsPauseAnimation": false,
     "userPauseFastConfirmationWindowMilliseconds": 2000
   },
   "pointerInteractions": {

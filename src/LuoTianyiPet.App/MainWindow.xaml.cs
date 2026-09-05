@@ -23,7 +23,6 @@ public partial class MainWindow : Window
 {
     private const string CloseAnimation = "resonance-cracked-shake";
     private const string LandingAnimation = "codename-landing-bounce";
-    private const string MusicPausedAnimation = PetVisualState.MusicPausedAnimation;
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
@@ -52,7 +51,6 @@ public partial class MainWindow : Window
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
-    private static readonly TimeSpan MusicPausePresentationDuration = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan TimeGreetingPresentationDuration = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
@@ -80,7 +78,6 @@ public partial class MainWindow : Window
     private readonly MusicPlaybackAnimationSelector _musicAnimationSelector = new();
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
-    private readonly DispatcherTimer _musicPausePresentationTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
     private readonly DispatcherTimer _mediaControlsHideTimer;
     private readonly DispatcherTimer _trackInfoRefreshTimer;
@@ -357,11 +354,6 @@ public partial class MainWindow : Window
                     : MediaPreferences.DefaultPollIntervalMilliseconds),
         };
         _musicDetectionTimer.Tick += OnMusicDetectionTimerTick;
-        _musicPausePresentationTimer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = MusicPausePresentationDuration,
-        };
-        _musicPausePresentationTimer.Tick += OnMusicPausePresentationTimerTick;
         _feedbackBubbleTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromSeconds(2.4),
@@ -1337,15 +1329,6 @@ public partial class MainWindow : Window
 
     private void CycleFullBodyStyle()
     {
-        PetPlaybackPlan currentPlan = _stateMachine.Resolve(DateTimeOffset.Now);
-        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPaused &&
-            currentPlan.Source == PlaybackPlanSource.Continuous &&
-            currentPlan.AnimationId == MusicPausedAnimation)
-        {
-            DismissMusicPausePresentation("double-click");
-            return;
-        }
-
         if (!_settings.Appearance.EnableFullBodyStyleCycling)
         {
             _logger.Info(
@@ -1829,7 +1812,6 @@ public partial class MainWindow : Window
 
     private void StartMusicPlayback(string source, string? artistOverride = null)
     {
-        _musicPausePresentationTimer.Stop();
         _userPauseFastConfirmationUntil = null;
         DateTimeOffset now = DateTimeOffset.Now;
         string artist = artistOverride ?? _lastTrackSnapshot.Artist;
@@ -1870,9 +1852,7 @@ public partial class MainWindow : Window
     private void StopMusicPlayback(string source)
     {
         _musicAnimationTrackIdentity = string.Empty;
-        _stateMachine.SetContinuousState(PetContinuousState.MusicPaused);
-        _musicPausePresentationTimer.Stop();
-        _musicPausePresentationTimer.Start();
+        _stateMachine.SetContinuousState(PetContinuousState.Idle);
         _userPauseFastConfirmationUntil = null;
         UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
@@ -1883,32 +1863,7 @@ public partial class MainWindow : Window
 
         _logger.Info(
             "media.playback_paused",
-            $"Source={source}; Pause presentation started for {MusicPausePresentationDuration.TotalSeconds:0} seconds.");
-    }
-
-    private void OnMusicPausePresentationTimerTick(object? sender, EventArgs e)
-    {
-        DismissMusicPausePresentation("timeout");
-    }
-
-    private void DismissMusicPausePresentation(string source)
-    {
-        _musicPausePresentationTimer.Stop();
-        if (_stateMachine.VisualState.ContinuousState != PetContinuousState.MusicPaused)
-        {
-            return;
-        }
-
-        _stateMachine.SetContinuousState(PetContinuousState.Idle);
-        UpdatePlayPauseGlyph();
-        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
-        {
-            _ = TransitionToResolvedContinuousAnimationAsync(
-                "animation.music_pause_dismissed_transition_completed");
-        }
-
-        _logger.Info("media.pause_presentation_dismissed", $"Source={source}.");
+            $"Source={source}; Restored selected idle appearance immediately.");
     }
 
     private void OnMusicDetectionTimerTick(object? sender, EventArgs e)
@@ -4898,8 +4853,6 @@ public partial class MainWindow : Window
         _cloudMusicLaunchCancellation = null;
         _musicDetectionTimer.Stop();
         _musicDetectionTimer.Tick -= OnMusicDetectionTimerTick;
-        _musicPausePresentationTimer.Stop();
-        _musicPausePresentationTimer.Tick -= OnMusicPausePresentationTimerTick;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Tick -= OnFeedbackBubbleTimerTick;
         _mediaControlsHideTimer.Stop();
