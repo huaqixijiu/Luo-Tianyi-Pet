@@ -17,6 +17,60 @@ public readonly record struct DesktopRectangle(double Left, double Top, double W
 
 public static class EdgeDockResolver
 {
+    public static EdgeDockSide ResolveHideIntentByFraction(
+        DesktopRectangle visiblePet,
+        DesktopRectangle workArea,
+        double activationFraction)
+    {
+        ValidateFraction(activationFraction, nameof(activationFraction));
+        if (visiblePet.Width <= 0 || visiblePet.Height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(visiblePet));
+        }
+
+        (EdgeDockSide Side, double Fraction)[] candidates =
+        [
+            (EdgeDockSide.Left, (workArea.Left - visiblePet.Left) / visiblePet.Width),
+            (EdgeDockSide.Right, (visiblePet.Right - workArea.Right) / visiblePet.Width),
+            (EdgeDockSide.Bottom, (visiblePet.Bottom - workArea.Bottom) / visiblePet.Height),
+        ];
+        (EdgeDockSide side, double fraction) = candidates.MaxBy(candidate => candidate.Fraction);
+        return fraction >= activationFraction ? side : EdgeDockSide.None;
+    }
+
+    public static EdgeDockSide ResolveHideIntentByFractionWithHysteresis(
+        DesktopRectangle visiblePet,
+        DesktopRectangle workArea,
+        double activationFraction,
+        double releaseFraction,
+        EdgeDockSide currentIntent)
+    {
+        ValidateFraction(activationFraction, nameof(activationFraction));
+        ValidateFraction(releaseFraction, nameof(releaseFraction));
+        if (releaseFraction > activationFraction)
+        {
+            throw new ArgumentOutOfRangeException(nameof(releaseFraction));
+        }
+
+        EdgeDockSide resolved = ResolveHideIntentByFraction(
+            visiblePet,
+            workArea,
+            activationFraction);
+        if (resolved != EdgeDockSide.None || currentIntent == EdgeDockSide.None)
+        {
+            return resolved;
+        }
+
+        double currentFraction = currentIntent switch
+        {
+            EdgeDockSide.Left => (workArea.Left - visiblePet.Left) / visiblePet.Width,
+            EdgeDockSide.Right => (visiblePet.Right - workArea.Right) / visiblePet.Width,
+            EdgeDockSide.Bottom => (visiblePet.Bottom - workArea.Bottom) / visiblePet.Height,
+            _ => throw new ArgumentOutOfRangeException(nameof(currentIntent)),
+        };
+        return currentFraction >= releaseFraction ? currentIntent : EdgeDockSide.None;
+    }
+
     public static EdgeDockSide ResolveHideIntent(
         DesktopRectangle visiblePet,
         DesktopRectangle workArea,
@@ -76,5 +130,13 @@ public static class EdgeDockResolver
         }
 
         return visiblePet.Bottom >= workArea.Bottom - distance;
+    }
+
+    private static void ValidateFraction(double value, string parameterName)
+    {
+        if (!double.IsFinite(value) || value is <= 0 or > 1)
+        {
+            throw new ArgumentOutOfRangeException(parameterName);
+        }
     }
 }

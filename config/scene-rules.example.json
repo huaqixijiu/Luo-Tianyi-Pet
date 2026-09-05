@@ -369,9 +369,11 @@
       "allowWindowTiltAndShadow": true
     },
     "edgeDock": {
-      "hideActivationDepthDips": 28,
-      "hideReleaseDepthDips": 14,
-      "dragOverscanDips": 96,
+      "hideActivationOutsideFraction": 0.3333333333333333,
+      "hideReleaseOutsideFraction": 0.25,
+      "minimumDragOverscanDips": 96,
+      "scaleDragOverscanWithWindow": true,
+      "useAnimationAlphaBounds": true,
       "useStableDragReferenceBounds": true,
       "allowFlushPlacementWithoutHiding": true,
       "supportedEdges": ["left", "right", "bottom"],
