@@ -2311,15 +2311,19 @@ public partial class MainWindow : Window
         double displayWidth = manifest.DisplayWidth * displayScale;
         double displayHeight = manifest.DisplayHeight * displayScale;
         AnimationAssetManifest boundaryManifest = ResolveResizeBoundaryManifest(manifest);
+        bool preserveWindowBounds = _isWindowDragging && _classicDragExpansionStarted;
         PetImage.Width = displayWidth;
         PetImage.Height = displayHeight;
         PetImage.Visibility = Visibility.Visible;
         PetImage.IsHitTestVisible = true;
         FallbackSurface.Visibility = Visibility.Collapsed;
-        ResizeAroundBottomCenter(
-            displayWidth + 16,
-            displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight,
-            boundaryManifest);
+        if (!preserveWindowBounds)
+        {
+            ResizeAroundBottomCenter(
+                displayWidth + 16,
+                displayHeight + 16 + MediaControlsReservedHeight + TrackInfoReservedHeight,
+                boundaryManifest);
+        }
         UpdateBodyHitDebugOverlay();
     }
 

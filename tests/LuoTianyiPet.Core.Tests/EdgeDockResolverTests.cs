@@ -127,6 +127,29 @@ public sealed class EdgeDockResolverTests
                 EdgeDockSide.Left));
     }
 
+    [Fact]
+    public void FractionalHysteresisDoesNotSwitchSidesWhileCurrentIntentRemainsOutside()
+    {
+        DesktopRectangle bottomRightCorner = new(1770, 900, 200, 200);
+
+        Assert.Equal(
+            EdgeDockSide.Right,
+            EdgeDockResolver.ResolveHideIntentByFractionWithHysteresis(
+                bottomRightCorner,
+                WorkArea,
+                0.25,
+                1.0 / 6.0,
+                EdgeDockSide.Right));
+        Assert.Equal(
+            EdgeDockSide.Bottom,
+            EdgeDockResolver.ResolveHideIntentByFractionWithHysteresis(
+                bottomRightCorner,
+                WorkArea,
+                0.25,
+                1.0 / 6.0,
+                EdgeDockSide.Bottom));
+    }
+
     [Theory]
     [InlineData(740, true)]
     [InlineData(768, true)]

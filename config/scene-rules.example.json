@@ -378,10 +378,12 @@
     "edgeDock": {
       "hideActivationOutsideFraction": 0.25,
       "hideReleaseOutsideFraction": 0.16666666666666666,
+      "lockCurrentCandidateUntilReleaseThreshold": true,
       "minimumDragOverscanDips": 96,
       "scaleDragOverscanWithWindow": true,
       "useAnimationAlphaBounds": true,
       "useStableDragReferenceBounds": true,
+      "preserveClassicDragWindowBoundsAcrossEdgePreview": true,
       "allowFlushPlacementWithoutHiding": true,
       "supportedEdges": ["left", "right", "bottom"],
       "previewAnimationImmediatelyWhileDraggingAtEdge": true,

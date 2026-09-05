@@ -52,13 +52,12 @@ public static class EdgeDockResolver
             throw new ArgumentOutOfRangeException(nameof(releaseFraction));
         }
 
-        EdgeDockSide resolved = ResolveHideIntentByFraction(
-            visiblePet,
-            workArea,
-            activationFraction);
-        if (resolved != EdgeDockSide.None || currentIntent == EdgeDockSide.None)
+        if (currentIntent == EdgeDockSide.None)
         {
-            return resolved;
+            return ResolveHideIntentByFraction(
+                visiblePet,
+                workArea,
+                activationFraction);
         }
 
         double currentFraction = currentIntent switch
@@ -68,7 +67,15 @@ public static class EdgeDockResolver
             EdgeDockSide.Bottom => (visiblePet.Bottom - workArea.Bottom) / visiblePet.Height,
             _ => throw new ArgumentOutOfRangeException(nameof(currentIntent)),
         };
-        return currentFraction >= releaseFraction ? currentIntent : EdgeDockSide.None;
+        if (currentFraction >= releaseFraction)
+        {
+            return currentIntent;
+        }
+
+        return ResolveHideIntentByFraction(
+            visiblePet,
+            workArea,
+            activationFraction);
     }
 
     public static EdgeDockSide ResolveHideIntent(
