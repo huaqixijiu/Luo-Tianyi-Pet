@@ -353,14 +353,19 @@
         "replaceCurrentAnimation": false,
         "playLandingAnimationOnDrop": false
       },
-      "behaviorByDisplayMode": {
-        "compact": {
+      "behaviorByAppearanceStyle": {
+        "full-body-classic-cat-ears": {
           "animation": "resonance-expand",
           "replaceCurrentAnimation": true,
           "loopWhileDragging": false,
           "holdLastFrameAfterOnePlay": true
         },
-        "fullBodyInteractive": {
+        "full-body-long-hair": {
+          "animation": "keep-current-full-body-idle",
+          "replaceCurrentAnimation": false,
+          "loopWhileDragging": false
+        },
+        "full-body-crystal-dress": {
           "animation": "keep-current-full-body-idle",
           "replaceCurrentAnimation": false,
           "loopWhileDragging": false

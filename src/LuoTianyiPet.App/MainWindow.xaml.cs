@@ -162,6 +162,7 @@ public partial class MainWindow : Window
     private EdgeDockSide _edgeDockSide;
     private EdgeDockSide _dragEdgeCandidate;
     private DesktopRectangle? _dragIntentPetBoundsInWindow;
+    private bool _classicDragExpansionStarted;
     private bool _dragReleaseRequestsLanding;
     private bool _edgeDockRevealed;
     private bool _useBottomControlsLayout;
@@ -1419,6 +1420,7 @@ public partial class MainWindow : Window
         }
 
         _dragEdgeCandidate = EdgeDockSide.None;
+        _classicDragExpansionStarted = false;
 
         if (!_stateMachine.BeginDrag())
         {
@@ -1479,6 +1481,7 @@ public partial class MainWindow : Window
         _dragReleaseRequestsLanding = false;
         _downwardFlingTracker.Cancel();
         _isWindowDragging = false;
+        _classicDragExpansionStarted = false;
         if (_stateMachine.EndDrag())
         {
             if (TryEnterEdgeDock())
@@ -1991,13 +1994,36 @@ public partial class MainWindow : Window
     private void PlayCurrentDragVisual()
     {
         string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
-        if (dragAnimation == PetVisualState.CompactDraggingAnimation && _animationCatalog is not null)
-        {
-            AnimationAssetManifest manifest = _animationCatalog.GetRequired(dragAnimation);
-            PlayAnimationRange(
+        bool preservesMusicAnimation =
+            !string.Equals(
                 dragAnimation,
-                startFrameIndex: 0,
-                endFrameIndex: manifest.FrameDurationsMilliseconds.Count - 1);
+                _stateMachine.VisualState.FullBodyAnimationId,
+                StringComparison.Ordinal);
+        bool usesExpansion =
+            !preservesMusicAnimation &&
+            AppearanceOptionIds.UsesExpansionDragAnimation(
+                _settings.Appearance.FullBodyStyle);
+        if (usesExpansion && _animationCatalog is not null)
+        {
+            AnimationAssetManifest manifest = _animationCatalog.GetRequired(
+                PetVisualState.CompactDraggingAnimation);
+            int lastFrameIndex = manifest.FrameDurationsMilliseconds.Count - 1;
+            if (_classicDragExpansionStarted)
+            {
+                ShowAnimationFrame(PetVisualState.CompactDraggingAnimation, lastFrameIndex);
+            }
+            else
+            {
+                _classicDragExpansionStarted = true;
+                _logger.Info(
+                    "interaction.drag_visual_selected",
+                    $"Style={_settings.Appearance.FullBodyStyle}; " +
+                    $"Animation={PetVisualState.CompactDraggingAnimation}; Mode=OneShotHold.");
+                PlayAnimationRange(
+                    PetVisualState.CompactDraggingAnimation,
+                    startFrameIndex: 0,
+                    endFrameIndex: lastFrameIndex);
+            }
             return;
         }
 

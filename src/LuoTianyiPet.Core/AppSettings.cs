@@ -84,6 +84,9 @@ public static class AppearanceOptionIds
             FullBodyClassicCatEars => FullBodyInteractionMode.ExpressionPack,
             _ => FullBodyInteractionMode.Disabled,
         };
+
+    public static bool UsesExpansionDragAnimation(string? style) =>
+        NormalizeFullBodyStyle(style) == FullBodyClassicCatEars;
 }
 
 public enum FullBodyInteractionMode

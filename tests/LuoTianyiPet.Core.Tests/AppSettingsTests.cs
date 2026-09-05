@@ -128,6 +128,20 @@ public sealed class AppSettingsTests
     }
 
     [Theory]
+    [InlineData(AppearanceOptionIds.FullBodyLongHair, false)]
+    [InlineData(AppearanceOptionIds.FullBodyCrystalDress, false)]
+    [InlineData(AppearanceOptionIds.FullBodyClassicCatEars, true)]
+    [InlineData("unknown", false)]
+    public void AppearanceOptions_UseExpansionDragOnlyForClassicCatEars(
+        string fullBodyStyle,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            AppearanceOptionIds.UsesExpansionDragAnimation(fullBodyStyle));
+    }
+
+    [Theory]
     [InlineData("random", "random")]
     [InlineData(PetVisualState.EnjoyMusicAnimation, PetVisualState.EnjoyMusicAnimation)]
     [InlineData(PetVisualState.MusicSwayAnimation, PetVisualState.MusicSwayAnimation)]
