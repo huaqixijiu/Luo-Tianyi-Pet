@@ -36,6 +36,7 @@ def sha256(path: Path) -> str:
 def exterior_background_mask(
     rgb: np.ndarray,
     background_minimum: int = BACKGROUND_MINIMUM,
+    interior_background_boxes: tuple[tuple[int, int, int, int], ...] = (),
 ) -> tuple[np.ndarray, tuple[int, int, int]]:
     border = np.concatenate(
         (rgb[0, :, :], rgb[-1, :, :], rgb[:, 0, :], rgb[:, -1, :]), axis=0
@@ -66,14 +67,25 @@ def exterior_background_mask(
             ImageDraw.floodfill(flood_image, seed, 128, thresh=0)
 
     exterior = np.asarray(flood_image) == 128
+    # Some supplied artwork has a checkerboard flattened into otherwise empty
+    # gaps enclosed by hair or translucent decoration lines.  Those areas are
+    # not reachable from the canvas border, so callers may mark tightly scoped
+    # source rectangles in which near-white checker pixels are also background.
+    for left, top, right, bottom in interior_background_boxes:
+        exterior[top:bottom, left:right] |= candidate[top:bottom, left:right]
     return exterior, background_rgb
 
 
 def build_rgba(
     rgb: np.ndarray,
     background_minimum: int = BACKGROUND_MINIMUM,
+    interior_background_boxes: tuple[tuple[int, int, int, int], ...] = (),
 ) -> tuple[Image.Image, tuple[int, int, int], tuple[int, int, int, int]]:
-    exterior, background_rgb = exterior_background_mask(rgb, background_minimum)
+    exterior, background_rgb = exterior_background_mask(
+        rgb,
+        background_minimum,
+        interior_background_boxes,
+    )
     foreground = ~exterior
 
     exterior_image = Image.fromarray(exterior.astype(np.uint8) * 255, mode="L")
@@ -156,7 +168,30 @@ def main() -> None:
         metavar="0-255",
         help="Minimum RGB channel value eligible for border-connected background removal.",
     )
+    parser.add_argument(
+        "--interior-background-box",
+        action="append",
+        default=[],
+        metavar="LEFT,TOP,RIGHT,BOTTOM",
+        help=(
+            "Also clear near-white baked checker pixels inside this source-pixel box. "
+            "May be repeated; coloured outlines and shading remain untouched."
+        ),
+    )
     args = parser.parse_args()
+
+    interior_background_boxes: list[tuple[int, int, int, int]] = []
+    for value in args.interior_background_box:
+        try:
+            box = tuple(int(part.strip()) for part in value.split(","))
+        except ValueError as exc:
+            raise RuntimeError(f"Invalid --interior-background-box: {value}") from exc
+        if len(box) != 4:
+            raise RuntimeError(f"Invalid --interior-background-box: {value}")
+        left, top, right, bottom = box
+        if left < 0 or top < 0 or right <= left or bottom <= top:
+            raise RuntimeError(f"Invalid --interior-background-box: {value}")
+        interior_background_boxes.append((left, top, right, bottom))
 
     root = args.root.resolve()
     source = args.source.resolve()
@@ -169,7 +204,16 @@ def main() -> None:
     with Image.open(source) as loaded:
         rgb_image = loaded.convert("RGB")
     rgb = np.asarray(rgb_image)
-    rgba, background_rgb, alpha_bbox = build_rgba(rgb, args.background_minimum)
+    if any(
+        right > rgb_image.width or bottom > rgb_image.height
+        for _, _, right, bottom in interior_background_boxes
+    ):
+        raise RuntimeError("An --interior-background-box is outside the source image.")
+    rgba, background_rgb, alpha_bbox = build_rgba(
+        rgb,
+        args.background_minimum,
+        tuple(interior_background_boxes),
+    )
     normalized, geometry = normalize(rgba, alpha_bbox)
 
     normalized.save(output, format="PNG", optimize=False, compress_level=9)
@@ -183,15 +227,25 @@ def main() -> None:
         "outputSha256": sha256(output),
         "runtimeAtlas": atlas.relative_to(root / "assets").as_posix(),
         "runtimeAtlasSha256": sha256(atlas),
-        "transformation": "border-connected-near-white-background-to-alpha-and-fit-canvas",
+        "transformation": (
+            "border-and-marked-interior-near-white-background-to-alpha-and-fit-canvas"
+            if interior_background_boxes
+            else "border-connected-near-white-background-to-alpha-and-fit-canvas"
+        ),
         "backgroundRemoval": {
-            "method": "binary near-white candidates flood-filled only from canvas border",
+            "method": (
+                "binary near-white candidates flood-filled from canvas border plus "
+                "explicit enclosed-background boxes"
+                if interior_background_boxes
+                else "binary near-white candidates flood-filled only from canvas border"
+            ),
             "backgroundRgbMedian": list(background_rgb),
             "minimumChannelValue": args.background_minimum,
             "maximumChannelSpread": BACKGROUND_CHANNEL_SPREAD,
             "softEdgeWidthPixels": 2,
             "softEdgeColorDistance": EDGE_ALPHA_DISTANCE,
             "edgeDecontamination": "remove estimated white matte from semitransparent boundary pixels",
+            "interiorBackgroundBoxes": [list(box) for box in interior_background_boxes],
         },
         "sourceSize": [rgb_image.width, rgb_image.height],
         "canvasSize": list(CANVAS_SIZE),

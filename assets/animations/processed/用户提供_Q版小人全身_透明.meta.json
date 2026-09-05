@@ -3,12 +3,12 @@
   "source": "候选素材_官方/Q版小人全身_新默认.png",
   "sourceSha256": "d6fc02a4e9be9dd623a31275365e89a0200ab47dcdf8493123054c56a92cfc8c",
   "output": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-  "outputSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
+  "outputSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
   "runtimeAtlas": "animations/runtime/user-chibi-compact-idle.atlas.png",
-  "runtimeAtlasSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
-  "transformation": "border-connected-near-white-background-to-alpha-and-fit-canvas",
+  "runtimeAtlasSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
+  "transformation": "border-and-marked-interior-near-white-background-to-alpha-and-fit-canvas",
   "backgroundRemoval": {
-    "method": "binary near-white candidates flood-filled only from canvas border",
+    "method": "binary near-white candidates flood-filled from canvas border plus explicit enclosed-background boxes",
     "backgroundRgbMedian": [
       251,
       251,
@@ -18,7 +18,21 @@
     "maximumChannelSpread": 12,
     "softEdgeWidthPixels": 2,
     "softEdgeColorDistance": 24.0,
-    "edgeDecontamination": "remove estimated white matte from semitransparent boundary pixels"
+    "edgeDecontamination": "remove estimated white matte from semitransparent boundary pixels",
+    "interiorBackgroundBoxes": [
+      [
+        210,
+        640,
+        380,
+        855
+      ],
+      [
+        900,
+        640,
+        1060,
+        860
+      ]
+    ]
   },
   "sourceSize": [
     1254,

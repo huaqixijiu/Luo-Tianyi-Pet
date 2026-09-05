@@ -38,9 +38,9 @@
     {
       "id": "user-chibi-compact-idle",
       "sourcePath": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-      "sourceSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
+      "sourceSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
       "atlasPath": "animations/runtime/user-chibi-compact-idle.atlas.png",
-      "atlasSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
+      "atlasSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
       "frameWidth": 480,
       "frameHeight": 520,
       "columns": 1,
@@ -88,9 +88,9 @@
     {
       "id": "user-chibi-crystal-full-body-idle",
       "sourcePath": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-      "sourceSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
+      "sourceSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
       "atlasPath": "animations/runtime/user-chibi-crystal-full-body-idle.atlas.png",
-      "atlasSha256": "7172316173330020fabdd7ea0b626bc4c043e6fcbf7a51d744d0fa781c5199cc",
+      "atlasSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
       "frameWidth": 480,
       "frameHeight": 520,
       "columns": 1,
