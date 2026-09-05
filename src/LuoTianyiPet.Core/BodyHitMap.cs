@@ -72,18 +72,18 @@ public sealed class BodyHitMap
 
     public static BodyHitMap ClassicCatEars { get; } = new(
     [
-        new(BodyRegionId.LeftEye, new(0.34, 0.26, 0.14, 0.13)),
-        new(BodyRegionId.RightEye, new(0.52, 0.26, 0.14, 0.13)),
-        new(BodyRegionId.Mouth, new(0.45, 0.39, 0.10, 0.055)),
-        new(BodyRegionId.Face, new(0.29, 0.16, 0.42, 0.31)),
-        new(BodyRegionId.LeftHand, new(0.25, 0.57, 0.13, 0.13)),
-        new(BodyRegionId.RightHand, new(0.62, 0.57, 0.13, 0.13)),
-        new(BodyRegionId.Chest, new(0.455, 0.48, 0.09, 0.10)),
-        new(BodyRegionId.LowerBodySensitiveArea, new(0.465, 0.68, 0.07, 0.08)),
-        new(BodyRegionId.LeftFoot, new(0.39, 0.84, 0.11, 0.13)),
-        new(BodyRegionId.RightFoot, new(0.50, 0.84, 0.11, 0.13)),
-        new(BodyRegionId.HeadAndHair, new(0.20, 0.02, 0.60, 0.47)),
-        new(BodyRegionId.OtherBody, new(0.10, 0.02, 0.80, 0.95)),
+        new(BodyRegionId.LeftEye, new(0.33, 0.36, 0.16, 0.14)),
+        new(BodyRegionId.RightEye, new(0.56, 0.36, 0.15, 0.14)),
+        new(BodyRegionId.Mouth, new(0.46, 0.49, 0.09, 0.06)),
+        new(BodyRegionId.Face, new(0.29, 0.29, 0.42, 0.27)),
+        new(BodyRegionId.LeftHand, new(0.27, 0.72, 0.12, 0.13)),
+        new(BodyRegionId.RightHand, new(0.62, 0.72, 0.12, 0.13)),
+        new(BodyRegionId.Chest, new(0.46, 0.57, 0.08, 0.08)),
+        new(BodyRegionId.LowerBodySensitiveArea, new(0.465, 0.72, 0.07, 0.08)),
+        new(BodyRegionId.LeftFoot, new(0.36, 0.89, 0.13, 0.10)),
+        new(BodyRegionId.RightFoot, new(0.54, 0.89, 0.14, 0.10)),
+        new(BodyRegionId.HeadAndHair, new(0.14, 0.02, 0.72, 0.54)),
+        new(BodyRegionId.OtherBody, new(0.10, 0.02, 0.80, 0.97)),
     ]);
 
     public static BodyHitMap ForFullBodyAnimation(string? animationId) => animationId switch

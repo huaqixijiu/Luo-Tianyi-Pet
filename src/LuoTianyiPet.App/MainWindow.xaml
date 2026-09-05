@@ -102,6 +102,70 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="CloudMusicVerticalVolumeSliderStyle" TargetType="Slider">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="116" />
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="IsDirectionReversed" Value="False" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Width="30" Height="116">
+                            <Border Width="6"
+                                    Margin="0,9"
+                                    HorizontalAlignment="Center"
+                                    Background="#FFDCEAF1"
+                                    CornerRadius="3" />
+                            <Track x:Name="PART_Track"
+                                   Margin="0,9"
+                                   Orientation="{TemplateBinding Orientation}"
+                                   IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Width="6"
+                                                        Background="#FF66CCFF"
+                                                        CornerRadius="3" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="18" Height="18" Focusable="False">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="White"
+                                                         Stroke="#FF35B8F2"
+                                                         StrokeThickness="2" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}"
+                                                  Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Width="14" Background="Transparent" />
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.38" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
     <Grid x:Name="Root">
@@ -334,7 +398,7 @@
 
         <Border x:Name="MediaControls"
                 Panel.ZIndex="5"
-                Width="136"
+                Width="178"
                 Height="46"
                 Margin="0,0,0,7"
                 Padding="5,4"
@@ -365,6 +429,7 @@
             </Border.RenderTransform>
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="42" />
                     <ColumnDefinition Width="42" />
                     <ColumnDefinition Width="42" />
                     <ColumnDefinition Width="42" />
@@ -420,8 +485,69 @@
                     </Viewbox>
                 </Button>
 
+                <Button x:Name="CloudMusicVolumeButton"
+                        Grid.Column="3"
+                        Style="{StaticResource MediaPrimaryButtonStyle}"
+                        Click="OnCloudMusicVolumeClick"
+                        AutomationProperties.Name="网易云音乐独立音量"
+                        ToolTip="调节网易云音乐音量（不影响其他应用）">
+                    <Viewbox Width="19" Height="19">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M4,9 H8 L13,5 V19 L8,15 H4 Z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                            <Path Data="M16,8.2 C17.2,9.1 18,10.4 18,12 C18,13.6 17.2,14.9 16,15.8 M18.5,5.5 C20.5,7.1 21.8,9.4 21.8,12 C21.8,14.6 20.5,16.9 18.5,18.5"
+                                  Fill="Transparent"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                  StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round" />
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+
             </Grid>
         </Border>
+
+        <Popup x:Name="CloudMusicVolumePopup"
+               Placement="Top"
+               PlacementTarget="{Binding ElementName=CloudMusicVolumeButton}"
+               VerticalOffset="-7"
+               AllowsTransparency="True"
+               StaysOpen="False"
+               Closed="OnCloudMusicVolumePopupClosed">
+            <Border Width="58"
+                    Padding="8,9,8,8"
+                    Background="#F7F7FCFF"
+                    BorderBrush="#CC66CCFF"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="13"
+                                      Color="#FF176A90"
+                                      Direction="270"
+                                      Opacity="0.28"
+                                      ShadowDepth="3" />
+                </Border.Effect>
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock x:Name="CloudMusicVolumeValueText"
+                               Margin="0,0,0,2"
+                               HorizontalAlignment="Center"
+                               Foreground="#FF176A90"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Text="--%" />
+                    <Slider x:Name="CloudMusicVolumeSlider"
+                            Minimum="0"
+                            Maximum="100"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            IsMoveToPointEnabled="True"
+                            Style="{StaticResource CloudMusicVerticalVolumeSliderStyle}"
+                            ValueChanged="OnCloudMusicVolumeSliderValueChanged"
+                            AutomationProperties.Name="网易云音乐竖向音量" />
+                </StackPanel>
+            </Border>
+        </Popup>
 
         <Button x:Name="EdgeDockHandle"
                 Panel.ZIndex="20"

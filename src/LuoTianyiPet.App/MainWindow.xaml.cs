@@ -147,6 +147,7 @@ public partial class MainWindow : Window
     private bool _trackInfoShowRequested;
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
+    private bool _updatingCloudMusicVolumeSlider;
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
@@ -3163,6 +3164,88 @@ public partial class MainWindow : Window
     private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
         TrySendMediaCommand(MediaCommand.NextTrack);
 
+    private void OnCloudMusicVolumeClick(object sender, RoutedEventArgs e)
+    {
+        _mediaControlsHideTimer.Stop();
+        RefreshCloudMusicVolumeControl();
+        CloudMusicVolumePopup.IsOpen = true;
+    }
+
+    private void OnCloudMusicVolumeSliderValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_updatingCloudMusicVolumeSlider || _applicationVolumeService is null)
+        {
+            return;
+        }
+
+        ApplicationVolumeAdjustmentResult result =
+            _applicationVolumeService.TrySetLevel((float)(e.NewValue / 100));
+        if (result.Status is ApplicationVolumeAdjustmentStatus.Succeeded or
+            ApplicationVolumeAdjustmentStatus.AtLimit)
+        {
+            UpdateCloudMusicVolumeControl(result.Snapshot);
+            return;
+        }
+
+        string message = result.Status switch
+        {
+            ApplicationVolumeAdjustmentStatus.TargetSessionMissing =>
+                "请先让网易云播放一首歌，再调节独立音量",
+            ApplicationVolumeAdjustmentStatus.ProtectedApplicationForeground =>
+                "游戏安全模式：这次没有调整网易云音量",
+            ApplicationVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
+                "暂时无法确认前台程序，没有调整音量",
+            ApplicationVolumeAdjustmentStatus.SessionUnavailable =>
+                "Windows 音频服务暂时不可用",
+            _ => "Windows 没有接受这次音量调整",
+        };
+        ShowFeedbackBubble(message);
+        RefreshCloudMusicVolumeControl(message);
+    }
+
+    private void OnCloudMusicVolumePopupClosed(object? sender, EventArgs e)
+    {
+        if (!_previewMediaControls && !IsMouseOver)
+        {
+            _mediaControlsHideTimer.Stop();
+            _mediaControlsHideTimer.Start();
+        }
+    }
+
+    private void RefreshCloudMusicVolumeControl(string? overrideStatus = null)
+    {
+        ApplicationVolumeSnapshot snapshot =
+            _applicationVolumeService?.Read() ?? ApplicationVolumeSnapshot.Unavailable;
+        UpdateCloudMusicVolumeControl(snapshot, overrideStatus);
+    }
+
+    private void UpdateCloudMusicVolumeControl(
+        ApplicationVolumeSnapshot snapshot,
+        string? overrideStatus = null)
+    {
+        _updatingCloudMusicVolumeSlider = true;
+        CloudMusicVolumeSlider.IsEnabled = snapshot.IsAvailable;
+        CloudMusicVolumeValueText.Text = snapshot.IsAvailable
+            ? $"{snapshot.Percentage}%"
+            : "--%";
+        if (snapshot.IsAvailable)
+        {
+            CloudMusicVolumeSlider.Value = snapshot.Percentage;
+        }
+        _updatingCloudMusicVolumeSlider = false;
+
+        CloudMusicVolumeButton.ToolTip = overrideStatus ?? (snapshot switch
+        {
+            { IsAvailable: true, SessionCount: > 1 } =>
+                $"网易云独立音量 · {snapshot.Percentage}% · {snapshot.SessionCount} 个会话",
+            { IsAvailable: true } => $"网易云独立音量 · {snapshot.Percentage}%",
+            { ProbeSucceeded: true } => "请先让网易云播放一首歌",
+            _ => "Windows 音频服务暂时不可用",
+        });
+    }
+
     private void OnRootMouseEnter(object sender, MouseEventArgs e)
     {
         if (!_isClosing)
@@ -3216,7 +3299,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!_previewMediaControls)
+        if (!_previewMediaControls && !CloudMusicVolumePopup.IsOpen)
         {
             _mediaControlsHideTimer.Stop();
             _mediaControlsHideTimer.Start();
@@ -3231,7 +3314,7 @@ public partial class MainWindow : Window
     private void OnMediaControlsHideTimerTick(object? sender, EventArgs e)
     {
         _mediaControlsHideTimer.Stop();
-        if (!_previewMediaControls && !IsMouseOver)
+        if (!_previewMediaControls && !IsMouseOver && !CloudMusicVolumePopup.IsOpen)
         {
             _mediaControlsMotion.Hide();
         }

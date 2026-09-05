@@ -23,6 +23,29 @@ public sealed class BodyHitMapTests
     }
 
     [Theory]
+    [InlineData(0.41, 0.43, BodyRegionId.LeftEye)]
+    [InlineData(0.63, 0.43, BodyRegionId.RightEye)]
+    [InlineData(0.50, 0.52, BodyRegionId.Mouth)]
+    [InlineData(0.50, 0.32, BodyRegionId.Face)]
+    [InlineData(0.32, 0.79, BodyRegionId.LeftHand)]
+    [InlineData(0.68, 0.79, BodyRegionId.RightHand)]
+    [InlineData(0.50, 0.61, BodyRegionId.Chest)]
+    [InlineData(0.50, 0.76, BodyRegionId.LowerBodySensitiveArea)]
+    [InlineData(0.42, 0.94, BodyRegionId.LeftFoot)]
+    [InlineData(0.61, 0.94, BodyRegionId.RightFoot)]
+    [InlineData(0.20, 0.18, BodyRegionId.HeadAndHair)]
+    [InlineData(0.42, 0.70, BodyRegionId.OtherBody)]
+    public void ClassicCatEarsMapMatchesTheCurrentArtwork(
+        double x,
+        double y,
+        BodyRegionId expected)
+    {
+        Assert.Equal(
+            expected,
+            BodyHitMap.ClassicCatEars.HitTest(new PointerPoint(x, y)));
+    }
+
+    [Theory]
     [InlineData(-0.1, 0.5)]
     [InlineData(1.1, 0.5)]
     [InlineData(0.5, -0.1)]

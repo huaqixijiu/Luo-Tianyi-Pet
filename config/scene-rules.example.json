@@ -117,11 +117,17 @@
     "petMouseWheelEnabled": false,
     "externalSystemVolumeFeedbackEnabled": false,
     "cloudMusicSessionVolume": {
-      "status": "enabled-in-settings-window",
+      "status": "enabled-in-settings-and-hover-control-island",
       "targetProcess": "cloudmusic.exe",
       "api": "windows-core-audio-session-simple-volume",
       "enumerateAllActiveRenderDevices": true,
       "adjustAllMatchingSessions": true,
+      "hoverControl": {
+        "buttonPlacement": "rightmost",
+        "buttonColor": "#66CCFF",
+        "sliderOrientation": "vertical",
+        "flyoutPlacement": "above-button"
+      },
       "mustNeverFallbackToSystemMasterVolume": true
     }
   },
@@ -168,7 +174,8 @@
       "buttons": [
         "previousTrack",
         "togglePlayPause",
-        "nextTrack"
+        "nextTrack",
+        "cloudMusicSessionVolume"
       ],
       "showCurrentShortcutInTooltip": true
     },
