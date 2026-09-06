@@ -10,7 +10,9 @@
     ],
     "sourceFps": 24,
     "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
-    "retouch": "none"
+    "retouch": "replace six neutral frames at each end with premultiplied idle-to-action blends; keep 145-frame duration",
+    "idleReference": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
+    "inPlaceTransitionFramesPerEnd": 6
   },
   "normalizedFrameSize": [
     256,
@@ -24,9 +26,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "ee57eee434e7ac9a9f7bce050ce50dc1435021422b4a6b1828592b251bdf0b11",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/01_捂嘴.webp",
-      "previewSha256": "d25d659c4c964bf819d58b7d4cfe4266b104f2bcd32e0cbf9a045fabe95ae41a",
+      "previewSha256": "386b3b92bf63340268cab304bd6732e4e50d77c0c22504fe5ade2adb753cf2dd",
       "atlas": "animations/runtime/crystal-cover-mouth.atlas.png",
-      "atlasSha256": "5ecc8931826cd07330f444056de902f049d00f57467eebe60141c6d17abe3cb9"
+      "atlasSha256": "fc08ab3f8b243fd6a7f306835757b040cc3e65b51b9e7bde101d40a7a022491c",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-hand-heart",
@@ -35,9 +38,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "490f609a40ebd390569ed71fe6b620d6f039a9b80c528e30592d944e197462e1",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/02_手比心.webp",
-      "previewSha256": "fc6487d64854bcc37043a43ded242b4ebbfc7975635076dd46b6708be7cbd7e3",
+      "previewSha256": "26700c3abca1c915bd8f0b96915601b86dbf8c59c7bfe54dfaf907e971f7f2ab",
       "atlas": "animations/runtime/crystal-hand-heart.atlas.png",
-      "atlasSha256": "d712849e4b8833bd8323c27affbf5ef2b7f7c47310ecd36477455cfa69a93353"
+      "atlasSha256": "0dac70db7de7b2408d4b9a7caa199f2ef5020186c292f6f09579def4e284d039",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-touch-leg",
@@ -46,9 +50,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "717507867662655d5654fa2c3719dc7622e1da3000638595bfbf52219c7b1d13",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/03_摸腿脚.webp",
-      "previewSha256": "262f4afcc8b0143623ee0992f49700c0bea902c8705d286f4948e899c7ccd353",
+      "previewSha256": "0f26541cfc319fef30d3c243299c051ed1cdc4e44ec47c246bd24338730f215c",
       "atlas": "animations/runtime/crystal-touch-leg.atlas.png",
-      "atlasSha256": "c309b589fa06d5d03c19fe9e5cf536fe2b3859ecd91076bad519ceacc217104b"
+      "atlasSha256": "7d3b23c426f435c38a1fe4908847055c1b022bc94ac6cc89ada6ec7463e18ae7",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-hold-belly",
@@ -57,9 +62,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "cca37a04c62d4b479bb86daccae3ae7d3005840539e197788231b8faaf0e30c3",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/04_捂肚子.webp",
-      "previewSha256": "caaee963bcf238c02353714a99bba08565233a17c393c4e43bdafe5d4cd4f830",
+      "previewSha256": "6ca7ed460c9f49b94754b8d74677f841bd7a45403818dc736b890e786737d036",
       "atlas": "animations/runtime/crystal-hold-belly.atlas.png",
-      "atlasSha256": "8011ee476186cd5259045e3e724c43511e4c6b9a02b51a6547dc76bee608ae8a"
+      "atlasSha256": "ea11f5673c2542fdebf0b383e69e4718b8d50fe1447183a31cf2407b5393618e",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-headpat",
@@ -68,9 +74,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "f1a893eb6e59108308f0c3fa114ff0b6093c63a7a872a439cb59aa879b9187bf",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/05_摸摸头.webp",
-      "previewSha256": "b85b289abc9e2b9ab6ff6a698939c357905cf2ef8ecce40be7556f3b1c2111a7",
+      "previewSha256": "05e5bd63589368973c945504e4bd20c5777fd2fd703b69ae47e73073583e6cde",
       "atlas": "animations/runtime/crystal-headpat.atlas.png",
-      "atlasSha256": "10148330684c7a0967101d0fc66e33c1b4e06d9674ee208b5d48c1b858331b57"
+      "atlasSha256": "ebfd590e680036e0b97e5436b10e858470e4cbd6a91b8cf79dd443653d3ec9a7",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-cover-eyes",
@@ -79,9 +86,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "a96d471f6a90e97387a89c4aff1ab79b2a4d167d8ba7ec760f09b261c912c23e",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/06_遮眼睛.webp",
-      "previewSha256": "cfec7801d3ab7027c1eb418e761f5b1fd2296991f37cd6d675733ceb02087fb9",
+      "previewSha256": "25cb6a75e9f53975934f95426d2d34f29074949e4591482c3678676099730be9",
       "atlas": "animations/runtime/crystal-cover-eyes.atlas.png",
-      "atlasSha256": "effb0c0aca55f7e2d3111730851046c57c8a07053109d98c3aa7a96cb1261696"
+      "atlasSha256": "bad1f23fa24d880a8752f7de08f47e86b926b4834bedbcc582bf8940330639d6",
+      "inPlaceTransitionFramesPerEnd": 6
     },
     {
       "id": "crystal-pinch-cheeks",
@@ -90,9 +98,10 @@
       "sourceFrameCount": 145,
       "sourceSequenceSha256": "e52ce20e860699184d42913c1aa79e363a1a33c82fc9a39a941b996ae207ea48",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/07_捏脸.webp",
-      "previewSha256": "54b2275bdade01e0e5533c40b38e5ff81a78d1c13cb65cce8d37c7c0d36dd85a",
+      "previewSha256": "edf42d5c286a0e8132387b151a8142e0b0a176d89725c38e8f14d02566dcfeec",
       "atlas": "animations/runtime/crystal-pinch-cheeks.atlas.png",
-      "atlasSha256": "87f82a9913d52ce5e6e8892c44ce55a76df3e05855c8a08c4633927ab14afe44"
+      "atlasSha256": "aa126a94a1b980044a56c020444b23801a59b76dd329228646bec531e969bd23",
+      "inPlaceTransitionFramesPerEnd": 6
     }
   ],
   "catalogAnimations": [

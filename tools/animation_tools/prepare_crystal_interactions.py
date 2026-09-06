@@ -36,6 +36,11 @@ ACTIONS = (
     Action(7, "捏脸", "7", "crystal-pinch-cheeks", "捏脸"),
 )
 
+IDLE_DISPLAY_WIDTH = 220
+IDLE_DISPLAY_HEIGHT = 238
+ACTION_DISPLAY_SIZE = 244
+IN_PLACE_TRANSITION_FRAMES = 6
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -65,6 +70,80 @@ def resize_premultiplied(image: Image.Image, size: int) -> Image.Image:
         .resize((size, size), Image.Resampling.LANCZOS)
         .convert("RGBA")
     )
+
+
+def resize_premultiplied_to(
+    image: Image.Image,
+    size: tuple[int, int],
+) -> Image.Image:
+    return image.convert("RGBa").resize(size, Image.Resampling.LANCZOS).convert("RGBA")
+
+
+def make_idle_reference(root: Path, frame_size: int) -> Image.Image:
+    """Place the actual crystal idle art in the action frame's display space.
+
+    The action window is six DIP taller and twelve DIP wider on each side than
+    the idle window. The runtime's seven-DIP downward transform leaves the
+    action image origin one DIP below the idle image origin, hence the -1 row.
+    """
+    idle_path = (
+        root
+        / "assets"
+        / "animations"
+        / "processed"
+        / "用户提供_Q版小人全身_透明.png"
+    )
+    with Image.open(idle_path) as idle:
+        idle_size = (
+            round(frame_size * IDLE_DISPLAY_WIDTH / ACTION_DISPLAY_SIZE),
+            round(frame_size * IDLE_DISPLAY_HEIGHT / ACTION_DISPLAY_SIZE),
+        )
+        resized = resize_premultiplied_to(idle, idle_size)
+
+    reference = Image.new("RGBA", (frame_size, frame_size), (0, 0, 0, 0))
+    reference.alpha_composite(
+        resized,
+        ((frame_size - idle_size[0]) // 2 + 1, -1),
+    )
+    return reference
+
+
+def blend_premultiplied(
+    first: Image.Image,
+    second: Image.Image,
+    second_weight: float,
+) -> Image.Image:
+    return Image.blend(
+        first.convert("RGBa"),
+        second.convert("RGBa"),
+        second_weight,
+    ).convert("RGBA")
+
+
+def add_in_place_transitions(
+    frames: list[Image.Image],
+    idle_reference: Image.Image,
+) -> list[Image.Image]:
+    """Make frame zero/final exactly idle and blend the neighboring frames.
+
+    Existing neutral lead-in/out frames are replaced rather than appended, so
+    the source frame count, timing, atlas dimensions and action duration stay
+    unchanged.
+    """
+    if len(frames) <= IN_PLACE_TRANSITION_FRAMES * 2:
+        raise ValueError("Crystal action does not have enough frames for transitions")
+
+    result = list(frames)
+    for index in range(IN_PLACE_TRANSITION_FRAMES + 1):
+        weight = index / IN_PLACE_TRANSITION_FRAMES
+        result[index] = blend_premultiplied(idle_reference, frames[index], weight)
+
+    outro_start = len(frames) - IN_PLACE_TRANSITION_FRAMES - 1
+    for index in range(outro_start, len(frames)):
+        weight = (index - outro_start) / IN_PLACE_TRANSITION_FRAMES
+        result[index] = blend_premultiplied(frames[index], idle_reference, weight)
+
+    return result
 
 
 def save_atlas(frames: list[Image.Image], path: Path, columns: int) -> tuple[int, int]:
@@ -99,6 +178,7 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
     preview_root = root / "候选素材_官方" / "区域标注" / "第二模型" / "动作动画归档"
     runtime_root = root / "assets" / "animations" / "runtime"
     metadata_path = root / "assets" / "animations" / "processed" / "晶蓝礼服_互动动作.meta.json"
+    idle_reference = make_idle_reference(root, frame_size)
 
     metadata_actions: list[dict[str, object]] = []
     catalog_animations: list[dict[str, object]] = []
@@ -116,6 +196,7 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
                 if image.size != (720, 720):
                     raise ValueError(f"Unexpected frame size for {path}: {image.size}")
                 normalized_frames.append(resize_premultiplied(image, frame_size))
+        normalized_frames = add_in_place_transitions(normalized_frames, idle_reference)
 
         atlas_path = runtime_root / f"{action.animation_id}.atlas.png"
         preview_path = preview_root / f"{action.order:02d}_{action.title}.webp"
@@ -136,6 +217,7 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
                 "previewSha256": sha256_file(preview_path),
                 "atlas": atlas_relative,
                 "atlasSha256": sha256_file(atlas_path),
+                "inPlaceTransitionFramesPerEnd": IN_PLACE_TRANSITION_FRAMES,
             }
         )
         catalog_animations.append(
@@ -149,10 +231,10 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
                 "rows": atlas_rows,
                 "frameDurationMilliseconds": frame_duration_ms,
                 "loopCount": 1,
-                # A 244 DIP square makes the action silhouette match the
-                # 220x238 idle artwork when both retain their source canvas.
-                "displayWidth": 244,
-                "displayHeight": 244,
+                # The square plus runtime Y offset shares a desktop-space
+                # silhouette with the 220x238 idle reference frames.
+                "displayWidth": ACTION_DISPLAY_SIZE,
+                "displayHeight": ACTION_DISPLAY_SIZE,
             }
         )
 
@@ -165,7 +247,14 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
             "sourceFrameSize": [720, 720],
             "sourceFps": 24,
             "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
-            "retouch": "none",
+            "retouch": (
+                "replace six neutral frames at each end with premultiplied "
+                "idle-to-action blends; keep 145-frame duration"
+            ),
+            "idleReference": (
+                "assets/animations/processed/用户提供_Q版小人全身_透明.png"
+            ),
+            "inPlaceTransitionFramesPerEnd": IN_PLACE_TRANSITION_FRAMES,
         },
         "normalizedFrameSize": [frame_size, frame_size],
         "actions": metadata_actions,
