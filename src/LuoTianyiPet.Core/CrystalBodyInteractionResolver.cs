@@ -15,6 +15,20 @@ public sealed class CrystalBodyInteractionResolver
     public const string CoverEyesAnimation = "crystal-cover-eyes";
     public const string PinchCheeksAnimation = "crystal-pinch-cheeks";
 
+    private static readonly HashSet<string> InPlaceAnimationIds =
+    [
+        CoverMouthAnimation,
+        HandHeartAnimation,
+        TouchLegAnimation,
+        HoldBellyAnimation,
+        HeadPatAnimation,
+        CoverEyesAnimation,
+        PinchCheeksAnimation,
+    ];
+
+    public static bool IsInPlaceAnimation(string? animationId) =>
+        animationId is not null && InPlaceAnimationIds.Contains(animationId);
+
     public BodyInteractionDecision Resolve(BodyRegionId region) => region switch
     {
         BodyRegionId.LeftEye or BodyRegionId.RightEye => Play(CoverEyesAnimation),

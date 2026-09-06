@@ -42,4 +42,26 @@ public sealed class CrystalBodyInteractionResolverTests
         Assert.Equal(BodyInteractionDecisionKind.PlayAnimation, decision.Kind);
         Assert.Equal(CrystalBodyInteractionResolver.HeadPatAnimation, decision.AnimationId);
     }
+
+    [Theory]
+    [InlineData(CrystalBodyInteractionResolver.CoverMouthAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.HandHeartAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.TouchLegAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.HoldBellyAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.HeadPatAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.CoverEyesAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.PinchCheeksAnimation)]
+    public void RecognizesEveryCrystalAnimationAsInPlace(string animationId)
+    {
+        Assert.True(CrystalBodyInteractionResolver.IsInPlaceAnimation(animationId));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("resonance-hey-hey")]
+    public void DoesNotTreatOtherAnimationsAsInPlace(string? animationId)
+    {
+        Assert.False(CrystalBodyInteractionResolver.IsInPlaceAnimation(animationId));
+    }
 }

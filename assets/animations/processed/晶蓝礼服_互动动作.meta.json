@@ -106,8 +106,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-hand-heart",
@@ -119,8 +119,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-touch-leg",
@@ -132,8 +132,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-hold-belly",
@@ -145,8 +145,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-headpat",
@@ -158,8 +158,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-cover-eyes",
@@ -171,8 +171,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     },
     {
       "id": "crystal-pinch-cheeks",
@@ -184,8 +184,8 @@
       "rows": 19,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 238,
-      "displayHeight": 238
+      "displayWidth": 244,
+      "displayHeight": 244
     }
   ]
 }

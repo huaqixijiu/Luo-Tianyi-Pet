@@ -149,8 +149,10 @@ def prepare(root: Path, frame_size: int, frame_duration_ms: int, columns: int) -
                 "rows": atlas_rows,
                 "frameDurationMilliseconds": frame_duration_ms,
                 "loopCount": 1,
-                "displayWidth": 238,
-                "displayHeight": 238,
+                # A 244 DIP square makes the action silhouette match the
+                # 220x238 idle artwork when both retain their source canvas.
+                "displayWidth": 244,
+                "displayHeight": 244,
             }
         )
 

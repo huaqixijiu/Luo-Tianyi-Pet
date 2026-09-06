@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private const double SideDockWallClipLeftRatio = 0.923;
     private const double SideDockWallClipWidthRatio = 0.046;
     private const double SideDockRevealPlaybackRate = 1.3;
+    private const double CrystalReactionVerticalOffset = 7;
     private const double BottomDockHidePlaybackRate = 0.7;
     private const double BunStartingSpeed = 72;
     private const double BunChaseCruiseSpeed = 270;
@@ -1685,16 +1686,37 @@ public partial class MainWindow : Window
         }
 
         UpdateBodyHitDebugOverlay();
-        bool transitioned = await _visualSwapTransition.PlayAsync(
-            () => PlayAnimation(
+        bool playInPlace = CrystalBodyInteractionResolver.IsInPlaceAnimation(animationId);
+        bool transitioned;
+        if (playInPlace)
+        {
+            PlayAnimation(
                 animationId,
-                () => CompleteReaction(token, suppressBodyAfter),
-                preserveVisualTransition: true));
+                () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true));
+            transitioned = _animationPlayer?.CurrentAnimationId == animationId;
+            if (transitioned)
+            {
+                PetShakeTransform.Y = CrystalReactionVerticalOffset *
+                    _settings.Appearance.DisplayScalePercent / 100.0;
+            }
+        }
+        else
+        {
+            transitioned = await _visualSwapTransition.PlayAsync(
+                () => PlayAnimation(
+                    animationId,
+                    () => CompleteReaction(token, suppressBodyAfter),
+                    preserveVisualTransition: true));
+        }
         if (transitioned && !_isClosing &&
             _animationPlayer?.CurrentAnimationId == animationId)
         {
             _bodyReactionMotion.PlayFor(animationId);
-            _logger.Info("animation.reaction_started", animationId);
+            _logger.Info(
+                playInPlace
+                    ? "animation.in_place_reaction_started"
+                    : "animation.reaction_started",
+                animationId);
             return token;
         }
 
@@ -1705,7 +1727,10 @@ public partial class MainWindow : Window
         return null;
     }
 
-    private void CompleteReaction(Guid token, bool suppressBodyAfter)
+    private void CompleteReaction(
+        Guid token,
+        bool suppressBodyAfter,
+        bool restoreInPlace = false)
     {
         DateTimeOffset now = DateTimeOffset.Now;
         if (!_stateMachine.CompleteReaction(token, now))
@@ -1720,6 +1745,22 @@ public partial class MainWindow : Window
         Point? restorePosition = FinishGenshinPresentation(token);
         FinishMessageNotificationPresentation(token);
         _bodyReactionMotion.Cancel();
+        if (restoreInPlace)
+        {
+            (bool alignLeft, bool alignRight, bool alignBottom, DesktopRectangle workArea) =
+                CaptureAlphaEdgeAlignment();
+            PlayResolvedContinuousAnimation();
+            RestoreAlphaEdgeAlignment(alignLeft, alignRight, alignBottom, workArea);
+            if (restorePosition is Point inPlacePosition)
+            {
+                RestoreWindowPosition(inPlacePosition);
+            }
+            _logger.Info(
+                "animation.body_reaction_in_place_completed",
+                "The crystal-dress body animation returned directly to its idle artwork.");
+            return;
+        }
+
         _ = TransitionToResolvedContinuousAnimationAsync(
             "animation.body_reaction_transition_completed",
             restorePosition is Point point
