@@ -41,7 +41,6 @@ public partial class MainWindow : Window
     private const double SideDockWallClipLeftRatio = 0.923;
     private const double SideDockWallClipWidthRatio = 0.046;
     private const double SideDockRevealPlaybackRate = 1.3;
-    private const double CrystalReactionVerticalOffset = 7;
     private const double BottomDockHidePlaybackRate = 0.7;
     private const double BunStartingSpeed = 72;
     private const double BunChaseCruiseSpeed = 270;
@@ -1694,11 +1693,6 @@ public partial class MainWindow : Window
                 animationId,
                 () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true));
             transitioned = _animationPlayer?.CurrentAnimationId == animationId;
-            if (transitioned)
-            {
-                PetShakeTransform.Y = CrystalReactionVerticalOffset *
-                    _settings.Appearance.DisplayScalePercent / 100.0;
-            }
         }
         else
         {
