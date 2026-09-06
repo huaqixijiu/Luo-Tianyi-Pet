@@ -536,18 +536,25 @@
                                FontSize="10"
                                FontWeight="SemiBold"
                                Text="--%" />
-                    <Slider x:Name="CloudMusicVolumeSlider"
-                            Minimum="0"
-                            Maximum="100"
-                            TickFrequency="1"
-                            IsSnapToTickEnabled="True"
-                            IsMoveToPointEnabled="True"
-                            Style="{StaticResource CloudMusicVerticalVolumeSliderStyle}"
-                            PreviewMouseLeftButtonDown="OnCloudMusicVolumeSliderPreviewMouseLeftButtonDown"
-                            PreviewMouseMove="OnCloudMusicVolumeSliderPreviewMouseMove"
-                            PreviewMouseLeftButtonUp="OnCloudMusicVolumeSliderPreviewMouseLeftButtonUp"
-                            ValueChanged="OnCloudMusicVolumeSliderValueChanged"
-                            AutomationProperties.Name="网易云音乐竖向音量" />
+                    <Grid x:Name="CloudMusicVolumeDragSurface"
+                          Width="30"
+                          Height="116"
+                          Background="Transparent"
+                          Cursor="SizeNS"
+                          PreviewMouseLeftButtonDown="OnCloudMusicVolumeSliderPreviewMouseLeftButtonDown"
+                          PreviewMouseMove="OnCloudMusicVolumeSliderPreviewMouseMove"
+                          PreviewMouseLeftButtonUp="OnCloudMusicVolumeSliderPreviewMouseLeftButtonUp">
+                        <Slider x:Name="CloudMusicVolumeSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                IsMoveToPointEnabled="True"
+                                IsHitTestVisible="False"
+                                Style="{StaticResource CloudMusicVerticalVolumeSliderStyle}"
+                                ValueChanged="OnCloudMusicVolumeSliderValueChanged"
+                                AutomationProperties.Name="网易云音乐竖向音量" />
+                    </Grid>
                 </StackPanel>
             </Border>
         </Popup>

@@ -156,6 +156,7 @@ public partial class MainWindow : Window
     private bool _hasObservedTrackSnapshot;
     private bool _showNextTrackChange;
     private bool _updatingCloudMusicVolumeSlider;
+    private bool _isCloudMusicVolumeTrackDragging;
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
@@ -3653,15 +3654,22 @@ public partial class MainWindow : Window
             return;
         }
 
-        Mouse.Capture(CloudMusicVolumeSlider, CaptureMode.Element);
+        _isCloudMusicVolumeTrackDragging =
+            CloudMusicVolumeDragSurface.CaptureMouse();
         UpdateCloudMusicVolumeFromPointer(e.GetPosition(CloudMusicVolumeSlider));
         e.Handled = true;
     }
 
     private void OnCloudMusicVolumeSliderPreviewMouseMove(object sender, MouseEventArgs e)
     {
-        if (Mouse.Captured != CloudMusicVolumeSlider || e.LeftButton != MouseButtonState.Pressed)
+        if (!_isCloudMusicVolumeTrackDragging)
         {
+            return;
+        }
+
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            StopCloudMusicVolumeTrackDrag();
             return;
         }
 
@@ -3673,14 +3681,23 @@ public partial class MainWindow : Window
         object sender,
         MouseButtonEventArgs e)
     {
-        if (Mouse.Captured != CloudMusicVolumeSlider)
+        if (!_isCloudMusicVolumeTrackDragging)
         {
             return;
         }
 
         UpdateCloudMusicVolumeFromPointer(e.GetPosition(CloudMusicVolumeSlider));
-        Mouse.Capture(null);
+        StopCloudMusicVolumeTrackDrag();
         e.Handled = true;
+    }
+
+    private void StopCloudMusicVolumeTrackDrag()
+    {
+        _isCloudMusicVolumeTrackDragging = false;
+        if (Mouse.Captured == CloudMusicVolumeDragSurface)
+        {
+            CloudMusicVolumeDragSurface.ReleaseMouseCapture();
+        }
     }
 
     private void UpdateCloudMusicVolumeFromPointer(Point pointer)
@@ -3697,6 +3714,7 @@ public partial class MainWindow : Window
 
     private void OnCloudMusicVolumePopupClosed(object? sender, EventArgs e)
     {
+        StopCloudMusicVolumeTrackDrag();
         if (!_previewMediaControls && !IsMouseOver)
         {
             _mediaControlsHideTimer.Stop();
