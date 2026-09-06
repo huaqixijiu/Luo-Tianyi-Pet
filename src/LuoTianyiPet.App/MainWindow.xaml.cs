@@ -364,6 +364,7 @@ public partial class MainWindow : Window
             enableHitTesting: false);
         _petPointerCursor = TryLoadCursorAsset("pet-pointer.cur");
         _headPatCursor = TryLoadCursorAsset("pet-headpat.cur");
+        ApplyMediaControlCursor();
         _singleClickTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
             Interval = DoubleClickInterval,
@@ -3924,6 +3925,17 @@ public partial class MainWindow : Window
             _logger.Info("cursor.asset_unavailable", $"Asset={fileName}; Error={exception.GetType().Name}.");
             return null;
         }
+    }
+
+    private void ApplyMediaControlCursor()
+    {
+        System.Windows.Input.Cursor cursor =
+            _petPointerCursor ?? System.Windows.Input.Cursors.Hand;
+        PreviousTrackButton.Cursor = cursor;
+        TogglePlayPauseButton.Cursor = cursor;
+        NextTrackButton.Cursor = cursor;
+        CloudMusicVolumeButton.Cursor = cursor;
+        CloudMusicVolumeDragSurface.Cursor = cursor;
     }
 
     private void HandleTogglePlayPauseRequest()
