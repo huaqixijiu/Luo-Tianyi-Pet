@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "settingsArtwork": {
+    "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_加入我们.gif",
+    "sourceSha256": "fcd853378d91bb23f757aa613990af9b08d5897c07a1e93ff04026fa89fb331f",
+    "frameIndex": 0,
+    "output": "assets/ui/settings-encouragement.png",
+    "outputSha256": "32985d51fa6bb0811a6dbe85f81cf6fbb93d86e02049e80bc1aa89ce5afcd9e6",
+    "transformation": "extract-frame-zero-before-source-lettering"
+  },
+  "applicationIcon": {
+    "source": "assets/animations/runtime/user-chibi-crystal-full-body-idle.atlas.png",
+    "sourceSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
+    "crop": [
+      60,
+      0,
+      420,
+      360
+    ],
+    "outputPng": "assets/app/luotianyi-pet.png",
+    "outputPngSha256": "dab56058380e9ac0951c0d1b4a3743e5efd0de878949413e5a5b10d6cd193259",
+    "outputIco": "assets/app/luotianyi-pet.ico",
+    "outputIcoSha256": "d6557bb6659aee0e7d652a99f5b0b7d57f83bc0b990357319d6c270024512b71",
+    "transformation": "portrait-crop-on-rounded-tianyi-blue-background"
+  }
+}

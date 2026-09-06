@@ -2,81 +2,160 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="洛天依桌宠设置"
+        Icon="/assets/app/luotianyi-pet.ico"
         Width="660"
-        MaxHeight="760"
-        SizeToContent="Height"
+        Height="700"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="#FFF3F8FC"
+        Background="#FFF2F7FB"
         FontFamily="Segoe UI, Microsoft YaHei UI"
         Loaded="OnLoaded">
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#FF32B9F2" />
         <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#FF0878A9" />
-        <SolidColorBrush x:Key="TextBrush" Color="#FF143F55" />
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#A8143F55" />
+        <SolidColorBrush x:Key="TextBrush" Color="#FF173F54" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#A8173F54" />
 
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         </Style>
-        <Style x:Key="SettingCardStyle" TargetType="Border">
-            <Setter Property="Padding" Value="20,18" />
-            <Setter Property="Margin" Value="0,0,0,12" />
-            <Setter Property="Background" Value="#FCFFFFFF" />
-            <Setter Property="BorderBrush" Value="#337ECDEB" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
-            <Setter Property="Effect">
+
+        <Style x:Key="SettingsTabControlStyle" TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="18" Color="#FF5B9FBA" Direction="270"
-                                      Opacity="0.10" ShadowDepth="3" />
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid KeyboardNavigation.TabNavigation="Local">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="60" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border Background="#FCFFFFFF"
+                                    BorderBrush="#267ECDEB"
+                                    BorderThickness="0,0,0,1">
+                                <TabPanel Margin="22,0"
+                                          HorizontalAlignment="Left"
+                                          IsItemsHost="True" />
+                            </Border>
+                            <ContentPresenter Grid.Row="1"
+                                              Margin="22,18,22,0"
+                                              ContentSource="SelectedContent" />
+                        </Grid>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="SectionIconStyle" TargetType="Border">
-            <Setter Property="Width" Value="38" />
-            <Setter Property="Height" Value="38" />
-            <Setter Property="Margin" Value="0,0,12,0" />
-            <Setter Property="Background" Value="#2032B9F2" />
-            <Setter Property="CornerRadius" Value="11" />
+
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#B2173F54" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid Margin="0,0,8,0">
+                            <Border x:Name="TabSurface"
+                                    MinWidth="112"
+                                    Padding="16,0"
+                                    Background="Transparent"
+                                    CornerRadius="12,12,0,0">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  ContentSource="Header" />
+                            </Border>
+                            <Border x:Name="SelectionLine"
+                                    Width="68"
+                                    Height="3"
+                                    VerticalAlignment="Bottom"
+                                    Background="{StaticResource PrimaryBrush}"
+                                    CornerRadius="2"
+                                    Opacity="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabSurface" Property="Background" Value="#1032B9F2" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
+                                <Setter TargetName="TabSurface" Property="Background" Value="#1532B9F2" />
+                                <Setter TargetName="SelectionLine" Property="Opacity" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15" />
+
+        <Style x:Key="SettingsCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="15" />
+            <Setter Property="Background" Value="#FCFFFFFF" />
+            <Setter Property="BorderBrush" Value="#347ECDEB" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18"
+                                      Color="#FF589CB8"
+                                      Direction="270"
+                                      Opacity="0.09"
+                                      ShadowDepth="3" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style x:Key="SectionDescriptionStyle" TargetType="TextBlock">
-            <Setter Property="Margin" Value="0,3,0,0" />
+        <Style x:Key="PageDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,4,0,15" />
             <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="11.5" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
 
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="Margin" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
-                        <Border x:Name="RowSurface" MinHeight="38" Padding="10,6"
-                                Background="Transparent" CornerRadius="10">
+                        <Border x:Name="RowSurface"
+                                MinHeight="60"
+                                Padding="14,9"
+                                Background="Transparent"
+                                CornerRadius="12">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <ContentPresenter Margin="0,0,16,0" VerticalAlignment="Center"
+                                <ContentPresenter Margin="0,0,18,0"
+                                                  VerticalAlignment="Center"
                                                   RecognizesAccessKey="True" />
-                                <Grid Grid.Column="1" Width="42" Height="24" VerticalAlignment="Center">
-                                    <Border x:Name="ToggleTrack" Background="#FFD8E3E9"
-                                            BorderBrush="#80A6B9C3" BorderThickness="1"
+                                <Grid Grid.Column="1"
+                                      Width="44"
+                                      Height="24"
+                                      VerticalAlignment="Center">
+                                    <Border x:Name="ToggleTrack"
+                                            Background="#FFD7E4EA"
+                                            BorderBrush="#70A4B9C4"
+                                            BorderThickness="1"
                                             CornerRadius="12" />
-                                    <Ellipse x:Name="ToggleThumb" Width="18" Height="18" Margin="3"
-                                             HorizontalAlignment="Left" Fill="White">
+                                    <Ellipse x:Name="ToggleThumb"
+                                             Width="18"
+                                             Height="18"
+                                             Margin="3"
+                                             HorizontalAlignment="Left"
+                                             Fill="White">
                                         <Ellipse.Effect>
-                                            <DropShadowEffect BlurRadius="4" Color="#FF234C60"
-                                                              Opacity="0.24" ShadowDepth="1" />
+                                            <DropShadowEffect BlurRadius="4"
+                                                              Color="#FF234C60"
+                                                              Opacity="0.22"
+                                                              ShadowDepth="1" />
                                         </Ellipse.Effect>
                                     </Ellipse>
                                 </Grid>
@@ -84,7 +163,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RowSurface" Property="Background" Value="#1232B9F2" />
+                                <Setter TargetName="RowSurface" Property="Background" Value="#1032B9F2" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="ToggleTrack" Property="Background" Value="{StaticResource PrimaryBrush}" />
@@ -100,8 +179,19 @@
             </Setter>
         </Style>
 
+        <Style x:Key="OptionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="OptionDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,3,0,0" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
         <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="MinWidth" Value="94" />
+            <Setter Property="MinWidth" Value="96" />
             <Setter Property="Height" Value="38" />
             <Setter Property="Padding" Value="16,0" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
@@ -113,19 +203,21 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="ButtonSurface" Padding="{TemplateBinding Padding}"
+                        <Border x:Name="ButtonSurface"
+                                Padding="{TemplateBinding Padding}"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="11">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.88" />
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.86" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.78" />
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.74" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.45" />
@@ -136,14 +228,16 @@
             </Setter>
         </Style>
         <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}" />
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button"
+        <Style x:Key="PrimaryButtonStyle"
+               TargetType="Button"
                BasedOn="{StaticResource ActionButtonStyle}">
-            <Setter Property="MinWidth" Value="128" />
-            <Setter Property="Height" Value="42" />
+            <Setter Property="MinWidth" Value="126" />
+            <Setter Property="Height" Value="40" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
             <Setter Property="BorderBrush" Value="#FF1AA6E1" />
         </Style>
+
         <Style TargetType="ComboBox">
             <Setter Property="MinHeight" Value="42" />
             <Setter Property="Padding" Value="12,7" />
@@ -154,163 +248,300 @@
         </Style>
     </Window.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="24,20,24,22">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#FFF7FBFE" />
+                <GradientStop Offset="0.6" Color="#FFF1F8FC" />
+                <GradientStop Offset="1" Color="#FFEAF5FB" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="76" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="62" />
+        </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Margin="0,0,0,16" Padding="18,15"
-                    Background="#FF0D759F" CornerRadius="18">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Width="46" Height="46" Margin="0,0,14,0"
-                            Background="#24FFFFFF" CornerRadius="14">
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontFamily="Segoe MDL2 Assets" FontSize="22"
-                                   Foreground="White" Text="&#xE713;" />
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock FontSize="21" FontWeight="SemiBold" Foreground="White"
-                                   Text="洛天依桌宠设置" />
-                        <TextBlock Margin="0,3,0,0" FontSize="11.5" Foreground="#DFF4FBFF"
-                                   Text="把常用开关留在这里，音量直接在桌宠控制岛调节。" />
+        <Border Grid.Row="0"
+                Padding="23,12"
+                Background="#FCFFFFFF"
+                BorderBrush="#267ECDEB"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="50"
+                        Height="50"
+                        Margin="0,0,13,0"
+                        Background="#1832B9F2"
+                        CornerRadius="15">
+                    <Image Margin="3"
+                           Source="/assets/app/luotianyi-pet.png"
+                           Stretch="Uniform" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Text="洛天依桌宠" />
+                        <TextBlock Margin="9,4,0,0"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   FontSize="12"
+                                   Text="设置" />
                     </StackPanel>
-                </Grid>
-            </Border>
-
-            <Border Grid.Row="1" Style="{StaticResource SettingCardStyle}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource SectionIconStyle}">
-                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
-                                       Foreground="{StaticResource PrimaryDarkBrush}" Text="&#xE80F;" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="桌面行为" />
-                            <TextBlock Style="{StaticResource SectionDescriptionStyle}"
-                                       Text="启动方式、窗口层级与日常互动。" />
-                        </StackPanel>
-                    </Grid>
-                    <CheckBox x:Name="StartWithWindowsCheckBox"
-                              AutomationProperties.Name="登录 Windows 后自动启动洛天依桌宠"
-                              Content="登录 Windows 后自动启动桌宠" />
-                    <CheckBox x:Name="AlwaysOnTopCheckBox"
-                              AutomationProperties.Name="桌宠始终置顶" Content="桌宠始终置顶" />
-                    <CheckBox x:Name="FullBodyStyleCyclingCheckBox"
-                              AutomationProperties.Name="允许双击循环三种桌宠外观"
-                              Content="双击桌宠时循环切换三种外观" />
-                    <CheckBox x:Name="DesktopFileTreatsCheckBox"
-                              AutomationProperties.Name="启用吃包子功能"
-                              Content="启用吃包子功能（桌面删除追包与拖到桌宠回收）" />
-                    <Border Margin="8,8,8,0" Padding="11,9" Background="#0F32B9F2"
-                            CornerRadius="10">
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" FontSize="10.5"
-                                   TextWrapping="Wrap"
-                                   Text="关闭外观循环后会固定当前外观。吃包子功能只观察桌面项目名称与图标位置，不读取文件内容。" />
-                    </Border>
+                    <TextBlock Margin="0,3,0,0"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               FontSize="10.5"
+                               Text="调整桌面陪伴、音乐互动与消息提醒" />
                 </StackPanel>
-            </Border>
+            </Grid>
+        </Border>
 
-            <Border Grid.Row="2" Style="{StaticResource SettingCardStyle}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource SectionIconStyle}">
-                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
-                                       Foreground="{StaticResource PrimaryDarkBrush}" Text="&#xE8D6;" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="音乐播放动画" />
-                            <TextBlock Style="{StaticResource SectionDescriptionStyle}"
-                                       Text="选择网易云播放音乐时持续循环的动作。" />
-                        </StackPanel>
-                    </Grid>
-                    <Border Background="#FFF7FBFD"
-                            BorderBrush="#667ECDEB"
-                            BorderThickness="1"
-                            CornerRadius="11"
-                            ClipToBounds="True">
-                        <ComboBox x:Name="MusicAnimationSelectionComboBox"
-                                  AutomationProperties.Name="音乐播放动画选择"
-                                  BorderThickness="0" />
-                    </Border>
-                    <TextBlock Margin="2,9,2,0" Foreground="{StaticResource MutedTextBrush}"
-                               FontSize="10.5" TextWrapping="Wrap"
-                               Text="随机模式会在开始播放、继续播放或切歌时重新抽取；以后新增循环动作也会继续加入。" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="3" Style="{StaticResource SettingCardStyle}">
-                <StackPanel>
-                    <Grid Margin="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource SectionIconStyle}">
-                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
-                                       Foreground="{StaticResource PrimaryDarkBrush}" Text="&#xE8BD;" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="QQ / 微信消息提醒" />
-                            <TextBlock Style="{StaticResource SectionDescriptionStyle}"
-                                       Text="只显示应用来源和可用的联系人或群名。" />
-                        </StackPanel>
-                    </Grid>
-                    <CheckBox x:Name="MessageReminderCheckBox"
-                              AutomationProperties.Name="启用 QQ 和微信消息来源提醒"
-                              Content="来源应用不在前台时显示提醒" />
-                    <Border Margin="8,8,8,11" Padding="12,10" Background="#0F32B9F2"
-                            CornerRadius="10">
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" FontSize="10.5"
-                                   TextWrapping="Wrap"
-                                   Text="桌宠不会读取、显示、保存或记录消息正文；标题结构不明确时只显示应用来源。" />
-                    </Border>
+        <TabControl Grid.Row="1"
+                    Style="{StaticResource SettingsTabControlStyle}"
+                    AutomationProperties.Name="设置分类">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,7,0" VerticalAlignment="Center"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="17"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="&#xE713;" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="常规" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="NotificationAccessStatusText" Margin="8,0,14,0"
-                                   VerticalAlignment="Center" Foreground="{StaticResource MutedTextBrush}"
-                                   FontSize="10.5" TextWrapping="Wrap"
-                                   Text="正在检查 Windows 通知访问状态……" />
-                        <Button x:Name="NotificationAccessButton" Grid.Column="1"
-                                AutomationProperties.Name="授权 Windows 通知访问"
-                                Click="OnRequestNotificationAccessClick" Content="授权访问" />
-                    </Grid>
-                </StackPanel>
-            </Border>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PageTitleStyle}" Text="常规设置" />
+                            <TextBlock Style="{StaticResource PageDescriptionStyle}"
+                                       Text="管理桌宠的启动、显示和日常互动方式。" />
+                            <Border Style="{StaticResource SettingsCardStyle}">
+                                <StackPanel>
+                                    <CheckBox x:Name="StartWithWindowsCheckBox"
+                                              AutomationProperties.Name="登录 Windows 后自动启动洛天依桌宠">
+                                        <StackPanel>
+                                            <TextBlock Style="{StaticResource OptionTitleStyle}" Text="开机自动启动" />
+                                            <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                                       Text="登录 Windows 后自动运行桌宠" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <Separator Margin="14,0" Background="#257ECDEB" />
+                                    <CheckBox x:Name="AlwaysOnTopCheckBox"
+                                              AutomationProperties.Name="桌宠始终置顶">
+                                        <StackPanel>
+                                            <TextBlock Style="{StaticResource OptionTitleStyle}" Text="始终置顶" />
+                                            <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                                       Text="保持桌宠显示在其他普通窗口上方" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <Separator Margin="14,0" Background="#257ECDEB" />
+                                    <CheckBox x:Name="FullBodyStyleCyclingCheckBox"
+                                              AutomationProperties.Name="允许双击循环三种桌宠外观">
+                                        <StackPanel>
+                                            <TextBlock Style="{StaticResource OptionTitleStyle}" Text="双击切换外观" />
+                                            <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                                       Text="双击桌宠时在三种外观间循环；关闭后固定当前外观" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <Separator Margin="14,0" Background="#257ECDEB" />
+                                    <CheckBox x:Name="DesktopFileTreatsCheckBox"
+                                              AutomationProperties.Name="启用吃包子功能">
+                                        <StackPanel>
+                                            <TextBlock Style="{StaticResource OptionTitleStyle}" Text="吃包子功能" />
+                                            <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                                       Text="桌面删除后追包，或把文件拖到桌宠后移入回收站" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
 
-            <Grid Grid.Row="4" Margin="2,4,2,0">
+                        <Grid Grid.Row="1" Height="120" Margin="28,4,20,0">
+                            <StackPanel Margin="18,0,0,14"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Bottom">
+                                <TextBlock Foreground="#8B4E9DBD"
+                                           FontFamily="Microsoft YaHei UI"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           LineHeight="28"
+                                           Text="今天也，&#x0a;一起加油吧~" />
+                            </StackPanel>
+                            <Image Width="132"
+                                   Height="120"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   Source="/assets/ui/settings-encouragement.png"
+                                   Stretch="Uniform"
+                                   Opacity="0.94" />
+                        </Grid>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,7,0" VerticalAlignment="Center"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="17"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="&#xE8D6;" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="音乐" />
+                    </StackPanel>
+                </TabItem.Header>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PageTitleStyle}" Text="音乐互动" />
+                    <TextBlock Style="{StaticResource PageDescriptionStyle}"
+                               Text="选择网易云音乐播放时，桌宠持续展示的听歌动作。" />
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource OptionTitleStyle}" Text="播放动画" />
+                            <TextBlock Margin="0,4,0,13"
+                                       Style="{StaticResource OptionDescriptionStyle}"
+                                       Text="随机模式会在开始播放、继续播放或切歌时重新抽取" />
+                            <Border Background="#FFF7FBFD" BorderBrush="#667ECDEB"
+                                    BorderThickness="1" CornerRadius="11" ClipToBounds="True">
+                                <ComboBox x:Name="MusicAnimationSelectionComboBox"
+                                          AutomationProperties.Name="音乐播放动画选择"
+                                          BorderThickness="0" />
+                            </Border>
+                            <Border Margin="0,14,0,0" Padding="13,11"
+                                    Background="#1032B9F2" CornerRadius="11">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="10.5" TextWrapping="Wrap"
+                                           Text="网易云独立音量继续通过桌宠播放控制岛调节，不会修改其它应用或系统主音量。以后新增的听歌循环动作会继续加入此列表。" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,7,0" VerticalAlignment="Center"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="17"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="&#xE7F4;" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="通知" />
+                    </StackPanel>
+                </TabItem.Header>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PageTitleStyle}" Text="消息提醒" />
+                    <TextBlock Style="{StaticResource PageDescriptionStyle}"
+                               Text="只显示 QQ / 微信来源，以及系统通知明确提供的联系人或群名。" />
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <StackPanel>
+                            <CheckBox x:Name="MessageReminderCheckBox"
+                                      AutomationProperties.Name="启用 QQ 和微信消息来源提醒">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource OptionTitleStyle}" Text="QQ / 微信消息提醒" />
+                                    <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                               Text="来源应用不在前台时，在桌宠旁显示提醒" />
+                                </StackPanel>
+                            </CheckBox>
+                            <Border Margin="0,8,0,14" Padding="13,11"
+                                    Background="#1032B9F2" CornerRadius="11">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="10.5" TextWrapping="Wrap"
+                                           Text="桌宠不会读取、显示、保存或记录消息正文；标题结构不明确时只显示应用来源。" />
+                            </Border>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="NotificationAccessStatusText"
+                                           Margin="2,0,16,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="10.5" TextWrapping="Wrap"
+                                           Text="正在检查 Windows 通知访问状态……" />
+                                <Button x:Name="NotificationAccessButton" Grid.Column="1"
+                                        AutomationProperties.Name="授权 Windows 通知访问"
+                                        Click="OnRequestNotificationAccessClick"
+                                        Content="授权访问" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,7,0" VerticalAlignment="Center"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="17"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="&#xE946;" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"
+                                   Text="关于" />
+                    </StackPanel>
+                </TabItem.Header>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PageTitleStyle}" Text="关于洛天依桌宠" />
+                    <TextBlock Style="{StaticResource PageDescriptionStyle}"
+                               Text="一只留在 Windows 桌面上陪伴你的本地桌宠。" />
+                    <Border Style="{StaticResource SettingsCardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="116" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image Width="94" Height="94"
+                                   HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Source="/assets/app/luotianyi-pet.png"
+                                   Stretch="Uniform" />
+                            <StackPanel Grid.Column="1" Margin="6,3,0,0">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="洛天依桌宠" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="11"
+                                           Text="本地运行 · Windows 10/11 · 普通用户权限" />
+                                <TextBlock Margin="0,14,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="10.5" LineHeight="18" TextWrapping="Wrap"
+                                           Text="角色动画、设置和交互数据保存在本机。桌宠不会读取聊天正文，也不会把拖入的文件永久删除；文件操作仅请求移入 Windows 回收站。" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="2" Padding="22,10"
+                Background="#F8FFFFFF"
+                BorderBrush="#267ECDEB"
+                BorderThickness="0,1,0,0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock VerticalAlignment="Center" Foreground="#7A143F55" FontSize="10.5"
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="#7A173F54"
+                           FontSize="10.5"
                            Text="更改会在保存后立即生效" />
-                <Button Grid.Column="1" AutomationProperties.Name="保存桌宠设置"
-                        Style="{StaticResource PrimaryButtonStyle}" Click="OnSaveClick"
+                <Button Grid.Column="1"
+                        AutomationProperties.Name="保存桌宠设置"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="OnSaveClick"
                         Content="保存并关闭" />
             </Grid>
-        </Grid>
-    </ScrollViewer>
+        </Border>
+    </Grid>
 </Window>

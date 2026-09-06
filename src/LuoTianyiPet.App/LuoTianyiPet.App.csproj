@@ -19,6 +19,12 @@
     <Content Include="..\..\assets\cursors\**\*"
              Link="assets\cursors\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <Resource Include="..\..\assets\app\luotianyi-pet.ico"
+              Link="assets\app\luotianyi-pet.ico" />
+    <Resource Include="..\..\assets\app\luotianyi-pet.png"
+              Link="assets\app\luotianyi-pet.png" />
+    <Resource Include="..\..\assets\ui\settings-encouragement.png"
+              Link="assets\ui\settings-encouragement.png" />
     <Content Include="..\..\候选素材_官方\区域标注\第三模型\身体区域_full-body-classic.json"
              Link="assets\body-hit-maps\full-body-classic.json"
              CopyToOutputDirectory="PreserveNewest" />
@@ -33,6 +39,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\app\luotianyi-pet.ico</ApplicationIcon>
     <AssemblyName>LuoTianyiPet</AssemblyName>
     <RootNamespace>LuoTianyiPet.App</RootNamespace>
   </PropertyGroup>
