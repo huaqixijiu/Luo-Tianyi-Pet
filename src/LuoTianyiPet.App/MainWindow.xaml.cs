@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
+    private static readonly TimeSpan AccessoryMouseLeaveDelay = TimeSpan.FromSeconds(5);
     private const double EdgeDockActivationFraction = 0.25;
     private const double EdgeDockReleaseFraction = 1.0 / 6.0;
     private const double EdgeDockMinimumDragOverscan = 96;
@@ -55,7 +56,7 @@ public partial class MainWindow : Window
     private const int BottomDockRevealEndFrame = 7;
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
-    private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(4);
+    private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan TimeGreetingPresentationDuration = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
@@ -382,7 +383,7 @@ public partial class MainWindow : Window
         _feedbackBubbleTimer.Tick += OnFeedbackBubbleTimerTick;
         _mediaControlsHideTimer = new DispatcherTimer(DispatcherPriority.Input)
         {
-            Interval = TimeSpan.FromMilliseconds(220),
+            Interval = AccessoryMouseLeaveDelay,
         };
         _mediaControlsHideTimer.Tick += OnMediaControlsHideTimerTick;
         _trackInfoRefreshTimer = new DispatcherTimer(DispatcherPriority.Background)
@@ -3284,8 +3285,7 @@ public partial class MainWindow : Window
             _settings.Appearance,
             _settings.Media,
             _startupRegistrationService?.IsEnabled ?? false,
-            _messageNotificationSource,
-            _applicationVolumeService)
+            _messageNotificationSource)
         {
             Owner = this,
         };
@@ -3644,6 +3644,57 @@ public partial class MainWindow : Window
         RefreshCloudMusicVolumeControl(message);
     }
 
+    private void OnCloudMusicVolumeSliderPreviewMouseLeftButtonDown(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (!CloudMusicVolumeSlider.IsEnabled)
+        {
+            return;
+        }
+
+        Mouse.Capture(CloudMusicVolumeSlider, CaptureMode.Element);
+        UpdateCloudMusicVolumeFromPointer(e.GetPosition(CloudMusicVolumeSlider));
+        e.Handled = true;
+    }
+
+    private void OnCloudMusicVolumeSliderPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (Mouse.Captured != CloudMusicVolumeSlider || e.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        UpdateCloudMusicVolumeFromPointer(e.GetPosition(CloudMusicVolumeSlider));
+        e.Handled = true;
+    }
+
+    private void OnCloudMusicVolumeSliderPreviewMouseLeftButtonUp(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (Mouse.Captured != CloudMusicVolumeSlider)
+        {
+            return;
+        }
+
+        UpdateCloudMusicVolumeFromPointer(e.GetPosition(CloudMusicVolumeSlider));
+        Mouse.Capture(null);
+        e.Handled = true;
+    }
+
+    private void UpdateCloudMusicVolumeFromPointer(Point pointer)
+    {
+        const double trackPadding = 9;
+        double value = VerticalRangeMapper.Resolve(
+            pointer.Y,
+            CloudMusicVolumeSlider.ActualHeight,
+            trackPadding,
+            CloudMusicVolumeSlider.Minimum,
+            CloudMusicVolumeSlider.Maximum);
+        CloudMusicVolumeSlider.Value = Math.Round(value);
+    }
+
     private void OnCloudMusicVolumePopupClosed(object? sender, EventArgs e)
     {
         if (!_previewMediaControls && !IsMouseOver)
@@ -3744,9 +3795,11 @@ public partial class MainWindow : Window
             _mediaControlsHideTimer.Start();
         }
 
-        if (!_previewTrackInfo && !_trackInfoHideTimer.IsEnabled)
+        if (!_previewTrackInfo)
         {
-            _trackInfoMotion.Hide();
+            _trackInfoHideTimer.Stop();
+            _trackInfoHideTimer.Interval = AccessoryMouseLeaveDelay;
+            _trackInfoHideTimer.Start();
         }
     }
 

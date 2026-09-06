@@ -543,6 +543,9 @@
                             IsSnapToTickEnabled="True"
                             IsMoveToPointEnabled="True"
                             Style="{StaticResource CloudMusicVerticalVolumeSliderStyle}"
+                            PreviewMouseLeftButtonDown="OnCloudMusicVolumeSliderPreviewMouseLeftButtonDown"
+                            PreviewMouseMove="OnCloudMusicVolumeSliderPreviewMouseMove"
+                            PreviewMouseLeftButtonUp="OnCloudMusicVolumeSliderPreviewMouseLeftButtonUp"
                             ValueChanged="OnCloudMusicVolumeSliderValueChanged"
                             AutomationProperties.Name="网易云音乐竖向音量" />
                 </StackPanel>
