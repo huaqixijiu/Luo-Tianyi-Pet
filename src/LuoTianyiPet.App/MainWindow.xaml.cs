@@ -39,8 +39,8 @@ public partial class MainWindow : Window
     private const double EdgeAlignmentTolerance = 3;
     private const double EdgeDockAlphaInset = 2;
     private const double EdgeAccessoryLayoutDistance = 80;
-    private const double SideDockWallClipLeftRatio = 0.923;
-    private const double SideDockWallClipWidthRatio = 0.046;
+    private const double SideDockWallClipLeftRatio = 0.952;
+    private const double SideDockWallClipWidthRatio = 0.048;
     private const double SideDockRevealPlaybackRate = 1.3;
     private const double BottomDockHidePlaybackRate = 0.7;
     private const double BunStartingSpeed = 72;

@@ -411,10 +411,10 @@
         "revealEndFrameIndex": 19,
         "hidePlaybackRate": 1.0,
         "revealPlaybackRate": 1.3,
-        "runtimeCropAfterResize": [0, 0, 196, 240],
-        "runtimeDisplayWidthDips": 155,
-        "hiddenWallClipLeftRatio": 0.9,
-        "hiddenWallClipWidthRatio": 0.092
+        "runtimeCropAfterResize": [0, 0, 186, 240],
+        "runtimeDisplayWidthDips": 147,
+        "hiddenWallClipLeftRatio": 0.952,
+        "hiddenWallClipWidthRatio": 0.048
       },
       "right": {
         "animation": "twelfth-anniversary-peek",
@@ -424,10 +424,10 @@
         "revealEndFrameIndex": 19,
         "hidePlaybackRate": 1.0,
         "revealPlaybackRate": 1.3,
-        "runtimeCropAfterResize": [0, 0, 196, 240],
-        "runtimeDisplayWidthDips": 155,
-        "hiddenWallClipLeftRatio": 0.9,
-        "hiddenWallClipWidthRatio": 0.092
+        "runtimeCropAfterResize": [0, 0, 186, 240],
+        "runtimeDisplayWidthDips": 147,
+        "hiddenWallClipLeftRatio": 0.952,
+        "hiddenWallClipWidthRatio": 0.048
       },
       "bottom": {
         "animation": "twelfth-anniversary-entrance",
