@@ -7,16 +7,7 @@ namespace LuoTianyiPet.App;
 public sealed class TrayIconController : IDisposable
 {
     private readonly Forms.NotifyIcon _notifyIcon;
-    private readonly Forms.ToolStripMenuItem _topmostItem;
-    private readonly Forms.ToolStripMenuItem _startupItem;
-    private readonly Forms.ToolStripLabel _displayScaleLabel;
-    private readonly Forms.TrackBar _displayScaleTrackBar;
-    private readonly Func<bool> _isTopmostEnabled;
-    private readonly Func<bool> _isStartupEnabled;
-    private readonly Func<int> _getDisplayScalePercent;
-    private readonly Action<int> _previewDisplayScalePercent;
-    private readonly Action<int> _commitDisplayScalePercent;
-    private bool _refreshingDisplayScale;
+    private readonly TrayQuickPanel _quickPanel;
     private bool _disposed;
 
     public TrayIconController(
@@ -40,62 +31,22 @@ public sealed class TrayIconController : IDisposable
         ArgumentNullException.ThrowIfNull(commitDisplayScalePercent);
         ArgumentNullException.ThrowIfNull(exit);
 
-        _isTopmostEnabled = isTopmostEnabled;
-        _isStartupEnabled = isStartupEnabled;
-        _getDisplayScalePercent = getDisplayScalePercent;
-        _previewDisplayScalePercent = previewDisplayScalePercent;
-        _commitDisplayScalePercent = commitDisplayScalePercent;
-        Forms.ContextMenuStrip menu = new();
-        Forms.ToolStripMenuItem settingsItem = new("打开设置");
-        settingsItem.Click += (_, _) => openSettings();
-        _topmostItem = new Forms.ToolStripMenuItem("始终置顶") { CheckOnClick = true };
-        _topmostItem.Click += (_, _) => setTopmostEnabled(_topmostItem.Checked);
-        _startupItem = new Forms.ToolStripMenuItem("开机自启动") { CheckOnClick = true };
-        _startupItem.Click += (_, _) => setStartupEnabled(_startupItem.Checked);
-        _displayScaleLabel = new Forms.ToolStripLabel("显示大小 100%")
-        {
-            Margin = new Forms.Padding(6, 5, 6, 0),
-        };
-        _displayScaleTrackBar = new Forms.TrackBar
-        {
-            Minimum = AppearancePreferences.MinimumDisplayScalePercent,
-            Maximum = AppearancePreferences.MaximumDisplayScalePercent,
-            TickFrequency = 25,
-            SmallChange = 5,
-            LargeChange = 10,
-            Width = 190,
-            Height = 34,
-            AutoSize = false,
-        };
-        _displayScaleTrackBar.ValueChanged += (_, _) => PreviewDisplayScale();
-        _displayScaleTrackBar.MouseUp += (_, _) => CommitDisplayScale();
-        _displayScaleTrackBar.KeyUp += (_, _) => CommitDisplayScale();
-        Forms.ToolStripControlHost displayScaleHost = new(_displayScaleTrackBar)
-        {
-            AutoSize = false,
-            Width = 210,
-            Height = 38,
-            Margin = new Forms.Padding(4, 0, 4, 3),
-        };
-        Forms.ToolStripMenuItem exitItem = new("退出桌宠");
-        exitItem.Click += (_, _) => exit();
-        menu.Items.Add(settingsItem);
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add(_topmostItem);
-        menu.Items.Add(_startupItem);
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add(_displayScaleLabel);
-        menu.Items.Add(displayScaleHost);
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add(exitItem);
-        menu.Opening += (_, _) => RefreshChecks();
+        _quickPanel = new TrayQuickPanel(
+            openSettings,
+            isTopmostEnabled,
+            setTopmostEnabled,
+            isStartupEnabled,
+            setStartupEnabled,
+            getDisplayScalePercent,
+            previewDisplayScalePercent,
+            commitDisplayScalePercent,
+            exit);
 
         Drawing.Icon icon = ExtractApplicationIcon();
         _notifyIcon = new Forms.NotifyIcon
         {
             Text = "洛天依桌宠",
             Icon = icon,
-            ContextMenuStrip = menu,
             Visible = true,
         };
         _notifyIcon.MouseClick += (_, eventArgs) =>
@@ -104,42 +55,33 @@ public sealed class TrayIconController : IDisposable
             {
                 openSettings();
             }
+            else if (eventArgs.Button == Forms.MouseButtons.Right)
+            {
+                ToggleQuickPanel();
+            }
         };
         RefreshChecks();
     }
 
     public void RefreshChecks()
     {
-        _topmostItem.Checked = _isTopmostEnabled();
-        _startupItem.Checked = _isStartupEnabled();
-        int displayScale = Math.Clamp(
-            _getDisplayScalePercent(),
-            AppearancePreferences.MinimumDisplayScalePercent,
-            AppearancePreferences.MaximumDisplayScalePercent);
-        _refreshingDisplayScale = true;
-        _displayScaleTrackBar.Value = displayScale;
-        _displayScaleLabel.Text = $"显示大小 {displayScale}%";
-        _refreshingDisplayScale = false;
+        _quickPanel.RefreshState();
     }
 
-    private void PreviewDisplayScale()
+    public void ShowQuickPanel()
     {
-        if (_refreshingDisplayScale)
+        _quickPanel.ShowNearTray();
+    }
+
+    private void ToggleQuickPanel()
+    {
+        if (_quickPanel.IsVisible)
         {
+            _quickPanel.HidePanel();
             return;
         }
 
-        int value = _displayScaleTrackBar.Value;
-        _displayScaleLabel.Text = $"显示大小 {value}%";
-        _previewDisplayScalePercent(value);
-    }
-
-    private void CommitDisplayScale()
-    {
-        if (!_refreshingDisplayScale)
-        {
-            _commitDisplayScalePercent(_displayScaleTrackBar.Value);
-        }
+        ShowQuickPanel();
     }
 
     public void Dispose()
@@ -150,11 +92,10 @@ public sealed class TrayIconController : IDisposable
         }
 
         _disposed = true;
+        _quickPanel.Close();
         _notifyIcon.Visible = false;
         Drawing.Icon? icon = _notifyIcon.Icon;
-        Forms.ContextMenuStrip? menu = _notifyIcon.ContextMenuStrip;
         _notifyIcon.Dispose();
-        menu?.Dispose();
         icon?.Dispose();
     }
 

@@ -2700,6 +2700,12 @@ public partial class MainWindow : Window
                 percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: false)),
                 percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: true)),
                 () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()));
+            if (_previewTray)
+            {
+                Dispatcher.BeginInvoke(
+                    _trayIcon.ShowQuickPanel,
+                    DispatcherPriority.ApplicationIdle);
+            }
             _logger.Info("tray.ready", "System tray controls are available.");
         }
         catch (Exception exception) when (
