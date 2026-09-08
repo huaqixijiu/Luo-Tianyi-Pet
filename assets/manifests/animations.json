@@ -206,9 +206,9 @@
     {
       "id": "resonance-expand",
       "sourcePath": "assets/animations/processed/心律共鸣_膨胀_无文字.png",
-      "sourceSha256": "fcb6541460fd30989c30e1526f03b6032d22bb5d101106c5d86391b5528f12d7",
+      "sourceSha256": "e7089340fa5db13a2e698d39f95c89e8fffff1ca06ff30c705aeb1ad45c05920",
       "atlasPath": "animations/runtime/resonance-expand.atlas.png",
-      "atlasSha256": "10644374aefaa6093e4e38cf03bc77798136522bf23d37de21a99e4ac745609c",
+      "atlasSha256": "ea0d05b61c74b949b4937fc63c9e0e23debc4f29b71ab3492e8e4887e183d162",
       "frameWidth": 162,
       "frameHeight": 175,
       "columns": 8,

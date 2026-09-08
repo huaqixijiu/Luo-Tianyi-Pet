@@ -19,6 +19,7 @@ OUTPUT = Path("assets/animations/processed/心律共鸣_膨胀_无文字.png")
 METADATA = Path("assets/animations/processed/心律共鸣_膨胀_无文字.meta.json")
 
 ERASE_BOTTOM = 68
+PROTECTED_MOUTH_REGION = (72, 54, 92, 72)
 MINIMUM_RED = 100
 MINIMUM_HUE_DEGREES = 12
 MAXIMUM_HUE_DEGREES = 42
@@ -56,6 +57,7 @@ def prepare(root: Path) -> None:
     frames: list[Image.Image] = []
     durations: list[int] = []
     removed_pixels: list[int] = []
+    mouth_left, mouth_top, mouth_right, mouth_bottom = PROTECTED_MOUTH_REGION
 
     with Image.open(source) as image:
         for source_frame in ImageSequence.Iterator(image):
@@ -64,6 +66,8 @@ def prepare(root: Path) -> None:
             removed = 0
             for y in range(min(ERASE_BOTTOM, frame.height)):
                 for x in range(frame.width):
+                    if mouth_left <= x < mouth_right and mouth_top <= y < mouth_bottom:
+                        continue
                     pixel = pixels[x, y]
                     if is_orange_text(*pixel):
                         pixels[x, y] = (*pixel[:3], 0)
@@ -100,6 +104,7 @@ def prepare(root: Path) -> None:
         "transformation": {
             "kind": "erase-orange-title-pixels-in-top-region",
             "eraseRegion": [0, 0, frames[0].width, ERASE_BOTTOM],
+            "protectedMouthRegion": list(PROTECTED_MOUTH_REGION),
             "minimumRed": MINIMUM_RED,
             "hueDegrees": [MINIMUM_HUE_DEGREES, MAXIMUM_HUE_DEGREES],
             "minimumSaturation": MINIMUM_SATURATION,

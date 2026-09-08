@@ -3,7 +3,7 @@
   "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
   "sourceSha256": "b08b99453d45ea96d6ac2a46107ffafedc9490de6e4ddef1c61bd2c6fabcd718",
   "output": "assets/animations/processed/心律共鸣_膨胀_无文字.png",
-  "outputSha256": "fcb6541460fd30989c30e1526f03b6032d22bb5d101106c5d86391b5528f12d7",
+  "outputSha256": "e7089340fa5db13a2e698d39f95c89e8fffff1ca06ff30c705aeb1ad45c05920",
   "frameCount": 10,
   "frameSize": [
     162,
@@ -29,6 +29,12 @@
       162,
       68
     ],
+    "protectedMouthRegion": [
+      72,
+      54,
+      92,
+      72
+    ],
     "minimumRed": 100,
     "hueDegrees": [
       12,
@@ -38,14 +44,14 @@
     "removedPixelsPerFrame": [
       0,
       0,
-      231,
-      1810,
-      3738,
-      4222,
-      3620,
-      3220,
-      2991,
-      2946
+      220,
+      1780,
+      3725,
+      4196,
+      3596,
+      3192,
+      2966,
+      2921
     ]
   }
 }
