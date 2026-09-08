@@ -24,7 +24,8 @@ public sealed class AppSettingsTests
         Assert.Equal("Ctrl+Alt+P", settings.Media.TogglePlayPauseShortcut);
         Assert.Equal("Ctrl+Alt+Right", settings.Media.NextTrackShortcut);
         Assert.Equal(350, settings.Media.CommandCooldownMilliseconds);
-        Assert.Equal(MusicAnimationOptions.RandomSelection, settings.Media.MusicAnimationSelection);
+        Assert.Equal(MusicAnimationOptions.AutomaticSelection, settings.Media.MusicAnimationSelection);
+        Assert.True(settings.Media.EnableLuoTianyiSingingEasterEgg);
         Assert.True(settings.Volume.EnableMouseWheelControl);
         Assert.True(settings.Volume.EnableExternalChangeFeedback);
         Assert.Equal(2, settings.Volume.MouseWheelStepPercent);
@@ -148,10 +149,13 @@ public sealed class AppSettingsTests
     }
 
     [Theory]
-    [InlineData("random", "random")]
+    [InlineData("random", MusicAnimationOptions.AutomaticSelection)]
+    [InlineData(MusicAnimationOptions.AutomaticSelection, MusicAnimationOptions.AutomaticSelection)]
+    [InlineData(MusicAnimationOptions.NoneSelection, MusicAnimationOptions.NoneSelection)]
     [InlineData(PetVisualState.EnjoyMusicAnimation, PetVisualState.EnjoyMusicAnimation)]
     [InlineData(PetVisualState.MusicSwayAnimation, PetVisualState.MusicSwayAnimation)]
-    [InlineData("unknown", "random")]
+    [InlineData(PetVisualState.OneClickSingingAnimation, PetVisualState.OneClickSingingAnimation)]
+    [InlineData("unknown", MusicAnimationOptions.AutomaticSelection)]
     public void MediaNormalizationPreservesOnlyRegisteredMusicSelections(
         string stored,
         string expected)

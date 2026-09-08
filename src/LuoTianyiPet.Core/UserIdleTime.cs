@@ -14,6 +14,7 @@ public sealed record IdleSceneDecision(
 
 public static class IdleSceneResolver
 {
+    public static readonly TimeSpan MediumIdleCountdownThreshold = TimeSpan.FromMinutes(2);
     public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(3);
     public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(30);
 
@@ -39,6 +40,8 @@ public static class IdleSceneResolver
             _ when idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
             _ when mediumIdleEnabled && idleDuration >= MediumIdleThreshold =>
                 PetContinuousState.MediumIdle,
+            _ when mediumIdleEnabled && idleDuration >= MediumIdleCountdownThreshold =>
+                PetContinuousState.MediumIdleCountdown,
             _ => PetContinuousState.Idle,
         };
 

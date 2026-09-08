@@ -404,24 +404,34 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource PageTitleStyle}" Text="音乐互动" />
                     <TextBlock Style="{StaticResource PageDescriptionStyle}"
-                               Text="选择网易云音乐播放时，桌宠持续展示的听歌动作。" />
+                               Text="按歌手自动分配听歌动作，也可固定某一项或完全关闭。" />
                     <Border Style="{StaticResource SettingsCardStyle}">
                         <StackPanel>
                             <TextBlock Style="{StaticResource OptionTitleStyle}" Text="播放动画" />
                             <TextBlock Margin="0,4,0,13"
                                        Style="{StaticResource OptionDescriptionStyle}"
-                                       Text="随机模式会在开始播放、继续播放或切歌时重新抽取" />
+                                       Text="自动模式：普通歌曲使用“享受音乐”；洛天依本人或合唱歌曲随机触发彩蛋" />
                             <Border Background="#FFF7FBFD" BorderBrush="#667ECDEB"
                                     BorderThickness="1" CornerRadius="11" ClipToBounds="True">
                                 <ComboBox x:Name="MusicAnimationSelectionComboBox"
                                           AutomationProperties.Name="音乐播放动画选择"
                                           BorderThickness="0" />
                             </Border>
+                            <CheckBox x:Name="LuoTianyiSingingEasterEggCheckBox"
+                                      Margin="0,14,0,0"
+                                      AutomationProperties.Name="允许洛天依歌曲触发一键唱歌彩蛋">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource OptionTitleStyle}"
+                                               Text="洛天依歌曲“一键唱歌”彩蛋" />
+                                    <TextBlock Style="{StaticResource OptionDescriptionStyle}"
+                                               Text="关闭后，自动模式和固定一键唱歌都会改用音乐摇摆" />
+                                </StackPanel>
+                            </CheckBox>
                             <Border Margin="0,14,0,0" Padding="13,11"
                                     Background="#1032B9F2" CornerRadius="11">
                                 <TextBlock Foreground="{StaticResource MutedTextBrush}"
                                            FontSize="10.5" TextWrapping="Wrap"
-                                           Text="网易云独立音量继续通过桌宠播放控制岛调节，不会修改其它应用或系统主音量。以后新增的听歌循环动作会继续加入此列表。" />
+                                           Text="固定“一键唱歌”或“音乐摇摆”时，普通歌曲仍使用“享受音乐”，避免把唱歌彩蛋错误用于其他歌手。选择“不使用”后，播放音乐时保持当前桌宠外观。" />
                             </Border>
                         </StackPanel>
                     </Border>

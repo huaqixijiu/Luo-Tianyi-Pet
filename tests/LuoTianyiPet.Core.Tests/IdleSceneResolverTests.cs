@@ -6,7 +6,9 @@ public sealed class IdleSceneResolverTests
 {
     [Theory]
     [InlineData(0, 0, PetContinuousState.Idle)]
-    [InlineData(2, 59, PetContinuousState.Idle)]
+    [InlineData(1, 59, PetContinuousState.Idle)]
+    [InlineData(2, 0, PetContinuousState.MediumIdleCountdown)]
+    [InlineData(2, 59, PetContinuousState.MediumIdleCountdown)]
     [InlineData(3, 0, PetContinuousState.MediumIdle)]
     [InlineData(29, 59, PetContinuousState.MediumIdle)]
     [InlineData(30, 0, PetContinuousState.Sleeping)]
@@ -25,6 +27,7 @@ public sealed class IdleSceneResolverTests
 
     [Theory]
     [InlineData(0, PetContinuousState.Idle)]
+    [InlineData(2, PetContinuousState.MediumIdleCountdown)]
     [InlineData(8, PetContinuousState.MediumIdle)]
     public void LeavingSleepRequestsAVisualRestoreWithoutWakeAnimation(
         int idleMinutes,
@@ -39,6 +42,7 @@ public sealed class IdleSceneResolverTests
     }
 
     [Theory]
+    [InlineData(2, PetContinuousState.Idle)]
     [InlineData(3, PetContinuousState.Idle)]
     [InlineData(29, PetContinuousState.Idle)]
     [InlineData(30, PetContinuousState.Sleeping)]

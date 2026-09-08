@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 12;
+    public const int CurrentSchemaVersion = 13;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -231,7 +231,9 @@ public sealed record MediaPreferences
     public int CommandCooldownMilliseconds { get; init; } = 350;
 
     public string MusicAnimationSelection { get; init; } =
-        MusicAnimationOptions.RandomSelection;
+        MusicAnimationOptions.AutomaticSelection;
+
+    public bool EnableLuoTianyiSingingEasterEgg { get; init; } = true;
 
     public static MediaPreferences Normalize(MediaPreferences? preferences)
     {

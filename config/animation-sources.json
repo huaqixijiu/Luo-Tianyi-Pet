@@ -18,6 +18,16 @@
       "anchorY": 1.0
     },
     {
+      "id": "tenth-birthday-fishing-countdown",
+      "source": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
+      "atlas": "assets/animations/runtime/tenth-birthday-fishing-countdown.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "user-chibi-compact-idle",
       "source": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
       "atlas": "assets/animations/runtime/user-chibi-compact-idle.atlas.png",
@@ -127,6 +137,16 @@
       "id": "resonance-enjoy-music",
       "source": "assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif",
       "atlas": "assets/animations/runtime/resonance-enjoy-music.atlas.png",
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "loopCount": 0,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "newyear-one-click-singing",
+      "source": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif",
+      "atlas": "assets/animations/runtime/newyear-one-click-singing.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
       "loopCount": 0,

@@ -22,6 +22,16 @@ public sealed class PetVisualStateTests
     }
 
     [Fact]
+    public void MediumIdleCountdownUsesTheExactMinuteFishingAnimation()
+    {
+        PetVisualState state = new(ContinuousState: PetContinuousState.MediumIdleCountdown);
+
+        Assert.Equal(
+            PetVisualState.MediumIdleCountdownAnimation,
+            state.ResolveContinuousAnimation());
+    }
+
+    [Fact]
     public void MusicTemporarilyOverridesButDoesNotChangeSelectedMode()
     {
         PetVisualState state = new(
@@ -39,6 +49,7 @@ public sealed class PetVisualStateTests
     [Theory]
     [InlineData(PetVisualState.EnjoyMusicAnimation)]
     [InlineData(PetVisualState.MusicSwayAnimation)]
+    [InlineData(PetVisualState.OneClickSingingAnimation)]
     public void MusicUsesTheAnimationSelectedForThisPlaybackSession(string animationId)
     {
         PetVisualState state = new(
@@ -55,6 +66,21 @@ public sealed class PetVisualStateTests
     public void IdleUsesSelectedDisplayMode(PetDisplayMode mode, string expectedAnimation)
     {
         Assert.Equal(expectedAnimation, new PetVisualState(mode).ResolveContinuousAnimation());
+    }
+
+    [Theory]
+    [InlineData(PetDisplayMode.Compact, PetVisualState.CompactIdleAnimation)]
+    [InlineData(PetDisplayMode.FullBodyInteractive, PetVisualState.FullBodyIdleAnimation)]
+    public void DisabledMusicVisualKeepsTheSelectedIdleAppearance(
+        PetDisplayMode mode,
+        string expectedAnimation)
+    {
+        PetVisualState state = new(
+            mode,
+            PetContinuousState.MusicPlaying,
+            PetVisualState.NoMusicAnimation);
+
+        Assert.Equal(expectedAnimation, state.ResolveContinuousAnimation());
     }
 
     [Fact]

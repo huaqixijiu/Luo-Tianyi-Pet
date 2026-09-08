@@ -37,6 +37,8 @@ public partial class SettingsWindow : Window
         FullBodyStyleCyclingCheckBox.IsChecked =
             SelectedAppearancePreferences.EnableFullBodyStyleCycling;
         DesktopFileTreatsCheckBox.IsChecked = fileTreatPreferences.EnableDesktopFileTreats;
+        LuoTianyiSingingEasterEggCheckBox.IsChecked =
+            SelectedMediaPreferences.EnableLuoTianyiSingingEasterEgg;
     }
 
     public MessageNotificationPreferences SelectedNotificationPreferences { get; private set; }
@@ -100,7 +102,12 @@ public partial class SettingsWindow : Window
             selectedMusicAnimation.Tag is string selection)
         {
             SelectedMediaPreferences = MediaPreferences.Normalize(
-                SelectedMediaPreferences with { MusicAnimationSelection = selection });
+                SelectedMediaPreferences with
+                {
+                    MusicAnimationSelection = selection,
+                    EnableLuoTianyiSingingEasterEgg =
+                        LuoTianyiSingingEasterEggCheckBox.IsChecked == true,
+                });
         }
         DialogResult = true;
     }
@@ -110,8 +117,8 @@ public partial class SettingsWindow : Window
         MusicAnimationSelectionComboBox.Items.Clear();
         MusicAnimationSelectionComboBox.Items.Add(new ComboBoxItem
         {
-            Content = "每次开始播放或切歌时随机",
-            Tag = MusicAnimationOptions.RandomSelection,
+            Content = "自动识别歌手（推荐）",
+            Tag = MusicAnimationOptions.AutomaticSelection,
         });
         foreach (MusicAnimationOption option in MusicAnimationOptions.FixedOptions)
         {
@@ -121,6 +128,11 @@ public partial class SettingsWindow : Window
                 Tag = option.SelectionId,
             });
         }
+        MusicAnimationSelectionComboBox.Items.Add(new ComboBoxItem
+        {
+            Content = "不使用任何听歌动画",
+            Tag = MusicAnimationOptions.NoneSelection,
+        });
 
         string selected = MusicAnimationOptions.NormalizeSelection(
             SelectedMediaPreferences.MusicAnimationSelection);

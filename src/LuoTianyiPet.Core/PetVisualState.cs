@@ -9,6 +9,7 @@ public enum PetDisplayMode
 public enum PetContinuousState
 {
     Idle,
+    MediumIdleCountdown,
     MediumIdle,
     MusicPlaying,
     Sleeping,
@@ -27,19 +28,27 @@ public sealed record PetVisualState(
     public const string FullBodyIdleAnimation = "official-v4-chibi-full-body-idle";
     public const string MusicSwayAnimation = "ninth-anniversary-music-sway";
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
+    public const string OneClickSingingAnimation = "newyear-one-click-singing";
+    public const string NoMusicAnimation = "none";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
     public const string CompactDraggingAnimation = "resonance-expand";
     public const string MediumIdleAnimation = "resonance-hehe";
+    public const string MediumIdleCountdownAnimation = "tenth-birthday-fishing-countdown";
+
+    public string ResolveIdleAnimation() => SelectedDisplayMode switch
+    {
+        PetDisplayMode.Compact => CompactIdleAnimation,
+        PetDisplayMode.FullBodyInteractive => FullBodyAnimationId,
+        _ => throw new ArgumentOutOfRangeException(nameof(SelectedDisplayMode)),
+    };
 
     public string ResolveContinuousAnimation() => ContinuousState switch
     {
-        PetContinuousState.Idle => SelectedDisplayMode switch
-        {
-            PetDisplayMode.Compact => CompactIdleAnimation,
-            PetDisplayMode.FullBodyInteractive => FullBodyAnimationId,
-            _ => throw new ArgumentOutOfRangeException(nameof(SelectedDisplayMode)),
-        },
-        PetContinuousState.MusicPlaying => MusicAnimationId,
+        PetContinuousState.Idle => ResolveIdleAnimation(),
+        PetContinuousState.MusicPlaying => MusicAnimationId == NoMusicAnimation
+            ? ResolveIdleAnimation()
+            : MusicAnimationId,
+        PetContinuousState.MediumIdleCountdown => MediumIdleCountdownAnimation,
         PetContinuousState.MediumIdle => MediumIdleAnimation,
         PetContinuousState.Sleeping => SleepingAnimation,
         PetContinuousState.Dragging => SelectedDisplayMode == PetDisplayMode.FullBodyInteractive

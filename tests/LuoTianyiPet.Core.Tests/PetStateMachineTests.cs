@@ -137,6 +137,24 @@ public sealed class PetStateMachineTests
         Assert.False(plan.BodyRegionInteractionsEnabled);
     }
 
+    [Theory]
+    [InlineData(PetDisplayMode.Compact, PetVisualState.CompactIdleAnimation)]
+    [InlineData(PetDisplayMode.FullBodyInteractive, PetVisualState.FullBodyIdleAnimation)]
+    public void DisabledMusicVisualKeepsIdleAppearanceThroughoutDrag(
+        PetDisplayMode displayMode,
+        string expectedAnimation)
+    {
+        PetStateMachine machine = new(new PetVisualState(
+            displayMode,
+            PetContinuousState.MusicPlaying,
+            PetVisualState.NoMusicAnimation));
+
+        Assert.True(machine.BeginDrag());
+        Assert.Equal(expectedAnimation, machine.Resolve(Now).AnimationId);
+        Assert.True(machine.EndDrag());
+        Assert.Equal(expectedAnimation, machine.Resolve(Now).AnimationId);
+    }
+
     [Fact]
     public void DisplayOnlyFullBodyAppearanceNeverEnablesBodyRegions()
     {

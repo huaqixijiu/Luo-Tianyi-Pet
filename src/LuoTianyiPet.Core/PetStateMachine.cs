@@ -232,7 +232,9 @@ public sealed class PetStateMachine
             {
                 return new PetPlaybackPlan(
                     true,
-                    VisualState.MusicAnimationId,
+                    VisualState.MusicAnimationId == PetVisualState.NoMusicAnimation
+                        ? VisualState.ResolveIdleAnimation()
+                        : VisualState.MusicAnimationId,
                     PlaybackPlanSource.Continuous,
                     false);
             }

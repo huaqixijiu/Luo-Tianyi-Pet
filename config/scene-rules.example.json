@@ -107,8 +107,11 @@
         "bodyRegionInteractionsEnabled": true
       }
     },
-    "musicPlayingIdleAnimation": "ninth-anniversary-music-sway",
+    "musicPlayingIdleAnimation": "automatic-by-artist",
     "idlePollMilliseconds": 1000,
+    "mediumIdleCountdownAfterMinutes": 2,
+    "mediumIdleCountdownDurationSeconds": 60,
+    "mediumIdleCountdownAnimation": "tenth-birthday-fishing-countdown",
     "mediumIdleAfterMinutes": 3,
     "mediumIdleAnimation": "resonance-hehe",
     "mediumIdleEligibility": {
@@ -219,15 +222,26 @@
       "disableInSafeGameMode": true
     },
     "playingAnimations": {
-      "selectionModeDefault": "random",
+      "selectionModeDefault": "automatic-by-artist",
       "selectionSettingEntryPoint": "settings-window",
       "selectAgainAfterPause": true,
       "selectAgainAfterTrackChange": true,
       "loopSelectedAnimation": true,
+      "artistRouting": {
+        "otherOrUnknown": "resonance-enjoy-music",
+        "luoTianyiSoloOrCollaboration": [
+          "ninth-anniversary-music-sway",
+          "newyear-one-click-singing"
+        ],
+        "oneClickSingingCanBeDisabled": true,
+        "disabledOneClickSingingFallback": "ninth-anniversary-music-sway"
+      },
       "selectableModes": [
-        "random",
+        "automatic-by-artist",
         "resonance-enjoy-music",
-        "ninth-anniversary-music-sway"
+        "ninth-anniversary-music-sway",
+        "newyear-one-click-singing",
+        "none"
       ],
       "registeredLoopAnimations": [
         {
@@ -239,6 +253,11 @@
           "id": "ninth-anniversary-music-sway",
           "playbackRate": 1.0,
           "asset": "候选素材_官方/00_快速预览/02_九周年_音乐摇摆.webp"
+        },
+        {
+          "id": "newyear-one-click-singing",
+          "playbackRate": 1.0,
+          "asset": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif"
         }
       ]
     },

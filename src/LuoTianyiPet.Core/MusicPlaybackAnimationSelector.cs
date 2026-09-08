@@ -7,6 +7,9 @@ public sealed record MusicAnimationOption(
 
 public static class MusicAnimationOptions
 {
+    public const string AutomaticSelection = "automatic-by-artist";
+    public const string NoneSelection = PetVisualState.NoMusicAnimation;
+    // Retained only to migrate settings written before singer-aware selection existed.
     public const string RandomSelection = "random";
 
     public static IReadOnlyList<MusicAnimationOption> FixedOptions { get; } =
@@ -19,13 +22,19 @@ public static class MusicAnimationOptions
             PetVisualState.MusicSwayAnimation,
             "九周年 · 音乐摇摆",
             PetVisualState.MusicSwayAnimation),
+        new(
+            PetVisualState.OneClickSingingAnimation,
+            "元旦祝福 · 一键唱歌",
+            PetVisualState.OneClickSingingAnimation),
     ];
 
-    public static string NormalizeSelection(string? selection) =>
-        selection == RandomSelection ||
-        FixedOptions.Any(option => option.SelectionId == selection)
-            ? selection!
-            : RandomSelection;
+    public static string NormalizeSelection(string? selection) => selection switch
+    {
+        AutomaticSelection or NoneSelection => selection,
+        RandomSelection => AutomaticSelection,
+        _ when FixedOptions.Any(option => option.SelectionId == selection) => selection!,
+        _ => AutomaticSelection,
+    };
 
     public static MusicAnimationOption ResolveFixed(string selection) =>
         FixedOptions.First(option => option.SelectionId == selection);
@@ -40,21 +49,42 @@ public sealed class MusicPlaybackAnimationSelector
         _selectIndex = selectIndex ?? Random.Shared.Next;
     }
 
-    public string Select(string? selection)
+    public string Select(
+        string? selection,
+        string? artist,
+        bool enableLuoTianyiSingingEasterEgg = true)
     {
         string normalized = MusicAnimationOptions.NormalizeSelection(selection);
-        if (normalized != MusicAnimationOptions.RandomSelection)
+        if (normalized == MusicAnimationOptions.NoneSelection)
         {
-            return MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
+            return PetVisualState.NoMusicAnimation;
         }
 
-        int index = _selectIndex(MusicAnimationOptions.FixedOptions.Count);
-        if (index < 0 || index >= MusicAnimationOptions.FixedOptions.Count)
+        bool isLuoTianyi = MusicArtistMatcher.IsLuoTianyi(artist);
+        if (!isLuoTianyi)
+        {
+            return PetVisualState.EnjoyMusicAnimation;
+        }
+
+        if (normalized != MusicAnimationOptions.AutomaticSelection)
+        {
+            string fixedAnimation = MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
+            return fixedAnimation == PetVisualState.OneClickSingingAnimation &&
+                !enableLuoTianyiSingingEasterEgg
+                    ? PetVisualState.MusicSwayAnimation
+                    : fixedAnimation;
+        }
+
+        IReadOnlyList<string> easterEggPool = enableLuoTianyiSingingEasterEgg
+            ? [PetVisualState.MusicSwayAnimation, PetVisualState.OneClickSingingAnimation]
+            : [PetVisualState.MusicSwayAnimation];
+        int index = _selectIndex(easterEggPool.Count);
+        if (index < 0 || index >= easterEggPool.Count)
         {
             throw new InvalidOperationException("The music animation selector returned an invalid index.");
         }
 
-        return MusicAnimationOptions.FixedOptions[index].AnimationId;
+        return easterEggPool[index];
     }
 }
 

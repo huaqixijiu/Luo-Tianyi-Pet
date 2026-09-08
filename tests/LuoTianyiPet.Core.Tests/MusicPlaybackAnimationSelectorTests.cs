@@ -5,53 +5,118 @@ namespace LuoTianyiPet.Core.Tests;
 public sealed class MusicPlaybackAnimationSelectorTests
 {
     [Fact]
-    public void PoolContainsTheTwoCurrentLoopingAnimations()
+    public void SettingsExposeAllThreeMusicAnimations()
     {
         Assert.Equal(
-            [PetVisualState.EnjoyMusicAnimation, PetVisualState.MusicSwayAnimation],
+            [
+                PetVisualState.EnjoyMusicAnimation,
+                PetVisualState.MusicSwayAnimation,
+                PetVisualState.OneClickSingingAnimation,
+            ],
             MusicAnimationOptions.FixedOptions.Select(option => option.AnimationId));
     }
 
+    [Fact]
+    public void OrdinarySongsAlwaysUseEnjoyMusicInAutomaticMode()
+    {
+        MusicPlaybackAnimationSelector selector = new(_ =>
+            throw new InvalidOperationException("Ordinary songs must not use the easter-egg pool."));
+
+        Assert.Equal(
+            PetVisualState.EnjoyMusicAnimation,
+            selector.Select(MusicAnimationOptions.AutomaticSelection, "乐正绫"));
+        Assert.Equal(
+            PetVisualState.EnjoyMusicAnimation,
+            selector.Select(MusicAnimationOptions.AutomaticSelection, null));
+    }
+
     [Theory]
-    [InlineData(0, PetVisualState.EnjoyMusicAnimation)]
-    [InlineData(1, PetVisualState.MusicSwayAnimation)]
-    public void RandomSelectionUsesTheInjectedIndex(int index, string expected)
+    [InlineData(0, PetVisualState.MusicSwayAnimation)]
+    [InlineData(1, PetVisualState.OneClickSingingAnimation)]
+    public void LuoTianyiSongsUseTheInjectedEasterEggIndex(int index, string expected)
     {
         MusicPlaybackAnimationSelector selector = new(_ => index);
 
-        Assert.Equal(expected, selector.Select(MusicAnimationOptions.RandomSelection));
+        Assert.Equal(
+            expected,
+            selector.Select(MusicAnimationOptions.AutomaticSelection, "洛天依/乐正绫"));
     }
 
     [Fact]
-    public void EachPlaybackSessionRequestsANewRandomSelection()
+    public void DisablingSingingLeavesMusicSwayAsTheOnlyAutomaticEasterEgg()
     {
-        int nextIndex = 0;
-        MusicPlaybackAnimationSelector selector = new(_ => nextIndex++);
+        MusicPlaybackAnimationSelector selector = new(maximum =>
+        {
+            Assert.Equal(1, maximum);
+            return 0;
+        });
 
-        Assert.Equal(PetVisualState.EnjoyMusicAnimation, selector.Select("random"));
-        Assert.Equal(PetVisualState.MusicSwayAnimation, selector.Select("random"));
+        Assert.Equal(
+            PetVisualState.MusicSwayAnimation,
+            selector.Select(
+                MusicAnimationOptions.AutomaticSelection,
+                "洛天依",
+                enableLuoTianyiSingingEasterEgg: false));
     }
 
     [Theory]
-    [InlineData(PetVisualState.EnjoyMusicAnimation)]
-    [InlineData(PetVisualState.MusicSwayAnimation)]
-    public void FixedSelectionDoesNotUseRandom(string selectedAnimation)
+    [InlineData(PetVisualState.EnjoyMusicAnimation, PetVisualState.EnjoyMusicAnimation)]
+    [InlineData(PetVisualState.MusicSwayAnimation, PetVisualState.MusicSwayAnimation)]
+    [InlineData(PetVisualState.OneClickSingingAnimation, PetVisualState.OneClickSingingAnimation)]
+    public void FixedSelectionIsUsedForLuoTianyiSongs(string selected, string expected)
     {
         MusicPlaybackAnimationSelector selector = new(_ =>
-            throw new InvalidOperationException("Random selection should not be used."));
+            throw new InvalidOperationException("Fixed selection should not use random."));
 
-        Assert.Equal(selectedAnimation, selector.Select(selectedAnimation));
+        Assert.Equal(expected, selector.Select(selected, "Luo Tianyi"));
+    }
+
+    [Theory]
+    [InlineData(PetVisualState.MusicSwayAnimation)]
+    [InlineData(PetVisualState.OneClickSingingAnimation)]
+    public void LuoOnlyFixedAnimationsFallBackToEnjoyMusicForOtherArtists(string selected)
+    {
+        MusicPlaybackAnimationSelector selector = new();
+
+        Assert.Equal(PetVisualState.EnjoyMusicAnimation, selector.Select(selected, "言和"));
+    }
+
+    [Fact]
+    public void DisabledSingingAlsoOverridesAnOldFixedSingingSelection()
+    {
+        MusicPlaybackAnimationSelector selector = new();
+
+        Assert.Equal(
+            PetVisualState.MusicSwayAnimation,
+            selector.Select(
+                PetVisualState.OneClickSingingAnimation,
+                "洛天依",
+                enableLuoTianyiSingingEasterEgg: false));
+    }
+
+    [Fact]
+    public void NoneSelectionKeepsMusicVisualsDisabledForEveryArtist()
+    {
+        MusicPlaybackAnimationSelector selector = new();
+
+        Assert.Equal(
+            PetVisualState.NoMusicAnimation,
+            selector.Select(MusicAnimationOptions.NoneSelection, "洛天依"));
+        Assert.Equal(
+            PetVisualState.NoMusicAnimation,
+            selector.Select(MusicAnimationOptions.NoneSelection, "其他歌手"));
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("unknown-animation")]
-    public void InvalidSelectionSafelyFallsBackToRandom(string? selection)
+    [InlineData(MusicAnimationOptions.RandomSelection)]
+    public void LegacyOrInvalidSelectionsNormalizeToAutomatic(string? selection)
     {
-        MusicPlaybackAnimationSelector selector = new(_ => 1);
-
-        Assert.Equal(PetVisualState.MusicSwayAnimation, selector.Select(selection));
+        Assert.Equal(
+            MusicAnimationOptions.AutomaticSelection,
+            MusicAnimationOptions.NormalizeSelection(selection));
     }
 
     [Theory]

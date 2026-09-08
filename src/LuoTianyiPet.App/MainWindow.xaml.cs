@@ -734,7 +734,9 @@ public partial class MainWindow : Window
 
         _systemSessionUnavailable = false;
         PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
-        if (continuousState is PetContinuousState.MediumIdle or PetContinuousState.Sleeping)
+        if (continuousState is PetContinuousState.MediumIdleCountdown or
+            PetContinuousState.MediumIdle or
+            PetContinuousState.Sleeping)
         {
             _stateMachine.SetContinuousState(PetContinuousState.Idle);
         }
@@ -1906,7 +1908,9 @@ public partial class MainWindow : Window
         DateTimeOffset now = DateTimeOffset.Now;
         string artist = artistOverride ?? _lastTrackSnapshot.Artist;
         string selectedAnimation = _musicAnimationSelector.Select(
-            _settings.Media.MusicAnimationSelection);
+            _settings.Media.MusicAnimationSelection,
+            artist,
+            _settings.Media.EnableLuoTianyiSingingEasterEgg);
         _musicAnimationTrackIdentity = artistOverride is null
             ? _lastTrackIdentity
             : "preview-luo-tianyi";
@@ -2137,7 +2141,9 @@ public partial class MainWindow : Window
         DateTimeOffset now = DateTimeOffset.Now;
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
         bool birthdayEligible = plan.Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState is PetContinuousState.Idle or PetContinuousState.MediumIdle;
+            _stateMachine.VisualState.ContinuousState is
+                PetContinuousState.Idle or
+                PetContinuousState.MediumIdle;
         if (_birthdayEasterEggScheduler.ShouldTrigger(now, birthdayEligible))
         {
             _ = PlayReactionAsync(
@@ -2173,6 +2179,8 @@ public partial class MainWindow : Window
 
         string eventName = decision.TargetState switch
         {
+            PetContinuousState.MediumIdleCountdown =>
+                "animation.medium_idle_countdown_started",
             PetContinuousState.MediumIdle => "animation.medium_idle_started",
             PetContinuousState.Sleeping => "animation.long_idle_sleep_started",
             _ => "animation.idle_restored",
@@ -2193,7 +2201,8 @@ public partial class MainWindow : Window
 
     private void RestoreIdleWhenHeheIsNotEligible()
     {
-        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdle &&
+        if ((_stateMachine.VisualState.ContinuousState is
+                PetContinuousState.MediumIdleCountdown or PetContinuousState.MediumIdle) &&
             !IsClassicCatEarsFullBodyMode())
         {
             _stateMachine.SetContinuousState(PetContinuousState.Idle);
@@ -3418,13 +3427,17 @@ public partial class MainWindow : Window
         bool musicAnimationChanged = !string.Equals(
             _settings.Media.MusicAnimationSelection,
             normalized.MusicAnimationSelection,
-            StringComparison.Ordinal);
+            StringComparison.Ordinal) ||
+            _settings.Media.EnableLuoTianyiSingingEasterEgg !=
+                normalized.EnableLuoTianyiSingingEasterEgg;
         _settings = _settings with { Media = normalized };
         if (musicAnimationChanged &&
             _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
         {
             string selectedAnimation = _musicAnimationSelector.Select(
-                normalized.MusicAnimationSelection);
+                normalized.MusicAnimationSelection,
+                _lastTrackSnapshot.Artist,
+                normalized.EnableLuoTianyiSingingEasterEgg);
             _stateMachine.SetMusicAnimation(selectedAnimation);
             if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
             {
@@ -3435,7 +3448,8 @@ public partial class MainWindow : Window
 
         _logger.Info(
             "settings.media_applied",
-            $"MusicAnimationSelection={normalized.MusicAnimationSelection}.");
+            $"MusicAnimationSelection={normalized.MusicAnimationSelection}; " +
+            $"SingingEasterEgg={normalized.EnableLuoTianyiSingingEasterEgg}.");
         if (_persistSettings)
         {
             _ = SaveSettingsAsync("settings.media_saved", "Media preferences saved.");
@@ -4937,7 +4951,9 @@ public partial class MainWindow : Window
     {
         _musicAnimationTrackIdentity = identity;
         string selectedAnimation = _musicAnimationSelector.Select(
-            _settings.Media.MusicAnimationSelection);
+            _settings.Media.MusicAnimationSelection,
+            snapshot.Artist,
+            _settings.Media.EnableLuoTianyiSingingEasterEgg);
         bool animationChanged = !string.Equals(
             selectedAnimation,
             _stateMachine.VisualState.MusicAnimationId,

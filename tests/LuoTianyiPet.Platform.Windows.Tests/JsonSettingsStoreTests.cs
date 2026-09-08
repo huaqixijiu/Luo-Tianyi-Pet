@@ -436,7 +436,7 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Fact]
-    public async Task Load_Version10_AddsRandomMusicAnimationSelection()
+    public async Task Load_Version10_AddsAutomaticMusicAnimationSelection()
     {
         string testDirectory = CreateTestDirectory();
         try
@@ -462,11 +462,45 @@ public sealed class JsonSettingsStoreTests
 
             Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
             Assert.Equal(
-                MusicAnimationOptions.RandomSelection,
+                MusicAnimationOptions.AutomaticSelection,
                 actual.Media.MusicAnimationSelection);
             Assert.Equal(
                 AppearanceOptionIds.FullBodyClassicCatEars,
                 actual.Appearance.FullBodyStyle);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_Version12_MigratesLegacyRandomSelectionAndEnablesSingingEasterEgg()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 12,
+                  "media": {
+                    "musicAnimationSelection": "random"
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.Equal(
+                MusicAnimationOptions.AutomaticSelection,
+                actual.Media.MusicAnimationSelection);
+            Assert.True(actual.Media.EnableLuoTianyiSingingEasterEgg);
         }
         finally
         {
