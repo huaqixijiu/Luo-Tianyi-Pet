@@ -205,10 +205,10 @@
     },
     {
       "id": "resonance-expand",
-      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
-      "sourceSha256": "b08b99453d45ea96d6ac2a46107ffafedc9490de6e4ddef1c61bd2c6fabcd718",
+      "sourcePath": "assets/animations/processed/心律共鸣_膨胀_无文字.png",
+      "sourceSha256": "fcb6541460fd30989c30e1526f03b6032d22bb5d101106c5d86391b5528f12d7",
       "atlasPath": "animations/runtime/resonance-expand.atlas.png",
-      "atlasSha256": "5daaf260a8ceeea0785fa1261ee1e36cdbe003a80c3f7f35965a6d0b2e58104a",
+      "atlasSha256": "10644374aefaa6093e4e38cf03bc77798136522bf23d37de21a99e4ac745609c",
       "frameWidth": 162,
       "frameHeight": 175,
       "columns": 8,
@@ -231,9 +231,9 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        0,
-        9,
-        162,
+        11,
+        38,
+        155,
         171
       ]
     },

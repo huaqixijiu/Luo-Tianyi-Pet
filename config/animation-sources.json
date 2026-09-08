@@ -62,7 +62,7 @@
     },
     {
       "id": "resonance-expand",
-      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_膨胀.gif",
+      "source": "assets/animations/processed/心律共鸣_膨胀_无文字.png",
       "atlas": "assets/animations/runtime/resonance-expand.atlas.png",
       "padAfterResize": [162, 175, 0, 9],
       "displayWidth": 220,
