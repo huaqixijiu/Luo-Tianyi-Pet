@@ -44,10 +44,9 @@ public partial class MainWindow : Window
     private const double SideDockRevealPlaybackRate = 1.3;
     private const double BottomDockHidePlaybackRate = 0.7;
     private const double BunStartingSpeed = 72;
-    private const double BunChaseCruiseSpeed = 270;
-    private const double BunChaseAcceleration = 360;
-    private const double BunReturnCruiseSpeed = 290;
-    private const double BunReturnAcceleration = 420;
+    private const double BunChaseOriginalCruiseSpeed = 270;
+    private const double BunReturnOriginalCruiseSpeed = 290;
+    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(10);
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -57,7 +56,8 @@ public partial class MainWindow : Window
     private static readonly TimeSpan DoubleClickInterval = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan BodyInteractionRecoveryDelay = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TrackInfoAutomaticDisplayDuration = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan TimeGreetingPresentationDuration = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan TimeGreetingPresentationDuration =
+        StartupTimeSceneResolver.PresentationDuration;
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
@@ -206,6 +206,7 @@ public partial class MainWindow : Window
     private Point? _bunReturnPosition;
     private Guid? _bunChaseReactionToken;
     private DateTimeOffset _bunLastMotionAt;
+    private TimeSpan _bunMotionStageElapsed;
     private DateTimeOffset _bunLastSafetyCheckAt;
     private bool _bunChaseActive;
     private bool _bunReturning;
@@ -4241,6 +4242,7 @@ public partial class MainWindow : Window
         _bunReturning = false;
         _bunEating = false;
         _bunMotionSpeed = BunStartingSpeed;
+        _bunMotionStageElapsed = TimeSpan.Zero;
         _bunReturnPosition ??= new Point(Left, Top);
         SelectNearestBun();
         _bunLastMotionAt = now;
@@ -4294,6 +4296,7 @@ public partial class MainWindow : Window
 
         TimeSpan elapsed = now - _bunLastMotionAt;
         _bunLastMotionAt = now;
+        _bunMotionStageElapsed += elapsed;
         if (_bunReturning)
         {
             if (_bunReturnPosition is not Point returnPosition)
@@ -4303,11 +4306,11 @@ public partial class MainWindow : Window
             }
 
             PointerPoint current = new(Left, Top);
-            _bunMotionSpeed = BunChasePlanner.AdvanceSpeed(
-                _bunMotionSpeed,
-                BunReturnCruiseSpeed,
-                BunReturnAcceleration,
-                elapsed);
+            _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
+                BunStartingSpeed,
+                BunReturnOriginalCruiseSpeed,
+                _bunMotionStageElapsed,
+                BunAccelerationDuration);
             BunChaseStep step = BunChasePlanner.Advance(
                 current,
                 new PointerPoint(returnPosition.X, returnPosition.Y),
@@ -4336,11 +4339,11 @@ public partial class MainWindow : Window
 
         Point petCentre = GetPetScreenCentre();
         Point targetCentre = _activeBunTarget.ScreenCenter;
-        _bunMotionSpeed = BunChasePlanner.AdvanceSpeed(
-            _bunMotionSpeed,
-            BunChaseCruiseSpeed,
-            BunChaseAcceleration,
-            elapsed);
+        _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
+            BunStartingSpeed,
+            BunChaseOriginalCruiseSpeed,
+            _bunMotionStageElapsed,
+            BunAccelerationDuration);
         BunChaseStep chase = BunChasePlanner.Advance(
             new PointerPoint(petCentre.X, petCentre.Y),
             new PointerPoint(targetCentre.X, targetCentre.Y),
@@ -4391,6 +4394,7 @@ public partial class MainWindow : Window
             SelectNearestBun();
             PlayAnimation(runAnimation);
             _bunMotionSpeed = BunStartingSpeed;
+            _bunMotionStageElapsed = TimeSpan.Zero;
             _bunLastMotionAt = DateTimeOffset.Now;
             _bunChaseTimer.Start();
             return;
@@ -4404,6 +4408,7 @@ public partial class MainWindow : Window
         _bunReturning = true;
         _activeBunTarget = null;
         _bunMotionSpeed = BunStartingSpeed;
+        _bunMotionStageElapsed = TimeSpan.Zero;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
         _bunLastMotionAt = DateTimeOffset.Now;
         _bunChaseTimer.Start();

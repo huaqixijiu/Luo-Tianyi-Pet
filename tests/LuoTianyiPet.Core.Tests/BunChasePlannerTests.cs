@@ -105,4 +105,22 @@ public sealed class BunChasePlannerTests
         Assert.Equal(108, first, 3);
         Assert.Equal(270, later, 3);
     }
+
+    [Theory]
+    [InlineData(0, 72)]
+    [InlineData(5, 441)]
+    [InlineData(10, 810)]
+    [InlineData(30, 810)]
+    public void ResolveAcceleratedSpeed_ReachesThreeTimesOriginalCruiseAtTenSeconds(
+        double elapsedSeconds,
+        double expectedSpeed)
+    {
+        double speed = BunChasePlanner.ResolveAcceleratedSpeed(
+            72,
+            270,
+            TimeSpan.FromSeconds(elapsedSeconds),
+            TimeSpan.FromSeconds(10));
+
+        Assert.Equal(expectedSpeed, speed, 3);
+    }
 }

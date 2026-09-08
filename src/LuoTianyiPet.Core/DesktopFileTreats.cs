@@ -38,6 +38,29 @@ public static class DesktopFileTreatSafety
 
 public static class BunChasePlanner
 {
+    public static double ResolveAcceleratedSpeed(
+        double startingSpeedPerSecond,
+        double originalCruiseSpeedPerSecond,
+        TimeSpan elapsedSinceRunStarted,
+        TimeSpan accelerationDuration,
+        double maximumMultiplier = 3)
+    {
+        double start = Math.Max(0, startingSpeedPerSecond);
+        double maximum = Math.Max(0, originalCruiseSpeedPerSecond) *
+            Math.Max(1, maximumMultiplier);
+        if (accelerationDuration <= TimeSpan.Zero)
+        {
+            return maximum;
+        }
+
+        double progress = Math.Clamp(
+            Math.Max(0, elapsedSinceRunStarted.TotalSeconds) /
+                accelerationDuration.TotalSeconds,
+            0,
+            1);
+        return start + (maximum - start) * progress;
+    }
+
     public static PointerPoint ResolveMouthTarget(
         PointerPoint imageTopLeft,
         double imageWidth,

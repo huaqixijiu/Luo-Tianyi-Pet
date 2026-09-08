@@ -4,6 +4,12 @@ namespace LuoTianyiPet.Core.Tests;
 
 public sealed class TimeSceneTests
 {
+    [Fact]
+    public void PresentationDuration_IsFifteenSeconds()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(15), StartupTimeSceneResolver.PresentationDuration);
+    }
+
     [Theory]
     [InlineData(5, 59, StartupTimeScene.Night, StartupTimeSceneResolver.NightAnimation)]
     [InlineData(6, 0, StartupTimeScene.Morning, StartupTimeSceneResolver.MorningAnimation)]
