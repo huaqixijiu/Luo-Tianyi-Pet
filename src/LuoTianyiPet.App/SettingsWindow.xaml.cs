@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using LuoTianyiPet.Core;
 using WpfRadioButton = System.Windows.Controls.RadioButton;
 
@@ -86,26 +87,55 @@ public partial class SettingsWindow : Window
             "About" => "谢谢你让我\n留在桌面上～",
             _ => "今天也，\n一起加油吧～",
         };
-        UpdatePageSpeech(speech);
+        string artwork = page switch
+        {
+            "Music" => "settings-sidebar-music.png",
+            "Notification" => "settings-sidebar-notification.png",
+            "About" => "settings-sidebar-about.png",
+            _ => "settings-sidebar-general.png",
+        };
+        string artworkName = page switch
+        {
+            "Music" => "音乐页面装饰：真好",
+            "Notification" => "通知页面装饰：天哪",
+            "About" => "关于页面装饰：加入我们",
+            _ => "常规页面装饰：我推",
+        };
+        UpdatePageCompanion(speech, artwork, artworkName);
     }
 
-    private void UpdatePageSpeech(string speech)
+    private void UpdatePageCompanion(string speech, string artwork, string artworkName)
     {
         PageSpeechText.BeginAnimation(OpacityProperty, null);
+        PageArtworkImage.BeginAnimation(OpacityProperty, null);
         PageSpeechText.Text = speech;
+        PageArtworkImage.Source = new BitmapImage(
+            new Uri($"pack://application:,,,/assets/ui/{artwork}", UriKind.Absolute));
+        System.Windows.Automation.AutomationProperties.SetName(PageArtworkImage, artworkName);
         if (!SystemParameters.ClientAreaAnimation)
         {
             PageSpeechText.Opacity = 1;
+            PageArtworkImage.Opacity = 0.95;
             return;
         }
 
         PageSpeechText.Opacity = 0;
+        PageArtworkImage.Opacity = 0;
         DoubleAnimation fade = new(0, 1, TimeSpan.FromMilliseconds(160))
         {
             FillBehavior = FillBehavior.Stop,
         };
         fade.Completed += (_, _) => PageSpeechText.Opacity = 1;
         PageSpeechText.BeginAnimation(OpacityProperty, fade, HandoffBehavior.SnapshotAndReplace);
+        DoubleAnimation artworkFade = new(0, 0.95, TimeSpan.FromMilliseconds(160))
+        {
+            FillBehavior = FillBehavior.Stop,
+        };
+        artworkFade.Completed += (_, _) => PageArtworkImage.Opacity = 0.95;
+        PageArtworkImage.BeginAnimation(
+            OpacityProperty,
+            artworkFade,
+            HandoffBehavior.SnapshotAndReplace);
     }
 
     private void OnSettingChanged(object sender, RoutedEventArgs e)

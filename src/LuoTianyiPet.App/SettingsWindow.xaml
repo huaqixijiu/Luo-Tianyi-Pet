@@ -178,7 +178,7 @@
                 </StackPanel>
                 <Grid Grid.Row="2" Margin="10,8,8,8" IsHitTestVisible="False">
                     <TextBlock x:Name="PageSpeechText" Margin="7,0,2,116" VerticalAlignment="Bottom" Foreground="#4E9DBD" FontSize="13" FontWeight="SemiBold" LineHeight="21" Text="今天也，&#x0a;一起加油吧～" TextWrapping="Wrap" />
-                    <Image Width="132" Height="116" HorizontalAlignment="Right" VerticalAlignment="Bottom" Source="/assets/ui/settings-encouragement.png" Stretch="Uniform" Opacity="0.95" />
+                    <Image x:Name="PageArtworkImage" Width="132" Height="116" HorizontalAlignment="Right" VerticalAlignment="Bottom" AutomationProperties.Name="常规页面装饰：我推" Source="/assets/ui/settings-sidebar-general.png" Stretch="Uniform" Opacity="0.95" />
                 </Grid>
             </Grid>
         </Border>

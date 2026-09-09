@@ -1,13 +1,83 @@
 {
   "schemaVersion": 1,
-  "settingsArtwork": {
-    "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_加入我们.gif",
-    "sourceSha256": "fcd853378d91bb23f757aa613990af9b08d5897c07a1e93ff04026fa89fb331f",
-    "frameIndex": 0,
-    "output": "assets/ui/settings-encouragement.png",
-    "outputSha256": "32985d51fa6bb0811a6dbe85f81cf6fbb93d86e02049e80bc1aa89ce5afcd9e6",
-    "transformation": "extract-frame-zero-before-source-lettering"
-  },
+  "settingsSidebarArtwork": [
+    {
+      "page": "general",
+      "expression": "我推",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_我推.png",
+      "sourceSha256": "41debfd543e63b6e7037b2116b9f73fb1a89eb35d0e46da874e17949d78e9924",
+      "sourceAlphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ],
+      "output": "assets/ui/settings-sidebar-general.png",
+      "outputSize": [
+        144,
+        124
+      ],
+      "outputSha256": "adeccabb1cf5f39d9accfec206b1d11dafeab1e7526df94d08c39b0f8623fd71",
+      "transformation": "crop-visible-alpha-bounds-and-fit-without-redrawing"
+    },
+    {
+      "page": "music",
+      "expression": "真好",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_真好.png",
+      "sourceSha256": "0a9ceebae3f3f970b4a68b76992fb1ca42464218ef199de47cb8d4f230646e01",
+      "sourceAlphaBounds": [
+        0,
+        3,
+        162,
+        162
+      ],
+      "output": "assets/ui/settings-sidebar-music.png",
+      "outputSize": [
+        144,
+        124
+      ],
+      "outputSha256": "b733fbab2ad87a41c2a46018d1d75f4e63d780c7931a48a51693aa40a01f5da4",
+      "transformation": "crop-visible-alpha-bounds-and-fit-without-redrawing"
+    },
+    {
+      "page": "notification",
+      "expression": "天哪",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_天哪.png",
+      "sourceSha256": "e56445e4a644cca94e4cd5ea95ba2c360382b6cddd10b5fdf47e7ae467edc6a0",
+      "sourceAlphaBounds": [
+        9,
+        0,
+        162,
+        162
+      ],
+      "output": "assets/ui/settings-sidebar-notification.png",
+      "outputSize": [
+        144,
+        124
+      ],
+      "outputSha256": "64ff7c8137b7d919858c04968a5c308abf30fc5ff7143a439ec1b5a70466c008",
+      "transformation": "crop-visible-alpha-bounds-and-fit-without-redrawing"
+    },
+    {
+      "page": "about",
+      "expression": "加入我们",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_加入我们.png",
+      "sourceSha256": "67a5b53bcc2c2244f130fb4da02a29c3d3a0f333edf675cbe5a23436644e13b3",
+      "sourceAlphaBounds": [
+        1,
+        0,
+        162,
+        162
+      ],
+      "output": "assets/ui/settings-sidebar-about.png",
+      "outputSize": [
+        144,
+        124
+      ],
+      "outputSha256": "94e5b2671c49d7696db48bb0c1de7dab36ae819e58692077369b7b947d8f8909",
+      "transformation": "crop-visible-alpha-bounds-and-fit-without-redrawing"
+    }
+  ],
   "applicationIcon": {
     "source": "assets/animations/runtime/user-chibi-crystal-full-body-idle.atlas.png",
     "sourceSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",

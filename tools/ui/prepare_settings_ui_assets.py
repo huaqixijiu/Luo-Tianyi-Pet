@@ -11,12 +11,11 @@ from PIL import Image, ImageDraw, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[2]
-JOIN_SOURCE = (
+EXPRESSION_SOURCE_ROOT = (
     ROOT
     / "候选素材_官方"
     / "03_官方表情包"
     / "5582-心律共鸣动态表情包"
-    / "心律共鸣动态表情包_加入我们.gif"
 )
 PORTRAIT_SOURCE = (
     ROOT
@@ -25,10 +24,32 @@ PORTRAIT_SOURCE = (
     / "runtime"
     / "user-chibi-crystal-full-body-idle.atlas.png"
 )
-UI_OUTPUT = ROOT / "assets" / "ui" / "settings-encouragement.png"
 ICON_PNG_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.png"
 ICON_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.ico"
 META_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.meta.json"
+SIDEBAR_ARTWORK_SIZE = (144, 124)
+SIDEBAR_ARTWORKS = (
+    {
+        "page": "general",
+        "expression": "我推",
+        "output": ROOT / "assets" / "ui" / "settings-sidebar-general.png",
+    },
+    {
+        "page": "music",
+        "expression": "真好",
+        "output": ROOT / "assets" / "ui" / "settings-sidebar-music.png",
+    },
+    {
+        "page": "notification",
+        "expression": "天哪",
+        "output": ROOT / "assets" / "ui" / "settings-sidebar-notification.png",
+    },
+    {
+        "page": "about",
+        "expression": "加入我们",
+        "output": ROOT / "assets" / "ui" / "settings-sidebar-about.png",
+    },
+)
 MUSIC_PREVIEW_SIZE = 128
 MUSIC_PREVIEWS = (
     {
@@ -63,14 +84,63 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build_encouragement_art() -> None:
-    with Image.open(JOIN_SOURCE) as source:
-        source.seek(0)
-        frame = source.convert("RGBA")
+def fit_visible_artwork_rect(
+    frame: Image.Image,
+    size: tuple[int, int],
+    padding: int,
+) -> tuple[Image.Image, tuple[int, int, int, int]]:
+    alpha_bounds = frame.getchannel("A").getbbox()
+    if alpha_bounds is None:
+        raise ValueError("Settings sidebar artwork contains no visible pixels")
+    visible = frame.crop(alpha_bounds)
+    maximum_width = size[0] - (padding * 2)
+    maximum_height = size[1] - (padding * 2)
+    scale = min(maximum_width / visible.width, maximum_height / visible.height)
+    resized = visible.resize(
+        (
+            max(1, round(visible.width * scale)),
+            max(1, round(visible.height * scale)),
+        ),
+        Image.Resampling.LANCZOS,
+    )
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    canvas.alpha_composite(
+        resized,
+        ((size[0] - resized.width) // 2, (size[1] - resized.height) // 2),
+    )
+    return canvas, alpha_bounds
 
-    # Frame zero contains the complete character pose before the source's
-    # "Join Us!" lettering appears, so no retouching is required.
-    frame.save(UI_OUTPUT, optimize=True)
+
+def build_sidebar_artwork() -> list[dict[str, object]]:
+    metadata: list[dict[str, object]] = []
+    for specification in SIDEBAR_ARTWORKS:
+        source_path = EXPRESSION_SOURCE_ROOT / (
+            f"心律共鸣动态表情包_{specification['expression']}.png"
+        )
+        output_path = specification["output"]
+        assert isinstance(output_path, Path)
+        with Image.open(source_path) as source:
+            frame = source.convert("RGBA")
+        artwork, alpha_bounds = fit_visible_artwork_rect(
+            frame,
+            SIDEBAR_ARTWORK_SIZE,
+            padding=2,
+        )
+        artwork.save(output_path, optimize=True)
+        metadata.append(
+            {
+                "page": specification["page"],
+                "expression": specification["expression"],
+                "source": str(source_path.relative_to(ROOT)).replace("\\", "/"),
+                "sourceSha256": sha256(source_path),
+                "sourceAlphaBounds": list(alpha_bounds),
+                "output": str(output_path.relative_to(ROOT)).replace("\\", "/"),
+                "outputSize": list(SIDEBAR_ARTWORK_SIZE),
+                "outputSha256": sha256(output_path),
+                "transformation": "crop-visible-alpha-bounds-and-fit-without-redrawing",
+            }
+        )
+    return metadata
 
 
 def build_icon() -> None:
@@ -215,22 +285,15 @@ def build_music_animation_previews() -> list[dict[str, object]]:
 
 
 def main() -> None:
-    UI_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    (ROOT / "assets" / "ui").mkdir(parents=True, exist_ok=True)
     ICON_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    build_encouragement_art()
+    sidebar_artwork = build_sidebar_artwork()
     build_icon()
     music_previews = build_music_animation_previews()
 
     metadata = {
         "schemaVersion": 1,
-        "settingsArtwork": {
-            "source": str(JOIN_SOURCE.relative_to(ROOT)).replace("\\", "/"),
-            "sourceSha256": sha256(JOIN_SOURCE),
-            "frameIndex": 0,
-            "output": str(UI_OUTPUT.relative_to(ROOT)).replace("\\", "/"),
-            "outputSha256": sha256(UI_OUTPUT),
-            "transformation": "extract-frame-zero-before-source-lettering",
-        },
+        "settingsSidebarArtwork": sidebar_artwork,
         "applicationIcon": {
             "source": str(PORTRAIT_SOURCE.relative_to(ROOT)).replace("\\", "/"),
             "sourceSha256": sha256(PORTRAIT_SOURCE),
