@@ -88,6 +88,47 @@
             </ControlTemplate></Setter.Value></Setter>
         </Style>
 
+        <Style x:Key="MusicPreviewCard" TargetType="RadioButton">
+            <Setter Property="Height" Value="112" /><Setter Property="Margin" Value="0,0,6,0" /><Setter Property="Padding" Value="5" />
+            <Setter Property="Background" Value="White" /><Setter Property="BorderBrush" Value="{StaticResource Line}" /><Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" /><Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+                <Border x:Name="Card" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                    <Grid>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Border x:Name="Badge" Width="18" Height="18" Margin="0,2,2,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{StaticResource Primary}" CornerRadius="9" Opacity="0">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontFamily="Segoe MDL2 Assets" FontSize="10" Text="&#xE73E;" />
+                        </Border>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="#F2FAFE" /></Trigger>
+                    <Trigger Property="IsChecked" Value="True"><Setter TargetName="Card" Property="Background" Value="#1632B9F2" /><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource Primary}" /><Setter TargetName="Badge" Property="Opacity" Value="1" /></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource PrimaryDark}" /><Setter TargetName="Card" Property="BorderThickness" Value="2" /></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+
+        <Style x:Key="MusicNoneCard" TargetType="RadioButton">
+            <Setter Property="Height" Value="40" /><Setter Property="Margin" Value="0,7,6,0" /><Setter Property="Padding" Value="9,4" />
+            <Setter Property="Background" Value="#F7FBFD" /><Setter Property="BorderBrush" Value="{StaticResource Line}" /><Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" /><Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+                <Border x:Name="Card" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9">
+                    <Grid><ContentPresenter VerticalAlignment="Center" />
+                        <Border x:Name="Badge" Width="18" Height="18" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource Primary}" CornerRadius="9" Opacity="0">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontFamily="Segoe MDL2 Assets" FontSize="10" Text="&#xE73E;" />
+                        </Border>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="#F2FAFE" /></Trigger>
+                    <Trigger Property="IsChecked" Value="True"><Setter TargetName="Card" Property="Background" Value="#1632B9F2" /><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource Primary}" /><Setter TargetName="Badge" Property="Opacity" Value="1" /></Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource PrimaryDark}" /><Setter TargetName="Card" Property="BorderThickness" Value="2" /></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="MinWidth" Value="88" /><Setter Property="Height" Value="36" /><Setter Property="Padding" Value="14,0" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryDark}" /><Setter Property="Background" Value="#1232B9F2" />
@@ -165,14 +206,26 @@
                 <StackPanel Margin="20,18,6,18">
                     <TextBlock Style="{StaticResource PageTitle}" Text="音乐" /><TextBlock Margin="0,3,8,15" Style="{StaticResource PageDescription}" Text="选择网易云音乐播放时，桌宠使用哪种听歌动作。" />
                     <TextBlock Style="{StaticResource GroupTitle}" Text="播放动画" />
-                    <TextBlock Margin="4,1,12,10" Style="{StaticResource OptionDescription}" Text="自动模式会区分普通歌曲与洛天依独唱或合唱；也可以固定动作，或完全关闭听歌动画。" />
-                    <UniformGrid x:Name="MusicAnimationSelectionPanel" Columns="2">
-                        <RadioButton GroupName="MusicAnimationSelection" Style="{StaticResource SelectionCard}" AutomationProperties.Name="自动识别歌手" Tag="automatic-by-artist" Checked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="自动识别歌手" /><TextBlock Style="{StaticResource OptionDescription}" Text="普通歌享受音乐；天依歌曲随机彩蛋" /></StackPanel></RadioButton>
-                        <RadioButton GroupName="MusicAnimationSelection" Style="{StaticResource SelectionCard}" AutomationProperties.Name="固定享受音乐" Tag="resonance-enjoy-music" Checked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="享受音乐" /><TextBlock Style="{StaticResource OptionDescription}" Text="普通歌曲默认的安静听歌动作" /></StackPanel></RadioButton>
-                        <RadioButton GroupName="MusicAnimationSelection" Style="{StaticResource SelectionCard}" AutomationProperties.Name="固定音乐摇摆" Tag="ninth-anniversary-music-sway" Checked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="音乐摇摆" /><TextBlock Style="{StaticResource OptionDescription}" Text="洛天依歌曲使用的循环彩蛋" /></StackPanel></RadioButton>
-                        <RadioButton GroupName="MusicAnimationSelection" Style="{StaticResource SelectionCard}" AutomationProperties.Name="固定一键唱歌" Tag="newyear-one-click-singing" Checked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="一键唱歌" /><TextBlock Style="{StaticResource OptionDescription}" Text="洛天依歌曲使用的循环唱歌彩蛋" /></StackPanel></RadioButton>
-                        <RadioButton GroupName="MusicAnimationSelection" Style="{StaticResource SelectionCard}" AutomationProperties.Name="不使用任何听歌动画" Tag="none" Checked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="不使用动画" /><TextBlock Style="{StaticResource OptionDescription}" Text="播放音乐时保持当前桌宠外观" /></StackPanel></RadioButton>
-                    </UniformGrid>
+                    <TextBlock Margin="4,1,12,9" Style="{StaticResource OptionDescription}" Text="自动会按歌手分配；也可以直接固定一种画面。" />
+                    <Grid x:Name="MusicAnimationSelectionPanel" Margin="0,0,8,8">
+                        <Grid.RowDefinitions><RowDefinition Height="112" /><RowDefinition Height="47" /></Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <RadioButton Grid.Column="0" GroupName="MusicAnimationSelection" Style="{StaticResource MusicPreviewCard}" AutomationProperties.Name="自动识别歌手" AutomationProperties.HelpText="普通歌曲使用享受音乐，洛天依歌曲随机使用彩蛋" Tag="automatic-by-artist" ToolTip="普通歌享受音乐；天依歌曲随机彩蛋" Checked="OnSettingChanged">
+                            <StackPanel HorizontalAlignment="Center"><Border Width="76" Height="72" Background="#EAF8FE" CornerRadius="8"><Image Margin="2" Source="/assets/ui/music-preview-auto.png" Stretch="Uniform" /></Border><TextBlock Margin="0,5,0,0" HorizontalAlignment="Center" FontSize="11.5" FontWeight="SemiBold" Text="自动" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton Grid.Column="1" GroupName="MusicAnimationSelection" Style="{StaticResource MusicPreviewCard}" AutomationProperties.Name="固定享受音乐" AutomationProperties.HelpText="固定使用普通歌曲默认的安静听歌动作" Tag="resonance-enjoy-music" ToolTip="普通歌曲默认的安静听歌动作" Checked="OnSettingChanged">
+                            <StackPanel HorizontalAlignment="Center"><Border Width="76" Height="72" Background="#EAF8FE" CornerRadius="8"><Image Margin="2" Source="/assets/ui/music-preview-enjoy.png" Stretch="Uniform" /></Border><TextBlock Margin="0,5,0,0" HorizontalAlignment="Center" FontSize="11.5" FontWeight="SemiBold" Text="享受音乐" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton Grid.Column="2" GroupName="MusicAnimationSelection" Style="{StaticResource MusicPreviewCard}" AutomationProperties.Name="固定音乐摇摆" AutomationProperties.HelpText="固定使用洛天依歌曲的音乐摇摆彩蛋" Tag="ninth-anniversary-music-sway" ToolTip="洛天依歌曲使用的循环彩蛋" Checked="OnSettingChanged">
+                            <StackPanel HorizontalAlignment="Center"><Border Width="76" Height="72" Background="#EAF8FE" CornerRadius="8"><Image Margin="2" Source="/assets/ui/music-preview-sway.png" Stretch="Uniform" /></Border><TextBlock Margin="0,5,0,0" HorizontalAlignment="Center" FontSize="11.5" FontWeight="SemiBold" Text="音乐摇摆" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton Grid.Column="3" GroupName="MusicAnimationSelection" Style="{StaticResource MusicPreviewCard}" AutomationProperties.Name="固定一键唱歌" AutomationProperties.HelpText="固定使用洛天依歌曲的一键唱歌彩蛋" Tag="newyear-one-click-singing" ToolTip="洛天依歌曲使用的循环唱歌彩蛋" Checked="OnSettingChanged">
+                            <StackPanel HorizontalAlignment="Center"><Border Width="76" Height="72" Background="#EAF8FE" CornerRadius="8"><Image Margin="2" Source="/assets/ui/music-preview-sing.png" Stretch="Uniform" /></Border><TextBlock Margin="0,5,0,0" HorizontalAlignment="Center" FontSize="11.5" FontWeight="SemiBold" Text="一键唱歌" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton Grid.Row="1" Grid.ColumnSpan="4" GroupName="MusicAnimationSelection" Style="{StaticResource MusicNoneCard}" AutomationProperties.Name="不使用任何听歌动画" Tag="none" Checked="OnSettingChanged">
+                            <StackPanel Orientation="Horizontal"><Border Width="26" Height="26" Margin="0,0,8,0" Background="#DCEBF1" CornerRadius="7"><TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource Muted}" FontSize="17" Text="—" /></Border><StackPanel VerticalAlignment="Center"><TextBlock FontSize="11.5" FontWeight="SemiBold" Text="不使用动画" /><TextBlock Foreground="{StaticResource Muted}" FontSize="9.5" Text="播放音乐时保持当前桌宠外观" /></StackPanel></StackPanel>
+                        </RadioButton>
+                    </Grid>
                     <TextBlock Margin="4,7,4,3" Style="{StaticResource GroupTitle}" Text="洛天依歌曲彩蛋" />
                     <Border Style="{StaticResource GroupCard}" Margin="0,0,8,12"><CheckBox x:Name="LuoTianyiSingingEasterEggCheckBox" AutomationProperties.Name="允许洛天依歌曲触发一键唱歌彩蛋" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="允许“一键唱歌”" /><TextBlock Style="{StaticResource OptionDescription}" Text="关闭后，自动模式和固定一键唱歌均改用音乐摇摆" /></StackPanel></CheckBox></Border>
                 </StackPanel>

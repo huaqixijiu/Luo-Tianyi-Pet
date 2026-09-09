@@ -23,8 +23,8 @@
               Link="assets\app\luotianyi-pet.ico" />
     <Resource Include="..\..\assets\app\luotianyi-pet.png"
               Link="assets\app\luotianyi-pet.png" />
-    <Resource Include="..\..\assets\ui\settings-encouragement.png"
-              Link="assets\ui\settings-encouragement.png" />
+    <Resource Include="..\..\assets\ui\*.png"
+              Link="assets\ui\%(Filename)%(Extension)" />
     <Content Include="..\..\候选素材_官方\区域标注\第三模型\身体区域_full-body-classic.json"
              Link="assets\body-hit-maps\full-body-classic.json"
              CopyToOutputDirectory="PreserveNewest" />

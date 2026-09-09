@@ -22,5 +22,45 @@
     "outputIco": "assets/app/luotianyi-pet.ico",
     "outputIcoSha256": "d6557bb6659aee0e7d652a99f5b0b7d57f83bc0b990357319d6c270024512b71",
     "transformation": "portrait-crop-on-rounded-tianyi-blue-background"
-  }
+  },
+  "musicAnimationPreviews": [
+    {
+      "id": "automatic-by-artist",
+      "sources": [
+        "assets/ui/music-preview-enjoy.png",
+        "assets/ui/music-preview-sway.png",
+        "assets/ui/music-preview-sing.png"
+      ],
+      "output": "assets/ui/music-preview-auto.png",
+      "outputSha256": "c8970a0251d6fffc97a888f6a61efb3d6619deb31cbe7ad7648988c5a5c0f5ec",
+      "transformation": "three-preview-overlap-collage"
+    },
+    {
+      "id": "resonance-enjoy-music",
+      "source": "assets/animations/runtime/resonance-enjoy-music.atlas.png",
+      "sourceSha256": "aafed47582ec66647c4c496bd99d2e4152225fb3db678ea3455375a9084060de",
+      "frameIndex": 3,
+      "output": "assets/ui/music-preview-enjoy.png",
+      "outputSha256": "d36423e2e1f8d6c0dc85cbe9146e63addcc28c8075da22aef195f6727e3068b0",
+      "transformation": "extract-frame-and-fit-visible-alpha-bounds"
+    },
+    {
+      "id": "ninth-anniversary-music-sway",
+      "source": "assets/animations/runtime/ninth-anniversary-music-sway.atlas.png",
+      "sourceSha256": "cda55b28818d5abc1e76e1e6ad9a042e83b2554534d841dbaa94cda486d3fec1",
+      "frameIndex": 14,
+      "output": "assets/ui/music-preview-sway.png",
+      "outputSha256": "8d3dbf807a05bf2db6339a70eef88feee4601fa06581b3bf9ee5e66dae74cd52",
+      "transformation": "extract-frame-and-fit-visible-alpha-bounds"
+    },
+    {
+      "id": "newyear-one-click-singing",
+      "source": "assets/animations/runtime/newyear-one-click-singing.atlas.png",
+      "sourceSha256": "0c95ca94f07eb1a956139287747f291f727bde8b55a9c00d83fb012581694d64",
+      "frameIndex": 4,
+      "output": "assets/ui/music-preview-sing.png",
+      "outputSha256": "0664be20bc1cbe6e6cb5845eb4e901271700b5b79a6e2196007e306db0ca3a53",
+      "transformation": "extract-frame-and-fit-visible-alpha-bounds"
+    }
+  ]
 }
