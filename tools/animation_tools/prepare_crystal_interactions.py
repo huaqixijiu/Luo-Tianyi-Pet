@@ -8,6 +8,7 @@ picker previews and provenance metadata from those local source sequences.
 from __future__ import annotations
 
 import argparse
+import bisect
 import hashlib
 import json
 import math
@@ -115,6 +116,55 @@ def blend_premultiplied(
     ).convert("RGBA")
 
 
+def build_luminance_lut(
+    source_reference: Image.Image,
+    target_reference: Image.Image,
+) -> list[int]:
+    """Match source midtones to the real idle artwork without shifting chroma."""
+    source_rgba = source_reference.convert("RGBA")
+    target_rgba = target_reference.convert("RGBA")
+    source_y = source_rgba.convert("RGB").convert("YCbCr").getchannel("Y")
+    target_y = target_rgba.convert("RGB").convert("YCbCr").getchannel("Y")
+    source_mask = source_rgba.getchannel("A").point(
+        [255 if value > 128 else 0 for value in range(256)]
+    )
+    target_mask = target_rgba.getchannel("A").point(
+        [255 if value > 128 else 0 for value in range(256)]
+    )
+    source_histogram = source_y.histogram(mask=source_mask)
+    target_histogram = target_y.histogram(mask=target_mask)
+    source_total = sum(source_histogram)
+    target_total = sum(target_histogram)
+    if source_total == 0 or target_total == 0:
+        raise ValueError("Crystal color reference contains no visible pixels")
+
+    target_cdf: list[float] = []
+    cumulative = 0
+    for count in target_histogram:
+        cumulative += count
+        target_cdf.append(cumulative / target_total)
+
+    lut: list[int] = []
+    cumulative = 0
+    for count in source_histogram:
+        cumulative += count
+        percentile = cumulative / source_total
+        lut.append(min(255, bisect.bisect_left(target_cdf, percentile)))
+    return lut
+
+
+def apply_luminance_lut(image: Image.Image, lut: list[int]) -> Image.Image:
+    """Apply the calibrated Y channel while preserving Cb, Cr and alpha."""
+    rgba = image.convert("RGBA")
+    y_channel, cb_channel, cr_channel = rgba.convert("RGB").convert("YCbCr").split()
+    corrected_rgb = Image.merge(
+        "YCbCr",
+        (y_channel.point(lut), cb_channel, cr_channel),
+    ).convert("RGB")
+    corrected_rgb.putalpha(rgba.getchannel("A"))
+    return corrected_rgb
+
+
 def add_in_place_transitions(
     frames: list[Image.Image],
     idle_reference: Image.Image,
@@ -198,6 +248,11 @@ def prepare(
                 if image.size != (720, 720):
                     raise ValueError(f"Unexpected frame size for {path}: {image.size}")
                 normalized_frames.append(normalize_action_frame(image, frame_size))
+        luminance_lut = build_luminance_lut(normalized_frames[0], idle_reference)
+        normalized_frames = [
+            apply_luminance_lut(frame, luminance_lut)
+            for frame in normalized_frames
+        ]
         normalized_frames = add_in_place_transitions(normalized_frames, idle_reference)
 
         atlas_path = runtime_root / f"{action.animation_id}.atlas.png"
@@ -219,6 +274,7 @@ def prepare(
                 "previewSha256": sha256_file(preview_path),
                 "atlas": atlas_relative,
                 "atlasSha256": sha256_file(atlas_path),
+                "luminanceLutSha256": hashlib.sha256(bytes(luminance_lut)).hexdigest(),
                 "inPlaceTransitionFramesPerEnd": IN_PLACE_TRANSITION_FRAMES,
             }
         )
@@ -249,13 +305,18 @@ def prepare(
             "sourceFrameSize": [720, 720],
             "sourceFps": 24,
             "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
+            "colorPolicy": (
+                "per-action YCbCr luminance CDF matching from the first source "
+                "frame to the actual idle artwork; preserve chroma and alpha"
+            ),
             "runtimeCanvasPolicy": (
                 "reframe square source into 240x260 idle-aspect canvas; "
                 "display at fixed 220x238 DIP without runtime offset"
             ),
             "retouch": (
-                "replace six neutral frames at each end with premultiplied "
-                "idle-to-action blends; keep 145-frame duration"
+                "match action luminance to idle, then replace six neutral frames "
+                "at each end with premultiplied idle-to-action blends; keep "
+                "145-frame duration"
             ),
             "idleReference": (
                 "assets/animations/processed/用户提供_Q版小人全身_透明.png"
