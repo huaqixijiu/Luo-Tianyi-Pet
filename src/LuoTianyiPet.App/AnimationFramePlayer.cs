@@ -38,12 +38,19 @@ internal sealed class AnimationFramePlayer : IDisposable
     public AnimationAssetManifest Play(
         string animationId,
         Action? completed = null,
-        bool reverse = false)
+        bool reverse = false,
+        double playbackRate = 1.0)
     {
         CachedAnimation animation = GetOrLoad(animationId);
         int start = reverse ? animation.Frames.Count - 1 : 0;
         int end = reverse ? 0 : animation.Frames.Count - 1;
-        return StartPlayback(animation, start, end, animation.Manifest.LoopCount, completed);
+        return StartPlayback(
+            animation,
+            start,
+            end,
+            animation.Manifest.LoopCount,
+            completed,
+            playbackRate);
     }
 
     public AnimationAssetManifest PlayRange(

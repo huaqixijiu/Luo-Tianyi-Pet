@@ -87,4 +87,27 @@ public sealed class BodyInteractionResolverTests
             BodyInteractionResolver.OrdinaryBodyAnimations[0],
             resolver.Resolve(BodyRegionId.OtherBody, Now).AnimationId);
     }
+
+    [Theory]
+    [InlineData(BodyInteractionResolver.SoftHeartAnimation, 0.72)]
+    [InlineData(BodyInteractionResolver.KissAnimation, 0.82)]
+    [InlineData(BodyInteractionResolver.FaceAnimation, 0.80)]
+    [InlineData(BodyInteractionResolver.HeadPatAnimation, 0.75)]
+    [InlineData(BodyInteractionResolver.HighFiveAnimation, 0.68)]
+    [InlineData(BodyInteractionResolver.GuiltyAnimation, 0.80)]
+    [InlineData(BodyInteractionResolver.DarkAnimation, 0.90)]
+    [InlineData(BodyInteractionResolver.OopsAnimation, 0.68)]
+    [InlineData(BodyInteractionResolver.HugAnimation, 0.80)]
+    public void ClassicExpressionReactionsUseActionSpecificModerateRates(
+        string animationId,
+        double expectedRate)
+    {
+        Assert.Equal(expectedRate, BodyInteractionResolver.ResolvePlaybackRate(animationId));
+    }
+
+    [Fact]
+    public void UnrelatedAnimationsKeepTheirAuthoredRate()
+    {
+        Assert.Equal(1.0, BodyInteractionResolver.ResolvePlaybackRate("unrelated-animation"));
+    }
 }

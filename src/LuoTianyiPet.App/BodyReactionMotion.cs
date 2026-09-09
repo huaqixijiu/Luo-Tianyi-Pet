@@ -14,15 +14,15 @@ internal sealed class BodyReactionMotion
         _translate = translate;
     }
 
-    public void PlayFor(string animationId)
+    public void PlayFor(string animationId, double playbackRate = 1.0)
     {
         if (animationId == Core.BodyInteractionResolver.HighFiveAnimation)
         {
-            PlayHighFiveBounce();
+            PlayHighFiveBounce(playbackRate);
         }
         else if (animationId == Core.BodyInteractionResolver.OopsAnimation)
         {
-            PlayOopsShake();
+            PlayOopsShake(playbackRate);
         }
         else if (animationId is Core.StartupTimeSceneResolver.MorningAnimation or
             Core.StartupTimeSceneResolver.AfternoonAnimation)
@@ -63,37 +63,39 @@ internal sealed class BodyReactionMotion
         _translate.Y = 0;
     }
 
-    private void PlayHighFiveBounce()
+    private void PlayHighFiveBounce(double playbackRate)
     {
         Cancel();
+        double timeScale = 1 / playbackRate;
         DoubleAnimationUsingKeyFrames scale = new()
         {
-            Duration = TimeSpan.FromMilliseconds(520),
+            Duration = TimeSpan.FromMilliseconds(520 * timeScale),
             FillBehavior = FillBehavior.Stop,
         };
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(0.94, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(
             1.10,
-            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(170)),
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(170 * timeScale)),
             new BackEase { Amplitude = 0.35, EasingMode = EasingMode.EaseOut }));
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(
             0.98,
-            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(350)),
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(350 * timeScale)),
             new CubicEase { EasingMode = EasingMode.EaseInOut }));
         scale.KeyFrames.Add(new EasingDoubleKeyFrame(
             1,
-            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(520)),
+            KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(520 * timeScale)),
             new CubicEase { EasingMode = EasingMode.EaseOut }));
         _scale.BeginAnimation(ScaleTransform.ScaleXProperty, scale, HandoffBehavior.SnapshotAndReplace);
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
     }
 
-    private void PlayOopsShake()
+    private void PlayOopsShake(double playbackRate)
     {
         Cancel();
+        double timeScale = 1 / playbackRate;
         DoubleAnimationUsingKeyFrames shake = new()
         {
-            Duration = TimeSpan.FromMilliseconds(560),
+            Duration = TimeSpan.FromMilliseconds(560 * timeScale),
             FillBehavior = FillBehavior.Stop,
         };
         int[] offsets = [0, -8, 8, -7, 7, -5, 5, -3, 3, 0];
@@ -101,7 +103,7 @@ internal sealed class BodyReactionMotion
         {
             shake.KeyFrames.Add(new LinearDoubleKeyFrame(
                 offsets[index],
-                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(index * 60))));
+                KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(index * 60 * timeScale))));
         }
 
         _translate.BeginAnimation(

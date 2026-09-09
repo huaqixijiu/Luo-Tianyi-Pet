@@ -1670,6 +1670,7 @@ public partial class MainWindow : Window
         bool suppressBodyAfter = false,
         bool blocksDisplayModeToggle = false)
     {
+        double playbackRate = BodyInteractionResolver.ResolvePlaybackRate(animationId);
         DateTimeOffset now = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
@@ -1697,7 +1698,8 @@ public partial class MainWindow : Window
         {
             PlayAnimation(
                 animationId,
-                () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true));
+                () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true),
+                playbackRate: playbackRate);
             transitioned = _animationPlayer?.CurrentAnimationId == animationId;
         }
         else
@@ -1706,12 +1708,13 @@ public partial class MainWindow : Window
                 () => PlayAnimation(
                     animationId,
                     () => CompleteReaction(token, suppressBodyAfter),
-                    preserveVisualTransition: true));
+                    preserveVisualTransition: true,
+                    playbackRate: playbackRate));
         }
         if (transitioned && !_isClosing &&
             _animationPlayer?.CurrentAnimationId == animationId)
         {
-            _bodyReactionMotion.PlayFor(animationId);
+            _bodyReactionMotion.PlayFor(animationId, playbackRate);
             _logger.Info(
                 playInPlace
                     ? "animation.in_place_reaction_started"
@@ -2272,7 +2275,8 @@ public partial class MainWindow : Window
         string animationId,
         Action? completed = null,
         bool preserveVisualTransition = false,
-        bool reverse = false)
+        bool reverse = false,
+        double playbackRate = 1.0)
     {
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
@@ -2289,7 +2293,11 @@ public partial class MainWindow : Window
 
         try
         {
-            AnimationAssetManifest manifest = _animationPlayer.Play(animationId, completed, reverse);
+            AnimationAssetManifest manifest = _animationPlayer.Play(
+                animationId,
+                completed,
+                reverse,
+                playbackRate);
             ApplyAnimationManifest(manifest);
         }
         catch (Exception exception) when (

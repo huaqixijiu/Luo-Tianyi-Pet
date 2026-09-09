@@ -22,10 +22,31 @@ public sealed class BodyInteractionResolver
     public const string GuiltyAnimation = "resonance-guilty";
     public const string DarkAnimation = "resonance-dark";
     public const string OopsAnimation = "tenth-anniversary-oops-shake";
+    public const string HugAnimation = "twelfth-anniversary-hug";
     public static IReadOnlyList<string> OrdinaryBodyAnimations { get; } =
     [
-        "twelfth-anniversary-hug",
+        HugAnimation,
     ];
+
+    /// <summary>
+    /// Returns the deliberately restrained playback rate used by the classic
+    /// model's expression-pack reactions. Each rate is tuned to the gesture:
+    /// quick surprise actions stay brisk, while affectionate reactions get a
+    /// little more time to read. Unknown animations keep their authored speed.
+    /// </summary>
+    public static double ResolvePlaybackRate(string animationId) => animationId switch
+    {
+        SoftHeartAnimation => 0.72,
+        KissAnimation => 0.82,
+        FaceAnimation => 0.80,
+        HeadPatAnimation => 0.75,
+        HighFiveAnimation => 0.68,
+        GuiltyAnimation => 0.80,
+        DarkAnimation => 0.90,
+        OopsAnimation => 0.68,
+        HugAnimation => 0.80,
+        _ => 1.0,
+    };
 
     private static readonly TimeSpan SensitiveRepeatWindow = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan SensitiveCooldown = TimeSpan.FromSeconds(10);
