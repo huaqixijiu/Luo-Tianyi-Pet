@@ -38,6 +38,51 @@ public static class DesktopFileTreatSafety
 
 public static class BunChasePlanner
 {
+    private const double ReferenceDesktopWidth = 1920;
+    private const double ReferenceDesktopHeight = 1080;
+
+    public static double ResolveDesktopSpeedScale(
+        double desktopWidthDips,
+        double desktopHeightDips,
+        double maximumScale = 2)
+    {
+        if (!double.IsFinite(desktopWidthDips) || desktopWidthDips <= 0 ||
+            !double.IsFinite(desktopHeightDips) || desktopHeightDips <= 0 ||
+            !double.IsFinite(maximumScale) || maximumScale < 1)
+        {
+            return 1;
+        }
+
+        double referenceDiagonal = Math.Sqrt(
+            ReferenceDesktopWidth * ReferenceDesktopWidth +
+            ReferenceDesktopHeight * ReferenceDesktopHeight);
+        double desktopDiagonal = Math.Sqrt(
+            desktopWidthDips * desktopWidthDips + desktopHeightDips * desktopHeightDips);
+        return Math.Clamp(desktopDiagonal / referenceDiagonal, 1, maximumScale);
+    }
+
+    public static double ResolveDesktopSpeedScaleFromPixels(
+        double desktopWidthPixels,
+        double desktopHeightPixels,
+        double dpiScaleX,
+        double dpiScaleY,
+        double maximumScale = 2)
+    {
+        double safeDpiScaleX = double.IsFinite(dpiScaleX) && dpiScaleX > 0 ? dpiScaleX : 1;
+        double safeDpiScaleY = double.IsFinite(dpiScaleY) && dpiScaleY > 0 ? dpiScaleY : 1;
+        return ResolveDesktopSpeedScale(
+            desktopWidthPixels / safeDpiScaleX,
+            desktopHeightPixels / safeDpiScaleY,
+            maximumScale);
+    }
+
+    public static bool ShouldInterruptReturnForQueuedTreat(
+        bool chaseActive,
+        bool returning,
+        bool eating,
+        int queuedBunCount) =>
+        chaseActive && returning && !eating && queuedBunCount > 0;
+
     public static double ResolveAcceleratedSpeed(
         double startingSpeedPerSecond,
         double originalCruiseSpeedPerSecond,
@@ -118,5 +163,43 @@ public static class BunChasePlanner
                 current.X + dx / distance * maximumStep,
                 current.Y + dy / distance * maximumStep),
             false);
+    }
+
+    public static TimeSpan EstimateTravelDuration(
+        double distance,
+        double startingSpeedPerSecond,
+        double maximumSpeedPerSecond,
+        TimeSpan accelerationDuration)
+    {
+        double travelDistance = Math.Max(0, distance);
+        double start = Math.Max(0, startingSpeedPerSecond);
+        double maximum = Math.Max(start, maximumSpeedPerSecond);
+        double accelerationSeconds = Math.Max(0, accelerationDuration.TotalSeconds);
+        if (travelDistance <= 0)
+        {
+            return TimeSpan.Zero;
+        }
+
+        if (maximum <= 0)
+        {
+            return TimeSpan.MaxValue;
+        }
+
+        if (accelerationSeconds <= 0 || maximum == start)
+        {
+            return TimeSpan.FromSeconds(travelDistance / maximum);
+        }
+
+        double acceleration = (maximum - start) / accelerationSeconds;
+        double accelerationDistance = (start + maximum) * 0.5 * accelerationSeconds;
+        if (travelDistance <= accelerationDistance)
+        {
+            double seconds = (-start + Math.Sqrt(
+                start * start + 2 * acceleration * travelDistance)) / acceleration;
+            return TimeSpan.FromSeconds(seconds);
+        }
+
+        return TimeSpan.FromSeconds(
+            accelerationSeconds + (travelDistance - accelerationDistance) / maximum);
     }
 }

@@ -75,7 +75,7 @@ internal sealed class BunTargetWindow : Window
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         IsBeingDragged = true;
-        _dragPointer = PointToScreen(e.GetPosition(this));
+        _dragPointer = GetPointerScreenDips(e);
         _dragLeft = Left;
         _dragTop = Top;
         Mouse.Capture((IInputElement)sender);
@@ -89,10 +89,18 @@ internal sealed class BunTargetWindow : Window
             return;
         }
 
-        Point current = PointToScreen(e.GetPosition(this));
+        Point current = GetPointerScreenDips(e);
         Left = _dragLeft + current.X - _dragPointer.X;
         Top = _dragTop + current.Y - _dragPointer.Y;
         e.Handled = true;
+    }
+
+    private Point GetPointerScreenDips(MouseEventArgs e)
+    {
+        Point screenPixels = PointToScreen(e.GetPosition(this));
+        PresentationSource? source = PresentationSource.FromVisual(this);
+        Matrix fromDevice = source?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
+        return fromDevice.Transform(screenPixels);
     }
 
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)

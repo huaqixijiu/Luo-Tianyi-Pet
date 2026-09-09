@@ -107,20 +107,96 @@ public sealed class BunChasePlannerTests
     }
 
     [Theory]
-    [InlineData(0, 72)]
-    [InlineData(5, 441)]
+    [InlineData(0, 180)]
+    [InlineData(2, 495)]
+    [InlineData(4, 810)]
     [InlineData(10, 810)]
-    [InlineData(30, 810)]
-    public void ResolveAcceleratedSpeed_ReachesThreeTimesOriginalCruiseAtTenSeconds(
+    public void ResolveAcceleratedSpeed_ReachesThreeTimesOriginalCruiseAtFourSeconds(
         double elapsedSeconds,
         double expectedSpeed)
     {
         double speed = BunChasePlanner.ResolveAcceleratedSpeed(
-            72,
+            180,
             270,
             TimeSpan.FromSeconds(elapsedSeconds),
-            TimeSpan.FromSeconds(10));
+            TimeSpan.FromSeconds(4));
 
         Assert.Equal(expectedSpeed, speed, 3);
+    }
+
+    [Theory]
+    [InlineData(1366, 768, 1.0)]
+    [InlineData(1920, 1080, 1.0)]
+    [InlineData(2560, 1440, 1.333333)]
+    [InlineData(3840, 2160, 2.0)]
+    public void ResolveDesktopSpeedScale_NormalizesLargeLogicalDesktops(
+        double width,
+        double height,
+        double expectedScale)
+    {
+        Assert.Equal(
+            expectedScale,
+            BunChasePlanner.ResolveDesktopSpeedScale(width, height),
+            5);
+    }
+
+    [Theory]
+    [InlineData(1920, 1080)]
+    [InlineData(2560, 1440)]
+    [InlineData(3840, 2160)]
+    public void DiagonalChase_HasConsistentTravelTimeAcrossDesktopResolutions(
+        double width,
+        double height)
+    {
+        double scale = BunChasePlanner.ResolveDesktopSpeedScale(width, height);
+        double diagonal = Math.Sqrt(width * width + height * height);
+        TimeSpan duration = BunChasePlanner.EstimateTravelDuration(
+            diagonal,
+            180 * scale,
+            270 * 3 * scale,
+            TimeSpan.FromSeconds(4));
+
+        Assert.InRange(duration.TotalSeconds, 4.25, 4.30);
+    }
+
+    [Fact]
+    public void FourKAtTwoHundredPercent_UsesReferenceLogicalDesktopTiming()
+    {
+        double scale = BunChasePlanner.ResolveDesktopSpeedScaleFromPixels(
+            3840,
+            2160,
+            2,
+            2);
+        TimeSpan duration = BunChasePlanner.EstimateTravelDuration(
+            Math.Sqrt(1920 * 1920 + 1080 * 1080),
+            180 * scale,
+            270 * 3 * scale,
+            TimeSpan.FromSeconds(4));
+
+        Assert.Equal(1, scale);
+        Assert.InRange(duration.TotalSeconds, 4.25, 4.30);
+    }
+
+    [Theory]
+    [InlineData(true, true, false, 1, true)]
+    [InlineData(true, true, false, 3, true)]
+    [InlineData(false, true, false, 1, false)]
+    [InlineData(true, false, false, 1, false)]
+    [InlineData(true, true, true, 1, false)]
+    [InlineData(true, true, false, 0, false)]
+    public void QueuedTreat_InterruptsOnlyAnActiveNonEatingReturn(
+        bool chaseActive,
+        bool returning,
+        bool eating,
+        int queuedBunCount,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            BunChasePlanner.ShouldInterruptReturnForQueuedTreat(
+                chaseActive,
+                returning,
+                eating,
+                queuedBunCount));
     }
 }

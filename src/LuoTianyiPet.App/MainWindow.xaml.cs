@@ -43,10 +43,13 @@ public partial class MainWindow : Window
     private const double SideDockWallClipWidthRatio = 0.048;
     private const double SideDockRevealPlaybackRate = 1.3;
     private const double BottomDockHidePlaybackRate = 0.7;
-    private const double BunStartingSpeed = 72;
+    private const double BunStartingSpeed = 180;
     private const double BunChaseOriginalCruiseSpeed = 270;
     private const double BunReturnOriginalCruiseSpeed = 290;
-    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(4);
+    private const int BunEatClosingStartFrame = 128;
+    private const int BunEatLastFrame = 172;
+    private static readonly TimeSpan BunEatClosingDuration = TimeSpan.FromMilliseconds(800);
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -4220,6 +4223,10 @@ public partial class MainWindow : Window
         {
             BeginBunChase();
         }
+        else if (_bunReturning)
+        {
+            RedirectBunReturnToQueuedTreat();
+        }
     }
 
     private void BeginBunChase()
@@ -4249,7 +4256,7 @@ public partial class MainWindow : Window
         _bunChaseActive = true;
         _bunReturning = false;
         _bunEating = false;
-        _bunMotionSpeed = BunStartingSpeed;
+        _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
         _bunReturnPosition ??= new Point(Left, Top);
         SelectNearestBun();
@@ -4279,6 +4286,29 @@ public partial class MainWindow : Window
                 return dx * dx + dy * dy;
             })
             .FirstOrDefault();
+    }
+
+    private void RedirectBunReturnToQueuedTreat()
+    {
+        if (!BunChasePlanner.ShouldInterruptReturnForQueuedTreat(
+                _bunChaseActive,
+                _bunReturning,
+                _bunEating,
+                _bunTargets.Count))
+        {
+            return;
+        }
+
+        _bunReturning = false;
+        SelectNearestBun();
+        _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
+        _bunMotionStageElapsed = TimeSpan.Zero;
+        _bunLastMotionAt = DateTimeOffset.Now;
+        PlayAnimation(GetSelectedBunAnimations().RunAnimation);
+        _bunChaseTimer.Start();
+        _logger.Info(
+            "file_treat.return_interrupted_for_new_bun",
+            "A newly queued bun interrupted the return trip and resumed the chase.");
     }
 
     private void OnBunChaseTimerTick(object? sender, EventArgs e)
@@ -4314,9 +4344,10 @@ public partial class MainWindow : Window
             }
 
             PointerPoint current = new(Left, Top);
+            double speedScale = ResolveBunDesktopSpeedScale();
             _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
-                BunStartingSpeed,
-                BunReturnOriginalCruiseSpeed,
+                BunStartingSpeed * speedScale,
+                BunReturnOriginalCruiseSpeed * speedScale,
                 _bunMotionStageElapsed,
                 BunAccelerationDuration);
             BunChaseStep step = BunChasePlanner.Advance(
@@ -4347,9 +4378,10 @@ public partial class MainWindow : Window
 
         Point petCentre = GetPetScreenCentre();
         Point targetCentre = _activeBunTarget.ScreenCenter;
+        double chaseSpeedScale = ResolveBunDesktopSpeedScale();
         _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
-            BunStartingSpeed,
-            BunChaseOriginalCruiseSpeed,
+            BunStartingSpeed * chaseSpeedScale,
+            BunChaseOriginalCruiseSpeed * chaseSpeedScale,
             _bunMotionStageElapsed,
             BunAccelerationDuration);
         BunChaseStep chase = BunChasePlanner.Advance(
@@ -4377,6 +4409,20 @@ public partial class MainWindow : Window
         return new Point(Left + bounds.Left + bounds.Width / 2, Top + bounds.Top + bounds.Height / 2);
     }
 
+    private double ResolveBunDesktopSpeedScale()
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        return BunChasePlanner.ResolveDesktopSpeedScaleFromPixels(
+            workArea.Width,
+            workArea.Height,
+            dpi.DpiScaleX,
+            dpi.DpiScaleY);
+    }
+
+    private double ResolveScaledBunSpeed(double speed) =>
+        speed * ResolveBunDesktopSpeedScale();
+
     private async Task EatActiveBunAsync(BunTargetWindow bun)
     {
         if (_isClosing || !_bunTargets.Contains(bun))
@@ -4395,13 +4441,17 @@ public partial class MainWindow : Window
         bun.Close();
         _bunTargets.Remove(bun);
         _activeBunTarget = null;
-        await Task.Delay(1650);
+        PlayAnimationRange(
+            eatAnimation,
+            BunEatClosingStartFrame,
+            BunEatLastFrame);
+        await Task.Delay(BunEatClosingDuration);
         _bunEating = false;
         if (_bunTargets.Count > 0)
         {
             SelectNearestBun();
             PlayAnimation(runAnimation);
-            _bunMotionSpeed = BunStartingSpeed;
+            _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
             _bunMotionStageElapsed = TimeSpan.Zero;
             _bunLastMotionAt = DateTimeOffset.Now;
             _bunChaseTimer.Start();
@@ -4415,7 +4465,7 @@ public partial class MainWindow : Window
     {
         _bunReturning = true;
         _activeBunTarget = null;
-        _bunMotionSpeed = BunStartingSpeed;
+        _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
         _bunLastMotionAt = DateTimeOffset.Now;
