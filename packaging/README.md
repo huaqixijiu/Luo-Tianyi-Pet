@@ -1,35 +1,63 @@
-# MSIX 包身份准备
+# Windows 安装与包身份
 
-Windows `UserNotificationListener` 只有在应用具有 package identity、包清单声明
-`uap3:userNotificationListener`，并由用户明确授权后才能读取通知来源。
+QQ / 微信来源提醒使用 Windows `UserNotificationListener`。微软要求调用方同时满足：
 
-`Package.appxmanifest.template` 保存已经确认的最小能力声明。仓库提供可重复的构建脚本：
+- 以 MSIX 安装并取得 package identity；
+- 清单声明 `uap3:userNotificationListener` 和桌面应用所需的 `runFullTrust`；
+- 使用者在桌宠“设置 → 通知”中亲自批准 Windows 权限。
+
+因此便携 ZIP 和直接运行的普通 EXE 可以使用动画、音乐和文件功能，但永远不能开启通知监听。
+这不是 QQ / 微信安装路径差异，也不能通过扫描进程、聊天数据库或窗口内容安全补救。
+
+## 给其他 Windows 11 电脑测试
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\packaging\build_sideload_bundle.ps1
+```
+
+输出位于 `artifacts/sideload/release/`：
+
+- `LuoTianyiPet-Installer-<version>-win-x64.zip`；
+- 对应的 SHA-256 文件。
+
+测试者完整解压后双击“安装洛天依桌宠.cmd”。脚本先校验 MSIX、公钥 CER 的 SHA-256 和
+签名者指纹；首次电脑会显示一次 UAC，只把公开开发证书加入
+`LocalMachine\TrustedPeople`，随后回到当前登录用户安装 MSIX。桌宠本体不会以管理员权限运行。
+安装完成后仍要由使用者在设置页点击“授权访问”。
+
+测试包不包含 PFX 私钥或证书密码。自签名证书只适合受控测试，证书过期、签名不一致、包被替换、
+试图降级或文件不完整时安装器都会停止。
+
+## 面向公众正式分发
+
+所有普通 Windows 11 电脑都能直接安装且不导入测试证书，需要以下二选一：
+
+1. 提交 Microsoft Store，由商店使用与 Partner Center 身份一致的证书签名；
+2. 使用 Windows 已信任的生产代码签名证书签署 MSIX。当前脚本支持受信任 CA 签发且可由
+   PFX 提供的代码签名证书；Azure Artifact Signing/Trusted Signing 需要另接其远程签名客户端。
+
+仓库已支持第二条路径，证书和密码文件必须位于仓库外：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\packaging\build_msix.ps1 `
+  -Version 1.0.0.0 `
+  -SigningMode Production `
+  -ProductionCertificatePath D:\secrets\luotianyi-production.pfx `
+  -ProductionCertificatePasswordPath D:\secrets\luotianyi-production-password.txt `
+  -ProductionIdentityName LuoTianyiPet `
+  -ProductionPublisherDisplayName 洛天依桌宠
+```
+
+脚本从 PFX 读取真实发布者 Subject 并写入清单，拒绝没有私钥或空密码；发布目录只输出签名
+MSIX 与 SHA-256，不复制 PFX、密码或开发 CER。若选择 Microsoft Store，正式包名和 Publisher
+必须改为 Partner Center 分配值，不能自行猜测。
+
+## 单独构建开发 MSIX
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\packaging\build_msix.ps1
 ```
 
-脚本会：
-
-1. 从正式“十二周年·抱抱”运行时图集的稳定无文字帧生成三项天依蓝包图标；
-2. 创建 .NET 10 x64 自包含发布布局；
-3. 首次运行时生成仅供本机测试的随机密码开发证书；
-4. 用微软 `winapp` CLI 创建并签名 MSIX；
-5. 校验清单能力、关键包文件、签名存在性和 SHA-256；
-6. 将包、公钥证书与哈希写入 `artifacts/msix/release/`。
-
-`artifacts/` 被 Git 忽略，PFX 私钥和随机密码只保存在
-`artifacts/msix/private/`，不得提交或分享。脚本设置 `WINAPP_CLI_TELEMETRY_OPTOUT=1`。
-
-正式安装测试前还需要：
-
-1. 由用户确认以管理员权限将 `LuoTianyiPet.Dev.cer` 导入本地计算机的 `TrustedPeople`；
-2. 验证证书指纹为 `E4136BA41AD33EEBC2318301702252F0BE5DBA2C`，再由用户确认安装生成的 `.msix`；
-3. 从安装后的桌宠设置页点击“授权访问”；
-4. 用不含隐私内容的测试消息验证 QQ 和微信来源。
-
-免安装 EXE 继续可用，但设置页会明确显示“需要 MSIX 包身份”，不会尝试绕过系统授权。
-
-实测将自签名公钥只导入 `CurrentUser\TrustedPeople` 后，`Add-AppxPackage` 仍以
-`0x800B0109` 拒绝部署；该证书已立即从当前用户存储撤销，系统中没有残留包注册。
-本项目不使用 `CurrentUser\Root` 扩大根信任范围，也不自动开启 Windows 开发者模式。
+脚本会创建 .NET 10 x64 自包含布局、生成/复用本机开发证书、打包签名并校验清单能力、关键文件、
+签名和 SHA-256。PFX、随机密码和临时发布布局仅位于 Git 忽略的 `artifacts/msix/private/` 与
+`artifacts/msix/staging/`。构建脚本本身不安装证书、不注册应用、不申请通知权限。

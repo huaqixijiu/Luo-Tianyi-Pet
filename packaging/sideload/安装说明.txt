@@ -1,0 +1,15 @@
+洛天依桌宠 Windows 11 测试安装包
+
+1. 完整解压 ZIP，不能只从压缩包预览窗口运行。
+2. 双击“安装洛天依桌宠.cmd”。
+3. Windows 会弹出一次 UAC；它只用于把本安装包的公开测试证书加入
+   LocalMachine\TrustedPeople，并安装带包身份的 MSIX。
+4. 桌宠启动后进入“设置 → 通知”，由使用者亲自点击“授权访问”。
+
+说明：
+- 桌宠本体始终以普通用户权限运行。
+- QQ / 微信提醒依赖 Windows UserNotificationListener，因此便携 EXE 不支持。
+- 本测试包不包含 PFX 私钥，只包含公开 CER；安装脚本会先校验 MSIX、CER 的
+  SHA-256 和签名证书一致性，校验失败就停止。
+- 面向公众的正式版应改用 Microsoft Store 签名或受信任的生产代码签名证书；
+  届时不需要导入测试证书，也不会出现这次 UAC。

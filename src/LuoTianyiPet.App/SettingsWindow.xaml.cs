@@ -199,7 +199,7 @@ public partial class SettingsWindow : Window
             MessageNotificationAccessStatus.Denied =>
                 "Windows 已拒绝访问；需要在系统隐私设置中手动允许。",
             MessageNotificationAccessStatus.PackageIdentityRequired =>
-                "当前免安装版没有 MSIX 包身份；安装后续 MSIX 测试包后才能授权。",
+                "当前启动的是便携/普通 EXE，没有 Windows 应用包身份。请改用正式 MSIX 安装版；首次安装后再在这里授权。",
             _ => "当前系统暂时无法提供通知访问；其它桌宠功能不受影响。",
         };
         NotificationAccessButton.IsEnabled =

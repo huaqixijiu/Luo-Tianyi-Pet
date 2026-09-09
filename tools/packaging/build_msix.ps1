@@ -1,9 +1,15 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.21',
+    [string]$Version = '0.1.0.22',
     [ValidateSet('win-x64')]
-    [string]$Runtime = 'win-x64'
+    [string]$Runtime = 'win-x64',
+    [ValidateSet('Development', 'Production')]
+    [string]$SigningMode = 'Development',
+    [string]$ProductionCertificatePath,
+    [string]$ProductionCertificatePasswordPath,
+    [string]$ProductionIdentityName = 'LuoTianyiPet',
+    [string]$ProductionPublisherDisplayName = '洛天依桌宠'
 )
 
 Set-StrictMode -Version Latest
@@ -90,12 +96,59 @@ Copy-Item -Path (Join-Path $packageAssets '*') -Destination $layoutPackageAssets
 
 $manifestTemplate = Join-Path $repoRoot 'packaging\Package.appxmanifest.template'
 $manifestPath = Join-Path $stagingRoot 'Package.appxmanifest'
-$manifestText = Get-Content -LiteralPath $manifestTemplate -Raw
+$manifestText = [System.IO.File]::ReadAllText(
+    $manifestTemplate,
+    [Text.UTF8Encoding]::new($false))
 [xml]$manifestDocument = $manifestText
 $manifestNamespace = [System.Xml.XmlNamespaceManager]::new($manifestDocument.NameTable)
 $manifestNamespace.AddNamespace('f', 'http://schemas.microsoft.com/appx/manifest/foundation/windows10')
 $manifestIdentity = $manifestDocument.SelectSingleNode('/f:Package/f:Identity', $manifestNamespace)
 $manifestIdentity.SetAttribute('Version', $Version)
+$manifestPublisherDisplayName = $manifestDocument.SelectSingleNode(
+    '/f:Package/f:Properties/f:PublisherDisplayName',
+    $manifestNamespace)
+
+$expectedPublisher = 'CN=LuoTianyiPet Development'
+$certificatePassword = $null
+$certificatePath = $null
+$publicCertificatePath = $null
+if ($SigningMode -eq 'Production') {
+    if ([string]::IsNullOrWhiteSpace($ProductionCertificatePath) -or
+        !(Test-Path -LiteralPath $ProductionCertificatePath -PathType Leaf)) {
+        throw 'Production signing requires -ProductionCertificatePath pointing to a trusted code-signing PFX.'
+    }
+    if ([string]::IsNullOrWhiteSpace($ProductionCertificatePasswordPath) -or
+        !(Test-Path -LiteralPath $ProductionCertificatePasswordPath -PathType Leaf)) {
+        throw 'Production signing requires -ProductionCertificatePasswordPath. The password is read from the file and is never copied to release output.'
+    }
+    if ([string]::IsNullOrWhiteSpace($ProductionIdentityName)) {
+        throw 'Production identity name cannot be empty.'
+    }
+
+    $certificatePath = [System.IO.Path]::GetFullPath($ProductionCertificatePath)
+    $certificatePassword = [System.IO.File]::ReadAllText(
+        [System.IO.Path]::GetFullPath($ProductionCertificatePasswordPath)).Trim()
+    if ([string]::IsNullOrWhiteSpace($certificatePassword)) {
+        throw 'Production certificate password file is empty.'
+    }
+
+    $productionCertificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
+        $certificatePath,
+        $certificatePassword)
+    try {
+        if (!$productionCertificate.HasPrivateKey) {
+            throw 'Production signing certificate does not contain a private key.'
+        }
+        $expectedPublisher = $productionCertificate.Subject
+    }
+    finally {
+        $productionCertificate.Dispose()
+    }
+
+    $manifestIdentity.SetAttribute('Name', $ProductionIdentityName)
+    $manifestIdentity.SetAttribute('Publisher', $expectedPublisher)
+    $manifestPublisherDisplayName.InnerText = $ProductionPublisherDisplayName
+}
 $manifestWriterSettings = [System.Xml.XmlWriterSettings]::new()
 $manifestWriterSettings.Encoding = [Text.UTF8Encoding]::new($false)
 $manifestWriterSettings.Indent = $true
@@ -107,62 +160,63 @@ finally {
     $manifestWriter.Dispose()
 }
 
-$passwordPath = Join-Path $privateRoot 'LuoTianyiPet.Dev.password.txt'
-$certificatePath = Join-Path $privateRoot 'LuoTianyiPet.Dev.pfx'
-$publicCertificatePath = Join-Path $privateRoot 'LuoTianyiPet.Dev.cer'
-$expectedPublisher = 'CN=LuoTianyiPet Development'
-if (!(Test-Path -LiteralPath $passwordPath)) {
-    $randomBytes = [byte[]]::new(32)
-    [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
-    [System.IO.File]::WriteAllText(
-        $passwordPath,
-        [Convert]::ToBase64String($randomBytes),
-        [Text.UTF8Encoding]::new($false))
-}
-$certificatePassword = [System.IO.File]::ReadAllText($passwordPath).Trim()
+if ($SigningMode -eq 'Development') {
+    $passwordPath = Join-Path $privateRoot 'LuoTianyiPet.Dev.password.txt'
+    $certificatePath = Join-Path $privateRoot 'LuoTianyiPet.Dev.pfx'
+    $publicCertificatePath = Join-Path $privateRoot 'LuoTianyiPet.Dev.cer'
+    if (!(Test-Path -LiteralPath $passwordPath)) {
+        $randomBytes = [byte[]]::new(32)
+        [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
+        [System.IO.File]::WriteAllText(
+            $passwordPath,
+            [Convert]::ToBase64String($randomBytes),
+            [Text.UTF8Encoding]::new($false))
+    }
+    $certificatePassword = [System.IO.File]::ReadAllText($passwordPath).Trim()
 
-$certificateNeedsGeneration = !(Test-Path -LiteralPath $certificatePath)
-if (!$certificateNeedsGeneration) {
-    try {
-        $existingCertificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
-            $certificatePath,
-            $certificatePassword)
+    $certificateNeedsGeneration = !(Test-Path -LiteralPath $certificatePath)
+    if (!$certificateNeedsGeneration) {
         try {
-            $certificateNeedsGeneration =
-                $existingCertificate.Subject -cne $expectedPublisher
+            $existingCertificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
+                $certificatePath,
+                $certificatePassword)
+            try {
+                $certificateNeedsGeneration =
+                    $existingCertificate.Subject -cne $expectedPublisher
+            }
+            finally {
+                $existingCertificate.Dispose()
+            }
         }
-        finally {
-            $existingCertificate.Dispose()
+        catch {
+            $certificateNeedsGeneration = $true
         }
     }
-    catch {
-        $certificateNeedsGeneration = $true
-    }
-}
 
-if ($certificateNeedsGeneration) {
-    foreach ($staleCertificate in @($certificatePath, $publicCertificatePath)) {
-        Assert-ArtifactPath $staleCertificate
-        if (Test-Path -LiteralPath $staleCertificate) {
-            Remove-Item -LiteralPath $staleCertificate -Force
+    if ($certificateNeedsGeneration) {
+        foreach ($staleCertificate in @($certificatePath, $publicCertificatePath)) {
+            Assert-ArtifactPath $staleCertificate
+            if (Test-Path -LiteralPath $staleCertificate) {
+                Remove-Item -LiteralPath $staleCertificate -Force
+            }
         }
     }
-}
 
-if ($certificateNeedsGeneration) {
-    & $winapp cert generate `
-        --manifest $manifestPath `
-        --publisher $expectedPublisher `
-        --output $certificatePath `
-        --password $certificatePassword `
-        --valid-days 365 `
-        --export-cer `
-        --if-exists Error `
-        --quiet
-    if ($LASTEXITCODE -ne 0) { throw 'Development certificate generation failed.' }
-}
-if (!(Test-Path -LiteralPath $publicCertificatePath)) {
-    throw "The public development certificate was not generated: $publicCertificatePath"
+    if ($certificateNeedsGeneration) {
+        & $winapp cert generate `
+            --manifest $manifestPath `
+            --publisher $expectedPublisher `
+            --output $certificatePath `
+            --password $certificatePassword `
+            --valid-days 365 `
+            --export-cer `
+            --if-exists Error `
+            --quiet
+        if ($LASTEXITCODE -ne 0) { throw 'Development certificate generation failed.' }
+    }
+    if (!(Test-Path -LiteralPath $publicCertificatePath)) {
+        throw "The public development certificate was not generated: $publicCertificatePath"
+    }
 }
 
 $packageName = "LuoTianyiPet_${Version}_x64.msix"
@@ -182,8 +236,11 @@ if (Test-Path -LiteralPath $packagePath) {
     --quiet
 if ($LASTEXITCODE -ne 0) { throw 'MSIX packaging or signing failed.' }
 
-$releaseCertificatePath = Join-Path $releaseRoot 'LuoTianyiPet.Dev.cer'
-Copy-Item -LiteralPath $publicCertificatePath -Destination $releaseCertificatePath -Force
+$releaseCertificatePath = $null
+if ($SigningMode -eq 'Development') {
+    $releaseCertificatePath = Join-Path $releaseRoot 'LuoTianyiPet.Dev.cer'
+    Copy-Item -LiteralPath $publicCertificatePath -Destination $releaseCertificatePath -Force
+}
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [System.IO.Compression.ZipFile]::OpenRead($packagePath)
@@ -235,17 +292,21 @@ if ($signature.Status -in @('NotSigned', 'HashMismatch') -or $null -eq $signatur
 }
 
 $packageHash = (Get-FileHash -LiteralPath $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
-$certificateHash = (Get-FileHash -LiteralPath $releaseCertificatePath -Algorithm SHA256).Hash.ToLowerInvariant()
 $hashFile = Join-Path $releaseRoot 'SHA256SUMS.txt'
-[System.IO.File]::WriteAllLines(
-    $hashFile,
-    @(
-        "$packageHash  $packageName",
-        "$certificateHash  LuoTianyiPet.Dev.cer"
-    ),
-    [Text.UTF8Encoding]::new($false))
+$hashLines = @("$packageHash  $packageName")
+if ($SigningMode -eq 'Development') {
+    $certificateHash = (Get-FileHash -LiteralPath $releaseCertificatePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $hashLines += "$certificateHash  LuoTianyiPet.Dev.cer"
+}
+[System.IO.File]::WriteAllLines($hashFile, $hashLines, [Text.UTF8Encoding]::new($false))
 
 Write-Host "Built signed MSIX: $packagePath"
-Write-Host "Public test certificate: $releaseCertificatePath"
-Write-Host "Signature status (expected untrusted before user installation): $($signature.Status)"
+if ($SigningMode -eq 'Development') {
+    Write-Host "Public test certificate: $releaseCertificatePath"
+    Write-Host "Signature status (expected untrusted before user installation): $($signature.Status)"
+}
+else {
+    Write-Host "Production signer: $expectedPublisher"
+    Write-Host "Signature status: $($signature.Status)"
+}
 Write-Host "No certificate or application package was installed."
