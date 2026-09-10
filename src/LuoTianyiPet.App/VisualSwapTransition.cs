@@ -26,7 +26,7 @@ internal sealed class VisualSwapTransition
 
     public async Task<bool> PlayAsync(Action swapAtCoveredMidpoint)
     {
-        ArgumentNullException.ThrowIfNull(swapAtCoveredMidpoint);
+        Guard.NotNull(swapAtCoveredMidpoint, nameof(swapAtCoveredMidpoint));
         _visual.Dispatcher.VerifyAccess();
         int version = ++_version;
         ResetVisuals();
@@ -83,7 +83,7 @@ internal sealed class VisualSwapTransition
 
     public async Task<bool> PlayFadeAsync(Action swapAtInvisibleMidpoint)
     {
-        ArgumentNullException.ThrowIfNull(swapAtInvisibleMidpoint);
+        Guard.NotNull(swapAtInvisibleMidpoint, nameof(swapAtInvisibleMidpoint));
         _visual.Dispatcher.VerifyAccess();
         int version = ++_version;
         ResetVisuals();

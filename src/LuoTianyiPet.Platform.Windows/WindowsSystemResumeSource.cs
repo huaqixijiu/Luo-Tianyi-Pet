@@ -14,7 +14,10 @@ public sealed class WindowsSystemResumeSource : ISystemResumeSource
 
     public void Start()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(WindowsSystemResumeSource));
+        }
         if (_started)
         {
             return;

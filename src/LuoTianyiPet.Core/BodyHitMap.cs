@@ -24,8 +24,8 @@ public readonly record struct NormalizedRectangle(double X, double Y, double Wid
 
     public void Validate()
     {
-        if (!double.IsFinite(X) || !double.IsFinite(Y) ||
-            !double.IsFinite(Width) || !double.IsFinite(Height) ||
+        if (!Numeric.IsFinite(X) || !Numeric.IsFinite(Y) ||
+            !Numeric.IsFinite(Width) || !Numeric.IsFinite(Height) ||
             X < 0 || Y < 0 || Width <= 0 || Height <= 0 ||
             X + Width > 1 || Y + Height > 1)
         {
@@ -38,7 +38,7 @@ public sealed class NormalizedPolygon
 {
     public NormalizedPolygon(IReadOnlyList<PointerPoint> vertices)
     {
-        ArgumentNullException.ThrowIfNull(vertices);
+        Guard.NotNull(vertices, nameof(vertices));
         if (vertices.Count < 3)
         {
             throw new ArgumentException("A polygon requires at least three vertices.", nameof(vertices));
@@ -46,7 +46,7 @@ public sealed class NormalizedPolygon
 
         foreach (PointerPoint vertex in vertices)
         {
-            if (!double.IsFinite(vertex.X) || !double.IsFinite(vertex.Y) ||
+            if (!Numeric.IsFinite(vertex.X) || !Numeric.IsFinite(vertex.Y) ||
                 vertex.X < 0 || vertex.X > 1 || vertex.Y < 0 || vertex.Y > 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(vertices));
@@ -134,7 +134,7 @@ public sealed class BodyHitRegion
 
     private BodyHitRegion(BodyRegionId id, IReadOnlyList<NormalizedPolygon> polygons)
     {
-        ArgumentNullException.ThrowIfNull(polygons);
+        Guard.NotNull(polygons, nameof(polygons));
         if (polygons.Count == 0)
         {
             throw new ArgumentException("A body region requires at least one polygon.", nameof(polygons));
@@ -222,7 +222,7 @@ public sealed class BodyHitMap
 
     public BodyHitMap(IReadOnlyList<BodyHitRegion> regions)
     {
-        ArgumentNullException.ThrowIfNull(regions);
+        Guard.NotNull(regions, nameof(regions));
         if (regions.Count == 0)
         {
             throw new ArgumentException("At least one body region is required.", nameof(regions));
@@ -244,7 +244,7 @@ public sealed class BodyHitMap
 
     public BodyRegionId? HitTest(PointerPoint normalizedPoint)
     {
-        if (!double.IsFinite(normalizedPoint.X) || !double.IsFinite(normalizedPoint.Y) ||
+        if (!Numeric.IsFinite(normalizedPoint.X) || !Numeric.IsFinite(normalizedPoint.Y) ||
             normalizedPoint.X < 0 || normalizedPoint.X > 1 ||
             normalizedPoint.Y < 0 || normalizedPoint.Y > 1)
         {

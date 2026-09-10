@@ -5,6 +5,16 @@ namespace LuoTianyiPet.Platform.Windows.Tests;
 public sealed class WindowsMessageNotificationSourceTests
 {
     [Theory]
+    [InlineData(unchecked((int)0x800706BA))]
+    [InlineData(unchecked((int)0x800706BE))]
+    [InlineData(unchecked((int)0x80010108))]
+    public void RecoverableRpcFailuresAreRecognizedEvenWhenProjectionUsesBaseException(int hresult)
+    {
+        Assert.True(WindowsMessageNotificationSource.IsRecoverablePlatformException(
+            new HResultException(hresult)));
+    }
+
+    [Theory]
     [InlineData(2, "郁离", "郁离")]
     [InlineData(3, " 天依应援群 ", "天依应援群")]
     [InlineData(2, "郁\r\n离", "郁离")]
@@ -55,5 +65,13 @@ public sealed class WindowsMessageNotificationSourceTests
 
         source.Start();
         source.Stop();
+    }
+
+    private sealed class HResultException : Exception
+    {
+        public HResultException(int hresult)
+        {
+            HResult = hresult;
+        }
     }
 }

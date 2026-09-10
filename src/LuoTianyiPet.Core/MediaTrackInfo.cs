@@ -45,10 +45,10 @@ public static class MediaTrackText
         }
 
         string normalized = string.Join(
-            ' ',
-            value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+            " ",
+            value!.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return normalized.Length <= maximumLength
             ? normalized
-            : normalized[..maximumLength];
+            : normalized.Substring(0, maximumLength);
     }
 }

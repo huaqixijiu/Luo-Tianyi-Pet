@@ -29,7 +29,9 @@ public sealed class JsonSettingsStore : ISettingsStore
 
         try
         {
-            string json = await File.ReadAllTextAsync(_paths.SettingsFile, cancellationToken).ConfigureAwait(false);
+            string json = await Task.Run(
+                () => File.ReadAllText(_paths.SettingsFile),
+                cancellationToken).ConfigureAwait(false);
             AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions);
             return settings?.SchemaVersion switch
             {
@@ -100,7 +102,7 @@ public sealed class JsonSettingsStore : ISettingsStore
 
     public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(settings);
+        Guard.NotNull(settings, nameof(settings));
 
         Directory.CreateDirectory(_paths.RootDirectory);
         string temporaryFile = Path.Combine(
@@ -108,8 +110,10 @@ public sealed class JsonSettingsStore : ISettingsStore
             $"settings-{Guid.NewGuid():N}.tmp");
 
         string json = JsonSerializer.Serialize(settings, SerializerOptions);
-        await File.WriteAllTextAsync(temporaryFile, json, cancellationToken).ConfigureAwait(false);
-        File.Move(temporaryFile, _paths.SettingsFile, overwrite: true);
+        await Task.Run(
+            () => File.WriteAllText(temporaryFile, json),
+            cancellationToken).ConfigureAwait(false);
+        MoveReplacing(temporaryFile, _paths.SettingsFile);
     }
 
     private void TryPreserveCorruptSettings()
@@ -124,11 +128,22 @@ public sealed class JsonSettingsStore : ISettingsStore
             string backupFile = Path.Combine(
                 _paths.RootDirectory,
                 $"settings.corrupt-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.json");
-            File.Move(_paths.SettingsFile, backupFile, overwrite: false);
+            File.Move(_paths.SettingsFile, backupFile);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // Settings failures must never prevent the pet from starting with safe defaults.
         }
+    }
+
+    private static void MoveReplacing(string source, string destination)
+    {
+        if (File.Exists(destination))
+        {
+            File.Replace(source, destination, null);
+            return;
+        }
+
+        File.Move(source, destination);
     }
 }

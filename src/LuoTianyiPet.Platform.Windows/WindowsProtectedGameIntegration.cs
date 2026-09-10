@@ -20,7 +20,7 @@ public sealed class PollingProtectedGameProcessMonitor : IProtectedGameProcessMo
         IEnumerable<string> processNames,
         TimeSpan? pollInterval = null)
     {
-        ArgumentNullException.ThrowIfNull(processNames);
+        Guard.NotNull(processNames, nameof(processNames));
         _processNames = processNames
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => Path.GetFileNameWithoutExtension(name.Trim()))
@@ -42,7 +42,10 @@ public sealed class PollingProtectedGameProcessMonitor : IProtectedGameProcessMo
     {
         lock (_sync)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(PollingProtectedGameProcessMonitor));
+            }
             if (_started)
             {
                 return;
@@ -51,9 +54,9 @@ public sealed class PollingProtectedGameProcessMonitor : IProtectedGameProcessMo
             Dictionary<uint, string>? initial = TryEnumerateTargetProcesses();
             if (initial is not null)
             {
-                foreach ((uint processId, string processName) in initial)
+                foreach (KeyValuePair<uint, string> pair in initial)
                 {
-                    _tracker.Seed(processName, processId);
+                    _tracker.Seed(pair.Value, pair.Key);
                 }
 
                 _knownProcesses = initial;
@@ -103,8 +106,10 @@ public sealed class PollingProtectedGameProcessMonitor : IProtectedGameProcessMo
                 return;
             }
 
-            foreach ((uint processId, string processName) in current)
+            foreach (KeyValuePair<uint, string> pair in current)
             {
+                uint processId = pair.Key;
+                string processName = pair.Value;
                 if (!_knownProcesses.ContainsKey(processId) &&
                     _tracker.ObserveStarted(processName, processId) ==
                         ProtectedGamePresenceTransition.BecameRunning)
@@ -113,8 +118,10 @@ public sealed class PollingProtectedGameProcessMonitor : IProtectedGameProcessMo
                 }
             }
 
-            foreach ((uint processId, string processName) in _knownProcesses)
+            foreach (KeyValuePair<uint, string> pair in _knownProcesses)
             {
+                uint processId = pair.Key;
+                string processName = pair.Value;
                 if (!current.ContainsKey(processId) &&
                     _tracker.ObserveStopped(processName, processId) ==
                         ProtectedGamePresenceTransition.BecameStopped)
@@ -281,8 +288,8 @@ internal struct NativeMonitorInfo
 
 internal static class DesktopNativeMethods
 {
-    public static readonly nint Topmost = new(-1);
-    public static readonly nint NotTopmost = new(-2);
+    public static readonly nint Topmost = new IntPtr(-1);
+    public static readonly nint NotTopmost = new IntPtr(-2);
     public const uint MonitorDefaultToNearest = 2;
     public const uint NoSize = 0x0001;
     public const uint NoMove = 0x0002;

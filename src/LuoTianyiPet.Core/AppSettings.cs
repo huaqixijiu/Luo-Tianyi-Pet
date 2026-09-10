@@ -122,7 +122,7 @@ public sealed record AppearancePreferences
         {
             FullBodyStyle = fullBodyStyle,
             BunEatingStyle = AppearanceOptionIds.ResolveDefaultBunEatingStyle(fullBodyStyle),
-            DisplayScalePercent = Math.Clamp(
+            DisplayScalePercent = Numeric.Clamp(
                 preferences.DisplayScalePercent,
                 MinimumDisplayScalePercent,
                 MaximumDisplayScalePercent),

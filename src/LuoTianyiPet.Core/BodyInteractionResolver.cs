@@ -67,7 +67,7 @@ public sealed class BodyInteractionResolver
 
     public BodyInteractionResolver(Func<int, int>? selectIndex = null)
     {
-        _selectIndex = selectIndex ?? Random.Shared.Next;
+        _selectIndex = selectIndex ?? SharedRandom.Next;
     }
 
     public BodyInteractionDecision Resolve(

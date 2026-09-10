@@ -34,7 +34,7 @@ public sealed class AnimationCatalogTests
     {
         using TemporaryCatalog temporary = TemporaryCatalog.Create();
         string json = File.ReadAllText(temporary.CatalogPath)
-            .Replace("animations/idle.png", "../outside.png", StringComparison.Ordinal);
+            .Replace("animations/idle.png", "../outside.png");
         File.WriteAllText(temporary.CatalogPath, json);
 
         InvalidDataException exception = Assert.Throws<InvalidDataException>(
@@ -70,7 +70,10 @@ public sealed class AnimationCatalogTests
             Directory.CreateDirectory(Path.GetDirectoryName(atlasPath)!);
             Directory.CreateDirectory(Path.GetDirectoryName(catalogPath)!);
             File.WriteAllBytes(atlasPath, [1, 2, 3, 4]);
-            string hash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(atlasPath)));
+            using SHA256 sha256 = SHA256.Create();
+            string hash = BitConverter.ToString(sha256.ComputeHash(File.ReadAllBytes(atlasPath)))
+                .Replace("-", string.Empty)
+                .ToLowerInvariant();
             var document = new
             {
                 schemaVersion = 1,

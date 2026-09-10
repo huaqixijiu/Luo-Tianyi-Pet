@@ -19,7 +19,7 @@ public sealed class LocalAppPaths
 
     public static LocalAppPaths CreatePortable(string applicationDirectory)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(applicationDirectory);
+        Guard.NotNullOrWhiteSpace(applicationDirectory, nameof(applicationDirectory));
         string rootDirectory = Path.Combine(
             Path.GetFullPath(applicationDirectory),
             PortableDataDirectoryName);

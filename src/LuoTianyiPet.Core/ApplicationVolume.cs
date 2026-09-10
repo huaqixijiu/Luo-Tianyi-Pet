@@ -13,12 +13,12 @@ public readonly record struct ApplicationVolumeSnapshot(
     public bool IsAvailable => ProbeSucceeded && TargetSessionFound;
 
     public int Percentage => (int)Math.Round(
-        Math.Clamp(Level, 0, 1) * 100,
+        Numeric.Clamp(Level, 0, 1) * 100,
         MidpointRounding.AwayFromZero);
 
     public static ApplicationVolumeSnapshot Found(float level, int sessionCount = 1)
     {
-        if (!float.IsFinite(level))
+        if (!Numeric.IsFinite(level))
         {
             throw new ArgumentOutOfRangeException(nameof(level));
         }
@@ -27,7 +27,7 @@ public readonly record struct ApplicationVolumeSnapshot(
             throw new ArgumentOutOfRangeException(nameof(sessionCount));
         }
 
-        return new(true, true, Math.Clamp(level, 0, 1), sessionCount);
+        return new(true, true, Numeric.Clamp(level, 0, 1), sessionCount);
     }
 }
 

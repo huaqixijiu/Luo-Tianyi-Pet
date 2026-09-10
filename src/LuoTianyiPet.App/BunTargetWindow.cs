@@ -132,7 +132,7 @@ internal sealed class BunTargetWindow : Window
         while (DateTimeOffset.Now - started < duration)
         {
             double t = (DateTimeOffset.Now - started).TotalMilliseconds / duration.TotalMilliseconds;
-            double eased = 1 - Math.Pow(1 - Math.Clamp(t, 0, 1), 3);
+            double eased = 1 - Math.Pow(1 - Numeric.Clamp(t, 0, 1), 3);
             double arc = Math.Sin(eased * Math.PI) * 22;
             Point centre = new(
                 start.X + (targetScreen.X - start.X) * eased,

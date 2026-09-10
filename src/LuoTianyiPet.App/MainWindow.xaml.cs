@@ -313,7 +313,7 @@ public partial class MainWindow : Window
         _musicTargetProcessName = string.IsNullOrWhiteSpace(settings.Media.TargetProcessName)
             ? "cloudmusic.exe"
             : settings.Media.TargetProcessName;
-        float audiblePeakThreshold = float.IsFinite(settings.Media.AudiblePeakThreshold) &&
+        float audiblePeakThreshold = Numeric.IsFinite(settings.Media.AudiblePeakThreshold) &&
             settings.Media.AudiblePeakThreshold is > 0 and <= 1
                 ? settings.Media.AudiblePeakThreshold
                 : MediaPreferences.DefaultAudiblePeakThreshold;
@@ -1880,8 +1880,8 @@ public partial class MainWindow : Window
             return true;
         }
 
-        int x = Math.Clamp((int)(normalizedPoint.X * source.PixelWidth), 0, source.PixelWidth - 1);
-        int y = Math.Clamp((int)(normalizedPoint.Y * source.PixelHeight), 0, source.PixelHeight - 1);
+        int x = Numeric.Clamp((int)(normalizedPoint.X * source.PixelWidth), 0, source.PixelWidth - 1);
+        int y = Numeric.Clamp((int)(normalizedPoint.Y * source.PixelHeight), 0, source.PixelHeight - 1);
         byte[] pixel = new byte[4];
         source.CopyPixels(new Int32Rect(x, y, 1, 1), pixel, 4, 0);
         return pixel[3] >= 24;
@@ -3395,10 +3395,10 @@ public partial class MainWindow : Window
             return false;
         }
 
-        int left = Math.Clamp(manifest.AlphaBounds[0], 0, manifest.FrameWidth - 1);
-        int top = Math.Clamp(manifest.AlphaBounds[1], 0, manifest.FrameHeight - 1);
-        int right = Math.Clamp(manifest.AlphaBounds[2], left + 1, manifest.FrameWidth);
-        int bottom = Math.Clamp(manifest.AlphaBounds[3], top + 1, manifest.FrameHeight);
+        int left = Numeric.Clamp(manifest.AlphaBounds[0], 0, manifest.FrameWidth - 1);
+        int top = Numeric.Clamp(manifest.AlphaBounds[1], 0, manifest.FrameHeight - 1);
+        int right = Numeric.Clamp(manifest.AlphaBounds[2], left + 1, manifest.FrameWidth);
+        int bottom = Numeric.Clamp(manifest.AlphaBounds[3], top + 1, manifest.FrameHeight);
         bounds = new Int32Rect(left, top, right - left, bottom - top);
         return true;
     }
@@ -3617,7 +3617,7 @@ public partial class MainWindow : Window
 
     private void SetDisplayScalePercent(int percent, bool save)
     {
-        int normalized = Math.Clamp(
+        int normalized = Numeric.Clamp(
             percent,
             AppearancePreferences.MinimumDisplayScalePercent,
             AppearancePreferences.MaximumDisplayScalePercent);
@@ -4395,7 +4395,7 @@ public partial class MainWindow : Window
 
     private void QueueBunTreat(Point screenPosition)
     {
-        int maximum = Math.Clamp(_settings.FileTreats.MaximumQueuedBuns, 1, 12);
+        int maximum = Numeric.Clamp(_settings.FileTreats.MaximumQueuedBuns, 1, 12);
         if (_bunTargets.Count >= maximum)
         {
             ShowFeedbackBubble("包子太多啦，先吃完这些吧");
@@ -4584,7 +4584,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        TimeSpan elapsed = Stopwatch.GetElapsedTime(_bunLastMotionTimestamp, currentTimestamp);
+        TimeSpan elapsed = TimeSpan.FromSeconds(
+            (currentTimestamp - _bunLastMotionTimestamp) / (double)Stopwatch.Frequency);
         _bunLastMotionTimestamp = currentTimestamp;
         _bunMotionStageElapsed += elapsed;
         TimeSpan renderedElapsed = elapsed <= BunMaximumRenderedStep
@@ -4840,8 +4841,8 @@ public partial class MainWindow : Window
         }
 
         AnimationAssetManifest manifest = _animationCatalog.GetRequired(animationId);
-        int safeStart = Math.Clamp(startFrameIndex, 0, manifest.FrameDurationsMilliseconds.Count - 1);
-        int safeEnd = Math.Clamp(endFrameIndex, safeStart, manifest.FrameDurationsMilliseconds.Count - 1);
+        int safeStart = Numeric.Clamp(startFrameIndex, 0, manifest.FrameDurationsMilliseconds.Count - 1);
+        int safeEnd = Numeric.Clamp(endFrameIndex, safeStart, manifest.FrameDurationsMilliseconds.Count - 1);
         long durationMilliseconds = 0;
         for (int index = safeStart; index <= safeEnd; index++)
         {
@@ -5614,7 +5615,7 @@ public partial class MainWindow : Window
                 mirroredPrefix,
                 StringComparison.OrdinalIgnoreCase);
             string resolvedAnimationId = mirrorHorizontally
-                ? animationId[mirroredPrefix.Length..]
+                ? animationId.Substring(mirroredPrefix.Length)
                 : animationId;
             await PlayBodyReactionAsync(
                 resolvedAnimationId,
@@ -5868,15 +5869,14 @@ public partial class MainWindow : Window
 
     private static string[] ParseGenshinProcessNames(string? value)
     {
-        string[] names = (value ?? string.Empty)
-            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        string[] names = TextParsing.SplitAndTrim(value ?? string.Empty, ';');
         return names.Length > 0
             ? names
             : ["YuanShen.exe", "GenshinImpact.exe"];
     }
 
     private static double Clamp(double value, double minimum, double maximum) =>
-        Math.Clamp(value, minimum, Math.Max(minimum, maximum));
+        Numeric.Clamp(value, minimum, Math.Max(minimum, maximum));
 
     private enum AccessoryLayout
     {

@@ -48,11 +48,12 @@ public sealed class ProtectedGamePresenceTracker
 
     public ProtectedGamePresenceTracker(IEnumerable<string> targetProcessNames)
     {
-        ArgumentNullException.ThrowIfNull(targetProcessNames);
-        _targetProcessNames = targetProcessNames
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(NormalizeProcessName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Guard.NotNull(targetProcessNames, nameof(targetProcessNames));
+        _targetProcessNames = new HashSet<string>(
+            targetProcessNames
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(NormalizeProcessName),
+            StringComparer.OrdinalIgnoreCase);
         if (_targetProcessNames.Count == 0)
         {
             throw new ArgumentException("At least one protected game process name is required.", nameof(targetProcessNames));
@@ -72,7 +73,7 @@ public sealed class ProtectedGamePresenceTracker
 
     public bool IsTargetProcess(string? processName) =>
         !string.IsNullOrWhiteSpace(processName) &&
-        _targetProcessNames.Contains(NormalizeProcessName(processName));
+        _targetProcessNames.Contains(NormalizeProcessName(processName!));
 
     public void Seed(string processName, uint processId)
     {
@@ -150,7 +151,7 @@ public sealed class GenshinBackgroundCameoScheduler
     public GenshinBackgroundCameoScheduler(Func<int, int, int>? nextInclusiveMinute = null)
     {
         _nextInclusiveMinute = nextInclusiveMinute ??
-            ((minimum, maximum) => Random.Shared.Next(minimum, maximum + 1));
+            ((minimum, maximum) => SharedRandom.Next(minimum, maximum + 1));
     }
 
     public GenshinCameoScheduleDecision Update(
@@ -254,7 +255,7 @@ public sealed class GenshinBackgroundCameoScheduler
 
 public sealed class RandomPetPositionSelector(Func<double>? nextUnitValue = null)
 {
-    private readonly Func<double> _nextUnitValue = nextUnitValue ?? Random.Shared.NextDouble;
+    private readonly Func<double> _nextUnitValue = nextUnitValue ?? SharedRandom.NextDouble;
 
     public PointerPoint Select(
         DesktopRectangle workArea,
@@ -285,7 +286,7 @@ public sealed class RandomPetPositionSelector(Func<double>? nextUnitValue = null
         }
 
         double unit = _nextUnitValue();
-        if (!double.IsFinite(unit) || unit is < 0 or > 1)
+        if (!Numeric.IsFinite(unit) || unit is < 0 or > 1)
         {
             throw new InvalidOperationException("Random position source must return a value from 0 to 1.");
         }

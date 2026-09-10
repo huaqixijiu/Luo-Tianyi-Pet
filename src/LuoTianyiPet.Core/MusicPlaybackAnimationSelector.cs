@@ -46,7 +46,7 @@ public sealed class MusicPlaybackAnimationSelector
 
     public MusicPlaybackAnimationSelector(Func<int, int>? selectIndex = null)
     {
-        _selectIndex = selectIndex ?? Random.Shared.Next;
+        _selectIndex = selectIndex ?? SharedRandom.Next;
     }
 
     public string Select(
@@ -94,8 +94,7 @@ public static class MusicArtistMatcher
         }
 
         char[] separators = ['/', '\\', '、', ',', '，', '&', '+', '＋', ';', '；'];
-        return artist
-            .Split(separators, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        return TextParsing.SplitAndTrim(artist!, separators)
             .Select(token => new string(
                 token
                     .Where(character =>

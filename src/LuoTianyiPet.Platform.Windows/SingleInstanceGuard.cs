@@ -15,7 +15,7 @@ public sealed class SingleInstanceGuard : IDisposable
 
     public static SingleInstanceGuard Acquire(string applicationId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(applicationId);
+        Guard.NotNullOrWhiteSpace(applicationId, nameof(applicationId));
         Mutex mutex = new(initiallyOwned: true, $"Local\\{applicationId}", out bool createdNew);
         return new SingleInstanceGuard(mutex, createdNew);
     }

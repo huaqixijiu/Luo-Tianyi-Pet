@@ -35,7 +35,9 @@ public sealed class AnimationCatalog
     public static AnimationCatalog Load(string assetsRoot, string catalogPath, bool verifyHashes = true)
     {
         string normalizedAssetsRoot = Path.GetFullPath(assetsRoot);
-        string assetsRootPrefix = Path.TrimEndingDirectorySeparator(normalizedAssetsRoot) + Path.DirectorySeparatorChar;
+        string assetsRootPrefix = normalizedAssetsRoot.TrimEnd(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
         string json = File.ReadAllText(catalogPath);
         AnimationCatalogDocument document = JsonSerializer.Deserialize<AnimationCatalogDocument>(json, SerializerOptions)
             ?? throw new InvalidDataException("Animation catalog is empty.");
@@ -50,11 +52,13 @@ public sealed class AnimationCatalog
         foreach (AnimationAssetManifest asset in document.Animations)
         {
             errors.AddRange(asset.Validate());
-            if (!assets.TryAdd(asset.Id, asset))
+            if (assets.ContainsKey(asset.Id))
             {
                 errors.Add($"Animation id '{asset.Id}' is duplicated.");
                 continue;
             }
+
+            assets.Add(asset.Id, asset);
 
             string atlasPath = Path.GetFullPath(Path.Combine(
                 normalizedAssetsRoot,
@@ -84,7 +88,10 @@ public sealed class AnimationCatalog
     private static bool HashMatches(string path, string expectedHash)
     {
         using FileStream stream = File.OpenRead(path);
-        string actualHash = Convert.ToHexStringLower(SHA256.HashData(stream));
+        using SHA256 sha256 = SHA256.Create();
+        string actualHash = BitConverter.ToString(sha256.ComputeHash(stream))
+            .Replace("-", string.Empty)
+            .ToLowerInvariant();
         return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
     }
 

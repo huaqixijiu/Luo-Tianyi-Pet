@@ -14,7 +14,7 @@ public sealed class WindowsRecycleBinService : IRecycleBinService
         nint ownerWindowHandle,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(paths);
+        Guard.NotNull(paths, nameof(paths));
         RecycleBinOperationResult? rejected = Validate(paths);
         if (rejected is not null)
         {
@@ -71,7 +71,7 @@ public sealed class WindowsRecycleBinService : IRecycleBinService
         HashSet<string> uniquePaths = new(StringComparer.OrdinalIgnoreCase);
         foreach (string path in paths)
         {
-            if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path))
+            if (string.IsNullOrWhiteSpace(path) || !PlatformCompatibility.IsPathFullyQualified(path))
             {
                 return Rejected(paths.Count, "只接受具有完整路径的本地文件或文件夹。");
             }
@@ -79,7 +79,7 @@ public sealed class WindowsRecycleBinService : IRecycleBinService
             string normalizedPath;
             try
             {
-                normalizedPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+                normalizedPath = PlatformCompatibility.TrimEndingDirectorySeparator(Path.GetFullPath(path));
             }
             catch (Exception exception) when (
                 exception is ArgumentException or NotSupportedException or PathTooLongException)
@@ -127,11 +127,11 @@ public sealed class WindowsRecycleBinService : IRecycleBinService
                 Guid shellItemId = typeof(IShellItemNative).GUID;
                 ThrowIfFailed(SHCreateItemFromParsingName(
                     path,
-                    nint.Zero,
+                    IntPtr.Zero,
                     ref shellItemId,
                     out IShellItemNative shellItem));
                 shellItems.Add(shellItem);
-                ThrowIfFailed(operation.DeleteItem(shellItem, nint.Zero));
+                ThrowIfFailed(operation.DeleteItem(shellItem, IntPtr.Zero));
             }
 
             ThrowIfFailed(operation.PerformOperations());
@@ -182,7 +182,8 @@ public sealed class WindowsRecycleBinService : IRecycleBinService
     {
         string? root = Path.GetPathRoot(path);
         return root is not null &&
-            Path.TrimEndingDirectorySeparator(root).Equals(path, StringComparison.OrdinalIgnoreCase);
+            PlatformCompatibility.TrimEndingDirectorySeparator(root)
+                .Equals(path, StringComparison.OrdinalIgnoreCase);
     }
 
     private static int CountMissing(IEnumerable<string> paths) =>

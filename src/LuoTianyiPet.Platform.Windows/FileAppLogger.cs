@@ -21,7 +21,7 @@ public sealed class FileAppLogger : IAppLogger
 
     public void Error(string eventName, Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        Guard.NotNull(exception, nameof(exception));
         string targetType = exception.TargetSite?.DeclaringType?.FullName ?? "unknown";
         string targetMethod = exception.TargetSite?.Name ?? "unknown";
         string parameter = exception is ArgumentException argumentException &&
@@ -45,9 +45,14 @@ public sealed class FileAppLogger : IAppLogger
                 string logFile = Path.Combine(
                     _paths.LogsDirectory,
                     $"pet-{DateTime.UtcNow:yyyyMMdd}.log");
-                string line = string.Create(
+                string line = string.Format(
                     CultureInfo.InvariantCulture,
-                    $"{DateTimeOffset.UtcNow:O}\t{level}\t{Sanitize(eventName)}\t{message}{Environment.NewLine}");
+                    "{0:O}\t{1}\t{2}\t{3}{4}",
+                    DateTimeOffset.UtcNow,
+                    level,
+                    Sanitize(eventName),
+                    message,
+                    Environment.NewLine);
                 File.AppendAllText(logFile, line, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             }
         }
@@ -60,6 +65,6 @@ public sealed class FileAppLogger : IAppLogger
     private static string Sanitize(string value)
     {
         string singleLine = value.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
-        return singleLine.Length <= 512 ? singleLine : singleLine[..512];
+        return singleLine.Length <= 512 ? singleLine : singleLine.Substring(0, 512);
     }
 }

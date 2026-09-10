@@ -9,6 +9,10 @@ QQ / 微信来源提醒使用 Windows `UserNotificationListener`。微软要求�
 因此便携 ZIP 和直接运行的普通 EXE 可以使用动画、音乐和文件功能，但永远不能开启通知监听。
 这不是 QQ / 微信安装路径差异，也不能通过扫描进程、聊天数据库或窗口内容安全补救。
 
+正式安装包默认使用 Windows 自带的 .NET Framework 4.8 运行 WPF，本体、动画和全部功能仍装进同一个
+MSIX，不拆资源包，也不要求使用者另行下载 .NET。支持范围相应收敛为 Windows 10 22H2（19045）及
+Windows 11。源码仍保留 .NET 10 自包含构建作为兼容回退，但它不再是默认交付方式。
+
 ## 给其他 Windows 11 电脑测试
 
 ```powershell
@@ -58,6 +62,13 @@ MSIX 与 SHA-256，不复制 PFX、密码或开发 CER。若选择 Microsoft Sto
 powershell -ExecutionPolicy Bypass -File tools\packaging\build_msix.ps1
 ```
 
-脚本会创建 .NET 10 x64 自包含布局、生成/复用本机开发证书、打包签名并校验清单能力、关键文件、
+脚本会创建 .NET Framework 4.8 x64 完整安装布局、生成/复用本机开发证书、打包签名并校验清单能力、关键文件、
 签名和 SHA-256。PFX、随机密码和临时发布布局仅位于 Git 忽略的 `artifacts/msix/private/` 与
 `artifacts/msix/staging/`。构建脚本本身不安装证书、不注册应用、不申请通知权限。
+
+需要排查框架兼容问题时，可以显式生成旧的 .NET 10 自包含包：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\packaging\build_msix.ps1 `
+  -Framework Net10SelfContained
+```

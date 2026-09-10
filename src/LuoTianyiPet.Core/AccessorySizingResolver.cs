@@ -16,7 +16,7 @@ public static class AccessorySizingResolver
 
     public static AccessorySizing Resolve(double windowWidth)
     {
-        if (!double.IsFinite(windowWidth) || windowWidth <= HorizontalInset)
+        if (!Numeric.IsFinite(windowWidth) || windowWidth <= HorizontalInset)
         {
             throw new ArgumentOutOfRangeException(nameof(windowWidth));
         }

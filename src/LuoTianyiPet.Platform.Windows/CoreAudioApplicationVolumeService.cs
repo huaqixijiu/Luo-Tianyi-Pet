@@ -19,13 +19,15 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
         string processName,
         SafetyPreferences safetyPreferences)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(processName);
-        ArgumentNullException.ThrowIfNull(safetyPreferences);
+        Guard.NotNullOrWhiteSpace(processName, nameof(processName));
+        Guard.NotNull(safetyPreferences, nameof(safetyPreferences));
         _processName = NormalizeProcessName(processName);
-        _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
-            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(NormalizeProcessName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _protectedProcesses = new HashSet<string>(
+            TextParsing.SplitAndTrim(
+                    safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty,
+                    ';')
+                .Select(NormalizeProcessName),
+            StringComparer.OrdinalIgnoreCase);
     }
 
     public ApplicationVolumeSnapshot Read()
@@ -51,7 +53,7 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
 
     public ApplicationVolumeAdjustmentResult TrySetLevel(float level)
     {
-        if (!float.IsFinite(level))
+        if (!Numeric.IsFinite(level))
         {
             return new(
                 ApplicationVolumeAdjustmentStatus.SystemRejected,
@@ -64,7 +66,7 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
             return new(blocked, ApplicationVolumeSnapshot.Unavailable);
         }
 
-        float target = Math.Clamp(level, 0, 1);
+        float target = Numeric.Clamp(level, 0, 1);
         ApplicationVolumeSnapshot before = Read();
         if (!before.ProbeSucceeded)
         {
@@ -106,14 +108,23 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
     {
         List<float> levels = [];
         using MMDeviceEnumerator deviceEnumerator = new();
+#if NETFRAMEWORK
+        MMDeviceCollection devices = deviceEnumerator.EnumerateAudioEndPoints(
+#else
         using MMDeviceCollection devices = deviceEnumerator.EnumerateAudioEndPoints(
+#endif
             DataFlow.Render,
             DeviceState.Active);
         for (int deviceIndex = 0; deviceIndex < devices.Count; deviceIndex++)
         {
             using MMDevice device = devices[deviceIndex];
+#if NETFRAMEWORK
+            AudioSessionManager sessionManager = device.AudioSessionManager;
+            SessionCollection sessions = sessionManager.Sessions;
+#else
             using AudioSessionManager sessionManager = device.AudioSessionManager;
             using SessionCollection sessions = sessionManager.Sessions;
+#endif
             for (int sessionIndex = 0; sessionIndex < sessions.Count; sessionIndex++)
             {
                 using AudioSessionControl session = sessions[sessionIndex];
@@ -123,7 +134,7 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
                 }
 
                 using SimpleAudioVolume volume = session.SimpleAudioVolume;
-                levels.Add(Math.Clamp(volume.Volume, 0, 1));
+                levels.Add(Numeric.Clamp(volume.Volume, 0, 1));
             }
         }
 
@@ -134,14 +145,23 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
     {
         int adjustedCount = 0;
         using MMDeviceEnumerator deviceEnumerator = new();
+#if NETFRAMEWORK
+        MMDeviceCollection devices = deviceEnumerator.EnumerateAudioEndPoints(
+#else
         using MMDeviceCollection devices = deviceEnumerator.EnumerateAudioEndPoints(
+#endif
             DataFlow.Render,
             DeviceState.Active);
         for (int deviceIndex = 0; deviceIndex < devices.Count; deviceIndex++)
         {
             using MMDevice device = devices[deviceIndex];
+#if NETFRAMEWORK
+            AudioSessionManager sessionManager = device.AudioSessionManager;
+            SessionCollection sessions = sessionManager.Sessions;
+#else
             using AudioSessionManager sessionManager = device.AudioSessionManager;
             using SessionCollection sessions = sessionManager.Sessions;
+#endif
             for (int sessionIndex = 0; sessionIndex < sessions.Count; sessionIndex++)
             {
                 using AudioSessionControl session = sessions[sessionIndex];
@@ -162,7 +182,7 @@ public sealed class CoreAudioApplicationVolumeService : IApplicationVolumeServic
     private ApplicationVolumeAdjustmentStatus? GetSafetyFailure()
     {
         nint window = NativeMethods.GetForegroundWindow();
-        if (window == nint.Zero ||
+        if (window == IntPtr.Zero ||
             NativeMethods.GetWindowThreadProcessId(window, out uint processId) == 0 ||
             processId == 0)
         {

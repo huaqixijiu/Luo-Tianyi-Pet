@@ -77,7 +77,7 @@ public partial class TrayQuickPanel : Window
         _refreshingControls = true;
         TopmostToggle.IsChecked = _isTopmostEnabled();
         StartupToggle.IsChecked = _isStartupEnabled();
-        int scale = Math.Clamp(
+        int scale = Numeric.Clamp(
             _getDisplayScalePercent(),
             AppearancePreferences.MinimumDisplayScalePercent,
             AppearancePreferences.MaximumDisplayScalePercent);
@@ -222,7 +222,7 @@ public partial class TrayQuickPanel : Window
     private void OnScaleValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         int value = (int)Math.Round(e.NewValue / 5d) * 5;
-        value = Math.Clamp(
+        value = Numeric.Clamp(
             value,
             AppearancePreferences.MinimumDisplayScalePercent,
             AppearancePreferences.MaximumDisplayScalePercent);
@@ -254,7 +254,7 @@ public partial class TrayQuickPanel : Window
 
     private void SetScaleAndCommit(int value)
     {
-        value = Math.Clamp(
+        value = Numeric.Clamp(
             value,
             AppearancePreferences.MinimumDisplayScalePercent,
             AppearancePreferences.MaximumDisplayScalePercent);

@@ -73,7 +73,8 @@ public sealed record AnimationAssetManifest
             errors.Add($"Animation '{Id}' display dimensions must be positive.");
         }
 
-        if (!double.IsFinite(AnchorX) || !double.IsFinite(AnchorY) ||
+        if (!LuoTianyiPet.Core.Numeric.IsFinite(AnchorX) ||
+            !LuoTianyiPet.Core.Numeric.IsFinite(AnchorY) ||
             AnchorX is < 0 or > 1 || AnchorY is < 0 or > 1)
         {
             errors.Add($"Animation '{Id}' anchor must be normalized to 0..1.");

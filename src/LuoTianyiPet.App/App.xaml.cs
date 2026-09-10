@@ -115,7 +115,7 @@ public partial class App : Application
                 .FirstOrDefault(argument => argument.StartsWith(
                     "--preview-body-reaction=",
                     StringComparison.OrdinalIgnoreCase))?
-                .Split('=', 2)[1];
+                .Split(new[] { '=' }, 2)[1];
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
             IAudioSessionProbe? audioSessionProbe = settings.Media.EnableCloudMusicDetection &&
                 (!isPreviewOrQaRun || liveCloudMusicControlQa)
@@ -134,7 +134,7 @@ public partial class App : Application
                 mediaInputBackend,
                 settings.Safety);
             IStartupRegistrationService? startupRegistrationService = !isPreviewOrQaRun &&
-                Environment.ProcessPath is string executablePath
+                ApplicationRuntime.ExecutablePath is string executablePath
                     ? new WindowsStartupRegistrationService(
                         executablePath,
                         isPortable,
@@ -147,8 +147,9 @@ public partial class App : Application
             ISystemResumeSource? systemResumeSource = !isPreviewOrQaRun
                 ? new WindowsSystemResumeSource()
                 : null;
-            string[] genshinProcessNames = (settings.Genshin.ProcessNames ?? string.Empty)
-                .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            string[] genshinProcessNames = TextParsing.SplitAndTrim(
+                settings.Genshin.ProcessNames ?? string.Empty,
+                ';');
             IProtectedGameProcessMonitor? protectedGameMonitor =
                 settings.Genshin.EnableIntegration && !isPreviewOrQaRun && genshinProcessNames.Length > 0
                     ? new PollingProtectedGameProcessMonitor(
@@ -231,7 +232,7 @@ public partial class App : Application
             .FirstOrDefault(argument => argument.StartsWith(
                 "--qa-message-notification=",
                 StringComparison.OrdinalIgnoreCase))?
-            .Split('=', 2)[1];
+            .Split(new[] { '=' }, 2)[1];
         return value?.ToLowerInvariant() switch
         {
             "qq" => MessageProvider.Qq,
@@ -246,7 +247,7 @@ public partial class App : Application
             .FirstOrDefault(argument => argument.StartsWith(
                 "--qa-edge-dock=",
                 StringComparison.OrdinalIgnoreCase))?
-            .Split('=', 2)[1];
+            .Split(new[] { '=' }, 2)[1];
         return value?.ToLowerInvariant() switch
         {
             "left" => EdgeDockSide.Left,
@@ -357,7 +358,7 @@ public partial class App : Application
             .FirstOrDefault(argument => argument.StartsWith(
                 "--qa-full-body-style=",
                 StringComparison.OrdinalIgnoreCase))?
-            .Split('=', 2)[1];
+            .Split(new[] { '=' }, 2)[1];
         if (style is not (
             AppearanceOptionIds.FullBodyLongHair or
             AppearanceOptionIds.FullBodyCrystalDress or

@@ -168,7 +168,8 @@ internal sealed class AnimationFramePlayer : IDisposable
         {
             CachedAnimation? oldest = _cache.Values
                 .Where(animation => !ReferenceEquals(animation, _current))
-                .MinBy(animation => animation.LastAccess);
+                .OrderBy(animation => animation.LastAccess)
+                .FirstOrDefault();
             if (oldest is null)
             {
                 return;

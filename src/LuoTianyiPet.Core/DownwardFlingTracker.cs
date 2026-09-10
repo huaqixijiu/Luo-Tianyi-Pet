@@ -16,17 +16,17 @@ public sealed class DownwardFlingTracker
         TimeSpan? recentWindow = null)
     {
         _recentWindow = recentWindow ?? TimeSpan.FromMilliseconds(180);
-        if (!double.IsFinite(minimumTotalDrop) || minimumTotalDrop <= 0)
+        if (!Numeric.IsFinite(minimumTotalDrop) || minimumTotalDrop <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(minimumTotalDrop));
         }
 
-        if (!double.IsFinite(minimumRecentDrop) || minimumRecentDrop <= 0)
+        if (!Numeric.IsFinite(minimumRecentDrop) || minimumRecentDrop <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(minimumRecentDrop));
         }
 
-        if (!double.IsFinite(minimumRecentVelocity) || minimumRecentVelocity <= 0)
+        if (!Numeric.IsFinite(minimumRecentVelocity) || minimumRecentVelocity <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(minimumRecentVelocity));
         }
@@ -72,7 +72,7 @@ public sealed class DownwardFlingTracker
             return false;
         }
 
-        if (_samples.Count > 0 && observedAt < _samples[^1].ObservedAt)
+        if (_samples.Count > 0 && observedAt < _samples[_samples.Count - 1].ObservedAt)
         {
             Cancel();
             return false;
@@ -103,15 +103,15 @@ public sealed class DownwardFlingTracker
 
     private static void Validate(PointerPoint position)
     {
-        if (!double.IsFinite(position.X) || !double.IsFinite(position.Y))
+        if (!Numeric.IsFinite(position.X) || !Numeric.IsFinite(position.Y))
         {
             throw new ArgumentOutOfRangeException(nameof(position));
         }
     }
 
     private DateTimeOffset NormalizeObservedAt(DateTimeOffset observedAt) =>
-        _samples.Count > 0 && observedAt < _samples[^1].ObservedAt
-            ? _samples[^1].ObservedAt
+        _samples.Count > 0 && observedAt < _samples[_samples.Count - 1].ObservedAt
+            ? _samples[_samples.Count - 1].ObservedAt
             : observedAt;
 
     private sealed record MotionSample(PointerPoint Position, DateTimeOffset ObservedAt);

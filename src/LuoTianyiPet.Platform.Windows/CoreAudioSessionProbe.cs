@@ -9,7 +9,7 @@ public sealed class CoreAudioSessionProbe : IAudioSessionProbe
 {
     public AudioSessionSnapshot ReadForProcess(string processName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(processName);
+        Guard.NotNullOrWhiteSpace(processName, nameof(processName));
         string baseProcessName = Path.GetFileNameWithoutExtension(processName);
         HashSet<uint> targetProcessIds = GetTargetProcessIds(baseProcessName);
         if (targetProcessIds.Count == 0)
@@ -21,8 +21,13 @@ public sealed class CoreAudioSessionProbe : IAudioSessionProbe
         {
             using MMDeviceEnumerator deviceEnumerator = new();
             using MMDevice device = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+#if NETFRAMEWORK
+            AudioSessionManager sessionManager = device.AudioSessionManager;
+            SessionCollection sessions = sessionManager.Sessions;
+#else
             using AudioSessionManager sessionManager = device.AudioSessionManager;
             using SessionCollection sessions = sessionManager.Sessions;
+#endif
             bool found = false;
             float maximumPeak = 0;
             for (int index = 0; index < sessions.Count; index++)
@@ -58,13 +63,13 @@ public sealed class CoreAudioSessionProbe : IAudioSessionProbe
 
     internal static bool TryNormalizePeakLevel(float value, out float normalized)
     {
-        if (!float.IsFinite(value))
+        if (!Numeric.IsFinite(value))
         {
             normalized = 0;
             return false;
         }
 
-        normalized = Math.Clamp(value, 0, 1);
+        normalized = Numeric.Clamp(value, 0, 1);
         return true;
     }
 

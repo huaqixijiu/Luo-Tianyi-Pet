@@ -21,15 +21,15 @@ public sealed class TrayIconController : IDisposable
         Action<int> commitDisplayScalePercent,
         Action exit)
     {
-        ArgumentNullException.ThrowIfNull(openSettings);
-        ArgumentNullException.ThrowIfNull(isTopmostEnabled);
-        ArgumentNullException.ThrowIfNull(setTopmostEnabled);
-        ArgumentNullException.ThrowIfNull(isStartupEnabled);
-        ArgumentNullException.ThrowIfNull(setStartupEnabled);
-        ArgumentNullException.ThrowIfNull(getDisplayScalePercent);
-        ArgumentNullException.ThrowIfNull(previewDisplayScalePercent);
-        ArgumentNullException.ThrowIfNull(commitDisplayScalePercent);
-        ArgumentNullException.ThrowIfNull(exit);
+        Guard.NotNull(openSettings, nameof(openSettings));
+        Guard.NotNull(isTopmostEnabled, nameof(isTopmostEnabled));
+        Guard.NotNull(setTopmostEnabled, nameof(setTopmostEnabled));
+        Guard.NotNull(isStartupEnabled, nameof(isStartupEnabled));
+        Guard.NotNull(setStartupEnabled, nameof(setStartupEnabled));
+        Guard.NotNull(getDisplayScalePercent, nameof(getDisplayScalePercent));
+        Guard.NotNull(previewDisplayScalePercent, nameof(previewDisplayScalePercent));
+        Guard.NotNull(commitDisplayScalePercent, nameof(commitDisplayScalePercent));
+        Guard.NotNull(exit, nameof(exit));
 
         _quickPanel = new TrayQuickPanel(
             openSettings,
@@ -101,7 +101,7 @@ public sealed class TrayIconController : IDisposable
 
     private static Drawing.Icon ExtractApplicationIcon()
     {
-        string? executablePath = Environment.ProcessPath;
+        string? executablePath = ApplicationRuntime.ExecutablePath;
         if (!string.IsNullOrWhiteSpace(executablePath))
         {
             Drawing.Icon? extracted = Drawing.Icon.ExtractAssociatedIcon(executablePath);

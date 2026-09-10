@@ -1,11 +1,13 @@
 ﻿[CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.34',
+    [string]$Version = '0.1.0.36',
     [ValidateSet('win-x64')]
     [string]$Runtime = 'win-x64',
     [ValidateSet('Development', 'Production')]
     [string]$SigningMode = 'Development',
+    [ValidateSet('Net10SelfContained', 'NetFramework48')]
+    [string]$Framework = 'NetFramework48',
     [string]$ProductionCertificatePath,
     [string]$ProductionCertificatePasswordPath,
     [string]$ProductionIdentityName = 'LuoTianyiPet',
@@ -79,15 +81,32 @@ $packageAssets = Join-Path $repoRoot 'packaging\Assets'
     --frame-index 6
 if ($LASTEXITCODE -ne 0) { throw 'Package asset generation failed.' }
 
-& $dotnet publish (Join-Path $repoRoot 'src\LuoTianyiPet.App\LuoTianyiPet.App.csproj') `
-    -c Release `
-    -r $Runtime `
-    --self-contained true `
-    -p:PublishSingleFile=false `
-    -p:DebugType=None `
-    -p:DebugSymbols=false `
-    -o $publishRoot
-if ($LASTEXITCODE -ne 0) { throw 'Self-contained publish failed.' }
+$applicationProject = Join-Path $repoRoot 'src\LuoTianyiPet.App\LuoTianyiPet.App.csproj'
+if ($Framework -eq 'NetFramework48') {
+    & $dotnet publish $applicationProject `
+        -c Release `
+        -f net48 `
+        -r $Runtime `
+        --self-contained false `
+        -p:EnableNetFrameworkBuild=true `
+        -p:PlatformTarget=x64 `
+        -p:Prefer32Bit=false `
+        -p:DebugType=None `
+        -p:DebugSymbols=false `
+        -o $publishRoot
+    if ($LASTEXITCODE -ne 0) { throw '.NET Framework 4.8 publish failed.' }
+}
+else {
+    & $dotnet publish $applicationProject `
+        -c Release `
+        -r $Runtime `
+        --self-contained true `
+        -p:PublishSingleFile=false `
+        -p:DebugType=None `
+        -p:DebugSymbols=false `
+        -o $publishRoot
+    if ($LASTEXITCODE -ne 0) { throw '.NET 10 self-contained publish failed.' }
+}
 
 Copy-Item -Path (Join-Path $publishRoot '*') -Destination $layoutRoot -Recurse -Force
 $layoutPackageAssets = Join-Path $layoutRoot 'assets\package'
@@ -104,6 +123,12 @@ $manifestNamespace = [System.Xml.XmlNamespaceManager]::new($manifestDocument.Nam
 $manifestNamespace.AddNamespace('f', 'http://schemas.microsoft.com/appx/manifest/foundation/windows10')
 $manifestIdentity = $manifestDocument.SelectSingleNode('/f:Package/f:Identity', $manifestNamespace)
 $manifestIdentity.SetAttribute('Version', $Version)
+$manifestTargetDeviceFamily = $manifestDocument.SelectSingleNode(
+    '/f:Package/f:Dependencies/f:TargetDeviceFamily',
+    $manifestNamespace)
+if ($Framework -eq 'NetFramework48') {
+    $manifestTargetDeviceFamily.SetAttribute('MinVersion', '10.0.19045.0')
+}
 $manifestPublisherDisplayName = $manifestDocument.SelectSingleNode(
     '/f:Package/f:Properties/f:PublisherDisplayName',
     $manifestNamespace)

@@ -75,13 +75,13 @@ public sealed class PetStateMachine
 
     public void SetMusicAnimation(string animationId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(animationId);
+        Guard.NotNullOrWhiteSpace(animationId, nameof(animationId));
         VisualState = VisualState with { MusicAnimationId = animationId };
     }
 
     public void SetFullBodyAnimation(string animationId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(animationId);
+        Guard.NotNullOrWhiteSpace(animationId, nameof(animationId));
         VisualState = VisualState with { FullBodyAnimationId = animationId };
     }
 
@@ -114,7 +114,7 @@ public sealed class PetStateMachine
 
     public ReactionStartOutcome TryStartReaction(ReactionRequest request, DateTimeOffset now)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.AnimationId);
+        Guard.NotNullOrWhiteSpace(request.AnimationId, nameof(request.AnimationId));
         if (request.Cooldown < TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(request), "Cooldown cannot be negative.");

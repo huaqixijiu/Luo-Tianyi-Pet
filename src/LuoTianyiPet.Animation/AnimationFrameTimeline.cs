@@ -12,7 +12,9 @@ public sealed class AnimationFrameTimeline
         int loopCount,
         double playbackRate = 1.0)
     {
-        ArgumentNullException.ThrowIfNull(frameDurationsMilliseconds);
+        LuoTianyiPet.Core.Guard.NotNull(
+            frameDurationsMilliseconds,
+            nameof(frameDurationsMilliseconds));
         if (frameDurationsMilliseconds.Count == 0 || frameDurationsMilliseconds.Any(value => value <= 0))
         {
             throw new ArgumentOutOfRangeException(
@@ -25,7 +27,7 @@ public sealed class AnimationFrameTimeline
             throw new ArgumentOutOfRangeException(nameof(loopCount));
         }
 
-        if (!double.IsFinite(playbackRate) || playbackRate <= 0)
+        if (!LuoTianyiPet.Core.Numeric.IsFinite(playbackRate) || playbackRate <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(playbackRate));
         }

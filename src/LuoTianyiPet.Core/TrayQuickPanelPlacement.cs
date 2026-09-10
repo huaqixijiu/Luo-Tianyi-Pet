@@ -24,7 +24,7 @@ public static class TrayQuickPanelPlacement
         double minimumLeft = workArea.Left + safePadding;
         double maximumLeft = Math.Max(minimumLeft, workArea.Right - panel.Width - safePadding);
         double preferredLeft = pointer.X - panel.Width + 28;
-        double left = Math.Clamp(preferredLeft, minimumLeft, maximumLeft);
+        double left = Numeric.Clamp(preferredLeft, minimumLeft, maximumLeft);
 
         double minimumTop = workArea.Top + safePadding;
         double maximumTop = Math.Max(minimumTop, workArea.Bottom - panel.Height - safePadding);
@@ -34,7 +34,7 @@ public static class TrayQuickPanelPlacement
             ? above
             : below <= maximumTop
                 ? below
-                : Math.Clamp(pointer.Y - (panel.Height / 2), minimumTop, maximumTop);
+                : Numeric.Clamp(pointer.Y - (panel.Height / 2), minimumTop, maximumTop);
 
         return new TrayQuickPanelPosition(left, top);
     }

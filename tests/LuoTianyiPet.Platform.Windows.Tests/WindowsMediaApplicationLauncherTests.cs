@@ -134,7 +134,7 @@ public sealed class WindowsMediaApplicationLauncherTests
         bool started = false;
         WindowsMediaApplicationLauncher launcher = CreateLauncher(
             isRunning: _ => WindowsMediaApplicationLauncher.HasControllableInstance(
-                [nint.Zero, nint.Zero, nint.Zero]),
+                [IntPtr.Zero, IntPtr.Zero, IntPtr.Zero]),
             startExecutable: _ =>
             {
                 started = true;
@@ -151,7 +151,7 @@ public sealed class WindowsMediaApplicationLauncherTests
     public void HasControllableInstance_AnyMainWindowMeansApplicationIsReady()
     {
         bool ready = WindowsMediaApplicationLauncher.HasControllableInstance(
-            [nint.Zero, new nint(1234), nint.Zero]);
+            [IntPtr.Zero, new IntPtr(1234), IntPtr.Zero]);
 
         Assert.True(ready);
     }

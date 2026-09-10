@@ -33,7 +33,10 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
 
     public void Start()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(WindowsDesktopItemDisappearanceSource));
+        }
         if (Interlocked.Exchange(ref _started, 1) != 0)
         {
             return;

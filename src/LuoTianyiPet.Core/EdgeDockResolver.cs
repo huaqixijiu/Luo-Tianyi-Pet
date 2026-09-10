@@ -34,7 +34,9 @@ public static class EdgeDockResolver
             (EdgeDockSide.Right, (visiblePet.Right - workArea.Right) / visiblePet.Width),
             (EdgeDockSide.Bottom, (visiblePet.Bottom - workArea.Bottom) / visiblePet.Height),
         ];
-        (EdgeDockSide side, double fraction) = candidates.MaxBy(candidate => candidate.Fraction);
+        (EdgeDockSide side, double fraction) = candidates
+            .OrderByDescending(candidate => candidate.Fraction)
+            .First();
         return fraction >= activationFraction ? side : EdgeDockSide.None;
     }
 
@@ -83,7 +85,7 @@ public static class EdgeDockResolver
         DesktopRectangle workArea,
         double activationDepth)
     {
-        if (activationDepth < 0 || !double.IsFinite(activationDepth))
+        if (activationDepth < 0 || !Numeric.IsFinite(activationDepth))
         {
             throw new ArgumentOutOfRangeException(nameof(activationDepth));
         }
@@ -94,7 +96,9 @@ public static class EdgeDockResolver
             (EdgeDockSide.Right, visiblePet.Right - workArea.Right),
             (EdgeDockSide.Bottom, visiblePet.Bottom - workArea.Bottom),
         ];
-        (EdgeDockSide side, double depth) = candidates.MaxBy(candidate => candidate.Depth);
+        (EdgeDockSide side, double depth) = candidates
+            .OrderByDescending(candidate => candidate.Depth)
+            .First();
         return depth >= activationDepth ? side : EdgeDockSide.None;
     }
 
@@ -105,7 +109,7 @@ public static class EdgeDockResolver
         double releaseDepth,
         EdgeDockSide currentIntent)
     {
-        if (releaseDepth < 0 || !double.IsFinite(releaseDepth) || releaseDepth > activationDepth)
+        if (releaseDepth < 0 || !Numeric.IsFinite(releaseDepth) || releaseDepth > activationDepth)
         {
             throw new ArgumentOutOfRangeException(nameof(releaseDepth));
         }
@@ -131,7 +135,7 @@ public static class EdgeDockResolver
         DesktopRectangle workArea,
         double distance)
     {
-        if (distance < 0 || !double.IsFinite(distance))
+        if (distance < 0 || !Numeric.IsFinite(distance))
         {
             throw new ArgumentOutOfRangeException(nameof(distance));
         }
@@ -144,7 +148,7 @@ public static class EdgeDockResolver
         DesktopRectangle workArea,
         double distance)
     {
-        if (distance < 0 || !double.IsFinite(distance))
+        if (distance < 0 || !Numeric.IsFinite(distance))
         {
             throw new ArgumentOutOfRangeException(nameof(distance));
         }
@@ -154,7 +158,7 @@ public static class EdgeDockResolver
 
     private static void ValidateFraction(double value, string parameterName)
     {
-        if (!double.IsFinite(value) || value is <= 0 or > 1)
+        if (!Numeric.IsFinite(value) || value is <= 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(parameterName);
         }

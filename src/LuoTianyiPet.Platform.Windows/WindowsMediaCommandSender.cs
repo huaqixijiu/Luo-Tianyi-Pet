@@ -40,9 +40,9 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
         MediaPreferences mediaPreferences,
         SafetyPreferences safetyPreferences)
     {
-        ArgumentNullException.ThrowIfNull(backend);
-        ArgumentNullException.ThrowIfNull(mediaPreferences);
-        ArgumentNullException.ThrowIfNull(safetyPreferences);
+        Guard.NotNull(backend, nameof(backend));
+        Guard.NotNull(mediaPreferences, nameof(mediaPreferences));
+        Guard.NotNull(safetyPreferences, nameof(safetyPreferences));
 
         _backend = backend;
         _enabled = mediaPreferences.EnableCloudMusicShortcutControl;
@@ -52,11 +52,12 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
             [MediaCommand.TogglePlayPause] = ShortcutBinding.Parse(mediaPreferences.TogglePlayPauseShortcut),
             [MediaCommand.NextTrack] = ShortcutBinding.Parse(mediaPreferences.NextTrackShortcut),
         };
-        _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
-            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(NormalizeProcessName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _protectedProcesses = new HashSet<string>(
+            TextParsing.SplitAndTrim(
+                    safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty,
+                    ';')
+                .Select(NormalizeProcessName),
+            StringComparer.OrdinalIgnoreCase);
         _cooldown = TimeSpan.FromMilliseconds(Math.Max(0, mediaPreferences.CommandCooldownMilliseconds));
     }
 
@@ -172,7 +173,7 @@ public sealed class Win32ShortcutInputBackend : IShortcutInputBackend
 
 internal sealed record ShortcutBinding(bool IsValid, IReadOnlyList<ushort> Modifiers, ushort PrimaryKey)
 {
-    public IEnumerable<ushort> Keys => Modifiers.Append(PrimaryKey);
+    public IEnumerable<ushort> Keys => Modifiers.Concat(new[] { PrimaryKey });
 
     public static ShortcutBinding Parse(string? value)
     {
@@ -181,7 +182,7 @@ internal sealed record ShortcutBinding(bool IsValid, IReadOnlyList<ushort> Modif
             return Invalid();
         }
 
-        string[] parts = value.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        string[] parts = TextParsing.SplitAndTrim(value!, '+');
         if (parts.Length < 2)
         {
             return Invalid();

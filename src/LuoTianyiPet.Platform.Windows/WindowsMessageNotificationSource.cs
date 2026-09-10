@@ -24,7 +24,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
     public MessageNotificationAccessStatus GetAccessStatus()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
         if (!WindowsPackageIdentity.HasCurrentPackageIdentity())
         {
             return MessageNotificationAccessStatus.PackageIdentityRequired;
@@ -35,8 +35,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
             _listener ??= UserNotificationListener.Current;
             return Map(_listener.GetAccessStatus());
         }
-        catch (Exception exception) when (
-            exception is UnauthorizedAccessException or COMException or InvalidOperationException)
+        catch (Exception exception) when (IsRecoverablePlatformException(exception))
         {
             return MessageNotificationAccessStatus.Unavailable;
         }
@@ -44,7 +43,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
     public async ValueTask<MessageNotificationAccessStatus> RequestAccessAsync()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
         if (!WindowsPackageIdentity.HasCurrentPackageIdentity())
         {
             return MessageNotificationAccessStatus.PackageIdentityRequired;
@@ -56,8 +55,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
             UserNotificationListenerAccessStatus status = await _listener.RequestAccessAsync();
             return Map(status);
         }
-        catch (Exception exception) when (
-            exception is UnauthorizedAccessException or COMException or InvalidOperationException)
+        catch (Exception exception) when (IsRecoverablePlatformException(exception))
         {
             return MessageNotificationAccessStatus.Unavailable;
         }
@@ -65,7 +63,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
     public void Start()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
         if (_started || GetAccessStatus() != MessageNotificationAccessStatus.Allowed)
         {
             return;
@@ -221,8 +219,19 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         _ => MessageNotificationAccessStatus.Unavailable,
     };
 
-    private static bool IsRecoverablePlatformException(Exception exception) =>
-        exception is UnauthorizedAccessException or COMException or InvalidOperationException;
+    internal static bool IsRecoverablePlatformException(Exception exception) =>
+        exception is UnauthorizedAccessException or COMException or InvalidOperationException ||
+        exception.HResult is unchecked((int)0x800706BA) or
+            unchecked((int)0x800706BE) or
+            unchecked((int)0x80010108);
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(WindowsMessageNotificationSource));
+        }
+    }
 }
 
 internal static class NotificationConversationTitleSelector
@@ -238,7 +247,7 @@ internal static class NotificationConversationTitleSelector
             return null;
         }
 
-        string normalized = string.Concat(firstText
+        string normalized = string.Concat(firstText!
             .Trim()
             .Where(character => !char.IsControl(character)));
         if (normalized.Length == 0)
@@ -248,7 +257,7 @@ internal static class NotificationConversationTitleSelector
 
         return normalized.Length <= MaximumDisplayLength
             ? normalized
-            : normalized[..(MaximumDisplayLength - 1)] + "…";
+            : normalized.Substring(0, MaximumDisplayLength - 1) + "…";
     }
 }
 

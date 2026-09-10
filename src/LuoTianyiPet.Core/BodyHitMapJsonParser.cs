@@ -6,8 +6,8 @@ public static class BodyHitMapJsonParser
 {
     public static BodyHitMap Parse(string json, string expectedAnimationId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(json);
-        ArgumentException.ThrowIfNullOrWhiteSpace(expectedAnimationId);
+        Guard.NotNullOrWhiteSpace(json, nameof(json));
+        Guard.NotNullOrWhiteSpace(expectedAnimationId, nameof(expectedAnimationId));
 
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
@@ -26,7 +26,7 @@ public static class BodyHitMapJsonParser
         {
             string idValue = RequireProperty(regionElement, "id", JsonValueKind.String).GetString()!;
             if (!Enum.TryParse(idValue, ignoreCase: false, out BodyRegionId regionId) ||
-                !Enum.IsDefined(regionId))
+                !Enum.IsDefined(typeof(BodyRegionId), regionId))
             {
                 throw new JsonException($"Unknown body region id: {idValue}.");
             }
@@ -81,7 +81,7 @@ public static class BodyHitMapJsonParser
             }
         }
 
-        if (regionIds.Count != Enum.GetValues<BodyRegionId>().Length)
+        if (regionIds.Count != Enum.GetValues(typeof(BodyRegionId)).Length)
         {
             throw new JsonException("The body map must define every body region exactly once.");
         }

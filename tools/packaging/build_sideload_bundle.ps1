@@ -1,7 +1,9 @@
 ﻿[CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.34'
+    [string]$Version = '0.1.0.36',
+    [ValidateSet('Net10SelfContained', 'NetFramework48')]
+    [string]$Framework = 'NetFramework48'
 )
 
 Set-StrictMode -Version Latest
@@ -34,6 +36,7 @@ New-Item -ItemType Directory -Path $bundleRoot -Force | Out-Null
 
 & (Join-Path $PSScriptRoot 'build_msix.ps1') `
     -Version $Version `
+    -Framework $Framework `
     -SigningMode Development
 if ($LASTEXITCODE -ne 0) {
     throw 'MSIX build failed.'

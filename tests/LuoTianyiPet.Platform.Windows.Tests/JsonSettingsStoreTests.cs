@@ -72,7 +72,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -104,7 +104,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -138,7 +138,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -170,7 +170,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -204,7 +204,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -243,7 +243,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 $$"""
                 {
@@ -292,7 +292,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 $$"""
                 {
@@ -333,7 +333,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(paths.SettingsFile, "{not-json");
+            await WriteAllTextAsync(paths.SettingsFile, "{not-json");
             JsonSettingsStore store = new(paths);
 
             AppSettings actual = await store.LoadAsync();
@@ -360,7 +360,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 $$"""
                 {
@@ -391,7 +391,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -436,7 +436,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -478,7 +478,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -517,7 +517,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -551,7 +551,7 @@ public sealed class JsonSettingsStoreTests
         {
             LocalAppPaths paths = new(testDirectory);
             Directory.CreateDirectory(testDirectory);
-            await File.WriteAllTextAsync(
+            await WriteAllTextAsync(
                 paths.SettingsFile,
                 """
                 {
@@ -618,6 +618,9 @@ public sealed class JsonSettingsStoreTests
     {
         return Path.Combine(Path.GetTempPath(), "LuoTianyiPet.Tests", Guid.NewGuid().ToString("N"));
     }
+
+    private static Task WriteAllTextAsync(string path, string contents) =>
+        Task.Run(() => File.WriteAllText(path, contents));
 
     private sealed class NonPumpingSynchronizationContext : SynchronizationContext
     {

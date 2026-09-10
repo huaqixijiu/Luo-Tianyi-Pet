@@ -55,7 +55,7 @@ public sealed class MessageProviderMatcher
 
     public MessageProviderMatcher(MessageNotificationPreferences preferences)
     {
-        ArgumentNullException.ThrowIfNull(preferences);
+        Guard.NotNull(preferences, nameof(preferences));
         _qqApplicationIdentifiers = Parse(preferences.QqApplicationIdentifiers);
         _wechatApplicationIdentifiers = Parse(preferences.WeChatApplicationIdentifiers);
         _qqProcessNames = ParseProcessNames(preferences.QqProcessNames);
@@ -81,7 +81,7 @@ public sealed class MessageProviderMatcher
             return false;
         }
 
-        string normalized = NormalizeProcessName(processName);
+        string normalized = NormalizeProcessName(processName!);
         string[] candidates = provider == MessageProvider.Qq
             ? _qqProcessNames
             : _wechatProcessNames;
@@ -106,7 +106,7 @@ public sealed class MessageProviderMatcher
         {
             if (normalizedDisplayName == identifier ||
                 (!string.IsNullOrEmpty(normalizedAppUserModelId) &&
-                    normalizedAppUserModelId.Contains(identifier, StringComparison.Ordinal)))
+                    normalizedAppUserModelId.IndexOf(identifier, StringComparison.Ordinal) >= 0))
             {
                 return true;
             }
@@ -115,15 +115,13 @@ public sealed class MessageProviderMatcher
         return false;
     }
 
-    private static string[] Parse(string value) => value
-        .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+    private static string[] Parse(string value) => TextParsing.SplitAndTrim(value, ';')
         .Select(NormalizeIdentity)
         .Where(value => value.Length > 0)
         .Distinct(StringComparer.Ordinal)
         .ToArray();
 
-    private static string[] ParseProcessNames(string value) => value
-        .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+    private static string[] ParseProcessNames(string value) => TextParsing.SplitAndTrim(value, ';')
         .Select(NormalizeProcessName)
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .ToArray();
@@ -177,7 +175,7 @@ public sealed class MessageNotificationCoordinator
         bool sourceIsForeground,
         bool canShow)
     {
-        ArgumentNullException.ThrowIfNull(notification);
+        Guard.NotNull(notification, nameof(notification));
         MessageProvider provider = notification.Provider;
         DateTimeOffset occurredAt = notification.OccurredAt;
         if (_lastObserved.TryGetValue(provider, out DateTimeOffset lastObserved) &&
@@ -206,11 +204,13 @@ public sealed class MessageNotificationCoordinator
         Func<MessageProvider, bool> sourceIsForeground,
         out MessageNotificationSummary notification)
     {
-        ArgumentNullException.ThrowIfNull(sourceIsForeground);
-        foreach ((MessageProvider candidate, MessageNotificationSummary pending) in _pending
-            .OrderBy(pair => pair.Value.OccurredAt)
+        Guard.NotNull(sourceIsForeground, nameof(sourceIsForeground));
+        foreach (KeyValuePair<MessageProvider, MessageNotificationSummary> pair in _pending
+            .OrderBy(item => item.Value.OccurredAt)
             .ToArray())
         {
+            MessageProvider candidate = pair.Key;
+            MessageNotificationSummary pending = pair.Value;
             if (sourceIsForeground(candidate))
             {
                 _pending.Remove(candidate);
@@ -237,7 +237,7 @@ public sealed class MessageNotificationCoordinator
 
     public void QueuePending(MessageNotificationSummary notification)
     {
-        ArgumentNullException.ThrowIfNull(notification);
+        Guard.NotNull(notification, nameof(notification));
         _pending[notification.Provider] = notification;
     }
 

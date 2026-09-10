@@ -15,7 +15,7 @@ public sealed class MusicAudioActivityDetector
 
     public MusicAudioActivityDetector(float audiblePeakThreshold, TimeSpan silenceGracePeriod)
     {
-        if (!float.IsFinite(audiblePeakThreshold) || audiblePeakThreshold is <= 0 or > 1)
+        if (!Numeric.IsFinite(audiblePeakThreshold) || audiblePeakThreshold is <= 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(nameof(audiblePeakThreshold));
         }
@@ -33,8 +33,8 @@ public sealed class MusicAudioActivityDetector
 
     public MusicActivityTransition Update(AudioSessionSnapshot snapshot, DateTimeOffset now)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        if (!float.IsFinite(snapshot.PeakLevel) || snapshot.PeakLevel is < 0 or > 1)
+        Guard.NotNull(snapshot, nameof(snapshot));
+        if (!Numeric.IsFinite(snapshot.PeakLevel) || snapshot.PeakLevel is < 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(nameof(snapshot), "Peak level must be between 0 and 1.");
         }
@@ -76,8 +76,8 @@ public sealed class MusicAudioActivityDetector
 
     public MusicActivityTransition ConfirmStoppedAfterUserPause(AudioSessionSnapshot snapshot)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        if (!float.IsFinite(snapshot.PeakLevel) || snapshot.PeakLevel is < 0 or > 1)
+        Guard.NotNull(snapshot, nameof(snapshot));
+        if (!Numeric.IsFinite(snapshot.PeakLevel) || snapshot.PeakLevel is < 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(nameof(snapshot), "Peak level must be between 0 and 1.");
         }

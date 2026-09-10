@@ -8,3 +8,4 @@ global using Color = System.Windows.Media.Color;
 global using Brushes = System.Windows.Media.Brushes;
 global using Orientation = System.Windows.Controls.Orientation;
 global using WpfHorizontalAlignment = System.Windows.HorizontalAlignment;
+global using LuoTianyiPet.Core;

@@ -9,7 +9,7 @@ public sealed class WindowsRecycleBinServiceTests
     {
         WindowsRecycleBinService service = new();
 
-        RecycleBinOperationResult result = await service.MoveToRecycleBinAsync([], nint.Zero);
+        RecycleBinOperationResult result = await service.MoveToRecycleBinAsync([], IntPtr.Zero);
 
         Assert.Equal(RecycleBinOperationStatus.Rejected, result.Status);
         Assert.Equal(0, result.RecycledCount);
@@ -22,7 +22,7 @@ public sealed class WindowsRecycleBinServiceTests
 
         RecycleBinOperationResult result = await service.MoveToRecycleBinAsync(
             ["relative-file.txt"],
-            nint.Zero);
+            IntPtr.Zero);
 
         Assert.Equal(RecycleBinOperationStatus.Rejected, result.Status);
         Assert.Contains("完整路径", result.Message);
@@ -38,7 +38,7 @@ public sealed class WindowsRecycleBinServiceTests
 
         RecycleBinOperationResult result = await service.MoveToRecycleBinAsync(
             [missing],
-            nint.Zero);
+            IntPtr.Zero);
 
         Assert.Equal(RecycleBinOperationStatus.Rejected, result.Status);
         Assert.Contains("不存在", result.Message);
@@ -51,7 +51,7 @@ public sealed class WindowsRecycleBinServiceTests
 
         RecycleBinOperationResult result = await service.MoveToRecycleBinAsync(
             [@"\\server\share\file.txt"],
-            nint.Zero);
+            IntPtr.Zero);
 
         Assert.Equal(RecycleBinOperationStatus.Rejected, result.Status);
         Assert.Contains("网络位置", result.Message);

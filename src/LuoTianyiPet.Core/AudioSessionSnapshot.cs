@@ -11,7 +11,7 @@ public sealed record AudioSessionSnapshot(
 
     public static AudioSessionSnapshot Found(float peakLevel)
     {
-        if (!float.IsFinite(peakLevel) || peakLevel is < 0 or > 1)
+        if (!Numeric.IsFinite(peakLevel) || peakLevel is < 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(nameof(peakLevel));
         }

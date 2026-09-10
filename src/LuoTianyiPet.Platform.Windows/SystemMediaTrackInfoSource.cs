@@ -93,7 +93,7 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
             return false;
         }
 
-        string candidate = windowTitle.Trim();
+        string candidate = windowTitle!.Trim();
         string[] genericTitles = ["网易云音乐", "NetEase CloudMusic", "CloudMusic"];
         if (genericTitles.Contains(candidate, StringComparer.OrdinalIgnoreCase))
         {
@@ -105,7 +105,7 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
             string suffix = $" - {genericTitle}";
             if (candidate.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
             {
-                candidate = candidate[..^suffix.Length].Trim();
+                candidate = candidate.Substring(0, candidate.Length - suffix.Length).Trim();
                 break;
             }
         }
@@ -113,8 +113,8 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
         int separator = candidate.LastIndexOf(" - ", StringComparison.Ordinal);
         if (separator > 0 && separator < candidate.Length - 3)
         {
-            title = candidate[..separator].Trim();
-            artist = candidate[(separator + 3)..].Trim();
+            title = candidate.Substring(0, separator).Trim();
+            artist = candidate.Substring(separator + 3).Trim();
         }
         else
         {
@@ -134,7 +134,7 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
 
         string targetFileName = Path.GetFileName(targetProcessName.Trim());
         string targetStem = Path.GetFileNameWithoutExtension(targetFileName);
-        string source = sourceAppUserModelId.Trim();
+        string source = sourceAppUserModelId!.Trim();
         if (source.Equals(targetFileName, StringComparison.OrdinalIgnoreCase) ||
             source.Equals(targetStem, StringComparison.OrdinalIgnoreCase))
         {

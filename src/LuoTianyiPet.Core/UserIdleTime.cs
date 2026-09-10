@@ -78,7 +78,7 @@ public sealed class CrystalYawnScheduler
 
     public CrystalYawnScheduler(Func<int, int, int>? nextSecond = null)
     {
-        _nextSecond = nextSecond ?? Random.Shared.Next;
+        _nextSecond = nextSecond ?? SharedRandom.Next;
     }
 
     public bool ShouldTrigger(TimeSpan idleDuration, bool eligible)
@@ -115,7 +115,7 @@ public sealed class BirthdayEasterEggScheduler
 
     public BirthdayEasterEggScheduler(Func<int, int>? nextMinutes = null)
     {
-        _nextMinutes = nextMinutes ?? (maximum => Random.Shared.Next(45, maximum));
+        _nextMinutes = nextMinutes ?? (maximum => SharedRandom.Next(45, maximum));
     }
 
     public static bool IsBirthday(DateTimeOffset now) =>

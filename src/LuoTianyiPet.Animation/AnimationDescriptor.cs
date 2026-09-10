@@ -25,7 +25,7 @@ public sealed record AnimationDescriptor(
             errors.Add("Loop count cannot be negative; use zero for an indefinite loop.");
         }
 
-        if (!double.IsFinite(PlaybackRate) || PlaybackRate <= 0)
+        if (!LuoTianyiPet.Core.Numeric.IsFinite(PlaybackRate) || PlaybackRate <= 0)
         {
             errors.Add("Playback rate must be a finite positive value.");
         }

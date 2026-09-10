@@ -30,7 +30,7 @@ public sealed class PointerGestureRecognizer
 
     public PointerGestureRecognizer(double dragThreshold, TimeSpan doubleClickInterval)
     {
-        if (!double.IsFinite(dragThreshold) || dragThreshold <= 0)
+        if (!Numeric.IsFinite(dragThreshold) || dragThreshold <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(dragThreshold));
         }
@@ -164,7 +164,7 @@ public sealed class PointerGestureRecognizer
 
     private static void ValidatePoint(PointerPoint point)
     {
-        if (!double.IsFinite(point.X) || !double.IsFinite(point.Y))
+        if (!Numeric.IsFinite(point.X) || !Numeric.IsFinite(point.Y))
         {
             throw new ArgumentOutOfRangeException(nameof(point));
         }

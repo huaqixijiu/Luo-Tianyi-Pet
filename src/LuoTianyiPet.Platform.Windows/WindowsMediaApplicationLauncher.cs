@@ -33,18 +33,20 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
         Func<string, string?> resolveExecutable,
         Func<string, bool> startExecutable)
     {
-        ArgumentNullException.ThrowIfNull(foregroundBackend);
-        ArgumentNullException.ThrowIfNull(safetyPreferences);
-        ArgumentNullException.ThrowIfNull(isRunning);
-        ArgumentNullException.ThrowIfNull(resolveExecutable);
-        ArgumentNullException.ThrowIfNull(startExecutable);
+        Guard.NotNull(foregroundBackend, nameof(foregroundBackend));
+        Guard.NotNull(safetyPreferences, nameof(safetyPreferences));
+        Guard.NotNull(isRunning, nameof(isRunning));
+        Guard.NotNull(resolveExecutable, nameof(resolveExecutable));
+        Guard.NotNull(startExecutable, nameof(startExecutable));
 
         _foregroundBackend = foregroundBackend;
-        _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
-            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(NormalizeProcessName)
-            .Where(name => name.Length > 0)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _protectedProcesses = new HashSet<string>(
+            TextParsing.SplitAndTrim(
+                    safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty,
+                    ';')
+                .Select(NormalizeProcessName)
+                .Where(name => name.Length > 0),
+            StringComparer.OrdinalIgnoreCase);
         _isRunning = isRunning;
         _resolveExecutable = resolveExecutable;
         _startExecutable = startExecutable;
@@ -124,7 +126,7 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
 
         try
         {
-            return new(_startExecutable(executablePath)
+            return new(_startExecutable(executablePath!)
                 ? MediaApplicationLaunchStatus.Started
                 : MediaApplicationLaunchStatus.SystemRejected);
         }
@@ -154,7 +156,7 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
                         exception is InvalidOperationException or NotSupportedException or
                         Win32Exception)
                     {
-                        mainWindowHandles.Add(nint.Zero);
+                        mainWindowHandles.Add(IntPtr.Zero);
                     }
                 }
 
@@ -177,8 +179,8 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
 
     internal static bool HasControllableInstance(IEnumerable<nint> mainWindowHandles)
     {
-        ArgumentNullException.ThrowIfNull(mainWindowHandles);
-        return mainWindowHandles.Any(handle => handle != nint.Zero);
+        Guard.NotNull(mainWindowHandles, nameof(mainWindowHandles));
+        return mainWindowHandles.Any(handle => handle != IntPtr.Zero);
     }
 
     private static string? ResolveExecutable(string executableName)
@@ -228,7 +230,7 @@ public sealed class WindowsMediaApplicationLauncher : IMediaApplicationLauncher
     private static bool TryNormalizeExistingPath(string value, out string? path)
     {
         path = value.Trim().Trim('"');
-        if (!Path.IsPathFullyQualified(path) || !File.Exists(path))
+        if (!PlatformCompatibility.IsPathFullyQualified(path) || !File.Exists(path))
         {
             path = null;
             return false;

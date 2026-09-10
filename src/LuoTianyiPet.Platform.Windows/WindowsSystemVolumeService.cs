@@ -29,17 +29,18 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
         VolumePreferences volumePreferences,
         SafetyPreferences safetyPreferences)
     {
-        ArgumentNullException.ThrowIfNull(backend);
-        ArgumentNullException.ThrowIfNull(volumePreferences);
-        ArgumentNullException.ThrowIfNull(safetyPreferences);
+        Guard.NotNull(backend, nameof(backend));
+        Guard.NotNull(volumePreferences, nameof(volumePreferences));
+        Guard.NotNull(safetyPreferences, nameof(safetyPreferences));
 
         _backend = backend;
         UpdatePreferences(volumePreferences);
-        _protectedProcesses = (safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty)
-            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(NormalizeProcessName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _protectedProcesses = new HashSet<string>(
+            TextParsing.SplitAndTrim(
+                    safetyPreferences.ProtectedForegroundProcessNames ?? string.Empty,
+                    ';')
+                .Select(NormalizeProcessName),
+            StringComparer.OrdinalIgnoreCase);
         _backend.VolumeChanged += OnBackendVolumeChanged;
     }
 
@@ -90,7 +91,7 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
 
     public SystemVolumeAdjustmentResult TrySetLevel(float level)
     {
-        if (!float.IsFinite(level))
+        if (!Numeric.IsFinite(level))
         {
             return new(SystemVolumeAdjustmentStatus.SystemRejected, SystemVolumeSnapshot.Unavailable);
         }
@@ -112,7 +113,7 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
 
     public void UpdatePreferences(VolumePreferences preferences)
     {
-        ArgumentNullException.ThrowIfNull(preferences);
+        Guard.NotNull(preferences, nameof(preferences));
         _mouseWheelControlEnabled = preferences.EnableMouseWheelControl;
         int stepPercent = preferences.MouseWheelStepPercent is >= 1 and <= 20
             ? preferences.MouseWheelStepPercent
@@ -124,7 +125,7 @@ public sealed class WindowsSystemVolumeService : ISystemVolumeService
         float requestedLevel,
         SystemVolumeSnapshot current)
     {
-        float target = Math.Clamp(requestedLevel, 0, 1);
+        float target = Numeric.Clamp(requestedLevel, 0, 1);
         if (Math.Abs(target - current.Level) < 0.0005f)
         {
             return new(SystemVolumeAdjustmentStatus.AtLimit, current);
@@ -243,7 +244,7 @@ public sealed class CoreAudioSystemVolumeBackend : ISystemVolumeBackend
     {
         try
         {
-            _endpointVolume.MasterVolumeLevelScalar = Math.Clamp(level, 0, 1);
+            _endpointVolume.MasterVolumeLevelScalar = Numeric.Clamp(level, 0, 1);
             snapshot = Read();
             return snapshot.IsAvailable;
         }

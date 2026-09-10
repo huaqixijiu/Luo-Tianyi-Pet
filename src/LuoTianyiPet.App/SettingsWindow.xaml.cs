@@ -20,11 +20,11 @@ public partial class SettingsWindow : Window
         bool startupRegistrationEnabled,
         IMessageNotificationSource? messageNotificationSource)
     {
-        ArgumentNullException.ThrowIfNull(notificationPreferences);
-        ArgumentNullException.ThrowIfNull(windowPreferences);
-        ArgumentNullException.ThrowIfNull(fileTreatPreferences);
-        ArgumentNullException.ThrowIfNull(appearancePreferences);
-        ArgumentNullException.ThrowIfNull(mediaPreferences);
+        Guard.NotNull(notificationPreferences, nameof(notificationPreferences));
+        Guard.NotNull(windowPreferences, nameof(windowPreferences));
+        Guard.NotNull(fileTreatPreferences, nameof(fileTreatPreferences));
+        Guard.NotNull(appearancePreferences, nameof(appearancePreferences));
+        Guard.NotNull(mediaPreferences, nameof(mediaPreferences));
         SelectedNotificationPreferences = notificationPreferences;
         SelectedWindowPreferences = windowPreferences;
         SelectedFileTreatPreferences = fileTreatPreferences;

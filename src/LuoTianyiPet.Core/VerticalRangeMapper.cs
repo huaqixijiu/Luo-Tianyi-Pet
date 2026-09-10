@@ -9,11 +9,11 @@ public static class VerticalRangeMapper
         double minimum,
         double maximum)
     {
-        if (!double.IsFinite(pointerY) ||
-            !double.IsFinite(surfaceHeight) ||
-            !double.IsFinite(trackPadding) ||
-            !double.IsFinite(minimum) ||
-            !double.IsFinite(maximum) ||
+        if (!Numeric.IsFinite(pointerY) ||
+            !Numeric.IsFinite(surfaceHeight) ||
+            !Numeric.IsFinite(trackPadding) ||
+            !Numeric.IsFinite(minimum) ||
+            !Numeric.IsFinite(maximum) ||
             surfaceHeight <= 0 ||
             trackPadding < 0 ||
             maximum < minimum)
@@ -22,7 +22,7 @@ public static class VerticalRangeMapper
         }
 
         double trackHeight = Math.Max(1, surfaceHeight - (trackPadding * 2));
-        double fraction = 1 - Math.Clamp((pointerY - trackPadding) / trackHeight, 0, 1);
+        double fraction = 1 - Numeric.Clamp((pointerY - trackPadding) / trackHeight, 0, 1);
         return minimum + ((maximum - minimum) * fraction);
     }
 }

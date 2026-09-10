@@ -14,7 +14,7 @@ public sealed class WindowsStartupRegistrationService : IStartupRegistrationServ
         bool portable,
         string? packageFamilyName = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        Guard.NotNullOrWhiteSpace(executablePath, nameof(executablePath));
         if (!string.IsNullOrWhiteSpace(packageFamilyName))
         {
             _command = $"explorer.exe shell:AppsFolder\\{packageFamilyName}!App";

@@ -46,9 +46,9 @@ public static class BunChasePlanner
         double desktopHeightDips,
         double maximumScale = 2)
     {
-        if (!double.IsFinite(desktopWidthDips) || desktopWidthDips <= 0 ||
-            !double.IsFinite(desktopHeightDips) || desktopHeightDips <= 0 ||
-            !double.IsFinite(maximumScale) || maximumScale < 1)
+        if (!Numeric.IsFinite(desktopWidthDips) || desktopWidthDips <= 0 ||
+            !Numeric.IsFinite(desktopHeightDips) || desktopHeightDips <= 0 ||
+            !Numeric.IsFinite(maximumScale) || maximumScale < 1)
         {
             return 1;
         }
@@ -58,7 +58,7 @@ public static class BunChasePlanner
             ReferenceDesktopHeight * ReferenceDesktopHeight);
         double desktopDiagonal = Math.Sqrt(
             desktopWidthDips * desktopWidthDips + desktopHeightDips * desktopHeightDips);
-        return Math.Clamp(desktopDiagonal / referenceDiagonal, 1, maximumScale);
+        return Numeric.Clamp(desktopDiagonal / referenceDiagonal, 1, maximumScale);
     }
 
     public static double ResolveDesktopSpeedScaleFromPixels(
@@ -68,8 +68,8 @@ public static class BunChasePlanner
         double dpiScaleY,
         double maximumScale = 2)
     {
-        double safeDpiScaleX = double.IsFinite(dpiScaleX) && dpiScaleX > 0 ? dpiScaleX : 1;
-        double safeDpiScaleY = double.IsFinite(dpiScaleY) && dpiScaleY > 0 ? dpiScaleY : 1;
+        double safeDpiScaleX = Numeric.IsFinite(dpiScaleX) && dpiScaleX > 0 ? dpiScaleX : 1;
+        double safeDpiScaleY = Numeric.IsFinite(dpiScaleY) && dpiScaleY > 0 ? dpiScaleY : 1;
         return ResolveDesktopSpeedScale(
             desktopWidthPixels / safeDpiScaleX,
             desktopHeightPixels / safeDpiScaleY,
@@ -96,7 +96,7 @@ public static class BunChasePlanner
             return maximum;
         }
 
-        double progress = Math.Clamp(
+        double progress = Numeric.Clamp(
             Math.Max(0, elapsedSinceRunStarted.TotalSeconds) /
                 accelerationDuration.TotalSeconds,
             0,
@@ -127,9 +127,9 @@ public static class BunChasePlanner
         new(
             imageTopLeft.X + Math.Max(0, imageWidth) * (
                 mirrored
-                    ? 1.0 - Math.Clamp(unmirroredXFraction, 0, 1)
-                    : Math.Clamp(unmirroredXFraction, 0, 1)),
-            imageTopLeft.Y + Math.Max(0, imageHeight) * Math.Clamp(yFraction, 0, 1));
+                    ? 1.0 - Numeric.Clamp(unmirroredXFraction, 0, 1)
+                    : Numeric.Clamp(unmirroredXFraction, 0, 1)),
+            imageTopLeft.Y + Math.Max(0, imageHeight) * Numeric.Clamp(yFraction, 0, 1));
 
     public static double AdvanceSpeed(
         double currentSpeedPerSecond,
@@ -250,19 +250,19 @@ public static class BunFeedHitTester
             return false;
         }
 
-        int startX = Math.Clamp(
+        int startX = Numeric.Clamp(
             (int)Math.Floor((intersectionLeft - imageTopLeft.X) / imageWidth * pixelWidth),
             0,
             pixelWidth - 1);
-        int endX = Math.Clamp(
+        int endX = Numeric.Clamp(
             (int)Math.Ceiling((intersectionRight - imageTopLeft.X) / imageWidth * pixelWidth),
             startX + 1,
             pixelWidth);
-        int startY = Math.Clamp(
+        int startY = Numeric.Clamp(
             (int)Math.Floor((intersectionTop - imageTopLeft.Y) / imageHeight * pixelHeight),
             0,
             pixelHeight - 1);
-        int endY = Math.Clamp(
+        int endY = Numeric.Clamp(
             (int)Math.Ceiling((intersectionBottom - imageTopLeft.Y) / imageHeight * pixelHeight),
             startY + 1,
             pixelHeight);

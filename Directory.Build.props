@@ -9,5 +9,12 @@
     <VersionSuffix>alpha.1</VersionSuffix>
     <Authors>LuoTianyiPet contributors</Authors>
     <RepositoryUrl>https://github.com/huaqixijiu/Luo-Tianyi-Pet</RepositoryUrl>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+  </ItemGroup>
 </Project>
