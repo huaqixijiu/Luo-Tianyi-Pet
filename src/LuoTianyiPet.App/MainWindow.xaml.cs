@@ -448,7 +448,6 @@ public partial class MainWindow : Window
                     : "Desktop tool-window mode requested, but native style verification did not succeed.");
         }
         ApplyEffectiveTopmost();
-        BodyHitDebugMenuItem.IsChecked = _previewBodyHitDebug;
         PreviousTrackButton.ToolTip = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
         TogglePlayPauseButton.ToolTip = $"播放 / 暂停（{_settings.Media.TogglePlayPauseShortcut}）";
         NextTrackButton.ToolTip = $"下一首（{_settings.Media.NextTrackShortcut}）";
@@ -1842,15 +1841,12 @@ public partial class MainWindow : Window
         return pixel[3] >= 24;
     }
 
-    private void OnToggleBodyHitDebug(object sender, RoutedEventArgs e) =>
-        UpdateBodyHitDebugOverlay();
-
     private void OnPetImageSizeChanged(object sender, SizeChangedEventArgs e) =>
         UpdateBodyHitDebugOverlay();
 
     private void UpdateBodyHitDebugOverlay()
     {
-        bool isEnabled = BodyHitDebugMenuItem.IsChecked &&
+        bool isEnabled = _previewBodyHitDebug &&
             _stateMachine.Resolve(DateTimeOffset.Now).BodyRegionInteractionsEnabled &&
             PetImage.ActualWidth > 0 &&
             PetImage.ActualHeight > 0;
@@ -1936,13 +1932,6 @@ public partial class MainWindow : Window
         _ => throw new ArgumentOutOfRangeException(nameof(region)),
     };
 
-    private void OnPreviewMusicStart(object sender, RoutedEventArgs e)
-    {
-        _musicPreviewOverride = true;
-        _musicActivityDetector.Reset();
-        StartMusicPlayback("manual-preview", "洛天依");
-    }
-
     private void StartMusicPlayback(string source, string? artistOverride = null)
     {
         _userPauseFastConfirmationUntil = null;
@@ -1975,13 +1964,6 @@ public partial class MainWindow : Window
         _logger.Info(
             "media.playback_started",
             $"Source={source}; Animation={selectedAnimation}; ArtistClass={GetArtistClass(artist)}.");
-    }
-
-    private void OnPreviewMusicStop(object sender, RoutedEventArgs e)
-    {
-        _musicPreviewOverride = false;
-        _musicActivityDetector.Reset();
-        StopMusicPlayback("manual-preview");
     }
 
     private void StopMusicPlayback(string source)
@@ -5254,7 +5236,6 @@ public partial class MainWindow : Window
         }
 
         _isClosing = true;
-        ExitMenuItem.IsEnabled = false;
         PlayAnimation(CloseAnimation);
 
         int[] offsets = [0, -8, 8, -7, 7, -5, 5, -3, 3, 0];

@@ -152,15 +152,16 @@ public partial class TrayQuickPanel : Window
 
     private void AnimateOpen()
     {
-        TranslateTransform transform = new(0, 8);
-        RenderTransform = transform;
-        RenderTransformOrigin = new Point(0.5, 1);
+        PanelOpenTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+        PanelOpenTranslate.Y = 8;
         QuadraticEase ease = new() { EasingMode = EasingMode.EaseOut };
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140))
         {
             EasingFunction = ease,
         });
-        transform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(140))
+        PanelOpenTranslate.BeginAnimation(
+            TranslateTransform.YProperty,
+            new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(140))
         {
             EasingFunction = ease,
         });

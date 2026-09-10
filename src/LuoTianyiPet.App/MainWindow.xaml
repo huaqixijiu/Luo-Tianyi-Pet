@@ -583,19 +583,5 @@
             </Button.Template>
         </Button>
 
-        <Grid.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="动画与状态验证">
-                    <MenuItem Header="模拟开始播放音乐" Click="OnPreviewMusicStart" />
-                    <MenuItem Header="模拟停止音乐" Click="OnPreviewMusicStop" />
-                    <MenuItem x:Name="BodyHitDebugMenuItem"
-                              Header="显示身体区域调试层"
-                              IsCheckable="True"
-                              Click="OnToggleBodyHitDebug" />
-                </MenuItem>
-                <Separator />
-                <MenuItem x:Name="ExitMenuItem" Header="退出桌宠" Click="OnExitClick" />
-            </ContextMenu>
-        </Grid.ContextMenu>
     </Grid>
 </Window>

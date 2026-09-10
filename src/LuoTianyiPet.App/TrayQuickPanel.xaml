@@ -229,12 +229,17 @@
         </Style>
     </Window.Resources>
 
-    <Border Margin="12"
+    <Border x:Name="PanelSurface"
+            Margin="12"
             Padding="16,14"
             Background="#FFFBFDFE"
             BorderBrush="#FFD8E8EF"
             BorderThickness="1"
-            CornerRadius="18">
+            CornerRadius="18"
+            RenderTransformOrigin="0.5,1">
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="PanelOpenTranslate" />
+        </Border.RenderTransform>
         <Border.Effect>
             <DropShadowEffect BlurRadius="24"
                               Color="#FF173F54"
