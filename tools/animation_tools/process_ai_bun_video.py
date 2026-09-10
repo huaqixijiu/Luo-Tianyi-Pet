@@ -20,7 +20,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 
-DEFAULT_FRAME_SIZE = 384
+DEFAULT_FRAME_SIZE = 410
 ATLAS_COLUMNS = 8
 FRAME_DURATION_MS = 42
 SMOOTHED_FRAME_DURATION_MS = 21
@@ -556,7 +556,7 @@ def main() -> None:
         "--frame-size",
         type=int,
         default=DEFAULT_FRAME_SIZE,
-        help="Square runtime frame size. 384 stays sharp up to the app's 200%% scale.",
+        help="Square runtime frame size. 410 matches the 205 DIP slot at the app's 200%% scale.",
     )
     parser.add_argument(
         "--motion-smoothing",

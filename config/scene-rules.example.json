@@ -678,13 +678,23 @@
     "returnToOriginalPosition": true,
     "startingSpeedDipsPerSecondAt1080p": 180,
     "maximumChaseSpeedDipsPerSecondAt1080p": 800,
-    "reachMaximumSpeedAfterSeconds": 5,
+    "reachMaximumSpeedAfterSeconds": 3.5,
     "returnSpeedDipsPerSecondAt1080p": 850,
     "returnUsesAcceleration": false,
     "speedScaleByLogicalDesktopDiagonal": true,
     "maximumDesktopSpeedScale": 2,
-    "eatClosingResumeFrame": 128,
-    "eatClosingDurationMilliseconds": 540,
+    "eatClosingResumeFrameByStyle": {
+      "bun-eating-original": 120,
+      "bun-eating-new": 112
+    },
+    "eatClosingPlaybackRate": 1.1,
+    "eatClosingDurationMillisecondsByStyle": {
+      "bun-eating-original": 791,
+      "bun-eating-new": 908
+    },
+    "animationAndWindowMotionUseDisplayRefreshClock": true,
+    "maximumWindowMotionElapsedPerRenderedFrameMilliseconds": 34,
+    "snapWindowPositionToPhysicalPixels": true,
     "newBunDuringReturn": "interrupt-return-and-resume-nearest-chase",
     "manualFeed": {
       "acceptedDropArea": "any visible character alpha overlapped by the bun footprint",

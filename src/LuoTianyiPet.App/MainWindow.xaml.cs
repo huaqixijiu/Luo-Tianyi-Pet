@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -48,11 +49,13 @@ public partial class MainWindow : Window
     private const double BunStartingSpeed = 180;
     private const double BunChaseMaximumSpeed = 800;
     private const double BunReturnSpeed = 850;
-    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(3.5);
     private static readonly TimeSpan BunRequestDragDuration = TimeSpan.FromSeconds(3);
-    private const int BunEatClosingStartFrame = 128;
+    private const int BunEatOriginalClosingStartFrame = 120;
+    private const int BunEatNewClosingStartFrame = 112;
     private const int BunEatLastFrame = 172;
-    private static readonly TimeSpan BunEatClosingDuration = TimeSpan.FromMilliseconds(540);
+    private const double BunEatClosingPlaybackRate = 1.1;
+    private static readonly TimeSpan BunMaximumRenderedStep = TimeSpan.FromMilliseconds(34);
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -104,7 +107,6 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timeSceneTimer;
     private readonly DispatcherTimer _genshinStatusTimer;
     private readonly DispatcherTimer _messageNotificationStatusTimer;
-    private readonly DispatcherTimer _bunChaseTimer;
     private readonly IAudioSessionProbe? _audioSessionProbe;
     private readonly IApplicationVolumeService? _applicationVolumeService;
     private readonly IMediaCommandSender _mediaCommandSender;
@@ -218,7 +220,7 @@ public partial class MainWindow : Window
     private BunTargetWindow? _activeBunTarget;
     private Point? _bunReturnPosition;
     private Guid? _bunChaseReactionToken;
-    private DateTimeOffset _bunLastMotionAt;
+    private long _bunLastMotionTimestamp;
     private TimeSpan _bunMotionStageElapsed;
     private DateTimeOffset _bunLastSafetyCheckAt;
     private bool _bunChaseActive;
@@ -226,6 +228,7 @@ public partial class MainWindow : Window
     private bool _bunEating;
     private bool _bunWaitingForManualFeed;
     private bool _bunRequestShown;
+    private bool _bunMotionRenderingSubscribed;
     private int _bunRequestPresentationGeneration;
     private bool _bodyReactionMirrorActive;
     private double _bunMotionSpeed = BunStartingSpeed;
@@ -441,11 +444,6 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(1),
         };
         _messageNotificationStatusTimer.Tick += OnMessageNotificationStatusTimerTick;
-        _bunChaseTimer = new DispatcherTimer(DispatcherPriority.Render)
-        {
-            Interval = TimeSpan.FromMilliseconds(16),
-        };
-        _bunChaseTimer.Tick += OnBunChaseTimerTick;
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
@@ -4472,9 +4470,8 @@ public partial class MainWindow : Window
         _bunMotionStageElapsed = TimeSpan.Zero;
         _bunReturnPosition ??= new Point(Left, Top);
         SelectNearestBun();
-        _bunLastMotionAt = now;
         PlayAnimation(runAnimation);
-        _bunChaseTimer.Start();
+        StartBunMotionLoop();
     }
 
     private async Task RetryBunChaseAsync()
@@ -4515,9 +4512,8 @@ public partial class MainWindow : Window
         SelectNearestBun();
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
-        _bunLastMotionAt = DateTimeOffset.Now;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
-        _bunChaseTimer.Start();
+        StartBunMotionLoop();
         _logger.Info(
             "file_treat.return_interrupted_for_new_bun",
             "A newly queued bun interrupted the return trip and resumed the chase.");
@@ -4530,15 +4526,37 @@ public partial class MainWindow : Window
         SelectNearestBun();
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
-        _bunLastMotionAt = DateTimeOffset.Now;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
-        _bunChaseTimer.Start();
+        StartBunMotionLoop();
         _logger.Info(
             "file_treat.request_wait_interrupted_for_new_bun",
             "A newly queued bun resumed ordinary chase after the one-time request pose.");
     }
 
-    private void OnBunChaseTimerTick(object? sender, EventArgs e)
+    private void StartBunMotionLoop()
+    {
+        _bunLastMotionTimestamp = Stopwatch.GetTimestamp();
+        if (_bunMotionRenderingSubscribed)
+        {
+            return;
+        }
+
+        CompositionTarget.Rendering += OnBunChaseRendering;
+        _bunMotionRenderingSubscribed = true;
+    }
+
+    private void StopBunMotionLoop()
+    {
+        if (_bunMotionRenderingSubscribed)
+        {
+            CompositionTarget.Rendering -= OnBunChaseRendering;
+            _bunMotionRenderingSubscribed = false;
+        }
+
+        _bunLastMotionTimestamp = 0;
+    }
+
+    private void OnBunChaseRendering(object? sender, EventArgs e)
     {
         if (!_bunChaseActive || _bunEating)
         {
@@ -4559,9 +4577,19 @@ public partial class MainWindow : Window
             }
         }
 
-        TimeSpan elapsed = now - _bunLastMotionAt;
-        _bunLastMotionAt = now;
+        long currentTimestamp = Stopwatch.GetTimestamp();
+        if (_bunLastMotionTimestamp == 0)
+        {
+            _bunLastMotionTimestamp = currentTimestamp;
+            return;
+        }
+
+        TimeSpan elapsed = Stopwatch.GetElapsedTime(_bunLastMotionTimestamp, currentTimestamp);
+        _bunLastMotionTimestamp = currentTimestamp;
         _bunMotionStageElapsed += elapsed;
+        TimeSpan renderedElapsed = elapsed <= BunMaximumRenderedStep
+            ? elapsed
+            : BunMaximumRenderedStep;
         if (_bunReturning)
         {
             if (_bunReturnPosition is not Point returnPosition)
@@ -4576,11 +4604,10 @@ public partial class MainWindow : Window
                 current,
                 new PointerPoint(returnPosition.X, returnPosition.Y),
                 _bunMotionSpeed,
-                elapsed,
+                renderedElapsed,
                 3);
             PetDirectionTransform.ScaleX = returnPosition.X < Left ? -1 : 1;
-            Left = step.Position.X;
-            Top = step.Position.Y;
+            SetBunWindowPosition(step.Position.X, step.Position.Y);
             if (step.Arrived)
             {
                 FinishBunChase();
@@ -4621,26 +4648,35 @@ public partial class MainWindow : Window
             new PointerPoint(petCentre.X, petCentre.Y),
             new PointerPoint(targetCentre.X, targetCentre.Y),
             _bunMotionSpeed,
-            elapsed,
+            renderedElapsed,
             42);
         double moveX = chase.Position.X - petCentre.X;
         double moveY = chase.Position.Y - petCentre.Y;
         PetDirectionTransform.ScaleX = targetCentre.X < petCentre.X ? -1 : 1;
-        Left += moveX;
-        Top += moveY;
+        SetBunWindowPosition(Left + moveX, Top + moveY);
         UpdateAccessoryLayoutForCurrentPosition();
         if (chase.Arrived && !_activeBunTarget.IsBeingDragged)
         {
-            _bunChaseTimer.Stop();
+            StopBunMotionLoop();
             _ = EatActiveBunAsync(_activeBunTarget, manualFeed: false);
         }
     }
 
+    private void SetBunWindowPosition(double left, double top)
+    {
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        Left = Math.Round(left * dpi.DpiScaleX) / dpi.DpiScaleX;
+        Top = Math.Round(top * dpi.DpiScaleY) / dpi.DpiScaleY;
+    }
+
     private void ShowBunRequestAndWait()
     {
-        _bunChaseTimer.Stop();
+        StopBunMotionLoop();
         _bunWaitingForManualFeed = true;
         _bunRequestShown = true;
+        // The request animation contains readable text, so it must never inherit
+        // the horizontal chase mirror used while following a bun to the left.
+        PetDirectionTransform.ScaleX = 1;
         int generation = ++_bunRequestPresentationGeneration;
         PlayAnimation(
             BunRequestAnimation,
@@ -4688,7 +4724,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _bunChaseTimer.Stop();
+        StopBunMotionLoop();
         _bunWaitingForManualFeed = false;
         _bunRequestPresentationGeneration++;
         _activeBunTarget = bun;
@@ -4749,12 +4785,19 @@ public partial class MainWindow : Window
         bun.Close();
         _bunTargets.Remove(bun);
         _activeBunTarget = null;
+        int closingStartFrame = eatAnimation == "ai-bun-v2-eat"
+            ? BunEatNewClosingStartFrame
+            : BunEatOriginalClosingStartFrame;
         PlayAnimationRange(
             eatAnimation,
-            BunEatClosingStartFrame,
+            closingStartFrame,
             BunEatLastFrame,
-            playbackRate: 1.35);
-        await Task.Delay(BunEatClosingDuration);
+            playbackRate: BunEatClosingPlaybackRate);
+        await Task.Delay(ResolveAnimationRangeDuration(
+            eatAnimation,
+            closingStartFrame,
+            BunEatLastFrame,
+            BunEatClosingPlaybackRate));
         _bunEating = false;
         if (_bunTargets.Count > 0)
         {
@@ -4766,8 +4809,7 @@ public partial class MainWindow : Window
             PlayAnimation(runAnimation);
             _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
             _bunMotionStageElapsed = TimeSpan.Zero;
-            _bunLastMotionAt = DateTimeOffset.Now;
-            _bunChaseTimer.Start();
+            StartBunMotionLoop();
             return;
         }
 
@@ -4783,8 +4825,31 @@ public partial class MainWindow : Window
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
         PlayAnimation(GetSelectedBunAnimations().RunAnimation);
-        _bunLastMotionAt = DateTimeOffset.Now;
-        _bunChaseTimer.Start();
+        StartBunMotionLoop();
+    }
+
+    private TimeSpan ResolveAnimationRangeDuration(
+        string animationId,
+        int startFrameIndex,
+        int endFrameIndex,
+        double playbackRate)
+    {
+        if (_animationCatalog is null || playbackRate <= 0)
+        {
+            return TimeSpan.FromMilliseconds(900);
+        }
+
+        AnimationAssetManifest manifest = _animationCatalog.GetRequired(animationId);
+        int safeStart = Math.Clamp(startFrameIndex, 0, manifest.FrameDurationsMilliseconds.Count - 1);
+        int safeEnd = Math.Clamp(endFrameIndex, safeStart, manifest.FrameDurationsMilliseconds.Count - 1);
+        long durationMilliseconds = 0;
+        for (int index = safeStart; index <= safeEnd; index++)
+        {
+            durationMilliseconds += manifest.FrameDurationsMilliseconds[index];
+        }
+
+        return TimeSpan.FromMilliseconds(
+            Math.Ceiling(durationMilliseconds / playbackRate) + 20);
     }
 
     private (string RunAnimation, string EatAnimation) GetSelectedBunAnimations() =>
@@ -4816,7 +4881,7 @@ public partial class MainWindow : Window
 
     private void FinishBunChase()
     {
-        _bunChaseTimer.Stop();
+        StopBunMotionLoop();
         _bunReturning = false;
         _bunEating = false;
         _bunWaitingForManualFeed = false;
@@ -4836,7 +4901,7 @@ public partial class MainWindow : Window
 
     private void CancelBunChase(bool restorePosition, bool restoreContinuousAnimation)
     {
-        _bunChaseTimer.Stop();
+        StopBunMotionLoop();
         foreach (BunTargetWindow bun in _bunTargets.ToArray())
         {
             bun.DragReleased -= OnBunDragReleased;
@@ -5657,8 +5722,7 @@ public partial class MainWindow : Window
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer.Stop();
         _messageNotificationStatusTimer.Tick -= OnMessageNotificationStatusTimerTick;
-        _bunChaseTimer.Stop();
-        _bunChaseTimer.Tick -= OnBunChaseTimerTick;
+        StopBunMotionLoop();
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();

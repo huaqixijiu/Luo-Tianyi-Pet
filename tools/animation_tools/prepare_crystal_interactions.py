@@ -126,8 +126,11 @@ ACTIONS = (
 IDLE_DISPLAY_WIDTH = 220
 IDLE_DISPLAY_HEIGHT = 238
 SOURCE_ACTION_DISPLAY_SIZE = 244
-RUNTIME_FRAME_WIDTH = 360
-RUNTIME_FRAME_HEIGHT = 390
+# Match the 220x238 DIP slot at the app's supported 200% pet scale. The 720 px
+# masters still have enough source detail for this downsample, so the enlarged
+# model no longer has to upscale a smaller intermediate atlas at runtime.
+RUNTIME_FRAME_WIDTH = 440
+RUNTIME_FRAME_HEIGHT = 476
 PREVIEW_FRAME_SIZE = (240, 260)
 IN_PLACE_TRANSITION_FRAMES = 6
 

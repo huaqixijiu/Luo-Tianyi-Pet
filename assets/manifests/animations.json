@@ -208,9 +208,9 @@
       "sourcePath": "assets/animations/processed/心律共鸣_膨胀_无文字.png",
       "sourceSha256": "e7089340fa5db13a2e698d39f95c89e8fffff1ca06ff30c705aeb1ad45c05920",
       "atlasPath": "animations/runtime/resonance-expand.atlas.png",
-      "atlasSha256": "ea0d05b61c74b949b4937fc63c9e0e23debc4f29b71ab3492e8e4887e183d162",
-      "frameWidth": 162,
-      "frameHeight": 175,
+      "atlasSha256": "10254aecc0bf9bca6aa75b5c6714857d33ad2441e0e57b51c6cd475825a0f652",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -231,10 +231,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        11,
-        38,
-        155,
-        171
+        23,
+        97,
+        427,
+        472
       ]
     },
     {
@@ -605,9 +605,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_啾啾.gif",
       "sourceSha256": "11bcec4e817e6d76d74d92f6134294a3cbaa9b0d28d0306df7b33963198ee09a",
       "atlasPath": "animations/runtime/resonance-kiss.atlas.png",
-      "atlasSha256": "0f5312abd86b53e546815f134eb64bf51a569251cc3b4086863b1c1948b1d416",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "4763272275f054736c6da27da3bc1087de901c68fc48ec347f85a3b632688ac4",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -630,8 +630,8 @@
       "alphaBounds": [
         0,
         0,
-        162,
-        162
+        360,
+        360
       ]
     },
     {
@@ -639,9 +639,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_心软软.gif",
       "sourceSha256": "22f54407c3a1672c34af9182cdac3c7e730519231849153f6badc623170a9b41",
       "atlasPath": "animations/runtime/resonance-soft-heart.atlas.png",
-      "atlasSha256": "9455e0724ec4705831b8f6ab4f86e6c5a9e4a832beedb47e6fa38ee892027054",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "ee3582e45b2c0033e88c66ca0ee600c8cd8917976ac4190ea513111b7d8ea71a",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -664,8 +664,8 @@
       "alphaBounds": [
         0,
         0,
-        162,
-        162
+        360,
+        360
       ]
     },
     {
@@ -673,9 +673,9 @@
       "sourcePath": "候选素材_官方/07_新添加_官方动态摸头候选/天依游学记·国乐季_摸摸.gif",
       "sourceSha256": "5df39ec19050fbddd9d7461d1a1dcf3d6fd330fe114eb08568d6c46205b62f75",
       "atlasPath": "animations/runtime/guoyue-headpat.atlas.png",
-      "atlasSha256": "10ff8e0d9c93d6640818f74bb6f81ce8909cd192246bc14584565b9114807814",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "df8dc31957e4fa8240acefb097a40e38824e54b1fc21b4390504299349f112ed",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -698,8 +698,8 @@
       "alphaBounds": [
         0,
         0,
-        162,
-        162
+        360,
+        360
       ]
     },
     {
@@ -707,9 +707,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_击掌.png",
       "sourceSha256": "8f2d468d0e2f02943af5cfd9d72212e802554414d69bb63d354fc1905962c3d3",
       "atlasPath": "animations/runtime/tenth-anniversary-high-five-bounce.atlas.png",
-      "atlasSha256": "b4031075a77bf89e62e07b2cf404647f0c2409d5a436a815778b176f76e13f9a",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "e2051b8bf00899cbfba2f9f73cc32c64c15fe18d4a00db821acacfd5a5c0ba53",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 1,
       "rows": 1,
       "frameDurationsMilliseconds": [
@@ -721,10 +721,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        8,
-        27,
-        150,
-        162
+        13,
+        55,
+        339,
+        360
       ]
     },
     {
@@ -732,9 +732,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_重罪.gif",
       "sourceSha256": "271024e2afa52ac3c1d04ddca95bd839967c175928760cd03e725e75991148ac",
       "atlasPath": "animations/runtime/resonance-guilty.atlas.png",
-      "atlasSha256": "2e80db99fa49952d3da051287f01fea42e53bdb3b806baa2224b6655659f5813",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "ae17ddbb46a65959c1aecb1aa08f4c3947ac91d4504f1668f40e106e7c4a4de4",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -756,9 +756,9 @@
       "anchorY": 1.0,
       "alphaBounds": [
         0,
-        8,
-        162,
-        162
+        13,
+        360,
+        360
       ]
     },
     {
@@ -766,9 +766,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_黑化.gif",
       "sourceSha256": "c47f2725e403cf730e76b929a01f9a5e6968a972ddad6fd9b9e08143da13ba33",
       "atlasPath": "animations/runtime/resonance-dark.atlas.png",
-      "atlasSha256": "be0f80b92c136066e026136559679034f29c67868566d8d589377806cedfc8ff",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "1684469c293b4b6cf205644bfa4cdd44e104d6b544a29338de503f536652c176",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -789,10 +789,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        1,
         0,
-        162,
-        162
+        0,
+        360,
+        360
       ]
     },
     {
@@ -800,9 +800,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_糟了.png",
       "sourceSha256": "571955cce572f884d1c4f3a8037916688bc55ddb2b08614bd1b5e15cf8a992ff",
       "atlasPath": "animations/runtime/tenth-anniversary-oops-shake.atlas.png",
-      "atlasSha256": "cda3c907716de03f7f66dc741ca5c09677483aa9d401df738cbab5241dc05baa",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "58fb1d11cbc67d1548e200c26fe05da48d32b8a851cdce8a1b46b748f22644ed",
+      "frameWidth": 360,
+      "frameHeight": 360,
       "columns": 1,
       "rows": 1,
       "frameDurationsMilliseconds": [
@@ -814,10 +814,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        5,
-        18,
-        151,
-        162
+        6,
+        35,
+        341,
+        360
       ]
     },
     {
@@ -1156,9 +1156,9 @@
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_可爱.gif",
       "sourceSha256": "9c7cbdbb50637cf698c2b5d67182e0ca20bd938cf9cf4ebb982ebe2da0e8a991",
       "atlasPath": "animations/runtime/resonance-cute-bun-request.atlas.png",
-      "atlasSha256": "24fcaee9eae635c78bc7676ba133ac0d404d6ff5f63b6df9f2dcee5f49b7cc55",
-      "frameWidth": 162,
-      "frameHeight": 162,
+      "atlasSha256": "dbde82eee11f993417d3935324707494a86f7ef41814df111ea914c8e32c6e85",
+      "frameWidth": 410,
+      "frameHeight": 410,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1181,8 +1181,8 @@
       "alphaBounds": [
         0,
         0,
-        162,
-        162
+        410,
+        410
       ]
     },
     {
@@ -1458,9 +1458,9 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/06_斯到普.gif",
       "sourceSha256": "19324c7667bfbc95d62061dcb8660f756442cd7655fd14fbf7937b9cde262317",
       "atlasPath": "animations/runtime/twelfth-anniversary-stop.atlas.png",
-      "atlasSha256": "8d339c4c2ec06173b393877ed03c42e1359bfb9157eabb4bc09864330e1c64b2",
-      "frameWidth": 240,
-      "frameHeight": 240,
+      "atlasSha256": "8079e118a5c7565a9b36d5392780c5ab2c49aa06dd4f2d06f49a3ea9976a9a61",
+      "frameWidth": 380,
+      "frameHeight": 380,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1484,10 +1484,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        2,
         3,
-        239,
-        239
+        6,
+        378,
+        378
       ]
     },
     {
@@ -1495,9 +1495,9 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/08_充电.gif",
       "sourceSha256": "29b7698a2959dbd869de0e9dd76c09d8371ab0c97d77d9f1f732617d22b314d8",
       "atlasPath": "animations/runtime/twelfth-anniversary-charge.atlas.png",
-      "atlasSha256": "1866c61b68a135a7843a2fdded296ef63f21cee62fd9459e864012663e5ce190",
-      "frameWidth": 240,
-      "frameHeight": 240,
+      "atlasSha256": "452c05922d2beeb48dc8c73a3c5483bb7f0026068382d5ca5c14cfc370a26a22",
+      "frameWidth": 380,
+      "frameHeight": 380,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1523,10 +1523,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        15,
-        2,
-        234,
-        238
+        25,
+        3,
+        370,
+        377
       ]
     },
     {
@@ -1534,9 +1534,9 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/10_哭唧唧.gif",
       "sourceSha256": "6d48c09ad19d6605190ad303c32e00c76363f1e4876c405172879bd6d316ffd2",
       "atlasPath": "animations/runtime/twelfth-anniversary-cry.atlas.png",
-      "atlasSha256": "ad8bec39f0ed24867cc877dccff6b74224c27053a55699c73ccbc74c74df6805",
-      "frameWidth": 240,
-      "frameHeight": 240,
+      "atlasSha256": "6975a4578b82a875932e0cb0be08da6a8107ccd1d7191ed74e6bc5356a42ad82",
+      "frameWidth": 380,
+      "frameHeight": 380,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1561,10 +1561,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        1,
-        1,
-        239,
-        239
+        2,
+        2,
+        378,
+        378
       ]
     },
     {
@@ -1572,9 +1572,9 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/12_在吗.gif",
       "sourceSha256": "8d628a34d99ee500aa8585ecb4e5cccbd4cc88374cf35c4043348e1ff064d060",
       "atlasPath": "animations/runtime/twelfth-anniversary-hug.atlas.png",
-      "atlasSha256": "cfbe76498e6d587a391a880b0066b76c32d8a1cd71802adc6efaee47d47b6766",
-      "frameWidth": 240,
-      "frameHeight": 240,
+      "atlasSha256": "d8119b0456d470403853f560d12919a2b1a0f2ead4d2f735d58fed96acc5f6df",
+      "frameWidth": 380,
+      "frameHeight": 380,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1599,10 +1599,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        2,
-        2,
-        235,
-        238
+        3,
+        3,
+        372,
+        377
       ]
     },
     {
@@ -1610,9 +1610,9 @@
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/13_贴贴.gif",
       "sourceSha256": "bbfed5ee5018f9d430484a30ffb56aff62ef92e3b3006cf38e67b4461c2ca701",
       "atlasPath": "animations/runtime/twelfth-anniversary-stick-together.atlas.png",
-      "atlasSha256": "e415e8b970dbd7013552bb5bf43516e8a12362a5a68498ef94a31aac1697b629",
-      "frameWidth": 240,
-      "frameHeight": 240,
+      "atlasSha256": "e9a89a945675a0f7142517e734715f3ff534eb81bc65fab3213e9afdd12480fe",
+      "frameWidth": 380,
+      "frameHeight": 380,
       "columns": 8,
       "rows": 2,
       "frameDurationsMilliseconds": [
@@ -1637,10 +1637,10 @@
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        2,
-        2,
-        238,
-        238
+        3,
+        3,
+        377,
+        377
       ]
     },
     {
@@ -1711,9 +1711,9 @@
       "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_手工抠像PNG",
       "sourceSha256": "302e3c7de41b90e825ea3ff7a136c03ef4800a4155af0ffae0e368c930abc19e",
       "atlasPath": "animations/runtime/ai-bun-chase-run.atlas.png",
-      "atlasSha256": "661ed4d35c9c6e4069ebd504a3d47e04695e3830aea2f0cbc0eef5b17fea659a",
-      "frameWidth": 384,
-      "frameHeight": 384,
+      "atlasSha256": "8185033e08b3815783ff7654e0a85cb22304784b7de4a59df33ce27fc468b28e",
+      "frameWidth": 410,
+      "frameHeight": 410,
       "columns": 8,
       "rows": 8,
       "frameDurationsMilliseconds": [
@@ -1786,8 +1786,8 @@
       "alphaBounds": [
         0,
         0,
-        384,
-        384
+        410,
+        410
       ]
     },
     {
@@ -1795,9 +1795,9 @@
       "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/源素材_吃包子_手工抠像PNG",
       "sourceSha256": "302e3c7de41b90e825ea3ff7a136c03ef4800a4155af0ffae0e368c930abc19e",
       "atlasPath": "animations/runtime/ai-bun-eat.atlas.png",
-      "atlasSha256": "ed98b6928631385f2bf6e19d0b48a2f16a90fb9630547e7b7600cb8710558d2d",
-      "frameWidth": 384,
-      "frameHeight": 384,
+      "atlasSha256": "0080913e758b0922e716d64753e1bd836be735b54e62e80217e6bc5d67031062",
+      "frameWidth": 410,
+      "frameHeight": 410,
       "columns": 8,
       "rows": 22,
       "frameDurationsMilliseconds": [
@@ -1983,8 +1983,8 @@
       "alphaBounds": [
         0,
         0,
-        384,
-        384
+        410,
+        410
       ]
     },
     {
@@ -1992,9 +1992,9 @@
       "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/新版/7e845b0a115897207a7fb4cbb5859654",
       "sourceSha256": "fb1e9bc49c0f0157e1b8e0ffd74ec61c8c43bf7e8f962ce7121d971deecab038",
       "atlasPath": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-      "atlasSha256": "fa26d8f69f8faac534a28352f60d857fedcf7cb01c63cdc72e5e36fb3f0a8fb9",
-      "frameWidth": 384,
-      "frameHeight": 384,
+      "atlasSha256": "bf830a592b09dc8f2aaf4444683e25ba126d17babdf574d645578c0613b1dd75",
+      "frameWidth": 410,
+      "frameHeight": 410,
       "columns": 8,
       "rows": 8,
       "frameDurationsMilliseconds": [
@@ -2067,8 +2067,8 @@
       "alphaBounds": [
         0,
         0,
-        384,
-        384
+        410,
+        410
       ]
     },
     {
@@ -2076,9 +2076,9 @@
       "sourcePath": "候选素材_官方/11_新添加_AI生成文件吞食动画/新版/7e845b0a115897207a7fb4cbb5859654",
       "sourceSha256": "fb1e9bc49c0f0157e1b8e0ffd74ec61c8c43bf7e8f962ce7121d971deecab038",
       "atlasPath": "animations/runtime/ai-bun-v2-eat.atlas.png",
-      "atlasSha256": "72838cdd00ff25163734e9bfef602fb33f2cb04b9497a6c345b9a0ee5fd60b2a",
-      "frameWidth": 384,
-      "frameHeight": 384,
+      "atlasSha256": "1442fb1a05acbea236a1bc0125e569346932e78cacbb3ec072eb38e476b3cfa2",
+      "frameWidth": 410,
+      "frameHeight": 410,
       "columns": 8,
       "rows": 22,
       "frameDurationsMilliseconds": [
@@ -2264,8 +2264,8 @@
       "alphaBounds": [
         0,
         0,
-        384,
-        384
+        410,
+        410
       ]
     },
     {
@@ -2273,9 +2273,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捂嘴/1",
       "sourceSha256": "ee57eee434e7ac9a9f7bce050ce50dc1435021422b4a6b1828592b251bdf0b11",
       "atlasPath": "animations/runtime/crystal-cover-mouth.atlas.png",
-      "atlasSha256": "1ea10dc5f392690d1de135881a08f4879e51251e334b2ab983b3509045d10171",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "4a75ea0160a6fa8343743d53445351b76bddcf10e1963cbc0cbe562e05cbdeea",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -2433,8 +2433,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -2442,9 +2442,9 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/新比心",
       "sourceSha256": "967203b66251405ed537a5fa52188dd02e1eed3a9720670be696ca144011f74e",
       "atlasPath": "animations/runtime/crystal-hand-heart.atlas.png",
-      "atlasSha256": "724f68fe70d6ac7e15d5bb1d4f78c47b914bac7322892052aed75339b3d7a175",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "363e76db151095440c8b85a22259eff33f7d7a4b13c6faf349794e20fe1eb089",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 16,
       "frameDurationsMilliseconds": [
@@ -2578,8 +2578,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -2587,9 +2587,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/摸腿脚/3",
       "sourceSha256": "717507867662655d5654fa2c3719dc7622e1da3000638595bfbf52219c7b1d13",
       "atlasPath": "animations/runtime/crystal-touch-leg.atlas.png",
-      "atlasSha256": "cc8ccbadb7344fed1313cdfa5e33e8909bde8d5f8d5254bc2ee3a3b3acf218a5",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "ef5bf459938ad334d318831030a41652972c880fcd4d911a0b67e46c4d8a4462",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -2747,8 +2747,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -2756,9 +2756,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捂肚子/4",
       "sourceSha256": "cca37a04c62d4b479bb86daccae3ae7d3005840539e197788231b8faaf0e30c3",
       "atlasPath": "animations/runtime/crystal-hold-belly.atlas.png",
-      "atlasSha256": "8299b1d0e6e77e70c77561e9654801d03d0ae4166f4e73c31ec493f880e9d0d5",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "8aafad5ded3b00e6337264800d355e074d5d320671dda7a89a1a8103246efb4e",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -2916,8 +2916,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -2925,9 +2925,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/摸摸头/5",
       "sourceSha256": "f1a893eb6e59108308f0c3fa114ff0b6093c63a7a872a439cb59aa879b9187bf",
       "atlasPath": "animations/runtime/crystal-headpat.atlas.png",
-      "atlasSha256": "595766cbbc356cdd6bfa118b28258fb827823fae59bb14c417160ccd57b9bd81",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "b2a6277ce6c1c14fea86a6655967e72ad16279f38fed4f41be070e9b3f289f8a",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -3085,8 +3085,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -3094,9 +3094,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/遮眼睛/6",
       "sourceSha256": "a96d471f6a90e97387a89c4aff1ab79b2a4d167d8ba7ec760f09b261c912c23e",
       "atlasPath": "animations/runtime/crystal-cover-eyes.atlas.png",
-      "atlasSha256": "78c7b4336cfed4723758f75b7f0c5d684b904f0630e58d74132645997a608518",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "37e3d36126c038bd97f5e3e205c63002bdf4cf5c18899f2063bf64fb249d8a3b",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -3254,8 +3254,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -3263,9 +3263,9 @@
       "sourcePath": "候选素材_官方/区域标注/第二模型/动作动画png/捏脸/7",
       "sourceSha256": "e52ce20e860699184d42913c1aa79e363a1a33c82fc9a39a941b996ae207ea48",
       "atlasPath": "animations/runtime/crystal-pinch-cheeks.atlas.png",
-      "atlasSha256": "6e188b6ad02d559a255d518c980103bda1f483e6d19fc4f6fa6242238311af6b",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "c179f685920ce651c27718db3b3702632a47fd3d58306a4d47ac25e19ad77030",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -3423,8 +3423,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -3432,9 +3432,9 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/摸胸",
       "sourceSha256": "2051f637ccceb18c5e1cd6e9ee304c84d740fc1c36842e49a1094db038f2ad28",
       "atlasPath": "animations/runtime/crystal-touch-chest.atlas.png",
-      "atlasSha256": "3883bee93ac36ff32373f272a42e6e364698f5ac13855efc85ea165e6e64105a",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "9e71441f684ee6962ccef41cf3a966727e1a07101ab45f6ca688d91bfeedc5ca",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -3592,8 +3592,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -3601,9 +3601,9 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/摸裙边",
       "sourceSha256": "57c158e510d034f3da176e4300a5fc5918e87711fb47e86a633239d58176aad7",
       "atlasPath": "animations/runtime/crystal-touch-skirt.atlas.png",
-      "atlasSha256": "0f5cd1186dcf8d9d2903744b844094f972f8b3b60af353bad8951b350e69222c",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "973f6db2c00a0e78b71fa7f6051b4afa1a4068600f2761ae7ec1c97147ac1d17",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 19,
       "frameDurationsMilliseconds": [
@@ -3761,8 +3761,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     },
     {
@@ -3770,9 +3770,9 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/打哈欠",
       "sourceSha256": "619a7b7fad1e9d38f789a1817573e801e178bfe090d47a05d360feece12b69d9",
       "atlasPath": "animations/runtime/crystal-yawn.atlas.png",
-      "atlasSha256": "c58153cf1deaddef66bb05d2afa43e4cee89926e89ec667b5eca781f0e7eb844",
-      "frameWidth": 360,
-      "frameHeight": 390,
+      "atlasSha256": "ce4bd4a97e47250dcbe3f3a4545236fa2ebc38e9a8d5bc72c1061bd64768f10f",
+      "frameWidth": 440,
+      "frameHeight": 476,
       "columns": 8,
       "rows": 22,
       "frameDurationsMilliseconds": [
@@ -3954,8 +3954,8 @@
       "alphaBounds": [
         0,
         0,
-        360,
-        390
+        440,
+        476
       ]
     }
   ]

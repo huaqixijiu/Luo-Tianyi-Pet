@@ -10,8 +10,8 @@
     "retouch": "none; preserve the user-approved mouth and tooth"
   },
   "normalizedFrameSize": [
-    384,
-    384
+    410,
+    410
   ],
   "temporalProcessing": {
     "mode": "flow60",
@@ -26,77 +26,77 @@
     "frameCount": 60,
     "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-    "atlasSha256": "fa26d8f69f8faac534a28352f60d857fedcf7cb01c63cdc72e5e36fb3f0a8fb9",
+    "atlasSha256": "bf830a592b09dc8f2aaf4444683e25ba126d17babdf574d645578c0613b1dd75",
     "columns": 8,
     "rows": 8,
     "stabilization": {
       "mode": "upper-body-alpha-centroid-translation",
       "focusBottomFraction": 0.64,
       "targetCentroid": [
-        196.7228,
-        143.6852
+        210.8418,
+        152.8415
       ],
-      "maximumAbsoluteOffsetPixels": 8.5621,
+      "maximumAbsoluteOffsetPixels": 9.1551,
       "offsetsPixels": [
         [
-          3.7632,
-          1.8217
+          4.1314,
+          1.8799
         ],
         [
-          8.5495,
-          -1.2034
+          9.1551,
+          -1.3057
         ],
         [
-          8.421,
-          -1.5968
+          9.0143,
+          -1.729
         ],
         [
-          8.5621,
-          -3.0552
+          9.1505,
+          -3.2843
         ],
         [
-          7.0986,
-          -3.2075
+          7.5824,
+          -3.45
         ],
         [
-          0.8141,
-          2.7177
+          0.8711,
+          2.8834
         ],
         [
-          0.7972,
-          2.7164
+          0.8518,
+          2.8827
         ],
         [
           0.0,
-          2.4274
+          2.5698
         ],
         [
-          -0.4883,
-          0.9548
+          -0.5211,
+          0.986
         ],
         [
-          -2.2628,
-          -5.4008
+          -2.428,
+          -5.7977
         ],
         [
-          -2.6284,
-          -5.3402
+          -2.8182,
+          -5.7315
         ],
         [
-          -4.0757,
-          -4.6587
+          -4.3658,
+          -4.9936
         ],
         [
-          -6.0901,
+          -6.4875,
           0.0
         ],
         [
-          -6.2074,
-          2.0565
+          -6.579,
+          2.2032
         ],
         [
-          -6.2747,
-          1.947
+          -6.6502,
+          2.0859
         ]
       ],
       "premultipliedRgbaWarp": true
@@ -110,7 +110,7 @@
     "frameCount": 173,
     "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-v2-eat.atlas.png",
-    "atlasSha256": "72838cdd00ff25163734e9bfef602fb33f2cb04b9497a6c345b9a0ee5fd60b2a",
+    "atlasSha256": "1442fb1a05acbea236a1bc0125e569346932e78cacbb3ec072eb38e476b3cfa2",
     "columns": 8,
     "rows": 22
   },
@@ -152,7 +152,7 @@
   ],
   "pickerPreview": {
     "output": "候选素材_官方/11_新添加_AI生成文件吞食动画/新版/预览_吃包子_新版.webp",
-    "outputSha256": "b322bb60078e9e2463a62b1e0661bf8010468df9b15b227f9f6d8d8e426eec75",
+    "outputSha256": "902c7147ca61d1cd8c1e24f40f9ac1aad2930b590598bd8c0be234655c6021b5",
     "frameCount": 121,
     "frameDurationMilliseconds": 42
   }

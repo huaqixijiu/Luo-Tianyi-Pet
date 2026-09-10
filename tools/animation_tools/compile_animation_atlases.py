@@ -9,7 +9,7 @@ import math
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageSequence
+from PIL import Image, ImageFilter, ImageSequence
 
 
 def sha256(path: Path) -> str:
@@ -55,6 +55,23 @@ def read_frames(source: Path, default_duration: int) -> tuple[list[Image.Image],
     return frames, durations
 
 
+def resize_premultiplied(
+    frame: Image.Image,
+    size: tuple[int, int],
+    sharpen_percent: int = 0,
+) -> Image.Image:
+    resized = frame.convert("RGBa").resize(size, Image.Resampling.LANCZOS).convert("RGBA")
+    if sharpen_percent <= 0:
+        return resized
+
+    alpha = resized.getchannel("A")
+    sharpened = resized.convert("RGB").filter(
+        ImageFilter.UnsharpMask(radius=0.8, percent=sharpen_percent, threshold=2)
+    )
+    sharpened.putalpha(alpha)
+    return sharpened
+
+
 def union_alpha_bounds(frames: list[Image.Image]) -> list[int]:
     left = frames[0].width
     top = frames[0].height
@@ -92,7 +109,7 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
     resize_height = int(entry.get("resizeHeight", 0))
     if resize_width > 0 and resize_height > 0:
         frames = [
-            frame.resize((resize_width, resize_height), Image.Resampling.LANCZOS)
+            resize_premultiplied(frame, (resize_width, resize_height))
             for frame in frames
         ]
     if any(frame.size != frames[0].size for frame in frames):
@@ -141,6 +158,23 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
             canvas.alpha_composite(frame, (offset_x, offset_y))
             padded_frames.append(canvas)
         frames = padded_frames
+
+    minimum_density = float(entry.get("minimumPixelsPerDisplayDip", 0))
+    if not math.isfinite(minimum_density) or minimum_density < 0:
+        raise ValueError(f"Invalid minimumPixelsPerDisplayDip for {entry['id']}")
+    if minimum_density > 0:
+        target_size = (
+            math.ceil(int(entry["displayWidth"]) * minimum_density),
+            math.ceil(int(entry["displayHeight"]) * minimum_density),
+        )
+        if frames[0].width < target_size[0] or frames[0].height < target_size[1]:
+            sharpen_percent = int(entry.get("upscaleSharpenPercent", 0))
+            if sharpen_percent < 0 or sharpen_percent > 200:
+                raise ValueError(f"Invalid upscaleSharpenPercent for {entry['id']}")
+            frames = [
+                resize_premultiplied(frame, target_size, sharpen_percent)
+                for frame in frames
+            ]
 
     columns = min(maximum_columns, len(frames))
     rows = math.ceil(len(frames) / columns)

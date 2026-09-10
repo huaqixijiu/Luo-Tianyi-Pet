@@ -121,10 +121,10 @@ public sealed class BunChasePlannerTests
 
     [Theory]
     [InlineData(0, 180)]
-    [InlineData(2.5, 490)]
-    [InlineData(5, 800)]
+    [InlineData(1.75, 490)]
+    [InlineData(3.5, 800)]
     [InlineData(10, 800)]
-    public void ResolveSpeedTowardMaximum_ReachesExplicitCapAtFiveSeconds(
+    public void ResolveSpeedTowardMaximum_ReachesExplicitCapAtThreePointFiveSeconds(
         double elapsedSeconds,
         double expectedSpeed)
     {
@@ -132,7 +132,7 @@ public sealed class BunChasePlannerTests
             180,
             800,
             TimeSpan.FromSeconds(elapsedSeconds),
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(3.5));
 
         Assert.Equal(expectedSpeed, speed, 3);
     }
@@ -167,9 +167,9 @@ public sealed class BunChasePlannerTests
             diagonal,
             180 * scale,
             800 * scale,
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(3.5));
 
-        Assert.InRange(duration.TotalSeconds, 4.68, 4.69);
+        Assert.InRange(duration.TotalSeconds, 4.10, 4.12);
     }
 
     [Fact]
@@ -184,10 +184,10 @@ public sealed class BunChasePlannerTests
             Math.Sqrt(1920 * 1920 + 1080 * 1080),
             180 * scale,
             800 * scale,
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(3.5));
 
         Assert.Equal(1, scale);
-        Assert.InRange(duration.TotalSeconds, 4.68, 4.69);
+        Assert.InRange(duration.TotalSeconds, 4.10, 4.12);
     }
 
     [Theory]
