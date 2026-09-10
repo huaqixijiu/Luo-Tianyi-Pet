@@ -11,7 +11,6 @@ import argparse
 import bisect
 import hashlib
 import json
-import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -133,6 +132,7 @@ RUNTIME_FRAME_WIDTH = 440
 RUNTIME_FRAME_HEIGHT = 476
 PREVIEW_FRAME_SIZE = (240, 260)
 IN_PLACE_TRANSITION_FRAMES = 6
+RUNTIME_WEBP_QUALITY = 95
 
 
 def sha256_file(path: Path) -> str:
@@ -281,15 +281,30 @@ def add_in_place_transitions(
     return result
 
 
-def save_atlas(frames: list[Image.Image], path: Path, columns: int) -> tuple[int, int]:
-    rows = math.ceil(len(frames) / columns)
-    width, height = frames[0].size
-    atlas = Image.new("RGBA", (width * columns, height * rows), (0, 0, 0, 0))
-    for index, frame in enumerate(frames):
-        atlas.alpha_composite(frame, ((index % columns) * width, (index // columns) * height))
+def save_runtime_animation(
+    frames: list[Image.Image],
+    path: Path,
+    duration_ms: int,
+) -> tuple[int, int]:
+    """Store full-resolution frames with temporal compression.
+
+    Quality 95 keeps the 440x476 source density and exact alpha while removing
+    the inter-frame redundancy that a tiled PNG atlas cannot exploit.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(path, format="PNG", optimize=False, compress_level=6)
-    return columns, rows
+    frames[0].save(
+        path,
+        format="WEBP",
+        save_all=True,
+        append_images=frames[1:],
+        duration=duration_ms,
+        loop=0,
+        lossless=False,
+        quality=RUNTIME_WEBP_QUALITY,
+        method=3,
+        exact=True,
+    )
+    return 1, len(frames)
 
 
 def save_preview(frames: list[Image.Image], path: Path, duration_ms: int) -> None:
@@ -379,8 +394,12 @@ def prepare(
             metadata_actions.append(metadata_action)
             continue
 
-        atlas_path = runtime_root / f"{action.animation_id}.atlas.png"
-        atlas_columns, atlas_rows = save_atlas(normalized_frames, atlas_path, columns)
+        atlas_path = runtime_root / f"{action.animation_id}.frames.webp"
+        atlas_columns, atlas_rows = save_runtime_animation(
+            normalized_frames,
+            atlas_path,
+            frame_duration_ms,
+        )
         atlas_relative = atlas_path.relative_to(root / "assets").as_posix()
         metadata_action["atlas"] = atlas_relative
         metadata_action["atlasSha256"] = sha256_file(atlas_path)
@@ -418,6 +437,10 @@ def prepare(
             "colorPolicy": (
                 "per-action YCbCr luminance CDF matching from the first source "
                 "frame to the actual idle artwork; preserve chroma and alpha"
+            ),
+            "runtimeEncoding": (
+                f"animated WebP quality {RUNTIME_WEBP_QUALITY}; exact alpha; "
+                "full frame count and full 440x476 resolution"
             ),
             "runtimeCanvasPolicy": (
                 f"reframe square source into {frame_width}x{frame_height} "

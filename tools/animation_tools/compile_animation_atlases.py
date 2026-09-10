@@ -1,4 +1,4 @@
-"""Compile selected GIF, WebP and PNG sources into deterministic PNG atlases."""
+"""Compile selected sources into deterministic PNG atlases or animated WebP."""
 
 from __future__ import annotations
 
@@ -176,17 +176,42 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
                 for frame in frames
             ]
 
-    columns = min(maximum_columns, len(frames))
-    rows = math.ceil(len(frames) / columns)
     frame_width, frame_height = frames[0].size
-    atlas = Image.new("RGBA", (frame_width * columns, frame_height * rows), (0, 0, 0, 0))
-    for index, frame in enumerate(frames):
-        x = (index % columns) * frame_width
-        y = (index // columns) * frame_height
-        atlas.paste(frame, (x, y))
-
     atlas_path.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(atlas_path, format="PNG", optimize=False, compress_level=9)
+    runtime_format = entry.get("runtimeFormat", "pngAtlas")
+    if runtime_format == "animatedWebp":
+        quality = int(entry.get("runtimeWebpQuality", 95))
+        if quality < 90 or quality > 100:
+            raise ValueError(f"Invalid runtimeWebpQuality for {entry['id']}")
+        frames[0].save(
+            atlas_path,
+            format="WEBP",
+            save_all=True,
+            append_images=frames[1:],
+            duration=durations,
+            loop=0,
+            lossless=False,
+            quality=quality,
+            method=3,
+            exact=True,
+        )
+        columns = 1
+        rows = len(frames)
+    elif runtime_format == "pngAtlas":
+        columns = min(maximum_columns, len(frames))
+        rows = math.ceil(len(frames) / columns)
+        atlas = Image.new(
+            "RGBA",
+            (frame_width * columns, frame_height * rows),
+            (0, 0, 0, 0),
+        )
+        for index, frame in enumerate(frames):
+            x = (index % columns) * frame_width
+            y = (index // columns) * frame_height
+            atlas.paste(frame, (x, y))
+        atlas.save(atlas_path, format="PNG", optimize=False, compress_level=9)
+    else:
+        raise ValueError(f"Unsupported runtimeFormat for {entry['id']}: {runtime_format}")
 
     return {
         "id": entry["id"],

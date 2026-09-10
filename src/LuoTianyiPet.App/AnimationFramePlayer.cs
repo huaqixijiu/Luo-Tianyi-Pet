@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -12,6 +13,8 @@ internal sealed class AnimationFramePlayer : IDisposable
     private readonly AnimationCatalog _catalog;
     private readonly Stopwatch _stopwatch = new();
     private readonly Dictionary<string, CachedAnimation> _cache = new(StringComparer.Ordinal);
+    private const long DecodedCacheBudgetBytes = 192L * 1024 * 1024;
+    private long _cacheAccessSequence;
     private CachedAnimation? _current;
     private AnimationFrameTimeline? _activeTimeline;
     private IReadOnlyList<int>? _activeFrameIndices;
@@ -82,6 +85,7 @@ internal sealed class AnimationFramePlayer : IDisposable
         _completionRaised = false;
         _currentFrameIndex = frameIndex;
         _target.Source = animation.Frames[frameIndex];
+        TrimDecodedCache();
         return animation.Manifest;
     }
 
@@ -108,14 +112,34 @@ internal sealed class AnimationFramePlayer : IDisposable
     {
         if (_cache.TryGetValue(animationId, out CachedAnimation? cached))
         {
+            cached.LastAccess = ++_cacheAccessSequence;
             return cached;
         }
 
         AnimationAssetManifest manifest = _catalog.GetRequired(animationId);
+        string assetPath = _catalog.GetAtlasPath(manifest);
+        IReadOnlyList<BitmapSource> frames = Path.GetExtension(assetPath)
+            .Equals(".webp", StringComparison.OrdinalIgnoreCase)
+            ? AnimatedWebpFrameDecoder.Decode(assetPath, manifest)
+            : LoadPngAtlas(assetPath, manifest);
+
+        CachedAnimation animation = new(
+            manifest,
+            frames,
+            EstimateDecodedBytes(manifest),
+            ++_cacheAccessSequence);
+        _cache.Add(animationId, animation);
+        return animation;
+    }
+
+    private static IReadOnlyList<BitmapSource> LoadPngAtlas(
+        string assetPath,
+        AnimationAssetManifest manifest)
+    {
         BitmapImage atlas = new();
         atlas.BeginInit();
         atlas.CacheOption = BitmapCacheOption.OnLoad;
-        atlas.UriSource = new Uri(_catalog.GetAtlasPath(manifest), UriKind.Absolute);
+        atlas.UriSource = new Uri(assetPath, UriKind.Absolute);
         atlas.EndInit();
         atlas.Freeze();
 
@@ -130,10 +154,28 @@ internal sealed class AnimationFramePlayer : IDisposable
             frame.Freeze();
             frames.Add(frame);
         }
+        return frames;
+    }
 
-        CachedAnimation animation = new(manifest, frames);
-        _cache.Add(animationId, animation);
-        return animation;
+    private static long EstimateDecodedBytes(AnimationAssetManifest manifest) =>
+        checked((long)manifest.FrameWidth * manifest.FrameHeight * 4 *
+            manifest.FrameDurationsMilliseconds.Count);
+
+    private void TrimDecodedCache()
+    {
+        while (_cache.Values.Sum(animation => animation.EstimatedDecodedBytes) >
+               DecodedCacheBudgetBytes)
+        {
+            CachedAnimation? oldest = _cache.Values
+                .Where(animation => !ReferenceEquals(animation, _current))
+                .MinBy(animation => animation.LastAccess);
+            if (oldest is null)
+            {
+                return;
+            }
+
+            _cache.Remove(oldest.Manifest.Id);
+        }
     }
 
     private void StartRendering()
@@ -209,12 +251,24 @@ internal sealed class AnimationFramePlayer : IDisposable
         _completionRaised = false;
         _currentFrameIndex = startFrameIndex;
         _target.Source = animation.Frames[startFrameIndex];
+        TrimDecodedCache();
         _stopwatch.Restart();
         StartRendering();
         return animation.Manifest;
     }
 
-    private sealed record CachedAnimation(
-        AnimationAssetManifest Manifest,
-        IReadOnlyList<BitmapSource> Frames);
+    private sealed class CachedAnimation(
+        AnimationAssetManifest manifest,
+        IReadOnlyList<BitmapSource> frames,
+        long estimatedDecodedBytes,
+        long lastAccess)
+    {
+        public AnimationAssetManifest Manifest { get; } = manifest;
+
+        public IReadOnlyList<BitmapSource> Frames { get; } = frames;
+
+        public long EstimatedDecodedBytes { get; } = estimatedDecodedBytes;
+
+        public long LastAccess { get; set; } = lastAccess;
+    }
 }

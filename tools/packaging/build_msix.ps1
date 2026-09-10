@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.33',
+    [string]$Version = '0.1.0.34',
     [ValidateSet('win-x64')]
     [string]$Runtime = 'win-x64',
     [ValidateSet('Development', 'Production')]
@@ -72,10 +72,10 @@ New-Item -ItemType Directory -Path $layoutRoot -Force | Out-Null
 
 $packageAssets = Join-Path $repoRoot 'packaging\Assets'
 & $python (Join-Path $repoRoot 'tools\packaging\generate_package_assets.py') `
-    --source (Join-Path $repoRoot 'assets\animations\runtime\twelfth-anniversary-hug.atlas.png') `
+    --source (Join-Path $repoRoot 'assets\animations\runtime\twelfth-anniversary-hug.frames.webp') `
     --output $packageAssets `
-    --frame-width 240 `
-    --frame-height 240 `
+    --frame-width 380 `
+    --frame-height 380 `
     --frame-index 6
 if ($LASTEXITCODE -ne 0) { throw 'Package asset generation failed.' }
 

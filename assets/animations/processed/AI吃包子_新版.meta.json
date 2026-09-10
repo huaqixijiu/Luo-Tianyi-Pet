@@ -16,7 +16,8 @@
   "temporalProcessing": {
     "mode": "flow60",
     "description": "bidirectional optical-flow resampling with premultiplied alpha at 62.5 FPS; run loop slowed to at least 60 frames, eating duration preserved",
-    "outputFrameDurationMilliseconds": 16
+    "outputFrameDurationMilliseconds": 16,
+    "runtimeEncoding": "animated WebP quality 95; exact alpha; full 410x410 resolution and full 62.5 FPS frame sequence"
   },
   "run": {
     "sourceFramesOneBased": [
@@ -25,10 +26,10 @@
     ],
     "frameCount": 60,
     "frameDurationMilliseconds": 16,
-    "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-    "atlasSha256": "bf830a592b09dc8f2aaf4444683e25ba126d17babdf574d645578c0613b1dd75",
-    "columns": 8,
-    "rows": 8,
+    "atlas": "animations/runtime/ai-bun-v2-chase-run.frames.webp",
+    "atlasSha256": "f77c29ef87bd61f2918169feccd231eb7e3ba39bee6620f7d87bbddeed57b7d1",
+    "columns": 1,
+    "rows": 60,
     "stabilization": {
       "mode": "upper-body-alpha-centroid-translation",
       "focusBottomFraction": 0.64,
@@ -109,10 +110,10 @@
     ],
     "frameCount": 173,
     "frameDurationMilliseconds": 16,
-    "atlas": "animations/runtime/ai-bun-v2-eat.atlas.png",
-    "atlasSha256": "1442fb1a05acbea236a1bc0125e569346932e78cacbb3ec072eb38e476b3cfa2",
-    "columns": 8,
-    "rows": 22
+    "atlas": "animations/runtime/ai-bun-v2-eat.frames.webp",
+    "atlasSha256": "dfbb190aee9f11bff9ab86dd866f7a2e18e712e45d6b6ad1455c249b2a227871",
+    "columns": 1,
+    "rows": 173
   },
   "bun": {
     "source": "候选素材_官方/08_新添加_小笼包素材候选/包子.png",
@@ -129,10 +130,10 @@
   "catalogAnimations": [
     {
       "id": "ai-bun-v2-chase-run",
-      "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
+      "atlas": "animations/runtime/ai-bun-v2-chase-run.frames.webp",
       "frameCount": 60,
-      "columns": 8,
-      "rows": 8,
+      "columns": 1,
+      "rows": 60,
       "frameDurationMilliseconds": 16,
       "loopCount": 0,
       "displayWidth": 205,
@@ -140,10 +141,10 @@
     },
     {
       "id": "ai-bun-v2-eat",
-      "atlas": "animations/runtime/ai-bun-v2-eat.atlas.png",
+      "atlas": "animations/runtime/ai-bun-v2-eat.frames.webp",
       "frameCount": 173,
-      "columns": 8,
-      "rows": 22,
+      "columns": 1,
+      "rows": 173,
       "frameDurationMilliseconds": 16,
       "loopCount": 1,
       "displayWidth": 205,

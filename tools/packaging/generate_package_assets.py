@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate deterministic MSIX logo assets from an official runtime atlas frame."""
+"""Generate deterministic MSIX logo assets from an official runtime frame."""
 
 from __future__ import annotations
 
@@ -64,13 +64,17 @@ def main() -> int:
     parser.add_argument("--frame-index", type=int, default=0)
     args = parser.parse_args()
 
-    with Image.open(args.source) as atlas:
-        rgba_atlas = atlas.convert("RGBA")
-        columns = rgba_atlas.width // args.frame_width
-        x = (args.frame_index % columns) * args.frame_width
-        y = (args.frame_index // columns) * args.frame_height
-        character = rgba_atlas.crop(
-            (x, y, x + args.frame_width, y + args.frame_height))
+    with Image.open(args.source) as source:
+        if getattr(source, "n_frames", 1) > 1:
+            source.seek(args.frame_index)
+            character = source.convert("RGBA")
+        else:
+            rgba_atlas = source.convert("RGBA")
+            columns = rgba_atlas.width // args.frame_width
+            x = (args.frame_index % columns) * args.frame_width
+            y = (args.frame_index // columns) * args.frame_height
+            character = rgba_atlas.crop(
+                (x, y, x + args.frame_width, y + args.frame_height))
 
     # Package logos keep only the official character artwork and place it inside
     # a deterministic Tianyi-blue tile.

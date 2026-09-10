@@ -1,8 +1,8 @@
-"""Convert the approved AI bun animation frames into runtime atlases.
+"""Convert the approved AI bun animation frames into runtime animation files.
 
 The preferred input is the user-reviewed transparent PNG sequence exported
 from After Effects.  Its alpha channel is used verbatim: this tool only crops,
-scales, positions and packs frames, so it cannot re-key the mouth, tooth, hair
+scales, positions and encodes frames, so it cannot re-key the mouth, tooth, hair
 or feet.  The legacy automatic colour-key path remains available solely for
 reproducing older builds.
 """
@@ -21,7 +21,6 @@ from PIL import Image, ImageDraw, ImageFilter
 
 
 DEFAULT_FRAME_SIZE = 410
-ATLAS_COLUMNS = 8
 FRAME_DURATION_MS = 42
 SMOOTHED_FRAME_DURATION_MS = 21
 SIXTY_FPS_FRAME_DURATION_MS = 16
@@ -445,24 +444,25 @@ def select_run_cycle(frames: list[Image.Image], search_start: int, search_end: i
     return best[1], best[2]
 
 
-def build_atlas(
+def build_runtime_animation(
     frames: list[Image.Image],
     output: Path,
-    frame_size: int,
+    frame_duration_ms: int,
 ) -> tuple[int, int]:
-    rows = math.ceil(len(frames) / ATLAS_COLUMNS)
-    atlas = Image.new(
-        "RGBA",
-        (frame_size * ATLAS_COLUMNS, frame_size * rows),
-        (0, 0, 0, 0),
-    )
-    for index, frame in enumerate(frames):
-        x = index % ATLAS_COLUMNS * frame_size
-        y = index // ATLAS_COLUMNS * frame_size
-        atlas.alpha_composite(frame, (x, y))
     output.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(output, optimize=True)
-    return ATLAS_COLUMNS, rows
+    frames[0].save(
+        output,
+        format="WEBP",
+        save_all=True,
+        append_images=frames[1:],
+        duration=frame_duration_ms,
+        loop=0,
+        lossless=False,
+        quality=95,
+        method=3,
+        exact=True,
+    )
+    return 1, len(frames)
 
 
 def build_picker_preview(frames: list[Image.Image], output: Path) -> None:
@@ -611,10 +611,18 @@ def main() -> None:
     runtime = args.assets_root / "animations" / "runtime"
     run_id = f"{args.runtime_stem}-chase-run"
     eat_id = f"{args.runtime_stem}-eat"
-    run_atlas = runtime / f"{run_id}.atlas.png"
-    eat_atlas = runtime / f"{eat_id}.atlas.png"
-    run_columns, run_rows = build_atlas(run_frames, run_atlas, args.frame_size)
-    eat_columns, eat_rows = build_atlas(eat_frames, eat_atlas, args.frame_size)
+    run_atlas = runtime / f"{run_id}.frames.webp"
+    eat_atlas = runtime / f"{eat_id}.frames.webp"
+    run_columns, run_rows = build_runtime_animation(
+        run_frames,
+        run_atlas,
+        frame_duration_ms,
+    )
+    eat_columns, eat_rows = build_runtime_animation(
+        eat_frames,
+        eat_atlas,
+        frame_duration_ms,
+    )
     bun_output = args.assets_root / "objects" / "xiaolongbao.png"
     prepare_bun(args.bun_source, bun_output)
     if args.preview_output is not None:
@@ -658,6 +666,10 @@ def main() -> None:
                 )
             ),
             "outputFrameDurationMilliseconds": frame_duration_ms,
+            "runtimeEncoding": (
+                "animated WebP quality 95; exact alpha; full 410x410 resolution "
+                "and full 62.5 FPS frame sequence"
+            ),
         },
         "run": {
             "sourceFramesOneBased": [run_start + 1, run_end],

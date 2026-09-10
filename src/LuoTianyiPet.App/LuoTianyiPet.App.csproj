@@ -7,6 +7,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\..\assets\animations\runtime\**\*"
              Link="assets\animations\runtime\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
@@ -42,6 +46,14 @@
     <ApplicationIcon>..\..\assets\app\luotianyi-pet.ico</ApplicationIcon>
     <AssemblyName>LuoTianyiPet</AssemblyName>
     <RootNamespace>LuoTianyiPet.App</RootNamespace>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
   </PropertyGroup>
+
+  <Target Name="RemoveThirdPartyNativeSymbolsFromPublish" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'libSkiaSharp.pdb'" />
+    </ItemGroup>
+  </Target>
 
 </Project>
