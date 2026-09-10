@@ -198,6 +198,7 @@ public partial class MainWindow : Window
     private MessageProvider? _activeMessageProvider;
     private Guid? _fileDropReactionToken;
     private bool _fileDragPresentationActive;
+    private bool _fileDragCursorOverrideActive;
     private bool _fileDropTargetReady;
     private bool _fileDropInProgress;
     private DateTimeOffset? _fileDropHoverStartedAt;
@@ -3661,6 +3662,12 @@ public partial class MainWindow : Window
 
     private void OnCloudMusicVolumeClick(object sender, RoutedEventArgs e)
     {
+        if (_bunChaseActive)
+        {
+            HideAccessorySurfacesForBunChase();
+            return;
+        }
+
         _mediaControlsHideTimer.Stop();
         RefreshCloudMusicVolumeControl();
         CloudMusicVolumePopup.IsOpen = true;
@@ -3814,6 +3821,12 @@ public partial class MainWindow : Window
         if (!_isClosing)
         {
             UpdatePetCursor(ToPointerPoint(e.GetPosition(this)));
+        }
+
+        if (_bunChaseActive)
+        {
+            HideAccessorySurfacesForBunChase();
+            return;
         }
 
         if (_edgeDockSide != EdgeDockSide.None)
@@ -4170,6 +4183,11 @@ public partial class MainWindow : Window
 
     private void ShowFeedbackBubble(string message)
     {
+        if (_bunChaseActive)
+        {
+            return;
+        }
+
         FeedbackBubbleText.Text = message;
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
@@ -4178,6 +4196,11 @@ public partial class MainWindow : Window
 
     private void ShowPersistentFeedbackBubble(string message)
     {
+        if (_bunChaseActive)
+        {
+            return;
+        }
+
         FeedbackBubbleText.Text = message;
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
@@ -4187,7 +4210,8 @@ public partial class MainWindow : Window
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (_isClosing || DateTimeOffset.Now < _suppressDesktopTreatUntil ||
+            if (_isClosing || !_settings.FileTreats.EnableDesktopFileTreats ||
+                _fileDropInProgress || DateTimeOffset.Now < _suppressDesktopTreatUntil ||
                 !IsBunChaseEnvironmentSafe())
             {
                 _logger.Info(
@@ -4240,7 +4264,6 @@ public partial class MainWindow : Window
         };
         _bunTargets.Add(bun);
         bun.Show();
-        ShowFeedbackBubble("发现小笼包！拖动它，天依也会追过去");
         if (!_bunChaseActive)
         {
             BeginBunChase();
@@ -4278,6 +4301,7 @@ public partial class MainWindow : Window
         _bunChaseActive = true;
         _bunReturning = false;
         _bunEating = false;
+        HideAccessorySurfacesForBunChase();
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
         _bunReturnPosition ??= new Point(Left, Top);
@@ -4636,16 +4660,16 @@ public partial class MainWindow : Window
             _fileDropInProgress = false;
         }
 
-        FinishFileDragPresentation(restoreContinuousAnimation: false);
+        FinishFileDragPresentation(restoreContinuousAnimation: result.Succeeded);
         if (result.Succeeded)
         {
+            _suppressDesktopTreatUntil = DateTimeOffset.Now.AddSeconds(10);
             ShowFeedbackBubble(result.RecycledCount == 1
                 ? "已放进回收站，需要时可以恢复"
                 : $"已将 {result.RecycledCount} 个项目放进回收站");
             _logger.Info(
                 "file_drop.recycled",
                 $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
-            QueueBunTreat(GetPetScreenCentre());
             return;
         }
 
@@ -4714,9 +4738,9 @@ public partial class MainWindow : Window
         }
 
         ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
-        return foreground.Succeeded &&
-            !foreground.IsFullscreen &&
-            !_genshinProcessMatcher.IsTargetProcess(foreground.ProcessName);
+        return DesktopFileTreatSafety.AllowsForeground(
+            foreground,
+            _genshinProcessMatcher.IsTargetProcess(foreground.ProcessName));
     }
 
     private bool IsBunChaseEnvironmentSafe()
@@ -4735,8 +4759,7 @@ public partial class MainWindow : Window
 
     private bool IsSupportedFileDrop(WpfDragEventArgs e, bool requirePetHit)
     {
-        if (!_settings.FileTreats.EnableDesktopFileTreats ||
-            !e.Data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false))
+        if (!e.Data.GetDataPresent(WpfDataFormats.FileDrop, autoConvert: false))
         {
             return false;
         }
@@ -4781,7 +4804,13 @@ public partial class MainWindow : Window
 
     private void StartFileDragPresentation()
     {
-        if (_fileDragPresentationActive || _isClosing)
+        if (_isClosing)
+        {
+            return;
+        }
+
+        ApplyFileDragCursorOverride();
+        if (_fileDragPresentationActive || _bunChaseActive)
         {
             return;
         }
@@ -4819,14 +4848,15 @@ public partial class MainWindow : Window
 
     private void FinishFileDragPresentation(bool restoreContinuousAnimation)
     {
+        ReleaseFileDragCursorOverride();
+        _fileDropTargetReady = false;
+        _fileDropHoverStartedAt = null;
         if (!_fileDragPresentationActive)
         {
             return;
         }
 
         _fileDragPresentationActive = false;
-        _fileDropTargetReady = false;
-        _fileDropHoverStartedAt = null;
         Guid? token = _fileDropReactionToken;
         _fileDropReactionToken = null;
         bool completed = token is Guid reactionToken &&
@@ -4837,8 +4867,48 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ApplyFileDragCursorOverride()
+    {
+        System.Windows.Input.Cursor cursor =
+            _petPointerCursor ?? System.Windows.Input.Cursors.Hand;
+        _fileDragCursorOverrideActive = true;
+        Mouse.OverrideCursor = cursor;
+        Cursor = cursor;
+        PetImage.Cursor = cursor;
+    }
+
+    private void ReleaseFileDragCursorOverride()
+    {
+        if (!_fileDragCursorOverrideActive)
+        {
+            return;
+        }
+
+        _fileDragCursorOverrideActive = false;
+        Mouse.OverrideCursor = null;
+        Cursor = null;
+        PetImage.Cursor = null;
+    }
+
+    private void HideAccessorySurfacesForBunChase()
+    {
+        _mediaControlsHideTimer.Stop();
+        _trackInfoHideTimer.Stop();
+        _feedbackBubbleTimer.Stop();
+        CloudMusicVolumePopup.IsOpen = false;
+        _mediaControlsMotion.Hide(animate: false);
+        _trackInfoMotion.Hide(animate: false);
+        FeedbackBubble.Visibility = Visibility.Collapsed;
+        HideMessageNotification();
+    }
+
     private void ShowMessageNotification(MessageNotificationSummary notification)
     {
+        if (_bunChaseActive)
+        {
+            return;
+        }
+
         string providerName = MessageProviderMatcher.GetDisplayName(notification.Provider);
         ImageSource? applicationIcon = DecodeNotificationImage(notification.ApplicationIcon);
         ImageSource? contactAvatar = DecodeNotificationImage(notification.ContactAvatar);
@@ -5117,6 +5187,12 @@ public partial class MainWindow : Window
 
     private void ShowTrackInfoSurface(bool holdAfterLeave)
     {
+        if (_bunChaseActive)
+        {
+            _trackInfoMotion.Hide(animate: false);
+            return;
+        }
+
         _trackInfoMotion.Show();
         _trackInfoHideTimer.Stop();
         if (holdAfterLeave && !_previewTrackInfo)
@@ -5287,6 +5363,7 @@ public partial class MainWindow : Window
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
         _pointerGesture.Cancel();
         _pettingGesture.Cancel();
+        ReleaseFileDragCursorOverride();
         _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         _mediaControlsMotion.Cancel();

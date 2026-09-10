@@ -197,7 +197,7 @@
                     <Border Style="{StaticResource GroupCard}"><StackPanel>
                         <CheckBox x:Name="FullBodyStyleCyclingCheckBox" AutomationProperties.Name="允许双击循环三种桌宠外观" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="双击切换外观" /><TextBlock Style="{StaticResource OptionDescription}" Text="在三种外观间循环；关闭后固定当前外观" /></StackPanel></CheckBox>
                         <Separator Margin="10,0" Background="#80D8E8EF" />
-                        <CheckBox x:Name="DesktopFileTreatsCheckBox" AutomationProperties.Name="启用吃包子功能" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="吃包子功能" /><TextBlock Style="{StaticResource OptionDescription}" Text="追逐桌面删除后出现的包子，或把拖入文件移至回收站" /></StackPanel></CheckBox>
+                        <CheckBox x:Name="DesktopFileTreatsCheckBox" AutomationProperties.Name="启用桌面吃包子动画" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="桌面吃包子动画" /><TextBlock Style="{StaticResource OptionDescription}" Text="只控制桌面项目消失后的追包；拖入回收站快捷功能始终可用" /></StackPanel></CheckBox>
                     </StackPanel></Border>
                 </StackPanel>
             </ScrollViewer>

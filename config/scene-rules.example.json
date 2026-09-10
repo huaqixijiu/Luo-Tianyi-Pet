@@ -497,6 +497,7 @@
     },
     "desktopFileDrop": {
       "enabled": true,
+      "enabledIndependentlyFromDesktopBunAnimation": true,
       "detectionMode": "window-ole-drop-target-only",
       "acceptedDataFormat": "CF_HDROP-real-filesystem-items-only",
       "promptRegion": "pet-window-including-transparent-reserved-area",
@@ -509,7 +510,10 @@
       "shellOperation": "IFileOperation-with-allow-undo-and-recycle-on-delete",
       "loadingAnimationAfterMilliseconds": null,
       "loadingAnimation": null,
-      "successAnimation": "resonance-ok",
+      "successAnimation": null,
+      "successStartsBunChase": false,
+      "restoreContinuousAnimationAfterSuccess": true,
+      "allowExplorerDesktopAndFolderWindowsWithoutPreActivatingPet": true,
       "failureFeedback": "failureOrTimeout",
       "neverPermanentlyDelete": true,
       "cancelIfRecycleBinUnsupported": true,
@@ -652,7 +656,8 @@
     "eatClosingDurationMilliseconds": 800,
     "newBunDuringReturn": "interrupt-return-and-resume-nearest-chase",
     "animationStyleSource": "settings.appearance.bunEatingStyle",
-    "directDropFileOperation": "windows-shell-recycle-bin-only",
+    "directDropFileOperation": "windows-shell-recycle-bin-only-without-bun-chase",
+    "hideAllAccessoryIslandsDuringChase": true,
     "cancelOnFullscreenProtectedGameLockOrForegroundCheckFailure": true
   },
   "messageNotifications": {

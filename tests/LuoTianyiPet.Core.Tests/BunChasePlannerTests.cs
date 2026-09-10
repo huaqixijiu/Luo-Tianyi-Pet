@@ -51,6 +51,19 @@ public sealed class BunChasePlannerTests
     }
 
     [Theory]
+    [InlineData("explorer")]
+    [InlineData("explorer.exe")]
+    [InlineData(@"C:\Windows\explorer.exe")]
+    public void DesktopFileTreatSafety_AllowsExplorerShellAndFolderWindows(string processName)
+    {
+        bool allowed = DesktopFileTreatSafety.AllowsForeground(
+            new ForegroundApplicationSnapshot(true, processName, true),
+            protectedApplicationForeground: false);
+
+        Assert.True(allowed);
+    }
+
+    [Theory]
     [InlineData(false, "explorer", true, false)]
     [InlineData(true, "chrome", true, false)]
     [InlineData(true, "YuanShen", true, true)]
