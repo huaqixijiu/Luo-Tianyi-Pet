@@ -75,10 +75,10 @@ public sealed class BodyInteractionResolverTests
     }
 
     [Theory]
-    [InlineData(BodyRegionId.LeftEye, BodyInteractionResolver.SoftHeartAnimation, true)]
-    [InlineData(BodyRegionId.RightEye, BodyInteractionResolver.SoftHeartAnimation, false)]
-    [InlineData(BodyRegionId.LeftHand, BodyInteractionResolver.HighFiveAnimation, false)]
-    [InlineData(BodyRegionId.RightHand, BodyInteractionResolver.HighFiveAnimation, true)]
+    [InlineData(BodyRegionId.LeftEye, BodyInteractionResolver.SoftHeartAnimation, false)]
+    [InlineData(BodyRegionId.RightEye, BodyInteractionResolver.SoftHeartAnimation, true)]
+    [InlineData(BodyRegionId.LeftHand, BodyInteractionResolver.HighFiveAnimation, true)]
+    [InlineData(BodyRegionId.RightHand, BodyInteractionResolver.HighFiveAnimation, false)]
     [InlineData(BodyRegionId.LeftFoot, BodyInteractionResolver.OopsAnimation, true)]
     [InlineData(BodyRegionId.RightFoot, BodyInteractionResolver.OopsAnimation, false)]
     public void PairedRegionsUseTheConfirmedOrientation(

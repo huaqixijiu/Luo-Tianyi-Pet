@@ -87,14 +87,14 @@ public sealed class BodyInteractionResolver
 
         return region switch
         {
-            BodyRegionId.LeftEye => ResolveEye(now, mirrorHorizontally: true),
-            BodyRegionId.RightEye => ResolveEye(now, mirrorHorizontally: false),
+            BodyRegionId.LeftEye => ResolveEye(now, mirrorHorizontally: false),
+            BodyRegionId.RightEye => ResolveEye(now, mirrorHorizontally: true),
             BodyRegionId.Mouth => Play(KissAnimation),
             BodyRegionId.Face => normalizedPointerX < 0.5
                 ? Play(LeftFaceAnimation)
                 : Play(FaceAnimation),
-            BodyRegionId.LeftHand => Play(HighFiveAnimation),
-            BodyRegionId.RightHand => Play(HighFiveAnimation, mirrorHorizontally: true),
+            BodyRegionId.LeftHand => Play(HighFiveAnimation, mirrorHorizontally: true),
+            BodyRegionId.RightHand => Play(HighFiveAnimation),
             BodyRegionId.Chest or BodyRegionId.LowerBodySensitiveArea => ResolveSensitiveRegion(now),
             BodyRegionId.LeftFoot => ResolveFoot(now, mirrorHorizontally: true),
             BodyRegionId.RightFoot => ResolveFoot(now, mirrorHorizontally: false),

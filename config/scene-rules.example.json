@@ -331,7 +331,7 @@
           "right-eye"
         ],
         "firstClickAnimation": "resonance-soft-heart",
-        "mirrorFirstClickByRegion": ["left-eye"],
+        "mirrorFirstClickByRegion": ["right-eye"],
         "secondConsecutiveClickAnimation": "twelfth-anniversary-cry",
         "repeatWithinMilliseconds": 4000,
         "loopCount": 1,
@@ -355,7 +355,7 @@
           "right-hand"
         ],
         "animation": "tenth-anniversary-high-five-bounce",
-        "mirrorByRegion": ["right-hand"],
+        "mirrorByRegion": ["left-hand"],
         "loopCount": 1
       },
       "chestAndLowerBodySensitiveRegions": {
