@@ -214,6 +214,7 @@ public partial class MainWindow : Window
     private bool _bunChaseActive;
     private bool _bunReturning;
     private bool _bunEating;
+    private bool _bodyReactionMirrorActive;
     private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
@@ -1436,6 +1437,7 @@ public partial class MainWindow : Window
     private void BeginWindowDrag()
     {
         _singleClickTimer.Stop();
+        ResetBodyReactionMirror();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
         CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
         if (_edgeDockSide != EdgeDockSide.None)
@@ -1640,11 +1642,17 @@ public partial class MainWindow : Window
         if (_lastDebugHitRegion is BodyRegionId region)
         {
             _logger.Info("interaction.body_hit", region.ToString());
-            BodyInteractionDecision decision = ResolveBodyInteraction(region, DateTimeOffset.Now);
+            BodyInteractionDecision decision = ResolveBodyInteraction(
+                region,
+                DateTimeOffset.Now,
+                normalizedPoint.Value.X);
             if (decision.Kind == BodyInteractionDecisionKind.PlayAnimation &&
                 decision.AnimationId is string animationId)
             {
-                _ = PlayBodyReactionAsync(animationId, blocksDisplayModeToggle: true);
+                _ = PlayBodyReactionAsync(
+                    animationId,
+                    blocksDisplayModeToggle: true,
+                    mirrorHorizontally: decision.MirrorHorizontally);
             }
             else if (decision.Kind == BodyInteractionDecisionKind.PettingGestureRequired &&
                 ResolvePettingInteraction().AnimationId is string headPatAnimation)
@@ -1660,18 +1668,21 @@ public partial class MainWindow : Window
 
     private Task<Guid?> PlayBodyReactionAsync(
         string animationId,
-        bool blocksDisplayModeToggle = false) =>
+        bool blocksDisplayModeToggle = false,
+        bool mirrorHorizontally = false) =>
         PlayReactionAsync(
             animationId,
             ReactionPriority.UserInteraction,
             suppressBodyAfter: true,
-            blocksDisplayModeToggle: blocksDisplayModeToggle);
+            blocksDisplayModeToggle: blocksDisplayModeToggle,
+            mirrorHorizontally: mirrorHorizontally);
 
     private async Task<Guid?> PlayReactionAsync(
         string animationId,
         ReactionPriority priority,
         bool suppressBodyAfter = false,
-        bool blocksDisplayModeToggle = false)
+        bool blocksDisplayModeToggle = false,
+        bool mirrorHorizontally = false)
     {
         double playbackRate = BodyInteractionResolver.ResolvePlaybackRate(animationId);
         DateTimeOffset now = DateTimeOffset.Now;
@@ -1699,6 +1710,7 @@ public partial class MainWindow : Window
         bool transitioned;
         if (playInPlace)
         {
+            ApplyBodyReactionMirror(mirrorHorizontally);
             PlayAnimation(
                 animationId,
                 () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true),
@@ -1708,16 +1720,20 @@ public partial class MainWindow : Window
         else
         {
             transitioned = await _visualSwapTransition.PlayAsync(
-                () => PlayAnimation(
-                    animationId,
-                    () => CompleteReaction(token, suppressBodyAfter),
-                    preserveVisualTransition: true,
-                    playbackRate: playbackRate));
+                () =>
+                {
+                    ApplyBodyReactionMirror(mirrorHorizontally);
+                    PlayAnimation(
+                        animationId,
+                        () => CompleteReaction(token, suppressBodyAfter),
+                        preserveVisualTransition: true,
+                        playbackRate: playbackRate);
+                });
         }
         if (transitioned && !_isClosing &&
             _animationPlayer?.CurrentAnimationId == animationId)
         {
-            _bodyReactionMotion.PlayFor(animationId, playbackRate);
+            _bodyReactionMotion.PlayFor(animationId, playbackRate, mirrorHorizontally);
             _logger.Info(
                 playInPlace
                     ? "animation.in_place_reaction_started"
@@ -1730,7 +1746,25 @@ public partial class MainWindow : Window
         {
             _stateMachine.CancelActiveReaction();
         }
+        ResetBodyReactionMirror();
         return null;
+    }
+
+    private void ApplyBodyReactionMirror(bool mirrorHorizontally)
+    {
+        _bodyReactionMirrorActive = mirrorHorizontally;
+        PetDirectionTransform.ScaleX = mirrorHorizontally ? -1 : 1;
+    }
+
+    private void ResetBodyReactionMirror()
+    {
+        if (!_bodyReactionMirrorActive)
+        {
+            return;
+        }
+
+        _bodyReactionMirrorActive = false;
+        PetDirectionTransform.ScaleX = 1;
     }
 
     private void CompleteReaction(
@@ -2218,6 +2252,7 @@ public partial class MainWindow : Window
 
     private void PlayResolvedContinuousAnimation(bool preserveVisualTransition = false)
     {
+        ResetBodyReactionMirror();
         PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (!plan.IsVisible || plan.AnimationId is null)
         {
@@ -3374,14 +3409,15 @@ public partial class MainWindow : Window
 
     private BodyInteractionDecision ResolveBodyInteraction(
         BodyRegionId region,
-        DateTimeOffset now) =>
+        DateTimeOffset now,
+        double normalizedPointerX) =>
         AppearanceOptionIds.ResolveFullBodyInteractionMode(
             _settings.Appearance.FullBodyStyle) switch
         {
             FullBodyInteractionMode.SeamlessMotion =>
                 _crystalBodyInteractionResolver.Resolve(region),
             FullBodyInteractionMode.ExpressionPack =>
-                _bodyInteractionResolver.Resolve(region, now),
+                _bodyInteractionResolver.Resolve(region, now, normalizedPointerX),
             _ => new BodyInteractionDecision(BodyInteractionDecisionKind.NoAction),
         };
 
@@ -3415,6 +3451,10 @@ public partial class MainWindow : Window
             previousFullBodyAnimation,
             fullBodyAnimation,
             StringComparison.Ordinal);
+        if (appearanceChanged)
+        {
+            _bodyInteractionResolver.ResetConsecutivePairs();
+        }
         bool scaleChanged = previousScale != normalized.DisplayScalePercent;
         if (appearanceChanged &&
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
@@ -5155,7 +5195,17 @@ public partial class MainWindow : Window
         await Task.Delay(500);
         if (!_isClosing)
         {
-            await PlayBodyReactionAsync(animationId, blocksDisplayModeToggle: true);
+            const string mirroredPrefix = "mirror:";
+            bool mirrorHorizontally = animationId.StartsWith(
+                mirroredPrefix,
+                StringComparison.OrdinalIgnoreCase);
+            string resolvedAnimationId = mirrorHorizontally
+                ? animationId[mirroredPrefix.Length..]
+                : animationId;
+            await PlayBodyReactionAsync(
+                resolvedAnimationId,
+                blocksDisplayModeToggle: true,
+                mirrorHorizontally: mirrorHorizontally);
         }
     }
 

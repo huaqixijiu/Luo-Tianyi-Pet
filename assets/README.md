@@ -15,6 +15,7 @@
 | `animations/runtime/resonance-no-playing.atlas.png` | 原神启动反应 | 来自心律共鸣“你不许玩”官方动态 GIF；保留 10 帧，单次反应由运行时连续播放 3 轮 |
 | `animations/runtime/resonance-please.atlas.png` | 原神后台低频彩蛋 | 来自心律共鸣“拜托”官方动态 GIF；保留 10 帧，在当前显示器安全工作区随机位置播放 1 轮 |
 | `animations/runtime/codename-curious-sway.atlas.png` | QQ/微信来源提醒 | 来自“代号洛天依·好奇”官方 PNG；编译为 180×180 单帧图集，运行时叠加左右好奇摇摆，不读取消息正文 |
+| `animations/runtime/twelfth-anniversary-{charge,cry,stop}.atlas.png` | 经典猫耳版分侧与连续点击互动 | 分别取十二周年“充电”“哭唧唧”“斯到普”原 GIF 的首个 15/14/13 帧完整动作周期，缩放至 240×240 后单次播放；原始重复 GIF 不修改 |
 | `animations/runtime/*.atlas.png` | WPF 实际播放图集 | 由选定 GIF、动态 WebP 或 PNG 的完整 RGBA 帧确定性生成 |
 | `manifests/animations.json` | 运行时动画清单 | 保存帧尺寸、帧时长、循环、显示尺寸、透明边界、来源与图集 SHA-256 |
 

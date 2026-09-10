@@ -427,6 +427,45 @@
       "anchorY": 1.0
     },
     {
+      "id": "twelfth-anniversary-stop",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/06_斯到普.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-stop.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 13,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-charge",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/08_充电.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-charge.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 15,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "twelfth-anniversary-cry",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/10_哭唧唧.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-cry.atlas.png",
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 1,
+      "maximumFrames": 14,
+      "resizeWidth": 240,
+      "resizeHeight": 240,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "twelfth-anniversary-hug",
       "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/12_在吗.gif",
       "atlas": "assets/animations/runtime/twelfth-anniversary-hug.atlas.png",

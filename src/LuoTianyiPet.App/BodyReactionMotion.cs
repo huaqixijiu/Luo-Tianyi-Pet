@@ -14,7 +14,10 @@ internal sealed class BodyReactionMotion
         _translate = translate;
     }
 
-    public void PlayFor(string animationId, double playbackRate = 1.0)
+    public void PlayFor(
+        string animationId,
+        double playbackRate = 1.0,
+        bool mirrorHorizontally = false)
     {
         if (animationId == Core.BodyInteractionResolver.HighFiveAnimation)
         {
@@ -22,7 +25,7 @@ internal sealed class BodyReactionMotion
         }
         else if (animationId == Core.BodyInteractionResolver.OopsAnimation)
         {
-            PlayOopsShake(playbackRate);
+            PlayOopsShake(playbackRate, mirrorHorizontally);
         }
         else if (animationId is Core.StartupTimeSceneResolver.MorningAnimation or
             Core.StartupTimeSceneResolver.AfternoonAnimation)
@@ -89,7 +92,7 @@ internal sealed class BodyReactionMotion
         _scale.BeginAnimation(ScaleTransform.ScaleYProperty, scale, HandoffBehavior.SnapshotAndReplace);
     }
 
-    private void PlayOopsShake(double playbackRate)
+    private void PlayOopsShake(double playbackRate, bool mirrorHorizontally)
     {
         Cancel();
         double timeScale = 1 / playbackRate;
@@ -98,11 +101,12 @@ internal sealed class BodyReactionMotion
             Duration = TimeSpan.FromMilliseconds(560 * timeScale),
             FillBehavior = FillBehavior.Stop,
         };
+        double direction = mirrorHorizontally ? -1 : 1;
         int[] offsets = [0, -8, 8, -7, 7, -5, 5, -3, 3, 0];
         for (int index = 0; index < offsets.Length; index++)
         {
             shake.KeyFrames.Add(new LinearDoubleKeyFrame(
-                offsets[index],
+                offsets[index] * direction,
                 KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(index * 60 * timeScale))));
         }
 

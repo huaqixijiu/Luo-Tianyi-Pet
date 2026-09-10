@@ -315,7 +315,10 @@
       },
       "face": {
         "gesture": "short-left-click",
-        "animation": "twelfth-anniversary-stick-together",
+        "animationBySide": {
+          "left": "twelfth-anniversary-charge",
+          "right": "twelfth-anniversary-stick-together"
+        },
         "loopCount": 1
       },
       "eyes": {
@@ -323,7 +326,10 @@
           "left-eye",
           "right-eye"
         ],
-        "animation": "resonance-soft-heart",
+        "firstClickAnimation": "resonance-soft-heart",
+        "mirrorFirstClickByRegion": ["left-eye"],
+        "secondConsecutiveClickAnimation": "twelfth-anniversary-cry",
+        "repeatWithinMilliseconds": 4000,
         "loopCount": 1,
         "takePriorityOverFaceRegion": true
       },
@@ -345,6 +351,7 @@
           "right-hand"
         ],
         "animation": "tenth-anniversary-high-five-bounce",
+        "mirrorByRegion": ["right-hand"],
         "loopCount": 1
       },
       "chestAndLowerBodySensitiveRegions": {
@@ -363,10 +370,13 @@
           "left-foot",
           "right-foot"
         ],
-        "animation": "tenth-anniversary-oops-shake",
+        "firstClickAnimation": "tenth-anniversary-oops-shake",
+        "mirrorFirstClickByRegion": ["left-foot"],
+        "secondConsecutiveClickAnimation": "twelfth-anniversary-stop",
+        "repeatWithinMilliseconds": 4000,
         "motion": "shake",
         "loopCount": 1,
-        "escalateOnRepeat": false
+        "resetPairWhenAnotherBodyPartIsClicked": true
       },
       "ordinaryBody": {
         "matchWhenNoSmallerRegionMatches": true,
