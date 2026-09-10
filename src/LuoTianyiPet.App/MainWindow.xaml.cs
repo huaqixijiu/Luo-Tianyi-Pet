@@ -1821,20 +1821,7 @@ public partial class MainWindow : Window
 
         if (suppressBodyAfter)
         {
-            // A second pulse transition briefly scales and tints the newly restored
-            // idle art. Restore the idle frame and its alpha-edge anchor together so
-            // the end of a body reaction cannot expose that intermediate frame.
-            (bool alignLeft, bool alignRight, bool alignBottom, DesktopRectangle workArea) =
-                CaptureAlphaEdgeAlignment();
-            PlayResolvedContinuousAnimation();
-            RestoreAlphaEdgeAlignment(alignLeft, alignRight, alignBottom, workArea);
-            if (restorePosition is Point bodyReactionPosition)
-            {
-                RestoreWindowPosition(bodyReactionPosition);
-            }
-            _logger.Info(
-                "animation.body_reaction_direct_restore_completed",
-                "Body reaction returned directly to anchored idle artwork.");
+            _ = RestoreClassicBodyReactionWithFadeAsync(restorePosition);
             return;
         }
 
@@ -1843,6 +1830,29 @@ public partial class MainWindow : Window
             restorePosition is Point point
                 ? () => RestoreWindowPosition(point)
                 : null);
+    }
+
+    private async Task RestoreClassicBodyReactionWithFadeAsync(Point? restorePosition)
+    {
+        (bool alignLeft, bool alignRight, bool alignBottom, DesktopRectangle workArea) =
+            CaptureAlphaEdgeAlignment();
+        bool completed = await _visualSwapTransition.PlayFadeAsync(
+            () =>
+            {
+                PlayResolvedContinuousAnimation(preserveVisualTransition: true);
+                RestoreAlphaEdgeAlignment(alignLeft, alignRight, alignBottom, workArea);
+                if (restorePosition is Point bodyReactionPosition)
+                {
+                    RestoreWindowPosition(bodyReactionPosition);
+                }
+            });
+        if (completed && !_isClosing)
+        {
+            StartResolvedContinuousMotion();
+            _logger.Info(
+                "animation.body_reaction_fade_restore_completed",
+                "Classic body reaction returned through a neutral opacity fade.");
+        }
     }
 
     private PointerPoint? NormalizeToPetImage(PointerPoint windowPoint)

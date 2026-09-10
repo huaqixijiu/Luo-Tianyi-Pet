@@ -81,6 +81,49 @@ internal sealed class VisualSwapTransition
         return true;
     }
 
+    public async Task<bool> PlayFadeAsync(Action swapAtInvisibleMidpoint)
+    {
+        ArgumentNullException.ThrowIfNull(swapAtInvisibleMidpoint);
+        _visual.Dispatcher.VerifyAccess();
+        int version = ++_version;
+        ResetVisuals();
+
+        const int fadeOutMilliseconds = 110;
+        const int fadeInMilliseconds = 170;
+        Animate(
+            _visual,
+            UIElement.OpacityProperty,
+            1,
+            0,
+            fadeOutMilliseconds,
+            EasingMode.EaseIn);
+
+        await Task.Delay(fadeOutMilliseconds);
+        if (version != _version)
+        {
+            return false;
+        }
+
+        ClearAnimationsAndSet(_visual, UIElement.OpacityProperty, 0);
+        swapAtInvisibleMidpoint();
+        Animate(
+            _visual,
+            UIElement.OpacityProperty,
+            0,
+            1,
+            fadeInMilliseconds,
+            EasingMode.EaseOut);
+
+        await Task.Delay(fadeInMilliseconds);
+        if (version != _version)
+        {
+            return false;
+        }
+
+        ResetVisuals();
+        return true;
+    }
+
     public void Cancel()
     {
         _visual.Dispatcher.VerifyAccess();

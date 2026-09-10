@@ -372,7 +372,7 @@
         "minimumDirectionChanges": 1,
         "animation": "guoyue-headpat",
         "playbackRate": 0.60,
-        "loopCount": 1
+        "loopCount": 2
       },
       "hands": {
         "regions": [

@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
   "source": "候选素材_官方/Q版小人全身_新默认.png",
-  "sourceSha256": "d6fc02a4e9be9dd623a31275365e89a0200ab47dcdf8493123054c56a92cfc8c",
+  "sourceSha256": "ba240287a69a7eacce28ef5bed0f571c98500af592575ceda2ed1e5b41b1bbd1",
   "output": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-  "outputSha256": "1e55519e2eda15b7f5e0de2542f00a4a2e479bb79c64ea066431e83c8da0f20e",
+  "outputSha256": "4072b603dfdbf97ae1f09f5fea4f12da6400847c2d9ab43d9311768238240aa0",
   "runtimeAtlas": "animations/runtime/user-chibi-compact-idle.atlas.png",
-  "runtimeAtlasSha256": "1e55519e2eda15b7f5e0de2542f00a4a2e479bb79c64ea066431e83c8da0f20e",
+  "runtimeAtlasSha256": "4072b603dfdbf97ae1f09f5fea4f12da6400847c2d9ab43d9311768238240aa0",
   "transformation": "border-and-marked-interior-near-white-background-to-alpha-and-fit-canvas",
   "backgroundRemoval": {
     "method": "binary near-white candidates flood-filled from canvas border plus explicit enclosed-background boxes",
     "backgroundRgbMedian": [
-      251,
-      251,
-      251
+      210,
+      209,
+      209
     ],
-    "minimumChannelValue": 240,
+    "minimumChannelValue": 160,
     "maximumChannelSpread": 12,
     "softEdgeWidthPixels": 2,
     "softEdgeColorDistance": 24.0,
@@ -35,8 +35,8 @@
     ]
   },
   "sourceSize": [
-    1254,
-    1254
+    1205,
+    1306
   ],
   "canvasSize": [
     480,
@@ -44,30 +44,30 @@
   ],
   "geometry": {
     "sourceAlphaBounds": [
-      142,
-      25,
-      1105,
-      1186
+      79,
+      30,
+      1114,
+      1271
     ],
     "cropBox": [
-      134,
-      17,
-      1113,
-      1194
+      71,
+      22,
+      1122,
+      1279
     ],
-    "scale": 0.42480883602378927,
+    "scale": 0.39777247414478917,
     "resizedSize": [
-      416,
+      418,
       500
     ],
     "pasteOffset": [
-      32,
+      31,
       10
     ],
     "normalizedAlphaBounds": [
-      33,
+      32,
       11,
-      447,
+      448,
       509
     ]
   },
@@ -95,7 +95,7 @@
         333
       ]
     ],
-    "repairedPixelCount": 97,
+    "repairedPixelCount": 117,
     "preserveLargeHairOpenings": true
   },
   "frameCount": 1,

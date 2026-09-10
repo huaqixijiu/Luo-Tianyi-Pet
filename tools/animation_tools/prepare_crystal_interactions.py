@@ -126,8 +126,9 @@ ACTIONS = (
 IDLE_DISPLAY_WIDTH = 220
 IDLE_DISPLAY_HEIGHT = 238
 SOURCE_ACTION_DISPLAY_SIZE = 244
-RUNTIME_FRAME_WIDTH = 240
-RUNTIME_FRAME_HEIGHT = 260
+RUNTIME_FRAME_WIDTH = 360
+RUNTIME_FRAME_HEIGHT = 390
+PREVIEW_FRAME_SIZE = (240, 260)
 IN_PLACE_TRANSITION_FRAMES = 6
 
 
@@ -304,6 +305,12 @@ def save_preview(frames: list[Image.Image], path: Path, duration_ms: int) -> Non
     )
 
 
+def make_preview_frames(frames: list[Image.Image]) -> list[Image.Image]:
+    if frames[0].size == PREVIEW_FRAME_SIZE:
+        return frames
+    return [resize_premultiplied_to(frame, PREVIEW_FRAME_SIZE) for frame in frames]
+
+
 def prepare(
     root: Path,
     frame_width: int,
@@ -317,6 +324,7 @@ def prepare(
     metadata_path = root / "assets" / "animations" / "processed" / "晶蓝礼服_互动动作.meta.json"
     frame_size = (frame_width, frame_height)
     idle_reference = make_idle_reference(root, frame_size)
+    preview_idle_reference = make_idle_reference(root, PREVIEW_FRAME_SIZE)
 
     metadata_actions: list[dict[str, object]] = []
     catalog_animations: list[dict[str, object]] = []
@@ -329,21 +337,26 @@ def prepare(
                 f"found {len(source_frames)}"
             )
 
+        action_frame_size = frame_size if action.runtime else PREVIEW_FRAME_SIZE
+        action_idle_reference = idle_reference if action.runtime else preview_idle_reference
         normalized_frames: list[Image.Image] = []
         for path in source_frames:
             with Image.open(path) as image:
                 if image.size != (720, 720):
                     raise ValueError(f"Unexpected frame size for {path}: {image.size}")
-                normalized_frames.append(normalize_action_frame(image, frame_size))
-        luminance_lut = build_luminance_lut(normalized_frames[0], idle_reference)
+                normalized_frames.append(normalize_action_frame(image, action_frame_size))
+        luminance_lut = build_luminance_lut(normalized_frames[0], action_idle_reference)
         normalized_frames = [
             apply_luminance_lut(frame, luminance_lut)
             for frame in normalized_frames
         ]
-        normalized_frames = add_in_place_transitions(normalized_frames, idle_reference)
+        normalized_frames = add_in_place_transitions(
+            normalized_frames,
+            action_idle_reference,
+        )
 
         preview_path = preview_root / action.preview_name
-        save_preview(normalized_frames, preview_path, frame_duration_ms)
+        save_preview(make_preview_frames(normalized_frames), preview_path, frame_duration_ms)
 
         source_dir_relative = sequence_dir.relative_to(root).as_posix()
         preview_relative = preview_path.relative_to(root).as_posix()
@@ -404,8 +417,9 @@ def prepare(
                 "frame to the actual idle artwork; preserve chroma and alpha"
             ),
             "runtimeCanvasPolicy": (
-                "reframe square source into 240x260 idle-aspect canvas; "
-                "display at fixed 220x238 DIP without runtime offset"
+                f"reframe square source into {frame_width}x{frame_height} "
+                "high-resolution idle-aspect canvas; display at fixed "
+                "220x238 DIP without runtime offset; retain 240x260 picker previews"
             ),
             "retouch": (
                 "match action luminance to idle, then replace six neutral frames "
