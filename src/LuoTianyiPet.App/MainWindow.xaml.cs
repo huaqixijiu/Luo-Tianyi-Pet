@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
     private const string FileDropPromptAnimation = "resonance-give-me";
+    private const string FileDropSuccessAnimation = "resonance-big-success";
     private const string FileDropFailureAnimation = "resonance-cry-shake";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
     private const double GenshinCameoSafeMargin = 24;
@@ -65,6 +66,7 @@ public partial class MainWindow : Window
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
     private static readonly TimeSpan CloudMusicLaunchShortcutDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan CloudMusicLaunchFallbackCommandDelay = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan CloudMusicLaunchTimeout = TimeSpan.FromSeconds(30);
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
@@ -130,6 +132,7 @@ public partial class MainWindow : Window
     private readonly bool _previewBodyHitDebug;
     private readonly bool _previewDragCycle;
     private readonly bool _previewMediaControls;
+    private readonly bool _previewLiveCloudMusicControl;
     private readonly bool _previewTrackInfo;
     private readonly bool _previewLiveTrackInfo;
     private readonly bool _previewSettings;
@@ -167,6 +170,7 @@ public partial class MainWindow : Window
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
+    private bool _trackSwitchPlaybackHoldActive;
     private DateTimeOffset? _userPauseFastConfirmationUntil;
     private Guid? _cloudMusicLaunchReactionToken;
     private bool _cloudMusicLaunchWaiting;
@@ -245,6 +249,7 @@ public partial class MainWindow : Window
         bool previewBodyHitDebug,
         bool previewDragCycle,
         bool previewMediaControls,
+        bool previewLiveCloudMusicControl,
         bool previewTrackInfo,
         bool previewLiveTrackInfo,
         bool previewSettings,
@@ -331,6 +336,7 @@ public partial class MainWindow : Window
         _previewBodyHitDebug = previewBodyHitDebug;
         _previewDragCycle = previewDragCycle;
         _previewMediaControls = previewMediaControls;
+        _previewLiveCloudMusicControl = previewLiveCloudMusicControl;
         _previewTrackInfo = previewTrackInfo;
         _previewLiveTrackInfo = previewLiveTrackInfo;
         _previewSettings = previewSettings;
@@ -548,6 +554,10 @@ public partial class MainWindow : Window
         if (_previewMediaControls)
         {
             _ = BeginMediaControlsPreviewAsync();
+        }
+        if (_previewLiveCloudMusicControl)
+        {
+            _ = BeginLiveCloudMusicControlPreviewAsync();
         }
 
         if (_previewTrackInfo)
@@ -1959,7 +1969,15 @@ public partial class MainWindow : Window
         if (plan.Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
         {
-            _ = TransitionToResolvedContinuousAnimationAsync("animation.music_selection_transition_completed");
+            if (completedApplicationLaunchWait)
+            {
+                _ = PlayReactionAsync("resonance-ok", ReactionPriority.MediaOrVolume);
+            }
+            else
+            {
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "animation.music_selection_transition_completed");
+            }
         }
 
         _logger.Info(
@@ -2051,18 +2069,36 @@ public partial class MainWindow : Window
 
         if (transition == MusicActivityTransition.Started)
         {
+            bool resumedPendingTrackSwitch =
+                _trackSwitchPlaybackHoldActive && _trackSwitchSawAudioGap;
+            if (resumedPendingTrackSwitch)
+            {
+                _trackSwitchPlaybackHoldActive = false;
+            }
+
             StartMusicPlayback("core-audio");
             if (_showNextTrackChange && _trackSwitchSawAudioGap)
             {
                 ConfirmTrackSwitch("core-audio-resumed");
             }
+            else if (resumedPendingTrackSwitch)
+            {
+                _trackSwitchCancellation?.Cancel();
+                _logger.Info(
+                    "media.track_switch_audio_resumed",
+                    "Audio resumed after the track identity had already changed.");
+            }
         }
         else if (transition == MusicActivityTransition.Stopped)
         {
             _userPauseFastConfirmationUntil = null;
-            if (_showNextTrackChange)
+            if (_trackSwitchPlaybackHoldActive)
             {
                 _trackSwitchSawAudioGap = true;
+                _logger.Info(
+                    "media.track_switch_audio_gap_held",
+                    "Keeping the current music animation while the requested track loads.");
+                return;
             }
 
             StopMusicPlayback("core-audio");
@@ -3916,11 +3952,13 @@ public partial class MainWindow : Window
         bool userRequestedPause = command == MediaCommand.TogglePlayPause &&
             _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
         MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
-        _logger.Info("media.command_result", $"Command={command}; Status={result.Status}.");
+        _logger.Info(
+            "media.command_result",
+            $"Command={command}; Status={result.Status}; Delivery={result.DeliveryMethod}.");
 
         string message = result.Status switch
         {
-            MediaCommandSendStatus.Sent => "快捷键已发送，等待播放器响应",
+            MediaCommandSendStatus.Sent => "已发送网易云控制命令，等待播放器响应",
             MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
             MediaCommandSendStatus.InvalidShortcut => "快捷键设置无效，请检查配置",
             MediaCommandSendStatus.ProtectedApplicationForeground => "游戏安全模式：这次没有发送快捷键",
@@ -3934,6 +3972,9 @@ public partial class MainWindow : Window
 
         if (result.WasSent && userRequestedPause)
         {
+            _trackSwitchPlaybackHoldActive = false;
+            _showNextTrackChange = false;
+            _trackSwitchCancellation?.Cancel();
             _userPauseFastConfirmationUntil = DateTimeOffset.Now + UserPauseFastConfirmationWindow;
         }
 
@@ -3944,6 +3985,7 @@ public partial class MainWindow : Window
             _trackSwitchCancellation = new CancellationTokenSource();
             _trackSwitchInitialIdentity = _lastTrackIdentity;
             _trackSwitchSawAudioGap = false;
+            _trackSwitchPlaybackHoldActive = true;
             _showNextTrackChange = true;
             ShowTrackSwitchPending();
             _ = MonitorTrackSwitchAsync(_trackSwitchCancellation.Token);
@@ -4096,8 +4138,12 @@ public partial class MainWindow : Window
                     return;
                 }
 
+                TimeSpan launchElapsed = DateTimeOffset.Now - startedAt;
+                bool playerContentReady = _lastTrackSnapshot.HasTrack ||
+                    launchElapsed >= CloudMusicLaunchFallbackCommandDelay;
                 if (!playCommandSent &&
-                    DateTimeOffset.Now - startedAt >= CloudMusicLaunchShortcutDelay &&
+                    launchElapsed >= CloudMusicLaunchShortcutDelay &&
+                    playerContentReady &&
                     _mediaApplicationLauncher.IsRunning(_musicTargetProcessName))
                 {
                     MediaCommandSendResult playResult = _mediaCommandSender.TrySend(
@@ -4105,7 +4151,7 @@ public partial class MainWindow : Window
                         DateTimeOffset.Now);
                     _logger.Info(
                         "media.application_launch_play_result",
-                        $"Status={playResult.Status}.");
+                        $"Status={playResult.Status}; Delivery={playResult.DeliveryMethod}.");
                     if (playResult.WasSent)
                     {
                         playCommandSent = true;
@@ -4119,8 +4165,12 @@ public partial class MainWindow : Window
 
                         ShowPersistentFeedbackBubble("网易云已打开，正在等待音乐开始播放…");
                     }
-                    else if (playResult.Status is not
+                    else if (playResult.Status is
                         (MediaCommandSendStatus.RateLimited or MediaCommandSendStatus.KeyboardBusy))
+                    {
+                        // Keep polling until the command cooldown or held keys clear.
+                    }
+                    else
                     {
                         FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
                         ShowFeedbackBubble(GetMediaCommandFailureMessage(playResult.Status));
@@ -4660,7 +4710,7 @@ public partial class MainWindow : Window
             _fileDropInProgress = false;
         }
 
-        FinishFileDragPresentation(restoreContinuousAnimation: result.Succeeded);
+        FinishFileDragPresentation(restoreContinuousAnimation: false);
         if (result.Succeeded)
         {
             _suppressDesktopTreatUntil = DateTimeOffset.Now.AddSeconds(10);
@@ -4670,6 +4720,7 @@ public partial class MainWindow : Window
             _logger.Info(
                 "file_drop.recycled",
                 $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
+            _ = PlayReactionAsync(FileDropSuccessAnimation, ReactionPriority.UserInteraction);
             return;
         }
 
@@ -5087,17 +5138,26 @@ public partial class MainWindow : Window
             while (DateTimeOffset.Now - startedAt < TimeSpan.FromSeconds(15))
             {
                 await Task.Delay(250, cancellationToken);
-                if (_isClosing || !_showNextTrackChange)
+                if (_isClosing || !_trackSwitchPlaybackHoldActive)
                 {
                     return;
                 }
 
-                await RefreshTrackInfoAsync(showWhenFound: false);
+                if (_showNextTrackChange)
+                {
+                    await RefreshTrackInfoAsync(showWhenFound: false);
+                }
             }
 
-            if (_showNextTrackChange)
+            if (_trackSwitchPlaybackHoldActive)
             {
+                _trackSwitchPlaybackHoldActive = false;
                 _showNextTrackChange = false;
+                if (!_musicActivityDetector.IsPlaying &&
+                    _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+                {
+                    StopMusicPlayback("track-switch-timeout");
+                }
                 ShowFeedbackBubble("网易云没有响应，等太久了，再试一次吧");
                 await PlayReactionAsync("resonance-cry-shake", ReactionPriority.MediaOrVolume);
                 _logger.Info("media.track_switch_timeout", "No public playback change was observed.");
@@ -5144,7 +5204,11 @@ public partial class MainWindow : Window
         }
 
         _showNextTrackChange = false;
-        _trackSwitchCancellation?.Cancel();
+        if (!_trackSwitchSawAudioGap || _musicActivityDetector.IsPlaying)
+        {
+            _trackSwitchPlaybackHoldActive = false;
+            _trackSwitchCancellation?.Cancel();
+        }
         ShowFeedbackBubble("切歌成功");
         _ = PlayReactionAsync("resonance-ok", ReactionPriority.MediaOrVolume);
         _logger.Info("media.track_switch_confirmed", $"Source={source}.");
@@ -5279,6 +5343,15 @@ public partial class MainWindow : Window
         Top = Clamp(Top + 300, workArea.Top, workArea.Bottom - ActualHeight);
         Topmost = true;
         _mediaControlsMotion.Show();
+    }
+
+    private async Task BeginLiveCloudMusicControlPreviewAsync()
+    {
+        await Task.Delay(900);
+        if (!_isClosing)
+        {
+            HandleTogglePlayPauseRequest();
+        }
     }
 
     private async Task BeginBunChasePreviewAsync()

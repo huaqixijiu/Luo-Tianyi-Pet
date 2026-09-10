@@ -46,8 +46,15 @@ public sealed class MusicAudioActivityDetector
 
         if (!snapshot.TargetSessionFound)
         {
-            _lastAudibleAt = null;
-            return SetPlaying(false);
+            if (IsPlaying &&
+                _lastAudibleAt is DateTimeOffset missingSessionLastAudibleAt &&
+                now - missingSessionLastAudibleAt >= _silenceGracePeriod)
+            {
+                _lastAudibleAt = null;
+                return SetPlaying(false);
+            }
+
+            return MusicActivityTransition.None;
         }
 
         if (snapshot.PeakLevel >= _audiblePeakThreshold)

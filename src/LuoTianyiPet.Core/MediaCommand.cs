@@ -7,6 +7,13 @@ public enum MediaCommand
     NextTrack,
 }
 
+public enum MediaCommandDeliveryMethod
+{
+    None,
+    TargetedWindowsMessage,
+    KeyboardShortcut,
+}
+
 public enum MediaCommandSendStatus
 {
     Sent,
@@ -19,9 +26,14 @@ public enum MediaCommandSendStatus
     SystemRejected,
 }
 
-public sealed record MediaCommandSendResult(MediaCommandSendStatus Status)
+public sealed record MediaCommandSendResult(
+    MediaCommandSendStatus Status,
+    MediaCommandDeliveryMethod DeliveryMethod = MediaCommandDeliveryMethod.None)
 {
     public bool WasSent => Status == MediaCommandSendStatus.Sent;
+
+    public bool WasSentViaTargetedMessage =>
+        WasSent && DeliveryMethod == MediaCommandDeliveryMethod.TargetedWindowsMessage;
 }
 
 public interface IMediaCommandSender

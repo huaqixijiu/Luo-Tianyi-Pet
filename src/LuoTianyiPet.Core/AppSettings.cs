@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 13;
+    public const int CurrentSchemaVersion = 14;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -207,7 +207,7 @@ public sealed record WindowPreferences
 public sealed record MediaPreferences
 {
     public const int DefaultPollIntervalMilliseconds = 250;
-    public const int DefaultSilenceGraceMilliseconds = 1000;
+    public const int DefaultSilenceGraceMilliseconds = 5000;
     public const float DefaultAudiblePeakThreshold = 0.001f;
 
     public bool EnableCloudMusicDetection { get; init; } = true;

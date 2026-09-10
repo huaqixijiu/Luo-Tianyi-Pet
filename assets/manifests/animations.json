@@ -1093,6 +1093,65 @@
       ]
     },
     {
+      "id": "resonance-cry-shake",
+      "sourcePath": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png",
+      "sourceSha256": "3143ac66c54f7ea5380b1454c9370a2ebbec31422e4184cac0c03a3e51ee96b3",
+      "atlasPath": "animations/runtime/resonance-cry-shake.atlas.png",
+      "atlasSha256": "0a9588a8c6776094bb98f55795e89153462fd3aeb38fc971948837749953d23b",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 1,
+      "rows": 1,
+      "frameDurationsMilliseconds": [
+        900
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        3,
+        160,
+        162
+      ]
+    },
+    {
+      "id": "resonance-big-success",
+      "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_大成功.gif",
+      "sourceSha256": "82e4ce6e573ba685cc4a5afe077f71ad6f689b0140e1347724135092b903c435",
+      "atlasPath": "animations/runtime/resonance-big-success.atlas.png",
+      "atlasSha256": "9fee48dd0e37b992507fe7867d703ccd9b986c84f92c70dc8eb607d668739745",
+      "frameWidth": 162,
+      "frameHeight": 162,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 1,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        0,
+        0,
+        162,
+        162
+      ]
+    },
+    {
       "id": "resonance-ok",
       "sourcePath": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "sourceSha256": "7036ffcd41e0241cecaee0f7e77f7b679adaeb259810734bea42f0c70346e454",

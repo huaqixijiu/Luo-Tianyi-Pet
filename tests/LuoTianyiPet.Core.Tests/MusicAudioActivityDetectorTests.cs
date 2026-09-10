@@ -36,11 +36,11 @@ public sealed class MusicAudioActivityDetectorTests
 
         Assert.Equal(
             MusicActivityTransition.None,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(999)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(4999)));
         Assert.True(detector.IsPlaying);
         Assert.Equal(
             MusicActivityTransition.Stopped,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1000)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(5000)));
     }
 
     [Fact]
@@ -53,21 +53,25 @@ public sealed class MusicAudioActivityDetectorTests
 
         Assert.Equal(
             MusicActivityTransition.None,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1399)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(5399)));
         Assert.Equal(
             MusicActivityTransition.Stopped,
-            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(1400)));
+            detector.Update(AudioSessionSnapshot.Found(0), Now.AddMilliseconds(5400)));
     }
 
     [Fact]
-    public void MissingTargetSessionStopsImmediately()
+    public void MissingTargetSessionUsesTheSameLoadingGracePeriod()
     {
         MusicAudioActivityDetector detector = CreateDetector();
         detector.Update(AudioSessionSnapshot.Found(0.2f), Now);
 
         Assert.Equal(
+            MusicActivityTransition.None,
+            detector.Update(AudioSessionSnapshot.Missing, Now.AddMilliseconds(4999)));
+        Assert.True(detector.IsPlaying);
+        Assert.Equal(
             MusicActivityTransition.Stopped,
-            detector.Update(AudioSessionSnapshot.Missing, Now.AddMilliseconds(250)));
+            detector.Update(AudioSessionSnapshot.Missing, Now.AddMilliseconds(5000)));
     }
 
     [Fact]
@@ -117,5 +121,5 @@ public sealed class MusicAudioActivityDetectorTests
 
     private static MusicAudioActivityDetector CreateDetector() => new(
         0.001f,
-        TimeSpan.FromMilliseconds(1000));
+        TimeSpan.FromMilliseconds(MediaPreferences.DefaultSilenceGraceMilliseconds));
 }

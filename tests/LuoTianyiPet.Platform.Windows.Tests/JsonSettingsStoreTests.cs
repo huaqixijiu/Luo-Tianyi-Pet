@@ -232,7 +232,7 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Theory]
-    [InlineData(1500, 1000)]
+    [InlineData(1500, 5000)]
     [InlineData(800, 800)]
     public async Task Load_Version1Media_MigratesOnlyTheOldDefaultGracePeriod(
         int storedGraceMilliseconds,
@@ -281,7 +281,7 @@ public sealed class JsonSettingsStoreTests
     }
 
     [Theory]
-    [InlineData(500, 1000)]
+    [InlineData(500, 5000)]
     [InlineData(800, 800)]
     public async Task Load_Version2Media_MigratesOnlyTheOldDefaultGracePeriod(
         int storedGraceMilliseconds,
@@ -341,6 +341,41 @@ public sealed class JsonSettingsStoreTests
             Assert.Equal(new AppSettings(), actual);
             Assert.False(File.Exists(paths.SettingsFile));
             Assert.Single(Directory.GetFiles(testDirectory, "settings.corrupt-*.json"));
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(1000, 5000)]
+    [InlineData(2750, 2750)]
+    public async Task Load_Version13Media_MigratesOnlyTheOldDefaultGracePeriod(
+        int storedGraceMilliseconds,
+        int expectedGraceMilliseconds)
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(
+                paths.SettingsFile,
+                $$"""
+                {
+                  "schemaVersion": 13,
+                  "media": {
+                    "silenceGraceMilliseconds": {{storedGraceMilliseconds}}
+                  }
+                }
+                """);
+            JsonSettingsStore store = new(paths);
+
+            AppSettings actual = await store.LoadAsync();
+
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.Equal(expectedGraceMilliseconds, actual.Media.SilenceGraceMilliseconds);
         }
         finally
         {

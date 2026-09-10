@@ -25,6 +25,44 @@ public sealed class WindowsMediaCommandSenderTests
                 new ShortcutKeyStroke(0x11, true),
             ],
             backend.LastStrokes);
+        Assert.Equal(MediaCommandDeliveryMethod.KeyboardShortcut, result.DeliveryMethod);
+    }
+
+    [Theory]
+    [InlineData(MediaCommand.PreviousTrack)]
+    [InlineData(MediaCommand.TogglePlayPause)]
+    [InlineData(MediaCommand.NextTrack)]
+    public void TrySend_TargetApplicationAcceptsWindowsMessage_DoesNotInjectKeyboard(
+        MediaCommand command)
+    {
+        FakeShortcutInputBackend backend = new()
+        {
+            AcceptTargetedCommand = true,
+        };
+        backend.DownKeys.Add(0x11);
+        WindowsMediaCommandSender sender = CreateSender(backend);
+
+        MediaCommandSendResult result = sender.TrySend(command, Now);
+
+        Assert.Equal(MediaCommandSendStatus.Sent, result.Status);
+        Assert.True(result.WasSentViaTargetedMessage);
+        Assert.Equal("cloudmusic", backend.LastTargetProcessName);
+        Assert.Equal(command, backend.LastTargetedCommand);
+        Assert.Null(backend.LastStrokes);
+    }
+
+    [Fact]
+    public void TrySend_TargetApplicationUnavailable_FallsBackToConfiguredShortcut()
+    {
+        FakeShortcutInputBackend backend = new();
+        WindowsMediaCommandSender sender = CreateSender(backend);
+
+        MediaCommandSendResult result = sender.TrySend(MediaCommand.TogglePlayPause, Now);
+
+        Assert.Equal(MediaCommandSendStatus.Sent, result.Status);
+        Assert.Equal(MediaCommandDeliveryMethod.KeyboardShortcut, result.DeliveryMethod);
+        Assert.Equal(MediaCommand.TogglePlayPause, backend.LastTargetedCommand);
+        Assert.NotNull(backend.LastStrokes);
     }
 
     [Theory]
@@ -156,7 +194,9 @@ public sealed class WindowsMediaCommandSenderTests
     private static WindowsMediaCommandSender CreateSender(FakeShortcutInputBackend backend) =>
         new(backend, new MediaPreferences(), new SafetyPreferences());
 
-    private sealed class FakeShortcutInputBackend : IShortcutInputBackend
+    private sealed class FakeShortcutInputBackend :
+        IShortcutInputBackend,
+        ITargetedMediaCommandBackend
     {
         public ForegroundProcessQuery Foreground { get; init; } = new(true, "explorer");
 
@@ -169,6 +209,12 @@ public sealed class WindowsMediaCommandSenderTests
         public int ForegroundQueryCount { get; private set; }
 
         public int SendCallCount { get; private set; }
+
+        public bool AcceptTargetedCommand { get; init; }
+
+        public string? LastTargetProcessName { get; private set; }
+
+        public MediaCommand? LastTargetedCommand { get; private set; }
 
         public ForegroundProcessQuery QueryForegroundProcess()
         {
@@ -183,6 +229,13 @@ public sealed class WindowsMediaCommandSenderTests
             SendCallCount++;
             LastStrokes = strokes;
             return AcceptedStrokeCount ?? strokes.Count;
+        }
+
+        public bool TrySendToProcess(string processName, MediaCommand command)
+        {
+            LastTargetProcessName = processName;
+            LastTargetedCommand = command;
+            return AcceptTargetedCommand;
         }
     }
 }

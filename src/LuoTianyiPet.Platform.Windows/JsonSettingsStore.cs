@@ -5,6 +5,8 @@ namespace LuoTianyiPet.Platform.Windows;
 
 public sealed class JsonSettingsStore : ISettingsStore
 {
+    private const int PreviousDefaultSilenceGraceMilliseconds = 1000;
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -34,36 +36,9 @@ public sealed class JsonSettingsStore : ISettingsStore
                 AppSettings.CurrentSchemaVersion => Normalize(settings),
                 1 => MigrateFromPreviousVersion(settings, 1500),
                 2 => MigrateFromPreviousVersion(settings, 500),
-                3 => MigrateFromPreviousVersion(
+                >= 3 and <= 13 => MigrateFromPreviousVersion(
                     settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                4 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                5 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                6 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                7 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                8 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                9 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                10 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                11 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
-                12 => MigrateFromPreviousVersion(
-                    settings,
-                    MediaPreferences.DefaultSilenceGraceMilliseconds),
+                    PreviousDefaultSilenceGraceMilliseconds),
                 _ => new AppSettings(),
             };
         }

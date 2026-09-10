@@ -52,6 +52,10 @@ internal sealed class BodyReactionMotion
         {
             PlayCuriousSway();
         }
+        else if (animationId == "resonance-cry-shake")
+        {
+            PlayOopsShake(playbackRate, mirrorHorizontally: false);
+        }
     }
 
     public void Cancel()

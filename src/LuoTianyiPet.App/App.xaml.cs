@@ -84,6 +84,10 @@ public partial class App : Application
             bool liveApplicationVolumeQa = e.Args.Contains(
                 "--qa-application-volume",
                 StringComparer.OrdinalIgnoreCase);
+            bool liveCloudMusicControlQa = e.Args.Contains(
+                "--qa-cloudmusic-control-live",
+                StringComparer.OrdinalIgnoreCase);
+            previewMediaControls |= liveCloudMusicControlQa;
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);
@@ -114,7 +118,7 @@ public partial class App : Application
                 .Split('=', 2)[1];
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
             IAudioSessionProbe? audioSessionProbe = settings.Media.EnableCloudMusicDetection &&
-                !isPreviewOrQaRun
+                (!isPreviewOrQaRun || liveCloudMusicControlQa)
                     ? new CoreAudioSessionProbe()
                     : null;
             IApplicationVolumeService? applicationVolumeService =
@@ -136,7 +140,8 @@ public partial class App : Application
                         isPortable,
                         TryGetPackageFamilyName())
                     : null;
-            IMediaTrackInfoSource? mediaTrackInfoSource = !isPreviewOrQaRun || liveTrackInfoQa
+            IMediaTrackInfoSource? mediaTrackInfoSource =
+                !isPreviewOrQaRun || liveTrackInfoQa || liveCloudMusicControlQa
                 ? new SystemMediaTrackInfoSource()
                 : null;
             ISystemResumeSource? systemResumeSource = !isPreviewOrQaRun
@@ -187,6 +192,7 @@ public partial class App : Application
                 previewBodyHitDebug,
                 previewDragCycle,
                 previewMediaControls,
+                liveCloudMusicControlQa,
                 previewTrackInfo,
                 liveTrackInfoQa,
                 previewSettings,
