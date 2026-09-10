@@ -178,14 +178,26 @@ def prepare(
     if len(singing_frames) != 16:
         raise ValueError(f"Expected 16 singing frames, got {len(singing_frames)}.")
 
-    # Frames 0..6 are the one-click entrance. Frames 7..15 are the stable vocal
-    # motion and music-note cycle, so only that range belongs in a continuous loop.
-    singing_indices = list(range(7, 16))
+    # Frames 0..6 are the one-click entrance. Frames 7..15 contain the stable
+    # vocal motion, but source frame 15 is visually far from frame 7.  Returning
+    # through the original neighbouring frames creates a deterministic ping-pong
+    # loop with no generated ghost frames: 7..15, 14..8, then 7 again.
+    singing_indices = list(range(7, 16)) + list(range(14, 7, -1))
+    if any(
+        abs(current - following) != 1
+        for current, following in zip(
+            singing_indices,
+            singing_indices[1:] + singing_indices[:1],
+            strict=True,
+        )
+    ):
+        raise ValueError("Singing loop must only cross adjacent source frames.")
+    singing_output_durations = [100] * len(singing_indices)
     singing_output = output_directory / "元旦祝福_一键唱歌_无缝循环.gif"
     save_gif(
         singing_output,
         [singing_frames[index] for index in singing_indices],
-        [singing_durations[index] for index in singing_indices],
+        singing_output_durations,
         transparency_index=0,
     )
 
@@ -216,9 +228,13 @@ def prepare(
             "output": singing_output.as_posix(),
             "outputSha256": sha256(singing_output),
             "sourceFrameIndices": singing_indices,
-            "frameDurationsMilliseconds": [singing_durations[index] for index in singing_indices],
-            "totalDurationMilliseconds": sum(singing_durations[index] for index in singing_indices),
-            "transformation": "remove-one-click-entrance-and-loop-stable-singing-frames",
+            "frameDurationsMilliseconds": singing_output_durations,
+            "totalDurationMilliseconds": sum(singing_output_durations),
+            "loopBoundarySourceFrameIndices": [singing_indices[-1], singing_indices[0]],
+            "transformation": (
+                "remove-one-click-entrance-and-ping-pong-stable-singing-frames-"
+                "using-only-adjacent-source-transitions"
+            ),
         },
     }
     metadata_path = output_directory / "待机与音乐动画派生.meta.json"

@@ -470,9 +470,9 @@
     {
       "id": "newyear-one-click-singing",
       "sourcePath": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif",
-      "sourceSha256": "05b240b5b9cf5b1735fea92cbda345f01c0d5254c3465b9c349bd7431e28bfca",
+      "sourceSha256": "c7c514d3f80c7daec1e0dfc6c5519a215d62fcdbe56fd070f19be570968a5ee8",
       "atlasPath": "animations/runtime/newyear-one-click-singing.atlas.png",
-      "atlasSha256": "0c95ca94f07eb1a956139287747f291f727bde8b55a9c00d83fb012581694d64",
+      "atlasSha256": "a89d2ac5538748b2bca6da1efac4f2e52e90718996b6a78b2ede9e7aa12b2b29",
       "frameWidth": 240,
       "frameHeight": 240,
       "columns": 8,
@@ -486,7 +486,14 @@
         100,
         100,
         100,
-        200
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ],
       "loopCount": 0,
       "displayWidth": 180,

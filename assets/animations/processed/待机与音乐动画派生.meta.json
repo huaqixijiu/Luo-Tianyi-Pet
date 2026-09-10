@@ -160,7 +160,7 @@
     "source": "候选素材_官方/12_新添加_用户指定官方表情候选/洛天依元旦祝福_一键唱歌.gif",
     "sourceSha256": "fd46cbe473882b36a2da1dbc02fadeca64758f1704c26034e4a29ef4c98cf27a",
     "output": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif",
-    "outputSha256": "05b240b5b9cf5b1735fea92cbda345f01c0d5254c3465b9c349bd7431e28bfca",
+    "outputSha256": "c7c514d3f80c7daec1e0dfc6c5519a215d62fcdbe56fd070f19be570968a5ee8",
     "sourceFrameIndices": [
       7,
       8,
@@ -170,7 +170,14 @@
       12,
       13,
       14,
-      15
+      15,
+      14,
+      13,
+      12,
+      11,
+      10,
+      9,
+      8
     ],
     "frameDurationsMilliseconds": [
       100,
@@ -181,9 +188,20 @@
       100,
       100,
       100,
-      200
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
     ],
-    "totalDurationMilliseconds": 1000,
-    "transformation": "remove-one-click-entrance-and-loop-stable-singing-frames"
+    "totalDurationMilliseconds": 1600,
+    "loopBoundarySourceFrameIndices": [
+      8,
+      7
+    ],
+    "transformation": "remove-one-click-entrance-and-ping-pong-stable-singing-frames-using-only-adjacent-source-transitions"
   }
 }
