@@ -343,6 +343,16 @@
       "anchorY": 1.0
     },
     {
+      "id": "resonance-cute-bun-request",
+      "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_可爱.gif",
+      "atlas": "assets/animations/runtime/resonance-cute-bun-request.atlas.png",
+      "displayWidth": 205,
+      "displayHeight": 205,
+      "loopCount": 1,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "resonance-ok",
       "source": "候选素材_官方/03_官方表情包/5582-心律共鸣动态表情包/心律共鸣动态表情包_OK.gif",
       "atlas": "assets/animations/runtime/resonance-ok.atlas.png",

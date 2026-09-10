@@ -83,16 +83,14 @@ public static class BunChasePlanner
         int queuedBunCount) =>
         chaseActive && returning && !eating && queuedBunCount > 0;
 
-    public static double ResolveAcceleratedSpeed(
+    public static double ResolveSpeedTowardMaximum(
         double startingSpeedPerSecond,
-        double originalCruiseSpeedPerSecond,
+        double maximumSpeedPerSecond,
         TimeSpan elapsedSinceRunStarted,
-        TimeSpan accelerationDuration,
-        double maximumMultiplier = 3)
+        TimeSpan accelerationDuration)
     {
         double start = Math.Max(0, startingSpeedPerSecond);
-        double maximum = Math.Max(0, originalCruiseSpeedPerSecond) *
-            Math.Max(1, maximumMultiplier);
+        double maximum = Math.Max(start, maximumSpeedPerSecond);
         if (accelerationDuration <= TimeSpan.Zero)
         {
             return maximum;
@@ -105,6 +103,19 @@ public static class BunChasePlanner
             1);
         return start + (maximum - start) * progress;
     }
+
+    public static bool ShouldShowBunRequest(
+        int queuedBunCount,
+        bool reachedMaximumSpeed,
+        bool targetIsBeingDragged,
+        TimeSpan continuousDragDuration,
+        TimeSpan requiredDragDuration,
+        bool alreadyShown) =>
+        queuedBunCount == 1 &&
+        reachedMaximumSpeed &&
+        targetIsBeingDragged &&
+        continuousDragDuration >= requiredDragDuration &&
+        !alreadyShown;
 
     public static PointerPoint ResolveMouthTarget(
         PointerPoint imageTopLeft,
@@ -201,5 +212,81 @@ public static class BunChasePlanner
 
         return TimeSpan.FromSeconds(
             accelerationSeconds + (travelDistance - accelerationDistance) / maximum);
+    }
+}
+
+public static class BunFeedHitTester
+{
+    public static bool HasOpaqueOverlap(
+        ReadOnlySpan<byte> alpha,
+        int pixelWidth,
+        int pixelHeight,
+        PointerPoint imageTopLeft,
+        double imageWidth,
+        double imageHeight,
+        PointerPoint treatTopLeft,
+        double treatWidth,
+        double treatHeight,
+        byte alphaThreshold = 24)
+    {
+        if (pixelWidth <= 0 || pixelHeight <= 0 ||
+            alpha.Length < pixelWidth * pixelHeight ||
+            imageWidth <= 0 || imageHeight <= 0 ||
+            treatWidth <= 0 || treatHeight <= 0)
+        {
+            return false;
+        }
+
+        double intersectionLeft = Math.Max(imageTopLeft.X, treatTopLeft.X);
+        double intersectionTop = Math.Max(imageTopLeft.Y, treatTopLeft.Y);
+        double intersectionRight = Math.Min(
+            imageTopLeft.X + imageWidth,
+            treatTopLeft.X + treatWidth);
+        double intersectionBottom = Math.Min(
+            imageTopLeft.Y + imageHeight,
+            treatTopLeft.Y + treatHeight);
+        if (intersectionRight <= intersectionLeft || intersectionBottom <= intersectionTop)
+        {
+            return false;
+        }
+
+        int startX = Math.Clamp(
+            (int)Math.Floor((intersectionLeft - imageTopLeft.X) / imageWidth * pixelWidth),
+            0,
+            pixelWidth - 1);
+        int endX = Math.Clamp(
+            (int)Math.Ceiling((intersectionRight - imageTopLeft.X) / imageWidth * pixelWidth),
+            startX + 1,
+            pixelWidth);
+        int startY = Math.Clamp(
+            (int)Math.Floor((intersectionTop - imageTopLeft.Y) / imageHeight * pixelHeight),
+            0,
+            pixelHeight - 1);
+        int endY = Math.Clamp(
+            (int)Math.Ceiling((intersectionBottom - imageTopLeft.Y) / imageHeight * pixelHeight),
+            startY + 1,
+            pixelHeight);
+        double centreX = treatTopLeft.X + treatWidth / 2;
+        double centreY = treatTopLeft.Y + treatHeight / 2;
+        double radiusX = treatWidth / 2;
+        double radiusY = treatHeight / 2;
+
+        for (int y = startY; y < endY; y++)
+        {
+            double screenY = imageTopLeft.Y + (y + 0.5) / pixelHeight * imageHeight;
+            double normalizedY = (screenY - centreY) / radiusY;
+            for (int x = startX; x < endX; x++)
+            {
+                double screenX = imageTopLeft.X + (x + 0.5) / pixelWidth * imageWidth;
+                double normalizedX = (screenX - centreX) / radiusX;
+                if (normalizedX * normalizedX + normalizedY * normalizedY <= 1 &&
+                    alpha[y * pixelWidth + x] >= alphaThreshold)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

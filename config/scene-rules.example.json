@@ -349,6 +349,7 @@
         "minimumStrokeDistanceDips": 24,
         "minimumDirectionChanges": 1,
         "animation": "guoyue-headpat",
+        "playbackRate": 0.60,
         "loopCount": 1
       },
       "hands": {
@@ -357,7 +358,7 @@
           "right-hand"
         ],
         "animation": "tenth-anniversary-high-five-bounce",
-        "mirrorByRegion": ["left-hand"],
+        "mirrorByRegion": ["right-hand"],
         "loopCount": 1
       },
       "chestAndLowerBodySensitiveRegions": {
@@ -654,13 +655,29 @@
     "processNearestFirst": true,
     "returnToOriginalPosition": true,
     "startingSpeedDipsPerSecondAt1080p": 180,
-    "reachMaximumSpeedAfterSeconds": 4,
-    "maximumCruiseMultiplier": 3,
+    "maximumChaseSpeedDipsPerSecondAt1080p": 800,
+    "reachMaximumSpeedAfterSeconds": 5,
+    "returnSpeedDipsPerSecondAt1080p": 850,
+    "returnUsesAcceleration": false,
     "speedScaleByLogicalDesktopDiagonal": true,
     "maximumDesktopSpeedScale": 2,
     "eatClosingResumeFrame": 128,
-    "eatClosingDurationMilliseconds": 800,
+    "eatClosingDurationMilliseconds": 540,
     "newBunDuringReturn": "interrupt-return-and-resume-nearest-chase",
+    "manualFeed": {
+      "acceptedDropArea": "any visible character alpha overlapped by the bun footprint",
+      "mouthPoseDelayMilliseconds": 150,
+      "flyToMouthDurationMilliseconds": 400,
+      "resumeRemainingBunsAfterMilliseconds": 350
+    },
+    "draggedBunRequestEasterEgg": {
+      "animation": "resonance-cute-bun-request",
+      "requiresExactlyOneBun": true,
+      "requiresMaximumChaseSpeed": true,
+      "continuousDragMilliseconds": 3000,
+      "playOncePerChaseRound": true,
+      "holdLastFrameUntilManualFeedOrNewBun": true
+    },
     "animationStyleSource": "settings.appearance.bunEatingStyle",
     "directDropFileOperation": "windows-shell-recycle-bin-only-without-bun-chase",
     "hideAllAccessoryIslandsDuringChase": true,

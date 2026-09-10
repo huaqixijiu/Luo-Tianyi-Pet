@@ -44,7 +44,7 @@ public sealed class BodyInteractionResolver
         KissAnimation => 0.82,
         FaceAnimation => 0.80,
         LeftFaceAnimation => 0.80,
-        HeadPatAnimation => 0.75,
+        HeadPatAnimation => 0.60,
         HighFiveAnimation => 0.68,
         GuiltyAnimation => 0.80,
         DarkAnimation => 0.90,
@@ -93,8 +93,8 @@ public sealed class BodyInteractionResolver
             BodyRegionId.Face => normalizedPointerX < 0.5
                 ? Play(LeftFaceAnimation)
                 : Play(FaceAnimation),
-            BodyRegionId.LeftHand => Play(HighFiveAnimation, mirrorHorizontally: true),
-            BodyRegionId.RightHand => Play(HighFiveAnimation),
+            BodyRegionId.LeftHand => Play(HighFiveAnimation),
+            BodyRegionId.RightHand => Play(HighFiveAnimation, mirrorHorizontally: true),
             BodyRegionId.Chest or BodyRegionId.LowerBodySensitiveArea => ResolveSensitiveRegion(now),
             BodyRegionId.LeftFoot => ResolveFoot(now, mirrorHorizontally: true),
             BodyRegionId.RightFoot => ResolveFoot(now, mirrorHorizontally: false),

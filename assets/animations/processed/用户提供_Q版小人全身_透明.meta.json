@@ -3,9 +3,9 @@
   "source": "候选素材_官方/Q版小人全身_新默认.png",
   "sourceSha256": "d6fc02a4e9be9dd623a31275365e89a0200ab47dcdf8493123054c56a92cfc8c",
   "output": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
-  "outputSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
+  "outputSha256": "1e55519e2eda15b7f5e0de2542f00a4a2e479bb79c64ea066431e83c8da0f20e",
   "runtimeAtlas": "animations/runtime/user-chibi-compact-idle.atlas.png",
-  "runtimeAtlasSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
+  "runtimeAtlasSha256": "1e55519e2eda15b7f5e0de2542f00a4a2e479bb79c64ea066431e83c8da0f20e",
   "transformation": "border-and-marked-interior-near-white-background-to-alpha-and-fit-canvas",
   "backgroundRemoval": {
     "method": "binary near-white candidates flood-filled from canvas border plus explicit enclosed-background boxes",
@@ -70,6 +70,33 @@
       447,
       509
     ]
+  },
+  "hairGapRepair": {
+    "method": "local opaque hair-colour interpolation in a tightly scoped polygon",
+    "normalizedPolygon": [
+      [
+        359,
+        315
+      ],
+      [
+        364,
+        317
+      ],
+      [
+        366,
+        334
+      ],
+      [
+        362,
+        337
+      ],
+      [
+        359,
+        333
+      ]
+    ],
+    "repairedPixelCount": 97,
+    "preserveLargeHairOpenings": true
   },
   "frameCount": 1,
   "frameDurationMilliseconds": 1000,

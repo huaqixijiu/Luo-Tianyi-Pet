@@ -26,9 +26,81 @@
     "frameCount": 60,
     "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-v2-chase-run.atlas.png",
-    "atlasSha256": "c943cbc4aaeaea8cdb9abd1df157cb676e5f4372d1b2985c8121162e6cd2829d",
+    "atlasSha256": "fa26d8f69f8faac534a28352f60d857fedcf7cb01c63cdc72e5e36fb3f0a8fb9",
     "columns": 8,
-    "rows": 8
+    "rows": 8,
+    "stabilization": {
+      "mode": "upper-body-alpha-centroid-translation",
+      "focusBottomFraction": 0.64,
+      "targetCentroid": [
+        196.7228,
+        143.6852
+      ],
+      "maximumAbsoluteOffsetPixels": 8.5621,
+      "offsetsPixels": [
+        [
+          3.7632,
+          1.8217
+        ],
+        [
+          8.5495,
+          -1.2034
+        ],
+        [
+          8.421,
+          -1.5968
+        ],
+        [
+          8.5621,
+          -3.0552
+        ],
+        [
+          7.0986,
+          -3.2075
+        ],
+        [
+          0.8141,
+          2.7177
+        ],
+        [
+          0.7972,
+          2.7164
+        ],
+        [
+          0.0,
+          2.4274
+        ],
+        [
+          -0.4883,
+          0.9548
+        ],
+        [
+          -2.2628,
+          -5.4008
+        ],
+        [
+          -2.6284,
+          -5.3402
+        ],
+        [
+          -4.0757,
+          -4.6587
+        ],
+        [
+          -6.0901,
+          0.0
+        ],
+        [
+          -6.2074,
+          2.0565
+        ],
+        [
+          -6.2747,
+          1.947
+        ]
+      ],
+      "premultipliedRgbaWarp": true
+    }
   },
   "eat": {
     "sourceFramesOneBased": [

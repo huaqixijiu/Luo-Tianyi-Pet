@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private const string FileDropSuccessAnimation = "resonance-big-success";
     private const string FileDropFailureAnimation = "resonance-cry-shake";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
+    private const string BunRequestAnimation = "resonance-cute-bun-request";
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -45,12 +46,13 @@ public partial class MainWindow : Window
     private const double SideDockRevealPlaybackRate = 1.3;
     private const double BottomDockHidePlaybackRate = 0.7;
     private const double BunStartingSpeed = 180;
-    private const double BunChaseOriginalCruiseSpeed = 270;
-    private const double BunReturnOriginalCruiseSpeed = 290;
-    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(4);
+    private const double BunChaseMaximumSpeed = 800;
+    private const double BunReturnSpeed = 850;
+    private static readonly TimeSpan BunAccelerationDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan BunRequestDragDuration = TimeSpan.FromSeconds(3);
     private const int BunEatClosingStartFrame = 128;
     private const int BunEatLastFrame = 172;
-    private static readonly TimeSpan BunEatClosingDuration = TimeSpan.FromMilliseconds(800);
+    private static readonly TimeSpan BunEatClosingDuration = TimeSpan.FromMilliseconds(540);
     private const int SideDockHiddenFrame = 3;
     private const int SideDockHideStartFrame = 7;
     private const int SideDockRevealEndFrame = 19;
@@ -221,6 +223,9 @@ public partial class MainWindow : Window
     private bool _bunChaseActive;
     private bool _bunReturning;
     private bool _bunEating;
+    private bool _bunWaitingForManualFeed;
+    private bool _bunRequestShown;
+    private int _bunRequestPresentationGeneration;
     private bool _bodyReactionMirrorActive;
     private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
@@ -1813,6 +1818,25 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (suppressBodyAfter)
+        {
+            // A second pulse transition briefly scales and tints the newly restored
+            // idle art. Restore the idle frame and its alpha-edge anchor together so
+            // the end of a body reaction cannot expose that intermediate frame.
+            (bool alignLeft, bool alignRight, bool alignBottom, DesktopRectangle workArea) =
+                CaptureAlphaEdgeAlignment();
+            PlayResolvedContinuousAnimation();
+            RestoreAlphaEdgeAlignment(alignLeft, alignRight, alignBottom, workArea);
+            if (restorePosition is Point bodyReactionPosition)
+            {
+                RestoreWindowPosition(bodyReactionPosition);
+            }
+            _logger.Info(
+                "animation.body_reaction_direct_restore_completed",
+                "Body reaction returned directly to anchored idle artwork.");
+            return;
+        }
+
         _ = TransitionToResolvedContinuousAnimationAsync(
             "animation.body_reaction_transition_completed",
             restorePosition is Point point
@@ -2498,6 +2522,7 @@ public partial class MainWindow : Window
 
         Width = width;
         Height = height;
+        ApplyAccessorySizing(width);
         Left = Clamp(
             center - width / 2,
             workArea.Left - leftOverflow,
@@ -2506,6 +2531,14 @@ public partial class MainWindow : Window
             ? workArea.Top - Math.Max(0, GetPetImageAlphaBoundsInWindow().Top)
             : workArea.Top;
         Top = Clamp(bottom - height, minimumTop, workArea.Bottom - height + bottomOverflow);
+    }
+
+    private void ApplyAccessorySizing(double windowWidth)
+    {
+        AccessorySizing sizing = AccessorySizingResolver.Resolve(windowWidth);
+        TrackInfoBubble.Width = sizing.TrackInfoWidth;
+        MediaControlsLayoutScale.ScaleX = sizing.MediaControlsScale;
+        MediaControlsLayoutScale.ScaleY = sizing.MediaControlsScale;
     }
 
     private (double Left, double Right, double Bottom) ResolveTargetTransparentOverflow(
@@ -4338,6 +4371,7 @@ public partial class MainWindow : Window
             Left = screenPosition.X - 32,
             Top = screenPosition.Y - 32,
         };
+        bun.DragReleased += OnBunDragReleased;
         _bunTargets.Add(bun);
         bun.Show();
         if (!_bunChaseActive)
@@ -4347,6 +4381,10 @@ public partial class MainWindow : Window
         else if (_bunReturning)
         {
             RedirectBunReturnToQueuedTreat();
+        }
+        else if (_bunWaitingForManualFeed)
+        {
+            ResumeBunChaseFromManualFeedWait();
         }
     }
 
@@ -4377,6 +4415,9 @@ public partial class MainWindow : Window
         _bunChaseActive = true;
         _bunReturning = false;
         _bunEating = false;
+        _bunWaitingForManualFeed = false;
+        _bunRequestShown = false;
+        _bunRequestPresentationGeneration++;
         HideAccessorySurfacesForBunChase();
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
@@ -4433,6 +4474,21 @@ public partial class MainWindow : Window
             "A newly queued bun interrupted the return trip and resumed the chase.");
     }
 
+    private void ResumeBunChaseFromManualFeedWait()
+    {
+        _bunWaitingForManualFeed = false;
+        _bunRequestPresentationGeneration++;
+        SelectNearestBun();
+        _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
+        _bunMotionStageElapsed = TimeSpan.Zero;
+        _bunLastMotionAt = DateTimeOffset.Now;
+        PlayAnimation(GetSelectedBunAnimations().RunAnimation);
+        _bunChaseTimer.Start();
+        _logger.Info(
+            "file_treat.request_wait_interrupted_for_new_bun",
+            "A newly queued bun resumed ordinary chase after the one-time request pose.");
+    }
+
     private void OnBunChaseTimerTick(object? sender, EventArgs e)
     {
         if (!_bunChaseActive || _bunEating)
@@ -4466,12 +4522,7 @@ public partial class MainWindow : Window
             }
 
             PointerPoint current = new(Left, Top);
-            double speedScale = ResolveBunDesktopSpeedScale();
-            _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
-                BunStartingSpeed * speedScale,
-                BunReturnOriginalCruiseSpeed * speedScale,
-                _bunMotionStageElapsed,
-                BunAccelerationDuration);
+            _bunMotionSpeed = ResolveScaledBunSpeed(BunReturnSpeed);
             BunChaseStep step = BunChasePlanner.Advance(
                 current,
                 new PointerPoint(returnPosition.X, returnPosition.Y),
@@ -4501,11 +4552,22 @@ public partial class MainWindow : Window
         Point petCentre = GetPetScreenCentre();
         Point targetCentre = _activeBunTarget.ScreenCenter;
         double chaseSpeedScale = ResolveBunDesktopSpeedScale();
-        _bunMotionSpeed = BunChasePlanner.ResolveAcceleratedSpeed(
+        _bunMotionSpeed = BunChasePlanner.ResolveSpeedTowardMaximum(
             BunStartingSpeed * chaseSpeedScale,
-            BunChaseOriginalCruiseSpeed * chaseSpeedScale,
+            BunChaseMaximumSpeed * chaseSpeedScale,
             _bunMotionStageElapsed,
             BunAccelerationDuration);
+        if (BunChasePlanner.ShouldShowBunRequest(
+                _bunTargets.Count,
+                _bunMotionSpeed >= BunChaseMaximumSpeed * chaseSpeedScale - 0.5,
+                _activeBunTarget.IsBeingDragged,
+                _activeBunTarget.ContinuousDragDuration(now),
+                BunRequestDragDuration,
+                _bunRequestShown))
+        {
+            ShowBunRequestAndWait();
+            return;
+        }
         BunChaseStep chase = BunChasePlanner.Advance(
             new PointerPoint(petCentre.X, petCentre.Y),
             new PointerPoint(targetCentre.X, targetCentre.Y),
@@ -4521,8 +4583,32 @@ public partial class MainWindow : Window
         if (chase.Arrived && !_activeBunTarget.IsBeingDragged)
         {
             _bunChaseTimer.Stop();
-            _ = EatActiveBunAsync(_activeBunTarget);
+            _ = EatActiveBunAsync(_activeBunTarget, manualFeed: false);
         }
+    }
+
+    private void ShowBunRequestAndWait()
+    {
+        _bunChaseTimer.Stop();
+        _bunWaitingForManualFeed = true;
+        _bunRequestShown = true;
+        int generation = ++_bunRequestPresentationGeneration;
+        PlayAnimation(
+            BunRequestAnimation,
+            () =>
+            {
+                if (!_bunWaitingForManualFeed || generation != _bunRequestPresentationGeneration ||
+                    _animationCatalog is null)
+                {
+                    return;
+                }
+
+                AnimationAssetManifest manifest = _animationCatalog.GetRequired(BunRequestAnimation);
+                ShowAnimationFrame(BunRequestAnimation, manifest.FrameDurationsMilliseconds.Count - 1);
+            });
+        _logger.Info(
+            "file_treat.bun_request_shown",
+            "The one-time bun request played after the sole target was dragged at maximum speed for three seconds.");
     }
 
     private Point GetPetScreenCentre()
@@ -4545,7 +4631,55 @@ public partial class MainWindow : Window
     private double ResolveScaledBunSpeed(double speed) =>
         speed * ResolveBunDesktopSpeedScale();
 
-    private async Task EatActiveBunAsync(BunTargetWindow bun)
+    private void OnBunDragReleased(object? sender, EventArgs e)
+    {
+        if (sender is not BunTargetWindow bun || !_bunChaseActive || _bunEating ||
+            !_bunTargets.Contains(bun) || !DoesBunOverlapOpaquePet(bun))
+        {
+            return;
+        }
+
+        _bunChaseTimer.Stop();
+        _bunWaitingForManualFeed = false;
+        _bunRequestPresentationGeneration++;
+        _activeBunTarget = bun;
+        _ = EatActiveBunAsync(bun, manualFeed: true);
+    }
+
+    private bool DoesBunOverlapOpaquePet(BunTargetWindow bun)
+    {
+        if (PetImage.Source is not BitmapSource source)
+        {
+            return false;
+        }
+
+        FormatConvertedBitmap bgra = new(source, PixelFormats.Bgra32, null, 0);
+        int stride = bgra.PixelWidth * 4;
+        byte[] pixels = new byte[stride * bgra.PixelHeight];
+        bgra.CopyPixels(pixels, stride, 0);
+        byte[] alpha = new byte[bgra.PixelWidth * bgra.PixelHeight];
+        for (int sourceIndex = 3, alphaIndex = 0;
+             sourceIndex < pixels.Length;
+             sourceIndex += 4, alphaIndex++)
+        {
+            alpha[alphaIndex] = pixels[sourceIndex];
+        }
+
+        DesktopRectangle bounds = GetPetImageBoundsInWindow();
+        Rect treat = bun.ScreenBounds;
+        return BunFeedHitTester.HasOpaqueOverlap(
+            alpha,
+            bgra.PixelWidth,
+            bgra.PixelHeight,
+            new PointerPoint(Left + bounds.Left, Top + bounds.Top),
+            bounds.Width,
+            bounds.Height,
+            new PointerPoint(treat.Left, treat.Top),
+            treat.Width,
+            treat.Height);
+    }
+
+    private async Task EatActiveBunAsync(BunTargetWindow bun, bool manualFeed)
     {
         if (_isClosing || !_bunTargets.Contains(bun))
         {
@@ -4555,22 +4689,30 @@ public partial class MainWindow : Window
         _bunEating = true;
         (string runAnimation, string eatAnimation) = GetSelectedBunAnimations();
         PlayAnimation(eatAnimation);
-        await Task.Delay(420);
+        await Task.Delay(manualFeed ? 150 : 420);
         DesktopRectangle bounds = GetPetImageBoundsInWindow();
         PointerPoint mouthTarget = ResolveSelectedBunMouthTarget(bounds);
         Point mouth = new(mouthTarget.X, mouthTarget.Y);
-        await bun.FlyIntoAsync(mouth, TimeSpan.FromMilliseconds(680));
+        await bun.FlyIntoAsync(
+            mouth,
+            TimeSpan.FromMilliseconds(manualFeed ? 400 : 680));
+        bun.DragReleased -= OnBunDragReleased;
         bun.Close();
         _bunTargets.Remove(bun);
         _activeBunTarget = null;
         PlayAnimationRange(
             eatAnimation,
             BunEatClosingStartFrame,
-            BunEatLastFrame);
+            BunEatLastFrame,
+            playbackRate: 1.35);
         await Task.Delay(BunEatClosingDuration);
         _bunEating = false;
         if (_bunTargets.Count > 0)
         {
+            if (manualFeed)
+            {
+                await Task.Delay(350);
+            }
             SelectNearestBun();
             PlayAnimation(runAnimation);
             _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
@@ -4586,6 +4728,8 @@ public partial class MainWindow : Window
     private void BeginBunReturn()
     {
         _bunReturning = true;
+        _bunWaitingForManualFeed = false;
+        _bunRequestPresentationGeneration++;
         _activeBunTarget = null;
         _bunMotionSpeed = ResolveScaledBunSpeed(BunStartingSpeed);
         _bunMotionStageElapsed = TimeSpan.Zero;
@@ -4626,6 +4770,9 @@ public partial class MainWindow : Window
         _bunChaseTimer.Stop();
         _bunReturning = false;
         _bunEating = false;
+        _bunWaitingForManualFeed = false;
+        _bunRequestShown = false;
+        _bunRequestPresentationGeneration++;
         _bunChaseActive = false;
         _activeBunTarget = null;
         _bunReturnPosition = null;
@@ -4643,6 +4790,7 @@ public partial class MainWindow : Window
         _bunChaseTimer.Stop();
         foreach (BunTargetWindow bun in _bunTargets.ToArray())
         {
+            bun.DragReleased -= OnBunDragReleased;
             bun.Close();
         }
         _bunTargets.Clear();
@@ -4654,6 +4802,9 @@ public partial class MainWindow : Window
         _bunChaseActive = false;
         _bunReturning = false;
         _bunEating = false;
+        _bunWaitingForManualFeed = false;
+        _bunRequestShown = false;
+        _bunRequestPresentationGeneration++;
         _activeBunTarget = null;
         _bunReturnPosition = null;
         PetDirectionTransform.ScaleX = 1;

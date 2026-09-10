@@ -206,6 +206,84 @@ def clear_between_feet_floor_residue(frame: Image.Image) -> Image.Image:
     return result
 
 
+def stabilize_global_translation(
+    frames: list[Image.Image],
+) -> tuple[list[Image.Image], dict[str, object]]:
+    """Remove camera-like frame translation while retaining local body motion.
+
+    The head and upper hair are the most stable part of both source sequences,
+    so their alpha centroid is aligned to the cycle median.  Warping happens in
+    premultiplied RGBA to avoid dark or coloured fringes at transparent edges.
+    """
+    try:
+        import cv2
+    except ImportError as exc:
+        raise RuntimeError(
+            "run stabilization requires opencv-python-headless; install "
+            "tools/animation_tools/requirements.txt"
+        ) from exc
+
+    centroids: list[tuple[float, float]] = []
+    focus_bottom = round(frames[0].height * 0.64)
+    yy, xx = np.mgrid[0:focus_bottom, 0:frames[0].width]
+    for frame in frames:
+        alpha = np.asarray(frame.getchannel("A"), dtype=np.float32)[:focus_bottom, :] / 255.0
+        weight = float(alpha.sum())
+        if weight <= 1e-6:
+            centroids.append((frames[0].width / 2, focus_bottom / 2))
+            continue
+        centroids.append((float((xx * alpha).sum() / weight), float((yy * alpha).sum() / weight)))
+
+    target_x = float(np.median([point[0] for point in centroids]))
+    target_y = float(np.median([point[1] for point in centroids]))
+    offsets = [
+        (
+            float(np.clip(target_x - point[0], -12.0, 12.0)),
+            float(np.clip(target_y - point[1], -12.0, 12.0)),
+        )
+        for point in centroids
+    ]
+    stabilized: list[Image.Image] = []
+    for frame, (offset_x, offset_y) in zip(frames, offsets, strict=True):
+        rgba = np.asarray(frame, dtype=np.float32) / 255.0
+        alpha = rgba[:, :, 3:4]
+        premultiplied = np.concatenate((rgba[:, :, :3] * alpha, alpha), axis=2)
+        matrix = np.asarray([[1, 0, offset_x], [0, 1, offset_y]], dtype=np.float32)
+        warped = cv2.warpAffine(
+            premultiplied,
+            matrix,
+            frame.size,
+            flags=cv2.INTER_CUBIC,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        )
+        warped_alpha = warped[:, :, 3:4]
+        rgb = np.divide(
+            warped[:, :, :3],
+            warped_alpha,
+            out=np.zeros_like(warped[:, :, :3]),
+            where=warped_alpha > (1.0 / 255.0),
+        )
+        output = np.concatenate((rgb, warped_alpha), axis=2)
+        stabilized.append(
+            Image.fromarray(
+                np.clip(output * 255.0 + 0.5, 0, 255).astype(np.uint8),
+                "RGBA",
+            )
+        )
+
+    return stabilized, {
+        "mode": "upper-body-alpha-centroid-translation",
+        "focusBottomFraction": 0.64,
+        "targetCentroid": [round(target_x, 4), round(target_y, 4)],
+        "maximumAbsoluteOffsetPixels": round(
+            max(max(abs(x), abs(y)) for x, y in offsets), 4
+        ),
+        "offsetsPixels": [[round(x, 4), round(y, 4)] for x, y in offsets],
+        "premultipliedRgbaWarp": True,
+    }
+
+
 def optical_flow_interpolate(
     left: Image.Image,
     right: Image.Image,
@@ -513,6 +591,7 @@ def main() -> None:
         normalized = [clear_between_feet_floor_residue(frame) for frame in normalized]
     run_start, run_end = select_run_cycle(normalized, 12, 57)
     run_frames = normalized[run_start:run_end]
+    run_frames, run_stabilization = stabilize_global_translation(run_frames)
     eat_start = 55
     eat_frames = normalized[eat_start:]
     frame_duration_ms = FRAME_DURATION_MS
@@ -588,6 +667,7 @@ def main() -> None:
             "atlasSha256": sha256(run_atlas),
             "columns": run_columns,
             "rows": run_rows,
+            "stabilization": run_stabilization,
         },
         "eat": {
             "sourceFramesOneBased": [eat_start + 1, len(frame_paths)],

@@ -246,10 +246,11 @@
 
         <Border x:Name="TrackInfoBubble"
                 Panel.ZIndex="5"
+                Width="186"
                 Height="44"
                 Margin="5,6,5,0"
                 Padding="12,5"
-                HorizontalAlignment="Stretch"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Background="#F2083448"
                 BorderBrush="#D966CCFF"
@@ -410,6 +411,9 @@
                 IsHitTestVisible="False"
                 Opacity="0"
                 Visibility="Collapsed">
+            <Border.LayoutTransform>
+                <ScaleTransform x:Name="MediaControlsLayoutScale" ScaleX="1" ScaleY="1" />
+            </Border.LayoutTransform>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Offset="0" Color="#F2F4FCFF" />

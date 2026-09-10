@@ -26,9 +26,77 @@
     "frameCount": 60,
     "frameDurationMilliseconds": 16,
     "atlas": "animations/runtime/ai-bun-chase-run.atlas.png",
-    "atlasSha256": "767e0f11f6f0164edfae6567ba69fac09e26f702bf10fa9f24356fe04a24a2a7",
+    "atlasSha256": "661ed4d35c9c6e4069ebd504a3d47e04695e3830aea2f0cbc0eef5b17fea659a",
     "columns": 8,
-    "rows": 8
+    "rows": 8,
+    "stabilization": {
+      "mode": "upper-body-alpha-centroid-translation",
+      "focusBottomFraction": 0.64,
+      "targetCentroid": [
+        213.7592,
+        145.2456
+      ],
+      "maximumAbsoluteOffsetPixels": 3.5214,
+      "offsetsPixels": [
+        [
+          -0.0919,
+          1.6131
+        ],
+        [
+          0.3966,
+          -3.1391
+        ],
+        [
+          -1.4434,
+          -3.5214
+        ],
+        [
+          -2.4612,
+          -2.5716
+        ],
+        [
+          -2.0677,
+          0.0064
+        ],
+        [
+          0.0919,
+          1.9333
+        ],
+        [
+          0.8746,
+          1.0841
+        ],
+        [
+          1.1527,
+          -0.1924
+        ],
+        [
+          1.6611,
+          -2.4812
+        ],
+        [
+          0.4638,
+          -2.809
+        ],
+        [
+          -1.3125,
+          -0.0064
+        ],
+        [
+          -1.4059,
+          1.2616
+        ],
+        [
+          -0.9901,
+          2.6884
+        ],
+        [
+          0.6546,
+          2.1279
+        ]
+      ],
+      "premultipliedRgbaWarp": true
+    }
   },
   "eat": {
     "sourceFramesOneBased": [

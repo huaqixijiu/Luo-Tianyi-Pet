@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -153,6 +154,65 @@ def normalize(image: Image.Image, alpha_bbox: tuple[int, int, int, int]) -> tupl
     }
 
 
+def repair_small_hair_gap(image: Image.Image) -> tuple[Image.Image, dict[str, object]]:
+    """Fill only the user-identified pinhole in the screen-right hair strand.
+
+    The two large triangular openings between the hair layers are intentional.
+    This very small polygon is therefore repaired after normalization, using
+    nearby opaque hair pixels as an inverse-distance colour estimate instead
+    of broad alpha closing that could accidentally fill those openings.
+    """
+    result = image.copy()
+    pixels = np.asarray(result).copy()
+    polygon = [(359, 315), (364, 317), (366, 334), (362, 337), (359, 333)]
+    mask_image = Image.new("L", result.size, 0)
+    ImageDraw.Draw(mask_image).polygon(polygon, fill=255)
+    mask = np.asarray(mask_image) > 0
+    repair = mask & (
+        (pixels[:, :, 3] < 240)
+        | ((pixels[:, :, :3].max(axis=2) < 72) & (pixels[:, :, 3] > 0))
+    )
+
+    source = pixels.copy()
+    height, width = repair.shape
+    for y, x in np.argwhere(repair):
+        samples: list[tuple[float, np.ndarray]] = []
+        for radius in range(1, 9):
+            y0 = max(0, y - radius)
+            y1 = min(height - 1, y + radius)
+            x0 = max(0, x - radius)
+            x1 = min(width - 1, x + radius)
+            for sy, sx in (
+                (y0, x), (y1, x), (y, x0), (y, x1),
+                (y0, x0), (y0, x1), (y1, x0), (y1, x1),
+            ):
+                if mask[sy, sx] or source[sy, sx, 3] < 245:
+                    continue
+                rgb = source[sy, sx, :3]
+                # The defect is inside pale blue-white hair. Excluding dark
+                # outlines and saturated ornaments prevents colour bleeding.
+                if rgb.max() < 120 or int(rgb.max()) - int(rgb.min()) > 105:
+                    continue
+                distance = math.hypot(sx - x, sy - y)
+                samples.append((1.0 / max(1.0, distance), rgb.astype(np.float32)))
+            if len(samples) >= 10:
+                break
+        if not samples:
+            continue
+        weight_sum = sum(weight for weight, _ in samples)
+        colour = sum(weight * value for weight, value in samples) / weight_sum
+        pixels[y, x, :3] = np.clip(np.rint(colour), 0, 255).astype(np.uint8)
+        pixels[y, x, 3] = 255
+
+    repaired = Image.fromarray(pixels, mode="RGBA")
+    return repaired, {
+        "method": "local opaque hair-colour interpolation in a tightly scoped polygon",
+        "normalizedPolygon": [list(point) for point in polygon],
+        "repairedPixelCount": int(np.count_nonzero(repair)),
+        "preserveLargeHairOpenings": True,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
@@ -215,6 +275,7 @@ def main() -> None:
         tuple(interior_background_boxes),
     )
     normalized, geometry = normalize(rgba, alpha_bbox)
+    normalized, hair_gap_repair = repair_small_hair_gap(normalized)
 
     normalized.save(output, format="PNG", optimize=False, compress_level=9)
     normalized.save(atlas, format="PNG", optimize=False, compress_level=9)
@@ -250,6 +311,7 @@ def main() -> None:
         "sourceSize": [rgb_image.width, rgb_image.height],
         "canvasSize": list(CANVAS_SIZE),
         "geometry": geometry,
+        "hairGapRepair": hair_gap_repair,
         "frameCount": 1,
         "frameDurationMilliseconds": 1000,
         "loop": 0,

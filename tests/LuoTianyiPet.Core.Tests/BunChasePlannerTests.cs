@@ -121,18 +121,18 @@ public sealed class BunChasePlannerTests
 
     [Theory]
     [InlineData(0, 180)]
-    [InlineData(2, 495)]
-    [InlineData(4, 810)]
-    [InlineData(10, 810)]
-    public void ResolveAcceleratedSpeed_ReachesThreeTimesOriginalCruiseAtFourSeconds(
+    [InlineData(2.5, 490)]
+    [InlineData(5, 800)]
+    [InlineData(10, 800)]
+    public void ResolveSpeedTowardMaximum_ReachesExplicitCapAtFiveSeconds(
         double elapsedSeconds,
         double expectedSpeed)
     {
-        double speed = BunChasePlanner.ResolveAcceleratedSpeed(
+        double speed = BunChasePlanner.ResolveSpeedTowardMaximum(
             180,
-            270,
+            800,
             TimeSpan.FromSeconds(elapsedSeconds),
-            TimeSpan.FromSeconds(4));
+            TimeSpan.FromSeconds(5));
 
         Assert.Equal(expectedSpeed, speed, 3);
     }
@@ -166,10 +166,10 @@ public sealed class BunChasePlannerTests
         TimeSpan duration = BunChasePlanner.EstimateTravelDuration(
             diagonal,
             180 * scale,
-            270 * 3 * scale,
-            TimeSpan.FromSeconds(4));
+            800 * scale,
+            TimeSpan.FromSeconds(5));
 
-        Assert.InRange(duration.TotalSeconds, 4.25, 4.30);
+        Assert.InRange(duration.TotalSeconds, 4.68, 4.69);
     }
 
     [Fact]
@@ -183,11 +183,11 @@ public sealed class BunChasePlannerTests
         TimeSpan duration = BunChasePlanner.EstimateTravelDuration(
             Math.Sqrt(1920 * 1920 + 1080 * 1080),
             180 * scale,
-            270 * 3 * scale,
-            TimeSpan.FromSeconds(4));
+            800 * scale,
+            TimeSpan.FromSeconds(5));
 
         Assert.Equal(1, scale);
-        Assert.InRange(duration.TotalSeconds, 4.25, 4.30);
+        Assert.InRange(duration.TotalSeconds, 4.68, 4.69);
     }
 
     [Theory]
@@ -211,5 +211,75 @@ public sealed class BunChasePlannerTests
                 returning,
                 eating,
                 queuedBunCount));
+    }
+
+    [Theory]
+    [InlineData(1, true, true, 3, false, true)]
+    [InlineData(1, true, true, 2.99, false, false)]
+    [InlineData(2, true, true, 10, false, false)]
+    [InlineData(1, false, true, 10, false, false)]
+    [InlineData(1, true, false, 10, false, false)]
+    [InlineData(1, true, true, 10, true, false)]
+    public void BunRequest_RequiresOneContinuouslyDraggedBunAtMaximumSpeed(
+        int count,
+        bool atMaximum,
+        bool dragging,
+        double dragSeconds,
+        bool alreadyShown,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            BunChasePlanner.ShouldShowBunRequest(
+                count,
+                atMaximum,
+                dragging,
+                TimeSpan.FromSeconds(dragSeconds),
+                TimeSpan.FromSeconds(3),
+                alreadyShown));
+    }
+
+    [Fact]
+    public void FeedHit_AcceptsOpaqueHairAroundATransparentCentreGap()
+    {
+        byte[] alpha = new byte[10 * 10];
+        for (int y = 2; y <= 7; y++)
+        {
+            alpha[y * 10 + 2] = 255;
+            alpha[y * 10 + 7] = 255;
+        }
+
+        bool accepted = BunFeedHitTester.HasOpaqueOverlap(
+            alpha,
+            10,
+            10,
+            new PointerPoint(0, 0),
+            100,
+            100,
+            new PointerPoint(20, 20),
+            60,
+            60);
+
+        Assert.True(accepted);
+    }
+
+    [Fact]
+    public void FeedHit_RejectsTreatCompletelyInsideTransparentArea()
+    {
+        byte[] alpha = new byte[10 * 10];
+        alpha[0] = 255;
+
+        bool accepted = BunFeedHitTester.HasOpaqueOverlap(
+            alpha,
+            10,
+            10,
+            new PointerPoint(0, 0),
+            100,
+            100,
+            new PointerPoint(40, 40),
+            20,
+            20);
+
+        Assert.False(accepted);
     }
 }

@@ -16,6 +16,7 @@ internal sealed class BunTargetWindow : Window
     private double _dragLeft;
     private double _dragTop;
     private DateTimeOffset _startedAt = DateTimeOffset.Now;
+    private DateTimeOffset? _dragStartedAt;
 
     public BunTargetWindow(string imagePath)
     {
@@ -70,11 +71,21 @@ internal sealed class BunTargetWindow : Window
 
     public Point ScreenCenter => new(Left + Width / 2, Top + Height / 2);
 
+    public Rect ScreenBounds => new(Left, Top, Width, Height);
+
     public bool IsBeingDragged { get; private set; }
+
+    public event EventHandler? DragReleased;
+
+    public TimeSpan ContinuousDragDuration(DateTimeOffset now) =>
+        IsBeingDragged && _dragStartedAt is DateTimeOffset started
+            ? now - started
+            : TimeSpan.Zero;
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         IsBeingDragged = true;
+        _dragStartedAt = DateTimeOffset.Now;
         _dragPointer = GetPointerScreenDips(e);
         _dragLeft = Left;
         _dragTop = Top;
@@ -106,7 +117,9 @@ internal sealed class BunTargetWindow : Window
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         IsBeingDragged = false;
+        _dragStartedAt = null;
         Mouse.Capture(null);
+        DragReleased?.Invoke(this, EventArgs.Empty);
         e.Handled = true;
     }
 
