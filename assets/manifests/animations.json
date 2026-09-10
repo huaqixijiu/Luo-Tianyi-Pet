@@ -38,9 +38,9 @@
     {
       "id": "tenth-birthday-fishing-countdown",
       "sourcePath": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
-      "sourceSha256": "2dc165ca72c4b83601a73ecb4b299e8e314cac443940b6ebdeb8d76992c9d27c",
+      "sourceSha256": "ee7132337a6b48e6de70d4be26b7d106c4f563e20d5b2b8703c75966c24049b1",
       "atlasPath": "animations/runtime/tenth-birthday-fishing-countdown.atlas.png",
-      "atlasSha256": "784154413810f13fa195654c6fdba1e117815a2c00e829979f0031e844ca21d4",
+      "atlasSha256": "f53bd72212836ef5df67f6f73a9f208b4df5c16cf31b321d92ce4d2f7bf65ee9",
       "frameWidth": 240,
       "frameHeight": 240,
       "columns": 8,
