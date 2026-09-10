@@ -12,16 +12,24 @@ public sealed record IdleSceneDecision(
     public bool ChangesStateFrom(PetContinuousState currentState) => TargetState != currentState;
 }
 
+public enum IdleSceneProfile
+{
+    NoMediumIdle,
+    CrystalDress,
+    ClassicCatEars,
+}
+
 public static class IdleSceneResolver
 {
     public static readonly TimeSpan MediumIdleCountdownThreshold = TimeSpan.FromMinutes(2);
     public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(3);
+    public static readonly TimeSpan CrystalDressMediumIdleThreshold = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(30);
 
     public static IdleSceneDecision Resolve(
         TimeSpan idleDuration,
         PetContinuousState currentState,
-        bool mediumIdleEnabled = true)
+        IdleSceneProfile profile = IdleSceneProfile.ClassicCatEars)
     {
         if (idleDuration < TimeSpan.Zero)
         {
@@ -38,9 +46,14 @@ public static class IdleSceneResolver
         PetContinuousState targetState = idleDuration switch
         {
             _ when idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
-            _ when mediumIdleEnabled && idleDuration >= MediumIdleThreshold =>
+            _ when profile == IdleSceneProfile.CrystalDress &&
+                idleDuration >= CrystalDressMediumIdleThreshold =>
                 PetContinuousState.MediumIdle,
-            _ when mediumIdleEnabled && idleDuration >= MediumIdleCountdownThreshold =>
+            _ when profile == IdleSceneProfile.ClassicCatEars &&
+                idleDuration >= MediumIdleThreshold =>
+                PetContinuousState.MediumIdle,
+            _ when profile == IdleSceneProfile.ClassicCatEars &&
+                idleDuration >= MediumIdleCountdownThreshold =>
                 PetContinuousState.MediumIdleCountdown,
             _ => PetContinuousState.Idle,
         };
@@ -49,6 +62,49 @@ public static class IdleSceneResolver
             targetState,
             RestoredFromSleep: currentState == PetContinuousState.Sleeping &&
                 targetState != PetContinuousState.Sleeping);
+    }
+}
+
+public sealed class CrystalYawnScheduler
+{
+    public static readonly TimeSpan WindowStart = TimeSpan.FromMinutes(1);
+    public static readonly TimeSpan WindowEnd = TimeSpan.FromMinutes(5);
+    private const int LatestStartSecond = 285;
+
+    private readonly Func<int, int, int> _nextSecond;
+    private TimeSpan? _triggerAt;
+    private TimeSpan _lastIdleDuration;
+    private bool _triggered;
+
+    public CrystalYawnScheduler(Func<int, int, int>? nextSecond = null)
+    {
+        _nextSecond = nextSecond ?? Random.Shared.Next;
+    }
+
+    public bool ShouldTrigger(TimeSpan idleDuration, bool eligible)
+    {
+        if (idleDuration < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(idleDuration));
+        }
+
+        if (idleDuration < _lastIdleDuration)
+        {
+            _triggerAt = null;
+            _triggered = false;
+        }
+
+        _lastIdleDuration = idleDuration;
+        _triggerAt ??= TimeSpan.FromSeconds(
+            _nextSecond((int)WindowStart.TotalSeconds, LatestStartSecond + 1));
+
+        if (!eligible || _triggered || idleDuration < _triggerAt || idleDuration >= WindowEnd)
+        {
+            return false;
+        }
+
+        _triggered = true;
+        return true;
     }
 }
 

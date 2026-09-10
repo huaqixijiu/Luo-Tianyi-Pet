@@ -53,7 +53,7 @@ public sealed class IdleSceneResolverTests
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             TimeSpan.FromMinutes(idleMinutes),
             PetContinuousState.Idle,
-            mediumIdleEnabled: false);
+            IdleSceneProfile.NoMediumIdle);
 
         Assert.Equal(expectedTarget, decision.TargetState);
     }
@@ -64,9 +64,55 @@ public sealed class IdleSceneResolverTests
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             TimeSpan.FromMinutes(8),
             PetContinuousState.MediumIdle,
-            mediumIdleEnabled: false);
+            IdleSceneProfile.NoMediumIdle);
 
         Assert.Equal(PetContinuousState.Idle, decision.TargetState);
+    }
+
+    [Theory]
+    [InlineData(1, 0, PetContinuousState.Idle)]
+    [InlineData(2, 0, PetContinuousState.Idle)]
+    [InlineData(4, 59, PetContinuousState.Idle)]
+    [InlineData(5, 0, PetContinuousState.MediumIdle)]
+    [InlineData(29, 59, PetContinuousState.MediumIdle)]
+    [InlineData(30, 0, PetContinuousState.Sleeping)]
+    public void CrystalDressSkipsCountdownAndStartsHeheAtFiveMinutes(
+        int minutes,
+        int seconds,
+        PetContinuousState expected)
+    {
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            new TimeSpan(0, 0, minutes, seconds),
+            PetContinuousState.Idle,
+            IdleSceneProfile.CrystalDress);
+
+        Assert.Equal(expected, decision.TargetState);
+    }
+
+    [Fact]
+    public void CrystalYawnTriggersOnceAtScheduledPointAndResetsAfterInput()
+    {
+        CrystalYawnScheduler scheduler = new((minimum, maximum) =>
+        {
+            Assert.Equal(60, minimum);
+            Assert.Equal(286, maximum);
+            return 120;
+        });
+
+        Assert.False(scheduler.ShouldTrigger(TimeSpan.FromSeconds(119), eligible: true));
+        Assert.True(scheduler.ShouldTrigger(TimeSpan.FromSeconds(120), eligible: true));
+        Assert.False(scheduler.ShouldTrigger(TimeSpan.FromSeconds(200), eligible: true));
+        Assert.False(scheduler.ShouldTrigger(TimeSpan.FromMinutes(5), eligible: true));
+        Assert.False(scheduler.ShouldTrigger(TimeSpan.Zero, eligible: true));
+        Assert.True(scheduler.ShouldTrigger(TimeSpan.FromSeconds(120), eligible: true));
+    }
+
+    [Fact]
+    public void CrystalYawnDoesNotTriggerOutsideEligibleAppearance()
+    {
+        CrystalYawnScheduler scheduler = new((_, _) => 60);
+
+        Assert.False(scheduler.ShouldTrigger(TimeSpan.FromMinutes(2), eligible: false));
     }
 
     [Theory]

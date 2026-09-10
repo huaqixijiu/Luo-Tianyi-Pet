@@ -14,6 +14,9 @@ public sealed class CrystalBodyInteractionResolver
     public const string HeadPatAnimation = "crystal-headpat";
     public const string CoverEyesAnimation = "crystal-cover-eyes";
     public const string PinchCheeksAnimation = "crystal-pinch-cheeks";
+    public const string TouchChestAnimation = "crystal-touch-chest";
+    public const string TouchSkirtAnimation = "crystal-touch-skirt";
+    public const string YawnAnimation = "crystal-yawn";
 
     private static readonly HashSet<string> InPlaceAnimationIds =
     [
@@ -24,6 +27,9 @@ public sealed class CrystalBodyInteractionResolver
         HeadPatAnimation,
         CoverEyesAnimation,
         PinchCheeksAnimation,
+        TouchChestAnimation,
+        TouchSkirtAnimation,
+        YawnAnimation,
     ];
 
     public static bool IsInPlaceAnimation(string? animationId) =>
@@ -37,9 +43,9 @@ public sealed class CrystalBodyInteractionResolver
         BodyRegionId.LeftHand or BodyRegionId.RightHand => Play(HandHeartAnimation),
         BodyRegionId.LeftFoot or BodyRegionId.RightFoot => Play(TouchLegAnimation),
         BodyRegionId.HeadAndHair => Play(HeadPatAnimation),
+        BodyRegionId.Chest => Play(TouchChestAnimation),
+        BodyRegionId.LowerBodySensitiveArea => Play(TouchSkirtAnimation),
         BodyRegionId.OtherBody => Play(HoldBellyAnimation),
-        BodyRegionId.Chest or BodyRegionId.LowerBodySensitiveArea =>
-            new(BodyInteractionDecisionKind.NoAction),
         _ => throw new ArgumentOutOfRangeException(nameof(region)),
     };
 

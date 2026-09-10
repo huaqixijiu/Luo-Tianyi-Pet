@@ -14,6 +14,8 @@ public sealed class CrystalBodyInteractionResolverTests
     [InlineData(BodyRegionId.LeftFoot, CrystalBodyInteractionResolver.TouchLegAnimation)]
     [InlineData(BodyRegionId.RightFoot, CrystalBodyInteractionResolver.TouchLegAnimation)]
     [InlineData(BodyRegionId.HeadAndHair, CrystalBodyInteractionResolver.HeadPatAnimation)]
+    [InlineData(BodyRegionId.Chest, CrystalBodyInteractionResolver.TouchChestAnimation)]
+    [InlineData(BodyRegionId.LowerBodySensitiveArea, CrystalBodyInteractionResolver.TouchSkirtAnimation)]
     [InlineData(BodyRegionId.OtherBody, CrystalBodyInteractionResolver.HoldBellyAnimation)]
     public void ResolveMapsRegionToSameModelAnimation(BodyRegionId region, string animationId)
     {
@@ -21,17 +23,6 @@ public sealed class CrystalBodyInteractionResolverTests
 
         Assert.Equal(BodyInteractionDecisionKind.PlayAnimation, decision.Kind);
         Assert.Equal(animationId, decision.AnimationId);
-    }
-
-    [Theory]
-    [InlineData(BodyRegionId.Chest)]
-    [InlineData(BodyRegionId.LowerBodySensitiveArea)]
-    public void ResolveLeavesRegionsWithoutProvidedAnimationInactive(BodyRegionId region)
-    {
-        BodyInteractionDecision decision = new CrystalBodyInteractionResolver().Resolve(region);
-
-        Assert.Equal(BodyInteractionDecisionKind.NoAction, decision.Kind);
-        Assert.Null(decision.AnimationId);
     }
 
     [Fact]
@@ -51,6 +42,9 @@ public sealed class CrystalBodyInteractionResolverTests
     [InlineData(CrystalBodyInteractionResolver.HeadPatAnimation)]
     [InlineData(CrystalBodyInteractionResolver.CoverEyesAnimation)]
     [InlineData(CrystalBodyInteractionResolver.PinchCheeksAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.TouchChestAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.TouchSkirtAnimation)]
+    [InlineData(CrystalBodyInteractionResolver.YawnAnimation)]
     public void RecognizesEveryCrystalAnimationAsInPlace(string animationId)
     {
         Assert.True(CrystalBodyInteractionResolver.IsInPlaceAnimation(animationId));

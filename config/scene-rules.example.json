@@ -29,7 +29,18 @@
       "full-body-crystal-dress": {
         "displayName": "晶蓝礼服版",
         "animation": "user-chibi-crystal-full-body-idle",
-        "interactionMode": "seamless-motion-pending-assets"
+        "interactionMode": "seamless-motion",
+        "interactionAnimations": {
+          "eyes": "crystal-cover-eyes",
+          "mouth": "crystal-cover-mouth",
+          "face": "crystal-pinch-cheeks",
+          "hands": "crystal-hand-heart",
+          "feet": "crystal-touch-leg",
+          "headAndHair": "crystal-headpat",
+          "chest": "crystal-touch-chest",
+          "lowerBodySensitiveArea": "crystal-touch-skirt",
+          "otherBody": "crystal-hold-belly"
+        }
       },
       "full-body-classic-cat-ears": {
         "displayName": "经典猫耳版",
@@ -84,7 +95,6 @@
   },
   "idle": {
     "shortIdleAfterSeconds": 45,
-    "mediumIdleAfterSeconds": 180,
     "sleepAfterSeconds": 1800,
     "keepDancingWhileMusicIsPlaying": true,
     "musicTemporarilyOverridesSelectedDisplayMode": true,
@@ -109,14 +119,24 @@
     },
     "musicPlayingIdleAnimation": "automatic-by-artist",
     "idlePollMilliseconds": 1000,
-    "mediumIdleCountdownAfterMinutes": 2,
-    "mediumIdleCountdownDurationSeconds": 60,
-    "mediumIdleCountdownAnimation": "tenth-birthday-fishing-countdown",
-    "mediumIdleAfterMinutes": 3,
     "mediumIdleAnimation": "resonance-hehe",
-    "mediumIdleEligibility": {
-      "displayMode": "fullBodyInteractive",
-      "fullBodyStyle": "full-body-classic-cat-ears"
+    "mediumIdleByAppearance": {
+      "full-body-long-hair": null,
+      "full-body-crystal-dress": {
+        "randomYawnAfterSeconds": 60,
+        "randomYawnBeforeSeconds": 300,
+        "randomYawnLatestStartSeconds": 285,
+        "randomYawnMaximumPerIdleSession": 1,
+        "randomYawnAnimation": "crystal-yawn",
+        "countdownAnimation": null,
+        "mediumIdleAfterMinutes": 5
+      },
+      "full-body-classic-cat-ears": {
+        "countdownAfterMinutes": 2,
+        "countdownDurationSeconds": 60,
+        "countdownAnimation": "tenth-birthday-fishing-countdown",
+        "mediumIdleAfterMinutes": 3
+      }
     },
     "birthdayIdleEasterEgg": {
       "animation": "twelfth-anniversary-happy-birthday",
@@ -296,7 +316,9 @@
           "fallback": "built-in-rectangles"
         },
         "full-body-crystal-dress": {
-          "mode": "built-in-rectangles"
+          "mode": "normalized-polygons",
+          "source": "assets/body-hit-maps/full-body-crystal.json",
+          "fallback": "built-in-rectangles"
         },
         "full-body-long-hair": {
           "mode": "disabled"

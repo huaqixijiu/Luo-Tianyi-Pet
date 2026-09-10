@@ -120,6 +120,7 @@ public partial class MainWindow : Window
     private readonly IDesktopItemDisappearanceSource? _desktopItemDisappearanceSource;
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
+    private readonly CrystalYawnScheduler _crystalYawnScheduler = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
     private readonly TimeSceneTransitionTracker _timeSceneTransitionTracker = new();
     private readonly GenshinBackgroundCameoScheduler _genshinCameoScheduler = new();
@@ -2226,6 +2227,21 @@ public partial class MainWindow : Window
 
         DateTimeOffset now = DateTimeOffset.Now;
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
+        bool crystalYawnEligible = IsCrystalDressFullBodyMode() &&
+            plan.Source == PlaybackPlanSource.Continuous &&
+            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle;
+        if (_crystalYawnScheduler.ShouldTrigger(idleDuration.Value, crystalYawnEligible))
+        {
+            _ = PlayReactionAsync(
+                CrystalBodyInteractionResolver.YawnAnimation,
+                ReactionPriority.TimeGreeting,
+                blocksDisplayModeToggle: true);
+            _logger.Info(
+                "animation.crystal_yawn_started",
+                $"IdleMilliseconds={idleDuration.Value.TotalMilliseconds:0}.");
+            plan = _stateMachine.Resolve(now);
+        }
+
         bool birthdayEligible = plan.Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState is
                 PetContinuousState.Idle or
@@ -2245,7 +2261,7 @@ public partial class MainWindow : Window
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             idleDuration,
             previousState,
-            IsClassicCatEarsFullBodyMode());
+            ResolveIdleSceneProfile());
         if (!decision.ChangesStateFrom(previousState))
         {
             return;
@@ -2285,13 +2301,36 @@ public partial class MainWindow : Window
             AppearanceOptionIds.FullBodyClassicCatEars,
             StringComparison.Ordinal);
 
+    private bool IsCrystalDressFullBodyMode() =>
+        _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
+        string.Equals(
+            _settings.Appearance.FullBodyStyle,
+            AppearanceOptionIds.FullBodyCrystalDress,
+            StringComparison.Ordinal);
+
+    private IdleSceneProfile ResolveIdleSceneProfile() =>
+        IsClassicCatEarsFullBodyMode()
+            ? IdleSceneProfile.ClassicCatEars
+            : IsCrystalDressFullBodyMode()
+                ? IdleSceneProfile.CrystalDress
+                : IdleSceneProfile.NoMediumIdle;
+
     private void RestoreIdleWhenHeheIsNotEligible()
     {
-        if ((_stateMachine.VisualState.ContinuousState is
-                PetContinuousState.MediumIdleCountdown or PetContinuousState.MediumIdle) &&
-            !IsClassicCatEarsFullBodyMode())
+        TimeSpan? idleDuration = _userIdleTimeSource.GetIdleDuration();
+        if (idleDuration is null)
         {
-            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+            return;
+        }
+
+        PetContinuousState currentState = _stateMachine.VisualState.ContinuousState;
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            idleDuration.Value,
+            currentState,
+            ResolveIdleSceneProfile());
+        if (decision.ChangesStateFrom(currentState))
+        {
+            _stateMachine.SetContinuousState(decision.TargetState);
         }
     }
 

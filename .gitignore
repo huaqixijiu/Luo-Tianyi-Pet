@@ -31,6 +31,10 @@ __pycache__/
 # normalized atlases, animated previews and provenance metadata are committed.
 /候选素材_官方/区域标注/第二模型/动作动画png/**/*.png
 
+# Local 720p source sequences added for the crystal-dress model. Keep the
+# original authoring frames in place; commit only previews, atlases and hashes.
+/候选素材_官方/模式二新添加动作/**/*.png
+
 # Windows metadata
 Thumbs.db
 Desktop.ini

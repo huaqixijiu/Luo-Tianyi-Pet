@@ -21,20 +21,106 @@ from PIL import Image
 @dataclass(frozen=True)
 class Action:
     order: int
-    folder: str
-    subfolder: str
+    source_parts: tuple[str, ...]
     animation_id: str
     title: str
+    expected_frames: int
+    preview_name: str
+    runtime: bool = True
 
 
 ACTIONS = (
-    Action(1, "捂嘴", "1", "crystal-cover-mouth", "捂嘴"),
-    Action(2, "手比心", "2", "crystal-hand-heart", "手比心"),
-    Action(3, "摸腿脚", "3", "crystal-touch-leg", "摸腿脚"),
-    Action(4, "捂肚子", "4", "crystal-hold-belly", "捂肚子"),
-    Action(5, "摸摸头", "5", "crystal-headpat", "摸摸头"),
-    Action(6, "遮眼睛", "6", "crystal-cover-eyes", "遮眼睛"),
-    Action(7, "捏脸", "7", "crystal-pinch-cheeks", "捏脸"),
+    Action(
+        1,
+        ("区域标注", "第二模型", "动作动画png", "捂嘴", "1"),
+        "crystal-cover-mouth",
+        "捂嘴",
+        145,
+        "01_捂嘴.webp",
+    ),
+    Action(2, ("模式二新添加动作", "新比心"), "crystal-hand-heart", "新比心", 121, "02_新比心.webp"),
+    Action(
+        3,
+        ("区域标注", "第二模型", "动作动画png", "摸腿脚", "3"),
+        "crystal-touch-leg",
+        "摸腿脚",
+        145,
+        "03_摸腿脚.webp",
+    ),
+    Action(
+        4,
+        ("区域标注", "第二模型", "动作动画png", "捂肚子", "4"),
+        "crystal-hold-belly",
+        "捂肚子",
+        145,
+        "04_捂肚子.webp",
+    ),
+    Action(
+        5,
+        ("区域标注", "第二模型", "动作动画png", "摸摸头", "5"),
+        "crystal-headpat",
+        "摸摸头",
+        145,
+        "05_摸摸头.webp",
+    ),
+    Action(
+        6,
+        ("区域标注", "第二模型", "动作动画png", "遮眼睛", "6"),
+        "crystal-cover-eyes",
+        "遮眼睛",
+        145,
+        "06_遮眼睛.webp",
+    ),
+    Action(
+        7,
+        ("区域标注", "第二模型", "动作动画png", "捏脸", "7"),
+        "crystal-pinch-cheeks",
+        "捏脸",
+        145,
+        "07_捏脸.webp",
+    ),
+    Action(
+        8,
+        ("模式二新添加动作", "摸胸"),
+        "crystal-touch-chest",
+        "摸胸",
+        145,
+        "08_摸胸.webp",
+    ),
+    Action(
+        9,
+        ("模式二新添加动作", "摸裙边"),
+        "crystal-touch-skirt",
+        "摸裙边",
+        145,
+        "09_摸裙边.webp",
+    ),
+    Action(
+        10,
+        ("模式二新添加动作", "打哈欠"),
+        "crystal-yawn",
+        "打哈欠",
+        169,
+        "10_打哈欠.webp",
+    ),
+    Action(
+        11,
+        ("模式二新添加动作", "鸭子坐"),
+        "",
+        "鸭子坐（待接入）",
+        217,
+        "11_鸭子坐_待接入.webp",
+        runtime=False,
+    ),
+    Action(
+        12,
+        ("模式二新添加动作", "睡觉"),
+        "",
+        "睡觉（待接入）",
+        361,
+        "12_睡觉_待接入.webp",
+        runtime=False,
+    ),
 )
 
 IDLE_DISPLAY_WIDTH = 220
@@ -225,7 +311,7 @@ def prepare(
     frame_duration_ms: int,
     columns: int,
 ) -> None:
-    source_root = root / "候选素材_官方" / "区域标注" / "第二模型" / "动作动画png"
+    candidate_root = root / "候选素材_官方"
     preview_root = root / "候选素材_官方" / "区域标注" / "第二模型" / "动作动画归档"
     runtime_root = root / "assets" / "animations" / "runtime"
     metadata_path = root / "assets" / "animations" / "processed" / "晶蓝礼服_互动动作.meta.json"
@@ -235,11 +321,12 @@ def prepare(
     metadata_actions: list[dict[str, object]] = []
     catalog_animations: list[dict[str, object]] = []
     for action in ACTIONS:
-        sequence_dir = source_root / action.folder / action.subfolder
+        sequence_dir = candidate_root.joinpath(*action.source_parts)
         source_frames = sorted(sequence_dir.glob("*.png"))
-        if len(source_frames) != 145:
+        if len(source_frames) != action.expected_frames:
             raise ValueError(
-                f"{action.folder} must contain exactly 145 PNG frames; found {len(source_frames)}"
+                f"{action.title} must contain exactly {action.expected_frames} PNG frames; "
+                f"found {len(source_frames)}"
             )
 
         normalized_frames: list[Image.Image] = []
@@ -255,34 +342,38 @@ def prepare(
         ]
         normalized_frames = add_in_place_transitions(normalized_frames, idle_reference)
 
-        atlas_path = runtime_root / f"{action.animation_id}.atlas.png"
-        preview_path = preview_root / f"{action.order:02d}_{action.title}.webp"
-        atlas_columns, atlas_rows = save_atlas(normalized_frames, atlas_path, columns)
+        preview_path = preview_root / action.preview_name
         save_preview(normalized_frames, preview_path, frame_duration_ms)
 
         source_dir_relative = sequence_dir.relative_to(root).as_posix()
-        atlas_relative = atlas_path.relative_to(root / "assets").as_posix()
         preview_relative = preview_path.relative_to(root).as_posix()
-        metadata_actions.append(
-            {
-                "id": action.animation_id,
-                "title": action.title,
-                "sourceDirectory": source_dir_relative,
-                "sourceFrameCount": len(source_frames),
-                "sourceSequenceSha256": sha256_sequence(sequence_dir, source_frames),
-                "preview": preview_relative,
-                "previewSha256": sha256_file(preview_path),
-                "atlas": atlas_relative,
-                "atlasSha256": sha256_file(atlas_path),
-                "luminanceLutSha256": hashlib.sha256(bytes(luminance_lut)).hexdigest(),
-                "inPlaceTransitionFramesPerEnd": IN_PLACE_TRANSITION_FRAMES,
-            }
-        )
+        metadata_action: dict[str, object] = {
+            "id": action.animation_id or None,
+            "title": action.title,
+            "status": "runtime" if action.runtime else "deferred",
+            "sourceDirectory": source_dir_relative,
+            "sourceFrameCount": len(source_frames),
+            "sourceSequenceSha256": sha256_sequence(sequence_dir, source_frames),
+            "preview": preview_relative,
+            "previewSha256": sha256_file(preview_path),
+            "luminanceLutSha256": hashlib.sha256(bytes(luminance_lut)).hexdigest(),
+            "inPlaceTransitionFramesPerEnd": IN_PLACE_TRANSITION_FRAMES,
+        }
+        if not action.runtime:
+            metadata_actions.append(metadata_action)
+            continue
+
+        atlas_path = runtime_root / f"{action.animation_id}.atlas.png"
+        atlas_columns, atlas_rows = save_atlas(normalized_frames, atlas_path, columns)
+        atlas_relative = atlas_path.relative_to(root / "assets").as_posix()
+        metadata_action["atlas"] = atlas_relative
+        metadata_action["atlasSha256"] = sha256_file(atlas_path)
+        metadata_actions.append(metadata_action)
         catalog_animations.append(
             {
                 "id": action.animation_id,
                 "sourcePath": source_dir_relative,
-                "sourceSha256": metadata_actions[-1]["sourceSequenceSha256"],
+                "sourceSha256": metadata_action["sourceSequenceSha256"],
                 "atlas": atlas_relative,
                 "frameCount": len(source_frames),
                 "columns": atlas_columns,
@@ -299,7 +390,10 @@ def prepare(
     payload = {
         "schemaVersion": 1,
         "model": "full-body-crystal-dress",
-        "sourceRoot": source_root.relative_to(root).as_posix(),
+        "sourceRoots": [
+            "候选素材_官方/区域标注/第二模型/动作动画png",
+            "候选素材_官方/模式二新添加动作",
+        ],
         "sourcePreparation": {
             "inputMode": "user-supplied transparent PNG sequence",
             "sourceFrameSize": [720, 720],
@@ -316,7 +410,7 @@ def prepare(
             "retouch": (
                 "match action luminance to idle, then replace six neutral frames "
                 "at each end with premultiplied idle-to-action blends; keep "
-                "145-frame duration"
+                "source frame count and duration"
             ),
             "idleReference": (
                 "assets/animations/processed/用户提供_Q版小人全身_透明.png"
