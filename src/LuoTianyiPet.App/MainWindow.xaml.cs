@@ -66,8 +66,10 @@ public partial class MainWindow : Window
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
     private static readonly TimeSpan CloudMusicLaunchShortcutDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan CloudMusicLaunchRetryInterval = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan CloudMusicLaunchFallbackCommandDelay = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan CloudMusicLaunchTimeout = TimeSpan.FromSeconds(30);
+    private const int CloudMusicLaunchMaximumAttempts = 3;
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
@@ -3993,7 +3995,8 @@ public partial class MainWindow : Window
 
         if (!result.WasSent && result.Status is not MediaCommandSendStatus.RateLimited)
         {
-            _ = PlayBodyReactionAsync("resonance-cry-shake");
+            _ = TransitionToResolvedContinuousAnimationAsync(
+                "media.command_failed_without_reaction");
         }
     }
 
@@ -4083,7 +4086,8 @@ public partial class MainWindow : Window
             _ => "网易云音乐暂时无法启动",
         };
         ShowFeedbackBubble(message);
-        _ = PlayBodyReactionAsync(FileDropFailureAnimation);
+        _ = TransitionToResolvedContinuousAnimationAsync(
+            "media.application_launch_failed_without_reaction");
     }
 
     private void BeginCloudMusicLaunchWait()
@@ -4126,6 +4130,8 @@ public partial class MainWindow : Window
     private async Task MonitorCloudMusicLaunchAsync(CancellationToken cancellationToken)
     {
         DateTimeOffset startedAt = DateTimeOffset.Now;
+        DateTimeOffset lastLaunchAttemptAt = startedAt;
+        int launchAttemptCount = 1;
         bool playCommandSent = false;
         try
         {
@@ -4138,13 +4144,35 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                TimeSpan launchElapsed = DateTimeOffset.Now - startedAt;
+                DateTimeOffset now = DateTimeOffset.Now;
+                TimeSpan launchElapsed = now - startedAt;
+                bool playerRunning = _mediaApplicationLauncher.IsRunning(
+                    _musicTargetProcessName);
+                if (!playerRunning &&
+                    launchAttemptCount < CloudMusicLaunchMaximumAttempts &&
+                    now - lastLaunchAttemptAt >= CloudMusicLaunchRetryInterval)
+                {
+                    MediaApplicationLaunchResult retryResult =
+                        _mediaApplicationLauncher.TryLaunch(_musicTargetProcessName);
+                    launchAttemptCount++;
+                    lastLaunchAttemptAt = now;
+                    _logger.Info(
+                        "media.application_launch_retry_result",
+                        $"Attempt={launchAttemptCount}; Status={retryResult.Status}.");
+                    playerRunning = retryResult.Status ==
+                        MediaApplicationLaunchStatus.AlreadyRunning;
+                    ShowPersistentFeedbackBubble(retryResult.Status ==
+                        MediaApplicationLaunchStatus.Started
+                            ? "网易云第一次没有打开，正在自动重试…"
+                            : "正在等待网易云音乐窗口出现…");
+                }
+
                 bool playerContentReady = _lastTrackSnapshot.HasTrack ||
                     launchElapsed >= CloudMusicLaunchFallbackCommandDelay;
                 if (!playCommandSent &&
                     launchElapsed >= CloudMusicLaunchShortcutDelay &&
                     playerContentReady &&
-                    _mediaApplicationLauncher.IsRunning(_musicTargetProcessName))
+                    playerRunning)
                 {
                     MediaCommandSendResult playResult = _mediaCommandSender.TrySend(
                         MediaCommand.TogglePlayPause,
@@ -4174,7 +4202,6 @@ public partial class MainWindow : Window
                     {
                         FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
                         ShowFeedbackBubble(GetMediaCommandFailureMessage(playResult.Status));
-                        await PlayBodyReactionAsync(FileDropFailureAnimation);
                         return;
                     }
                 }
@@ -4186,7 +4213,6 @@ public partial class MainWindow : Window
                 ShowFeedbackBubble(playCommandSent
                     ? "等待网易云播放超时，请打开网易云检查歌曲"
                     : "网易云启动超时，请稍后再试");
-                await PlayBodyReactionAsync(FileDropFailureAnimation);
             }
         }
         catch (OperationCanceledException)
@@ -5159,7 +5185,8 @@ public partial class MainWindow : Window
                     StopMusicPlayback("track-switch-timeout");
                 }
                 ShowFeedbackBubble("网易云没有响应，等太久了，再试一次吧");
-                await PlayReactionAsync("resonance-cry-shake", ReactionPriority.MediaOrVolume);
+                await TransitionToResolvedContinuousAnimationAsync(
+                    "media.track_switch_failed_without_reaction");
                 _logger.Info("media.track_switch_timeout", "No public playback change was observed.");
             }
         }

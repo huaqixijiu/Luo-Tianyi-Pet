@@ -60,24 +60,20 @@ public sealed class MusicPlaybackAnimationSelector
             return PetVisualState.NoMusicAnimation;
         }
 
-        bool isLuoTianyi = MusicArtistMatcher.IsLuoTianyi(artist);
-        if (!isLuoTianyi)
+        if (normalized != MusicAnimationOptions.AutomaticSelection)
+        {
+            // A fixed choice is deliberately artist-independent: users selecting one
+            // preview card expect that to be the only music animation they see.
+            return MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
+        }
+
+        if (!MusicArtistMatcher.IsLuoTianyi(artist))
         {
             return PetVisualState.EnjoyMusicAnimation;
         }
 
-        if (normalized != MusicAnimationOptions.AutomaticSelection)
-        {
-            string fixedAnimation = MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
-            return fixedAnimation == PetVisualState.OneClickSingingAnimation &&
-                !enableLuoTianyiSingingEasterEgg
-                    ? PetVisualState.MusicSwayAnimation
-                    : fixedAnimation;
-        }
-
-        IReadOnlyList<string> easterEggPool = enableLuoTianyiSingingEasterEgg
-            ? [PetVisualState.MusicSwayAnimation, PetVisualState.OneClickSingingAnimation]
-            : [PetVisualState.MusicSwayAnimation];
+        IReadOnlyList<string> easterEggPool =
+            [PetVisualState.MusicSwayAnimation, PetVisualState.OneClickSingingAnimation];
         int index = _selectIndex(easterEggPool.Count);
         if (index < 0 || index >= easterEggPool.Count)
         {

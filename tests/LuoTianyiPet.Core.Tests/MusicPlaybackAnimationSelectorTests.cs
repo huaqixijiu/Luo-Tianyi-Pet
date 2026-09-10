@@ -43,16 +43,16 @@ public sealed class MusicPlaybackAnimationSelectorTests
     }
 
     [Fact]
-    public void DisablingSingingLeavesMusicSwayAsTheOnlyAutomaticEasterEgg()
+    public void LegacyDisabledSingingFlagNoLongerRemovesAnAutomaticEasterEgg()
     {
         MusicPlaybackAnimationSelector selector = new(maximum =>
         {
-            Assert.Equal(1, maximum);
-            return 0;
+            Assert.Equal(2, maximum);
+            return 1;
         });
 
         Assert.Equal(
-            PetVisualState.MusicSwayAnimation,
+            PetVisualState.OneClickSingingAnimation,
             selector.Select(
                 MusicAnimationOptions.AutomaticSelection,
                 "洛天依",
@@ -74,20 +74,20 @@ public sealed class MusicPlaybackAnimationSelectorTests
     [Theory]
     [InlineData(PetVisualState.MusicSwayAnimation)]
     [InlineData(PetVisualState.OneClickSingingAnimation)]
-    public void LuoOnlyFixedAnimationsFallBackToEnjoyMusicForOtherArtists(string selected)
+    public void FixedAnimationsAreTheOnlyAnimationForEveryArtist(string selected)
     {
         MusicPlaybackAnimationSelector selector = new();
 
-        Assert.Equal(PetVisualState.EnjoyMusicAnimation, selector.Select(selected, "言和"));
+        Assert.Equal(selected, selector.Select(selected, "言和"));
     }
 
     [Fact]
-    public void DisabledSingingAlsoOverridesAnOldFixedSingingSelection()
+    public void FixedSingingRemainsTheOnlyAnimationWhenLegacyEasterEggFlagIsDisabled()
     {
         MusicPlaybackAnimationSelector selector = new();
 
         Assert.Equal(
-            PetVisualState.MusicSwayAnimation,
+            PetVisualState.OneClickSingingAnimation,
             selector.Select(
                 PetVisualState.OneClickSingingAnimation,
                 "洛天依",

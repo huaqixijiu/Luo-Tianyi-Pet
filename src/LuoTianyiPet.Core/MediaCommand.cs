@@ -10,7 +10,6 @@ public enum MediaCommand
 public enum MediaCommandDeliveryMethod
 {
     None,
-    TargetedWindowsMessage,
     KeyboardShortcut,
 }
 
@@ -31,9 +30,6 @@ public sealed record MediaCommandSendResult(
     MediaCommandDeliveryMethod DeliveryMethod = MediaCommandDeliveryMethod.None)
 {
     public bool WasSent => Status == MediaCommandSendStatus.Sent;
-
-    public bool WasSentViaTargetedMessage =>
-        WasSent && DeliveryMethod == MediaCommandDeliveryMethod.TargetedWindowsMessage;
 }
 
 public interface IMediaCommandSender

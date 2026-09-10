@@ -167,4 +167,15 @@ public sealed class AppSettingsTests
 
         Assert.Equal(expected, normalized.MusicAnimationSelection);
     }
+
+    [Fact]
+    public void MediaNormalizationRetiresTheLegacySingleSingingEasterEggSwitch()
+    {
+        MediaPreferences normalized = MediaPreferences.Normalize(new MediaPreferences
+        {
+            EnableLuoTianyiSingingEasterEgg = false,
+        });
+
+        Assert.True(normalized.EnableLuoTianyiSingingEasterEgg);
+    }
 }

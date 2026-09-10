@@ -242,6 +242,9 @@ public sealed record MediaPreferences
         {
             MusicAnimationSelection = MusicAnimationOptions.NormalizeSelection(
                 preferences.MusicAnimationSelection),
+            // The legacy single-easter-egg switch was removed. Automatic mode
+            // always uses both Luo Tianyi animations as its random pool.
+            EnableLuoTianyiSingingEasterEgg = true,
         };
     }
 }

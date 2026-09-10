@@ -40,9 +40,13 @@ public partial class SettingsWindow : Window
         FullBodyStyleCyclingCheckBox.IsChecked =
             SelectedAppearancePreferences.EnableFullBodyStyleCycling;
         DesktopFileTreatsCheckBox.IsChecked = fileTreatPreferences.EnableDesktopFileTreats;
-        LuoTianyiSingingEasterEggCheckBox.IsChecked =
-            SelectedMediaPreferences.EnableLuoTianyiSingingEasterEgg;
-        SelectMusicAnimationCard(SelectedMediaPreferences.MusicAnimationSelection);
+        bool musicAnimationEnabled = SelectedMediaPreferences.MusicAnimationSelection !=
+            MusicAnimationOptions.NoneSelection;
+        MusicAnimationEnabledCheckBox.IsChecked = musicAnimationEnabled;
+        SelectMusicAnimationCard(musicAnimationEnabled
+            ? SelectedMediaPreferences.MusicAnimationSelection
+            : MusicAnimationOptions.AutomaticSelection);
+        UpdateMusicAnimationControlsEnabledState();
         GeneralNavigationRadioButton.IsChecked = true;
         _isInitializing = false;
     }
@@ -147,6 +151,18 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void OnMusicAnimationEnabledChanged(object sender, RoutedEventArgs e)
+    {
+        UpdateMusicAnimationControlsEnabledState();
+        OnSettingChanged(sender, e);
+    }
+
+    private void UpdateMusicAnimationControlsEnabledState()
+    {
+        bool enabled = MusicAnimationEnabledCheckBox.IsChecked == true;
+        MusicAnimationSelectionPanel.IsEnabled = enabled;
+    }
+
     private async void OnRequestNotificationAccessClick(object sender, RoutedEventArgs e)
     {
         if (_messageNotificationSource is null)
@@ -191,14 +207,20 @@ public partial class SettingsWindow : Window
         WpfRadioButton? selectedMusicAnimation = MusicAnimationSelectionPanel.Children
             .OfType<WpfRadioButton>()
             .FirstOrDefault(option => option.IsChecked == true);
-        if (selectedMusicAnimation?.Tag is string selection)
+        string selection = MusicAnimationEnabledCheckBox.IsChecked == true &&
+            selectedMusicAnimation?.Tag is string selected
+                ? selected
+                : MusicAnimationOptions.NoneSelection;
+        if (!string.IsNullOrWhiteSpace(selection))
         {
             SelectedMediaPreferences = MediaPreferences.Normalize(
                 SelectedMediaPreferences with
                 {
                     MusicAnimationSelection = selection,
-                    EnableLuoTianyiSingingEasterEgg =
-                        LuoTianyiSingingEasterEggCheckBox.IsChecked == true,
+                    // The former one-animation Easter-egg switch is retired. In
+                    // intelligent mode both Luo Tianyi animations form the pool;
+                    // fixed mode is artist-independent.
+                    EnableLuoTianyiSingingEasterEgg = true,
                 });
         }
         DialogResult = true;

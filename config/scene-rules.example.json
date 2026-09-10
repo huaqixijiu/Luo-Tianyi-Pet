@@ -153,7 +153,7 @@
   },
   "media": {
     "targetProcess": "cloudmusic.exe",
-    "commandMode": "targeted-wm-appcommand-with-shortcut-fallback",
+    "commandMode": "cloudmusic-global-shortcuts-with-public-state-confirmation",
     "detectAudioWithCoreAudio": true,
     "pollIntervalMilliseconds": 250,
     "audiblePeakThreshold": 0.001,
@@ -200,7 +200,7 @@
       "showCurrentShortcutInTooltip": true
     },
     "globalShortcuts": {
-      "fallbackOnly": true,
+      "fallbackOnly": false,
       "enabled": true,
       "previousTrack": "Ctrl+Alt+Left",
       "togglePlayPause": "Ctrl+Alt+P",
@@ -217,6 +217,9 @@
       "minimumDispatchDelayMilliseconds": 2000,
       "waitForTrackMetadataBeforeDispatch": true,
       "metadataFallbackDelayMilliseconds": 10000,
+      "retryWhenControllableWindowDoesNotAppear": true,
+      "retryIntervalMilliseconds": 3000,
+      "maximumLaunchAttempts": 3,
       "timeoutMilliseconds": 30000,
       "waitingAnimation": "resonance-loading-sway",
       "waitingAnimationMotion": "none-static-source-image",
@@ -236,8 +239,7 @@
           "ninth-anniversary-music-sway",
           "newyear-one-click-singing"
         ],
-        "oneClickSingingCanBeDisabled": true,
-        "disabledOneClickSingingFallback": "ninth-anniversary-music-sway"
+        "fixedChoiceAppliesToEveryArtist": true
       },
       "selectableModes": [
         "automatic-by-artist",

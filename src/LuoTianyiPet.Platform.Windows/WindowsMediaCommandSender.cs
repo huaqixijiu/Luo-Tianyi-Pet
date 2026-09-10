@@ -17,11 +17,6 @@ public interface IShortcutInputBackend
     int Send(IReadOnlyList<ShortcutKeyStroke> strokes);
 }
 
-public interface ITargetedMediaCommandBackend
-{
-    bool TrySendToProcess(string processName, MediaCommand command);
-}
-
 public sealed class WindowsMediaCommandSender : IMediaCommandSender
 {
     private static readonly ushort[] BusyStateKeys =
@@ -34,9 +29,7 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
     ];
 
     private readonly IShortcutInputBackend _backend;
-    private readonly ITargetedMediaCommandBackend? _targetedBackend;
     private readonly bool _enabled;
-    private readonly string _targetProcessName;
     private readonly IReadOnlyDictionary<MediaCommand, ShortcutBinding> _bindings;
     private readonly HashSet<string> _protectedProcesses;
     private readonly TimeSpan _cooldown;
@@ -52,9 +45,7 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
         ArgumentNullException.ThrowIfNull(safetyPreferences);
 
         _backend = backend;
-        _targetedBackend = backend as ITargetedMediaCommandBackend;
         _enabled = mediaPreferences.EnableCloudMusicShortcutControl;
-        _targetProcessName = NormalizeProcessName(mediaPreferences.TargetProcessName);
         _bindings = new Dictionary<MediaCommand, ShortcutBinding>
         {
             [MediaCommand.PreviousTrack] = ShortcutBinding.Parse(mediaPreferences.PreviousTrackShortcut),
@@ -93,16 +84,6 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
             return new(MediaCommandSendStatus.RateLimited);
         }
 
-        if (_targetedBackend is not null &&
-            _targetProcessName.Length > 0 &&
-            _targetedBackend.TrySendToProcess(_targetProcessName, command))
-        {
-            _lastSentAt = now;
-            return new(
-                MediaCommandSendStatus.Sent,
-                MediaCommandDeliveryMethod.TargetedWindowsMessage);
-        }
-
         if (!_bindings.TryGetValue(command, out ShortcutBinding? binding) || !binding.IsValid)
         {
             return new(MediaCommandSendStatus.InvalidShortcut);
@@ -135,7 +116,7 @@ public sealed class WindowsMediaCommandSender : IMediaCommandSender
         Path.GetFileNameWithoutExtension(processName.Trim());
 }
 
-public sealed class Win32ShortcutInputBackend : IShortcutInputBackend, ITargetedMediaCommandBackend
+public sealed class Win32ShortcutInputBackend : IShortcutInputBackend
 {
     public ForegroundProcessQuery QueryForegroundProcess()
     {
@@ -187,73 +168,6 @@ public sealed class Win32ShortcutInputBackend : IShortcutInputBackend, ITargeted
             Marshal.SizeOf<Input>()));
     }
 
-    public bool TrySendToProcess(string processName, MediaCommand command)
-    {
-        int appCommand = command switch
-        {
-            MediaCommand.PreviousTrack => NativeMethods.AppCommandMediaPreviousTrack,
-            MediaCommand.TogglePlayPause => NativeMethods.AppCommandMediaPlayPause,
-            MediaCommand.NextTrack => NativeMethods.AppCommandMediaNextTrack,
-            _ => 0,
-        };
-        if (appCommand == 0)
-        {
-            return false;
-        }
-
-        string normalized = Path.GetFileNameWithoutExtension(processName.Trim());
-        if (normalized.Length == 0)
-        {
-            return false;
-        }
-
-        Process[] processes;
-        try
-        {
-            processes = Process.GetProcessesByName(normalized);
-        }
-        catch (Exception exception) when (
-            exception is ArgumentException or InvalidOperationException or
-            System.ComponentModel.Win32Exception)
-        {
-            return false;
-        }
-
-        try
-        {
-            foreach (Process process in processes)
-            {
-                try
-                {
-                    process.Refresh();
-                    nint window = process.MainWindowHandle;
-                    if (window != nint.Zero && NativeMethods.PostMessage(
-                        window,
-                        NativeMethods.WindowMessageAppCommand,
-                        window,
-                        new nint(appCommand << 16)))
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception exception) when (
-                    exception is InvalidOperationException or NotSupportedException or
-                    System.ComponentModel.Win32Exception)
-                {
-                    // Another matching process or the shortcut fallback may still work.
-                }
-            }
-
-            return false;
-        }
-        finally
-        {
-            foreach (Process process in processes)
-            {
-                process.Dispose();
-            }
-        }
-    }
 }
 
 internal sealed record ShortcutBinding(bool IsValid, IReadOnlyList<ushort> Modifiers, ushort PrimaryKey)
@@ -419,10 +333,6 @@ internal static class NativeMethods
 {
     public const uint InputKeyboard = 1;
     public const uint KeyEventKeyUp = 0x0002;
-    public const uint WindowMessageAppCommand = 0x0319;
-    public const int AppCommandMediaNextTrack = 11;
-    public const int AppCommandMediaPreviousTrack = 12;
-    public const int AppCommandMediaPlayPause = 14;
 
     [DllImport("user32.dll")]
     public static extern nint GetForegroundWindow();
@@ -436,7 +346,4 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern uint SendInput(uint inputCount, Input[] inputs, int inputSize);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool PostMessage(nint window, uint message, nint wParam, nint lParam);
 }

@@ -32,23 +32,17 @@ public sealed class WindowsMediaCommandSenderTests
     [InlineData(MediaCommand.PreviousTrack)]
     [InlineData(MediaCommand.TogglePlayPause)]
     [InlineData(MediaCommand.NextTrack)]
-    public void TrySend_TargetApplicationAcceptsWindowsMessage_DoesNotInjectKeyboard(
+    public void TrySend_AlwaysUsesSilentConfiguredShortcut(
         MediaCommand command)
     {
-        FakeShortcutInputBackend backend = new()
-        {
-            AcceptTargetedCommand = true,
-        };
-        backend.DownKeys.Add(0x11);
+        FakeShortcutInputBackend backend = new();
         WindowsMediaCommandSender sender = CreateSender(backend);
 
         MediaCommandSendResult result = sender.TrySend(command, Now);
 
         Assert.Equal(MediaCommandSendStatus.Sent, result.Status);
-        Assert.True(result.WasSentViaTargetedMessage);
-        Assert.Equal("cloudmusic", backend.LastTargetProcessName);
-        Assert.Equal(command, backend.LastTargetedCommand);
-        Assert.Null(backend.LastStrokes);
+        Assert.Equal(MediaCommandDeliveryMethod.KeyboardShortcut, result.DeliveryMethod);
+        Assert.NotNull(backend.LastStrokes);
     }
 
     [Fact]
@@ -61,7 +55,6 @@ public sealed class WindowsMediaCommandSenderTests
 
         Assert.Equal(MediaCommandSendStatus.Sent, result.Status);
         Assert.Equal(MediaCommandDeliveryMethod.KeyboardShortcut, result.DeliveryMethod);
-        Assert.Equal(MediaCommand.TogglePlayPause, backend.LastTargetedCommand);
         Assert.NotNull(backend.LastStrokes);
     }
 
@@ -194,9 +187,7 @@ public sealed class WindowsMediaCommandSenderTests
     private static WindowsMediaCommandSender CreateSender(FakeShortcutInputBackend backend) =>
         new(backend, new MediaPreferences(), new SafetyPreferences());
 
-    private sealed class FakeShortcutInputBackend :
-        IShortcutInputBackend,
-        ITargetedMediaCommandBackend
+    private sealed class FakeShortcutInputBackend : IShortcutInputBackend
     {
         public ForegroundProcessQuery Foreground { get; init; } = new(true, "explorer");
 
@@ -209,12 +200,6 @@ public sealed class WindowsMediaCommandSenderTests
         public int ForegroundQueryCount { get; private set; }
 
         public int SendCallCount { get; private set; }
-
-        public bool AcceptTargetedCommand { get; init; }
-
-        public string? LastTargetProcessName { get; private set; }
-
-        public MediaCommand? LastTargetedCommand { get; private set; }
 
         public ForegroundProcessQuery QueryForegroundProcess()
         {
@@ -229,13 +214,6 @@ public sealed class WindowsMediaCommandSenderTests
             SendCallCount++;
             LastStrokes = strokes;
             return AcceptedStrokeCount ?? strokes.Count;
-        }
-
-        public bool TrySendToProcess(string processName, MediaCommand command)
-        {
-            LastTargetProcessName = processName;
-            LastTargetedCommand = command;
-            return AcceptTargetedCommand;
         }
     }
 }
