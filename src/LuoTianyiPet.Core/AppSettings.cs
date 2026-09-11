@@ -155,7 +155,7 @@ public sealed record MessageNotificationPreferences
 
     public string QqProcessNames { get; init; } = "QQ.exe";
 
-    public string WeChatProcessNames { get; init; } = "WeChat.exe;Weixin.exe";
+    public string WeChatProcessNames { get; init; } = "WeChat.exe;Weixin.exe;WeChatAppEx.exe";
 }
 
 public sealed record GenshinPreferences

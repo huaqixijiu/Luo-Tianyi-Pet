@@ -507,7 +507,7 @@
     const modeProfiles = [
       { title:"模式一 · 华裳长发版", rules:"待机使用华裳长发全身图，不开放身体部位点击。保留拖拽、边缘收纳、音乐覆盖、桌面包子追逐与公共时间问候；没有“嘿嘿”和眠了呼吸。" },
       { title:"模式二 · 晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，5 分钟进入“嘿嘿”；单击等操作恢复待机，只拖拽移动并松手仍保持“嘿嘿”；没有一分钟倒计时和眠了呼吸。" },
-      { title:"模式三 · 经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。快速来回甩动触发旋转舞并循环到下一次点击。" }
+      { title:"模式三 · 经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。拖拽时至少完成两次完整左右往返才触发旋转舞，并循环到下一次点击。" }
     ];
 
     const scenarios = [
@@ -518,7 +518,7 @@
       { id:"volume", group:"music", title:"网易云独立音量（待决定）", desc:"可通过 Windows 音量合成器中的 cloudmusic.exe 音频会话只调网易云，不影响其它应用；系统主音量功能已经撤销。", level:"待确认", recommended:false },
 
       { id:"pointer", group:"desktop", title:"悬停、点击与连续戳", desc:"悬停看向鼠标；点击卖萌；连续点击触发生气彩蛋。", level:"推荐", recommended:true },
-      { id:"dragPhysics", group:"desktop", title:"拖拽与模式三旋转彩蛋", desc:"普通拖拽直接恢复；经典猫耳版快速来回甩动时循环旋转舞，下一次点击停止。", level:"推荐", recommended:true },
+      { id:"dragPhysics", group:"desktop", title:"拖拽与模式三旋转彩蛋", desc:"普通拖拽直接恢复；经典猫耳版需在拖拽时至少完成两次完整左右往返，才循环旋转舞，下一次点击停止。", level:"推荐", recommended:true },
       { id:"idleEvents", group:"desktop", title:"随机待机与发呆", desc:"按无操作时间随机卖萌、摸鱼、打瞌睡，音乐时暂停随机动作。", level:"推荐", recommended:true },
       { id:"screenEdge", group:"desktop", title:"屏幕边缘探头/吸附", desc:"靠近边缘自动吸附，从屏幕侧边探头或坐在任务栏上。", level:"可选", recommended:false },
       { id:"fullscreen", group:"desktop", title:"全屏应用自动避让", desc:"游戏或视频全屏时降低置顶层级、隐藏或移动到副屏。", level:"推荐", recommended:true },
@@ -567,7 +567,7 @@
       { id:"requested_birthday_fishing", title:"十周年生日 · 摸鱼一分钟", category:"expression", kind:"69 帧动态 GIF · 精确 60 秒", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", source:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", tags:["新添加","用户指定","已使用","摸鱼","一分钟","嘿嘿前倒计时"], desc:"经典猫耳版无操作 2 分钟后开始，画面从 00:59 倒数到 00:00；移除原素材开头额外停留的 5 秒并把末帧规范为 1 秒，使 3 分钟时恰好切到“嘿嘿”。" },
       { id:"requested_newyear_oneclick_sing", title:"元旦祝福 · 一键唱歌", category:"expression", kind:"16 帧动态 GIF · 相邻帧往返循环", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", source:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", tags:["新添加","用户指定","已使用","洛天依歌曲","合唱","唱歌","循环"], desc:"用于洛天依本人或参与合唱歌曲的随机彩蛋。正式运行版移除前 7 帧按键入场，以源第 7→15→8 帧往返闭环，末帧回到首帧仍只跨相邻动作；可在设置中固定选择、关闭唱歌彩蛋或关闭全部听歌动画。" },
       { id:"requested_tiger_goodnight", title:"虎年贺新春 · 晚安", category:"expression", kind:"静态 PNG", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", source:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", tags:["新添加","用户指定","候选","晚安","睡眠"], desc:"来自“洛天依虎年贺新春”官方表情包的晚安静态图；当前不替换既有夜间问候或 30 分钟长睡眠。" },
-      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","模式三","拖拽彩蛋","循环"], desc:"经典猫耳版拖拽时快速左右来回甩动触发，保持连贯循环，直到用户下一次点击。" },
+      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","模式三","拖拽彩蛋","循环"], desc:"经典猫耳版拖拽时至少完成两次完整左右往返后触发，保持连贯循环，直到用户下一次点击。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","洛天依歌曲","合唱","彩蛋","循环"], desc:"洛天依本人或参与合唱歌曲的彩蛋动画；自动模式会与“一键唱歌”随机选择，也可在设置中固定选择。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
 

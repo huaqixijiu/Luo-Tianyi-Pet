@@ -451,8 +451,8 @@
             "animation": "tenth-anniversary-spin-dance",
             "minimumLegDistanceDips": 32,
             "minimumLegVelocityDipsPerSecond": 360,
-            "requiredDirectionChanges": 2,
-            "maximumSequenceMilliseconds": 900,
+            "requiredDirectionChanges": 4,
+            "maximumSequenceMilliseconds": 1400,
             "loopUntilNextClick": true
           }
         },
@@ -750,8 +750,9 @@
     "cancelOnFullscreenProtectedGameLockOrForegroundCheckFailure": true
   },
   "messageNotifications": {
-    "source": "windows-user-notification-listener",
-    "requiresPackageIdentity": true,
+    "source": "windows-user-notification-listener-and-shell-attention",
+    "toastSourceRequiresPackageIdentity": true,
+    "shellAttentionFallbackRequiresPackageIdentity": false,
     "requiresExplicitUserConsent": true,
     "unpackagedBehavior": "unavailable-with-explanation",
     "readFields": [
@@ -781,7 +782,8 @@
         "id": "qq",
         "displayName": "QQ",
         "processNames": [
-          "QQ.exe"
+          "QQ.exe",
+          "QQNT.exe"
         ]
       },
       {
@@ -789,7 +791,8 @@
         "displayName": "微信",
         "processNames": [
           "WeChat.exe",
-          "Weixin.exe"
+          "Weixin.exe",
+          "WeChatAppEx.exe"
         ]
       }
     ]

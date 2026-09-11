@@ -8,15 +8,17 @@ public sealed class RapidBackAndForthDragTrackerTests
         new(2026, 9, 11, 12, 0, 0, TimeSpan.FromHours(8));
 
     [Fact]
-    public void ThreeFastHorizontalLegsTriggerOnce()
+    public void TwoCompleteBackAndForthCyclesTriggerOnce()
     {
         RapidBackAndForthDragTracker tracker = new();
         tracker.Begin(new PointerPoint(100, 100), Start);
 
         Assert.False(tracker.Add(new PointerPoint(150, 102), Start.AddMilliseconds(100)));
         Assert.False(tracker.Add(new PointerPoint(95, 99), Start.AddMilliseconds(200)));
-        Assert.True(tracker.Add(new PointerPoint(150, 101), Start.AddMilliseconds(300)));
+        Assert.False(tracker.Add(new PointerPoint(150, 101), Start.AddMilliseconds(300)));
         Assert.False(tracker.Add(new PointerPoint(90, 100), Start.AddMilliseconds(400)));
+        Assert.True(tracker.Add(new PointerPoint(150, 101), Start.AddMilliseconds(500)));
+        Assert.False(tracker.Add(new PointerPoint(90, 100), Start.AddMilliseconds(600)));
     }
 
     [Fact]
@@ -48,8 +50,8 @@ public sealed class RapidBackAndForthDragTrackerTests
         tracker.Begin(new PointerPoint(100, 100), Start);
         tracker.Add(new PointerPoint(150, 100), Start.AddMilliseconds(100));
 
-        Assert.False(tracker.Add(new PointerPoint(90, 100), Start.AddSeconds(1)));
-        Assert.False(tracker.Add(new PointerPoint(150, 100), Start.AddMilliseconds(1100)));
+        Assert.False(tracker.Add(new PointerPoint(90, 100), Start.AddMilliseconds(1500)));
+        Assert.False(tracker.Add(new PointerPoint(150, 100), Start.AddMilliseconds(1600)));
     }
 
     [Fact]

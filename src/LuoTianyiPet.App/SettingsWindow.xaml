@@ -213,15 +213,15 @@
 
             <ScrollViewer x:Name="NotificationPage" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="20,18,14,18">
-                    <TextBlock Style="{StaticResource PageTitle}" Text="通知" /><TextBlock Style="{StaticResource PageDescription}" Text="管理 QQ / 微信来源提醒和 Windows 通知权限。" />
+                    <TextBlock Style="{StaticResource PageTitle}" Text="通知" /><TextBlock Style="{StaticResource PageDescription}" Text="使用 Windows 通知或任务栏闪烁提醒，不读取消息正文。" />
                     <TextBlock Style="{StaticResource GroupTitle}" Text="消息提醒" />
-                    <Border Style="{StaticResource GroupCard}"><CheckBox x:Name="MessageReminderCheckBox" AutomationProperties.Name="启用 QQ 和微信消息来源提醒" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="QQ / 微信消息提醒" /><TextBlock Style="{StaticResource OptionDescription}" Text="来源应用不在前台时，显示应用和联系人或群名" /></StackPanel></CheckBox></Border>
-                    <TextBlock Style="{StaticResource GroupTitle}" Text="Windows 通知权限" />
+                    <Border Style="{StaticResource GroupCard}"><CheckBox x:Name="MessageReminderCheckBox" AutomationProperties.Name="启用 QQ 和微信消息来源提醒" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="QQ / 微信消息提醒" /><TextBlock Style="{StaticResource OptionDescription}" Text="来源不在前台时提醒；系统未提供标题时只显示 QQ / 微信" /></StackPanel></CheckBox></Border>
+                    <TextBlock Style="{StaticResource GroupTitle}" Text="Windows 通知权限（用于标题与应用图标）" />
                     <Border Style="{StaticResource GroupCard}" Padding="14,12"><StackPanel>
                         <Border Padding="10,8" Background="#1232B9F2" CornerRadius="8"><TextBlock x:Name="NotificationAccessStatusText" Foreground="{StaticResource PrimaryDark}" FontSize="10.5" TextWrapping="Wrap" Text="正在检查 Windows 通知访问状态……" /></Border>
                         <Button x:Name="NotificationAccessButton" Margin="0,10,0,0" HorizontalAlignment="Left" AutomationProperties.Name="授权 Windows 通知访问" Click="OnRequestNotificationAccessClick" Content="授权访问" />
                     </StackPanel></Border>
-                    <Border Padding="13,11" Background="#F1F8FC" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10"><StackPanel><TextBlock FontSize="12" FontWeight="SemiBold" Text="隐私说明" /><TextBlock Margin="0,4,0,0" Style="{StaticResource OptionDescription}" Text="桌宠不会读取、显示、保存或记录消息正文；标题结构不明确时只显示应用来源。" /></StackPanel></Border>
+                    <Border Padding="13,11" Background="#F1F8FC" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10"><StackPanel><TextBlock FontSize="12" FontWeight="SemiBold" Text="隐私说明" /><TextBlock Margin="0,4,0,0" Style="{StaticResource OptionDescription}" Text="桌宠不会读取、显示、保存或记录消息正文；任务栏回退只识别闪烁窗口所属应用。" /></StackPanel></Border>
                 </StackPanel>
             </ScrollViewer>
 

@@ -48,6 +48,8 @@ public interface IMessageNotificationSource : IDisposable
 
 public sealed class MessageProviderMatcher
 {
+    private static readonly string[] BuiltInQqProcessNames = ["qq", "qqnt"];
+    private static readonly string[] BuiltInWeChatProcessNames = ["wechat", "weixin", "wechatappex"];
     private readonly string[] _qqApplicationIdentifiers;
     private readonly string[] _wechatApplicationIdentifiers;
     private readonly string[] _qqProcessNames;
@@ -58,8 +60,14 @@ public sealed class MessageProviderMatcher
         Guard.NotNull(preferences, nameof(preferences));
         _qqApplicationIdentifiers = Parse(preferences.QqApplicationIdentifiers);
         _wechatApplicationIdentifiers = Parse(preferences.WeChatApplicationIdentifiers);
-        _qqProcessNames = ParseProcessNames(preferences.QqProcessNames);
-        _wechatProcessNames = ParseProcessNames(preferences.WeChatProcessNames);
+        _qqProcessNames = ParseProcessNames(preferences.QqProcessNames)
+            .Concat(BuiltInQqProcessNames)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        _wechatProcessNames = ParseProcessNames(preferences.WeChatProcessNames)
+            .Concat(BuiltInWeChatProcessNames)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     public MessageProvider? Identify(string? appUserModelId, string? displayName)
@@ -86,6 +94,24 @@ public sealed class MessageProviderMatcher
             ? _qqProcessNames
             : _wechatProcessNames;
         return candidates.Contains(normalized, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public MessageProvider? IdentifyProcess(string? processName)
+    {
+        if (string.IsNullOrWhiteSpace(processName))
+        {
+            return null;
+        }
+
+        string normalized = NormalizeProcessName(processName!);
+        if (_qqProcessNames.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+        {
+            return MessageProvider.Qq;
+        }
+
+        return _wechatProcessNames.Contains(normalized, StringComparer.OrdinalIgnoreCase)
+            ? MessageProvider.WeChat
+            : null;
     }
 
     public static string GetDisplayName(MessageProvider provider) => provider switch
@@ -245,4 +271,51 @@ public sealed class MessageNotificationCoordinator
         QueuePending(new MessageNotificationSummary(provider, occurredAt));
 
     public void ClearPending() => _pending.Clear();
+}
+
+public sealed class ShellAttentionSessionTracker
+{
+    private readonly TimeSpan _continuationWindow;
+    private readonly Dictionary<long, DateTimeOffset> _lastSignals = [];
+
+    public ShellAttentionSessionTracker(TimeSpan continuationWindow)
+    {
+        if (continuationWindow <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(continuationWindow));
+        }
+
+        _continuationWindow = continuationWindow;
+    }
+
+    public bool ShouldNotify(long sourceKey, DateTimeOffset occurredAt)
+    {
+        if (sourceKey == 0)
+        {
+            return false;
+        }
+
+        if (_lastSignals.TryGetValue(sourceKey, out DateTimeOffset previous) &&
+            occurredAt >= previous && occurredAt - previous <= _continuationWindow)
+        {
+            _lastSignals[sourceKey] = occurredAt;
+            return false;
+        }
+
+        _lastSignals[sourceKey] = occurredAt;
+        foreach (long expired in _lastSignals
+            .Where(pair => occurredAt - pair.Value > _continuationWindow)
+            .Select(pair => pair.Key)
+            .ToArray())
+        {
+            if (expired != sourceKey)
+            {
+                _lastSignals.Remove(expired);
+            }
+        }
+
+        return true;
+    }
+
+    public void Reset() => _lastSignals.Clear();
 }

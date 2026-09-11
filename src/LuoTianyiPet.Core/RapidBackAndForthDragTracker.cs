@@ -16,7 +16,7 @@ public sealed class RapidBackAndForthDragTracker
     public RapidBackAndForthDragTracker(
         double minimumLegDistance = 32,
         double minimumLegVelocity = 360,
-        int requiredDirectionChanges = 2,
+        int requiredDirectionChanges = 4,
         TimeSpan? maximumSequenceDuration = null)
     {
         if (!Numeric.IsFinite(minimumLegDistance) || minimumLegDistance <= 0)
@@ -34,7 +34,7 @@ public sealed class RapidBackAndForthDragTracker
             throw new ArgumentOutOfRangeException(nameof(requiredDirectionChanges));
         }
 
-        TimeSpan duration = maximumSequenceDuration ?? TimeSpan.FromMilliseconds(900);
+        TimeSpan duration = maximumSequenceDuration ?? TimeSpan.FromMilliseconds(1400);
         if (duration <= TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(maximumSequenceDuration));

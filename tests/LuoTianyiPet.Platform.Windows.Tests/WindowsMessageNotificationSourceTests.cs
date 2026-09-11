@@ -98,6 +98,30 @@ public sealed class WindowsMessageNotificationSourceTests
         source.Stop();
     }
 
+    [Fact]
+    public void ShellFlashMessageReturnsItsTargetWindow()
+    {
+        IntPtr expectedWindow = new IntPtr(4567);
+
+        Assert.True(ShellAttentionMessageClassifier.TryGetFlashingWindow(
+            new IntPtr(ShellAttentionMessageClassifier.FlashCode),
+            expectedWindow,
+            out IntPtr actualWindow));
+        Assert.Equal(expectedWindow, actualWindow);
+    }
+
+    [Theory]
+    [InlineData(6, 4567)]
+    [InlineData(ShellAttentionMessageClassifier.FlashCode, 0)]
+    public void NonFlashShellMessagesAreIgnored(int code, int window)
+    {
+        Assert.False(ShellAttentionMessageClassifier.TryGetFlashingWindow(
+            new IntPtr(code),
+            new IntPtr(window),
+            out IntPtr actualWindow));
+        Assert.Equal(IntPtr.Zero, actualWindow);
+    }
+
     private sealed class HResultException : Exception
     {
         public HResultException(int hresult)

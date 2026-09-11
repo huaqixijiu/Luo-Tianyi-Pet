@@ -244,6 +244,8 @@ public partial class MainWindow : Window
     private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
+    private readonly ShellAttentionSessionTracker _shellAttentionSessions =
+        new(TimeSpan.FromSeconds(8));
 
     public MainWindow(
         AppSettings settings,
@@ -386,6 +388,8 @@ public partial class MainWindow : Window
             _desktopToolWindowBehavior = new DesktopToolWindowBehavior(
                 this,
                 keepVisibleOnShowDesktop: true);
+            _desktopToolWindowBehavior.WindowAttentionRequested +=
+                OnShellWindowAttentionRequested;
         }
         _visualSwapTransition = new VisualSwapTransition(
             PetVisual,
@@ -474,6 +478,11 @@ public partial class MainWindow : Window
                 _desktopToolWindowBehavior?.IsToolWindowStyleApplied == true
                     ? "Desktop tool-window mode enabled; excluded from task switchers and protected from Show Desktop minimization."
                     : "Desktop tool-window mode requested, but native style verification did not succeed.");
+            _logger.Info(
+                "notification.shell_attention_status",
+                _desktopToolWindowBehavior?.IsShellAttentionMonitoringAvailable == true
+                    ? "Available"
+                    : "Unavailable");
         }
         ApplyEffectiveTopmost();
         PreviousTrackButton.ToolTip = $"上一首（{_settings.Media.PreviousTrackShortcut}）";
@@ -1198,6 +1207,37 @@ public partial class MainWindow : Window
         MessageNotificationReceivedEventArgs e) =>
         Dispatcher.BeginInvoke(() => HandleMessageNotification(e));
 
+    private void OnShellWindowAttentionRequested(
+        object? sender,
+        ShellWindowAttentionEventArgs e)
+    {
+        if (_isClosing || !_settings.Notifications.EnableMessageReminders ||
+            !WindowsWindowProcessResolver.TryGetProcessName(
+                e.WindowHandle,
+                out string? processName))
+        {
+            return;
+        }
+
+        MessageProvider? provider = _messageProviderMatcher.IdentifyProcess(processName);
+        if (provider is not MessageProvider matched)
+        {
+            return;
+        }
+
+        DateTimeOffset occurredAt = DateTimeOffset.Now;
+        long providerSessionKey = (long)matched + 1;
+        if (!_shellAttentionSessions.ShouldNotify(providerSessionKey, occurredAt))
+        {
+            return;
+        }
+
+        _logger.Info("notification.shell_attention_detected", matched.ToString());
+        HandleMessageNotification(
+            new MessageNotificationReceivedEventArgs(
+                new MessageNotificationSummary(matched, occurredAt)));
+    }
+
     private void HandleMessageNotification(MessageNotificationReceivedEventArgs e)
     {
         if (_isClosing || !_settings.Notifications.EnableMessageReminders)
@@ -1231,6 +1271,10 @@ public partial class MainWindow : Window
         _messageNotificationSource?.Start();
 
         ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
+        if (_messageProviderMatcher.IdentifyProcess(foreground.ProcessName) is not null)
+        {
+            _shellAttentionSessions.Reset();
+        }
         if (!IsMessageNotificationDisplaySafe(foreground))
         {
             CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
@@ -5942,6 +5986,11 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        if (_desktopToolWindowBehavior is not null)
+        {
+            _desktopToolWindowBehavior.WindowAttentionRequested -=
+                OnShellWindowAttentionRequested;
+        }
         _desktopToolWindowBehavior?.Dispose();
         _desktopToolWindowBehavior = null;
         _isClosing = true;

@@ -245,14 +245,14 @@ public partial class SettingsWindow : Window
         NotificationAccessStatusText.Text = status switch
         {
             MessageNotificationAccessStatus.Allowed =>
-                "Windows 已授权；桌宠只读取通知来源，不读取正文。",
+                "Windows 通知已授权；桌宠也会尝试任务栏闪烁回退，且不读取正文。",
             MessageNotificationAccessStatus.Unspecified =>
-                "尚未授权。点击后由 Windows 显示系统权限对话框。",
+                "尚未授权通知标题与图标。任务栏闪烁回退仍可识别 QQ / 微信来源。",
             MessageNotificationAccessStatus.Denied =>
-                "Windows 已拒绝访问；需要在系统隐私设置中手动允许。",
+                "Windows 已拒绝通知访问；仍会尝试任务栏闪烁回退，但只显示 QQ / 微信来源。",
             MessageNotificationAccessStatus.PackageIdentityRequired =>
-                "当前启动的是便携/普通 EXE，没有 Windows 应用包身份。请改用正式 MSIX 安装版；首次安装后再在这里授权。",
-            _ => "当前系统暂时无法提供通知访问；其它桌宠功能不受影响。",
+                "当前是便携/普通 EXE，无法读取通知标题；任务栏闪烁回退仍可识别 QQ / 微信来源。",
+            _ => "系统通知访问暂不可用；任务栏闪烁回退仍会尝试识别来源，其它功能不受影响。",
         };
         NotificationAccessButton.IsEnabled =
             status is MessageNotificationAccessStatus.Unspecified or

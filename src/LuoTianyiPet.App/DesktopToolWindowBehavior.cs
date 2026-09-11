@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using LuoTianyiPet.Platform.Windows;
 
 namespace LuoTianyiPet.App;
 
@@ -26,6 +27,9 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
     private readonly Window _window;
     private readonly bool _keepVisibleOnShowDesktop;
     private HwndSource? _source;
+    private IntPtr _windowHandle;
+    private int _shellHookMessage;
+    private bool _shellHookRegistered;
     private bool _restoreScheduled;
     private bool _disposed;
 
@@ -40,6 +44,10 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
     }
 
     public bool IsToolWindowStyleApplied { get; private set; }
+
+    public bool IsShellAttentionMonitoringAvailable => _shellHookRegistered;
+
+    public event EventHandler<ShellWindowAttentionEventArgs>? WindowAttentionRequested;
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
@@ -72,6 +80,13 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
             (verifiedStyle.ToInt64() & WsExAppWindow) == 0;
         _source = HwndSource.FromHwnd(handle);
         _source?.AddHook(WindowMessageHook);
+        _windowHandle = handle;
+        uint shellHookMessage = RegisterWindowMessage("SHELLHOOK");
+        if (shellHookMessage != 0)
+        {
+            _shellHookMessage = unchecked((int)shellHookMessage);
+            _shellHookRegistered = RegisterShellHookWindow(handle);
+        }
     }
 
     private IntPtr WindowMessageHook(
@@ -86,6 +101,18 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
             (wParam.ToInt64() & ScCommandMask) == ScMinimize)
         {
             handled = true;
+        }
+
+        if (_shellHookRegistered &&
+            message == _shellHookMessage &&
+            ShellAttentionMessageClassifier.TryGetFlashingWindow(
+                wParam,
+                lParam,
+                out nint flashingWindow))
+        {
+            WindowAttentionRequested?.Invoke(
+                this,
+                new ShellWindowAttentionEventArgs(flashingWindow));
         }
 
         return IntPtr.Zero;
@@ -130,6 +157,12 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
         _disposed = true;
         _window.SourceInitialized -= OnSourceInitialized;
         _window.StateChanged -= OnWindowStateChanged;
+        if (_shellHookRegistered && _windowHandle != IntPtr.Zero)
+        {
+            _ = DeregisterShellHookWindow(_windowHandle);
+        }
+        _shellHookRegistered = false;
+        _windowHandle = IntPtr.Zero;
         if (_source is { IsDisposed: false })
         {
             _source.RemoveHook(WindowMessageHook);
@@ -169,4 +202,20 @@ internal sealed class DesktopToolWindowBehavior : IDisposable
         int width,
         int height,
         uint flags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern uint RegisterWindowMessage(string message);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RegisterShellHookWindow(IntPtr windowHandle);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DeregisterShellHookWindow(IntPtr windowHandle);
+}
+
+internal sealed class ShellWindowAttentionEventArgs(nint windowHandle) : EventArgs
+{
+    public nint WindowHandle { get; } = windowHandle;
 }

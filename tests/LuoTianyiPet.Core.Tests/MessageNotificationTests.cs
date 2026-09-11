@@ -31,8 +31,10 @@ public sealed class MessageNotificationTests
     [Theory]
     [InlineData(MessageProvider.Qq, "QQ")]
     [InlineData(MessageProvider.Qq, "QQ.exe")]
+    [InlineData(MessageProvider.Qq, "QQNT.exe")]
     [InlineData(MessageProvider.WeChat, "WeChat")]
     [InlineData(MessageProvider.WeChat, "Weixin.exe")]
+    [InlineData(MessageProvider.WeChat, "WeChatAppEx.exe")]
     public void MatcherRecognizesConfiguredForegroundProcesses(
         MessageProvider provider,
         string processName)
@@ -41,6 +43,29 @@ public sealed class MessageNotificationTests
 
         Assert.True(matcher.IsForegroundProcess(provider, processName));
         Assert.False(matcher.IsForegroundProcess(provider, "notepad.exe"));
+    }
+
+    [Theory]
+    [InlineData("QQ.exe", MessageProvider.Qq)]
+    [InlineData("QQNT.exe", MessageProvider.Qq)]
+    [InlineData("WeChat.exe", MessageProvider.WeChat)]
+    [InlineData("Weixin.exe", MessageProvider.WeChat)]
+    [InlineData("WeChatAppEx.exe", MessageProvider.WeChat)]
+    public void MatcherIdentifiesTaskbarAttentionSourceProcesses(
+        string processName,
+        MessageProvider expected)
+    {
+        MessageProviderMatcher matcher = new(new MessageNotificationPreferences());
+
+        Assert.Equal(expected, matcher.IdentifyProcess(processName));
+    }
+
+    [Fact]
+    public void MatcherRejectsUnrelatedTaskbarAttentionSourceProcess()
+    {
+        MessageProviderMatcher matcher = new(new MessageNotificationPreferences());
+
+        Assert.Null(matcher.IdentifyProcess("notepad.exe"));
     }
 
     [Fact]
@@ -163,5 +188,37 @@ public sealed class MessageNotificationTests
             provider => provider == MessageProvider.WeChat,
             out MessageNotificationSummary _));
         Assert.False(coordinator.HasPending);
+    }
+
+    [Fact]
+    public void RepeatedTaskbarFlashesProduceOneReminderPerAttentionSession()
+    {
+        ShellAttentionSessionTracker tracker = new(TimeSpan.FromSeconds(8));
+
+        Assert.True(tracker.ShouldNotify(42, Now));
+        Assert.False(tracker.ShouldNotify(42, Now.AddSeconds(1)));
+        Assert.False(tracker.ShouldNotify(42, Now.AddSeconds(7)));
+        Assert.True(tracker.ShouldNotify(42, Now.AddSeconds(16)));
+    }
+
+    [Fact]
+    public void ForegroundResetAllowsTheNextTaskbarAttentionSessionImmediately()
+    {
+        ShellAttentionSessionTracker tracker = new(TimeSpan.FromSeconds(8));
+        Assert.True(tracker.ShouldNotify(42, Now));
+
+        tracker.Reset();
+
+        Assert.True(tracker.ShouldNotify(42, Now.AddSeconds(1)));
+    }
+
+    [Fact]
+    public void DifferentProvidersKeepIndependentTaskbarAttentionSessions()
+    {
+        ShellAttentionSessionTracker tracker = new(TimeSpan.FromSeconds(8));
+
+        Assert.True(tracker.ShouldNotify(1, Now));
+        Assert.True(tracker.ShouldNotify(2, Now.AddSeconds(1)));
+        Assert.False(tracker.ShouldNotify(1, Now.AddSeconds(2)));
     }
 }
