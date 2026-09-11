@@ -3,7 +3,8 @@
   "model": "full-body-crystal-dress",
   "sourceRoots": [
     "候选素材_官方/区域标注/第二模型/动作动画png",
-    "候选素材_官方/模式二新添加动作"
+    "候选素材_官方/模式二新添加动作",
+    "候选素材_官方/睡觉小装饰"
   ],
   "sourcePreparation": {
     "inputMode": "user-supplied transparent PNG sequence",
@@ -17,6 +18,8 @@
     "runtimeEncoding": "animated WebP quality 95; exact alpha; full frame count and full 440x476 resolution",
     "runtimeCanvasPolicy": "reframe square source into 440x476 high-resolution idle-aspect canvas; display at fixed 220x238 DIP without runtime offset; retain 240x260 picker previews",
     "retouch": "match action luminance to idle, then replace six neutral frames at each end with premultiplied idle-to-action blends; keep source frame count and duration",
+    "longIdlePolicy": "duck sit holds source frame 120; sleep holds source frame 250; sleep Z glyphs are cleared only inside the audited detached-glyph ROI",
+    "decorationPolicy": "remove only key-colour pixels connected to the source canvas edge, then crop the visible union and resize in premultiplied RGBA; small overlays are temporally sampled at their original apparent speed",
     "idleReference": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
     "inPlaceTransitionFramesPerEnd": 6
   },
@@ -166,28 +169,132 @@
       "atlasSha256": "ca459296f01f096976f51d453b96ff208f56fe1c42a829f3cc544307f129a73d"
     },
     {
-      "id": null,
-      "title": "鸭子坐（待接入）",
-      "status": "deferred",
+      "id": "crystal-long-idle-duck-sit",
+      "title": "鸭子坐",
+      "status": "runtime",
       "sourceDirectory": "候选素材_官方/模式二新添加动作/鸭子坐",
       "sourceFrameCount": 217,
       "sourceSequenceSha256": "40201539b03ab11dca788a2db9aee5a708a022bfb05fb548be5439c3d24ab152",
-      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/11_鸭子坐_待接入.webp",
-      "previewSha256": "5b074aeb5c9b3d0fab81f73afd08e879e483abebb4c6fce40bfc3b72a3a4228d",
-      "luminanceLutSha256": "3903fff7b4ff90d679e4d1413a484fedc4a059441c2b2905be2b0737fbf5e5fd",
-      "inPlaceTransitionFramesPerEnd": 6
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/11_鸭子坐.webp",
+      "previewSha256": "a799639393f65aa0f9bbac2a84604d2625fa5cd55620a3bdf7fe9de3c64622fa",
+      "luminanceLutSha256": "2c57b7bb7db11b2813c828ed47a10bf7eaae9251e4916cbda17c20d4221657c2",
+      "inPlaceTransitionFramesPerEnd": 6,
+      "longIdle": {
+        "enterStartFrame": 0,
+        "holdFrame": 120,
+        "wakeStartFrame": 121,
+        "wakeEndFrame": 216
+      },
+      "atlas": "animations/runtime/crystal-long-idle-duck-sit.frames.webp",
+      "atlasSha256": "3398c810ff475df984fab27b37fe6ba0f424ea851e3c16141f308a6170823819"
     },
     {
-      "id": null,
-      "title": "睡觉（待接入）",
-      "status": "deferred",
+      "id": "crystal-long-idle-sleep",
+      "title": "睡觉",
+      "status": "runtime",
       "sourceDirectory": "候选素材_官方/模式二新添加动作/睡觉",
       "sourceFrameCount": 361,
       "sourceSequenceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
-      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/12_睡觉_待接入.webp",
-      "previewSha256": "9f8d59faf0cfb79a8075a9e2307323521e0e776e12682f019b39d5f9db7f9e74",
-      "luminanceLutSha256": "2425c699454715bcd4b87a67f76a0a242af626e7d24fd4f74259608ef0374bcb",
-      "inPlaceTransitionFramesPerEnd": 6
+      "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/12_睡觉.webp",
+      "previewSha256": "0b2dcb501cb555855cc7e86aea16fc08e8f5895be656903d41cd881a5edc6283",
+      "luminanceLutSha256": "195f9fd44606c6c652715818247b262a1df8b6e9e322b134c54f857ad693f3af",
+      "inPlaceTransitionFramesPerEnd": 6,
+      "longIdle": {
+        "enterStartFrame": 0,
+        "holdFrame": 250,
+        "wakeStartFrame": 251,
+        "wakeEndFrame": 360
+      },
+      "removedBakedSleepLetters": {
+        "sourceFrameRange": [
+          147,
+          240
+        ],
+        "sourcePixelBox": [
+          250,
+          0,
+          520,
+          290
+        ]
+      },
+      "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
+      "atlasSha256": "f86f299cfc0f9a254c191c961e007aead51e453581ab1933858e01d5bab0de10"
+    },
+    {
+      "id": "crystal-sleep-decoration-zzz",
+      "title": "zzz",
+      "status": "runtime-overlay",
+      "sourceDirectory": "候选素材_官方/睡觉小装饰/zzz",
+      "sourceFrameCount": 241,
+      "sourceSequenceSha256": "593c4f8f039ad09868f0091c20c04fa9516c9d800f84c2c9f4b160ab6f15107d",
+      "selectedFrameCount": 121,
+      "sampleStep": 2,
+      "connectedBackgroundCleanup": "none; zero hidden RGB",
+      "sourceAlphaUnionBounds": [
+        0,
+        72,
+        720,
+        648
+      ],
+      "atlas": "animations/runtime/crystal-sleep-decoration-zzz.frames.webp",
+      "atlasSha256": "336e10de3d224c763f1c853de539b9fec2bcec91097281c6fb1703f04b148cc6"
+    },
+    {
+      "id": "crystal-sleep-decoration-bun",
+      "title": "梦见包子",
+      "status": "runtime-overlay",
+      "sourceDirectory": "候选素材_官方/睡觉小装饰/梦见包子",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "da50cec45d2dc00ee7ab2785ecca95fee0cf2d787c2b37870602dde8bc44b17f",
+      "selectedFrameCount": 73,
+      "sampleStep": 2,
+      "connectedBackgroundCleanup": "edge-connected near-white PR block",
+      "sourceAlphaUnionBounds": [
+        67,
+        79,
+        919,
+        622
+      ],
+      "atlas": "animations/runtime/crystal-sleep-decoration-bun.frames.webp",
+      "atlasSha256": "4496ed1ef14f6cd4c12a81f5168042f762b7b47dc2d0b96eb969896ddf5fa352"
+    },
+    {
+      "id": "crystal-sleep-decoration-yuezhengling",
+      "title": "梦见乐正绫",
+      "status": "runtime-overlay",
+      "sourceDirectory": "候选素材_官方/睡觉小装饰/梦见乐正绫",
+      "sourceFrameCount": 145,
+      "sourceSequenceSha256": "21153222804c11c4504c0a11ce9d4d5f2c5f6d7fbd5442bbd4233ba9dbac2ff8",
+      "selectedFrameCount": 73,
+      "sampleStep": 2,
+      "connectedBackgroundCleanup": "edge-connected near-black PR block",
+      "sourceAlphaUnionBounds": [
+        0,
+        86,
+        960,
+        629
+      ],
+      "atlas": "animations/runtime/crystal-sleep-decoration-yuezhengling.frames.webp",
+      "atlasSha256": "47240af6cd15e29d6fef2908c4fe05fdf8880cfd6859d4f7e4bcfa8301af7116"
+    },
+    {
+      "id": "crystal-sleep-decoration-cloud-dissolve",
+      "title": "云朵消散",
+      "status": "runtime-overlay",
+      "sourceDirectory": "候选素材_官方/睡觉小装饰/云朵消散",
+      "sourceFrameCount": 241,
+      "sourceSequenceSha256": "373f5f8fd881b06c48ed2c82b9436cff698fdb842f3b3a6ab0c6b3edb13b20b0",
+      "selectedFrameCount": 31,
+      "sampleStep": 6,
+      "connectedBackgroundCleanup": "edge-connected near-black PR block",
+      "sourceAlphaUnionBounds": [
+        0,
+        86,
+        960,
+        634
+      ],
+      "atlas": "animations/runtime/crystal-sleep-decoration-cloud-dissolve.frames.webp",
+      "atlasSha256": "a17e4fda1ccdb330712ea284d1518e3b55db57f4adce5dbbe8cf411588e3d021"
     }
   ],
   "catalogAnimations": [
@@ -320,6 +427,92 @@
       "loopCount": 1,
       "displayWidth": 220,
       "displayHeight": 238
+    },
+    {
+      "id": "crystal-long-idle-duck-sit",
+      "sourcePath": "候选素材_官方/模式二新添加动作/鸭子坐",
+      "sourceSha256": "40201539b03ab11dca788a2db9aee5a708a022bfb05fb548be5439c3d24ab152",
+      "atlas": "animations/runtime/crystal-long-idle-duck-sit.frames.webp",
+      "frameCount": 217,
+      "columns": 1,
+      "rows": 217,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 220,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-long-idle-sleep",
+      "sourcePath": "候选素材_官方/模式二新添加动作/睡觉",
+      "sourceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
+      "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
+      "frameCount": 361,
+      "columns": 1,
+      "rows": 361,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 220,
+      "displayHeight": 238
+    },
+    {
+      "id": "crystal-sleep-decoration-zzz",
+      "sourcePath": "候选素材_官方/睡觉小装饰/zzz",
+      "sourceSha256": "593c4f8f039ad09868f0091c20c04fa9516c9d800f84c2c9f4b160ab6f15107d",
+      "atlas": "animations/runtime/crystal-sleep-decoration-zzz.frames.webp",
+      "frameCount": 121,
+      "frameWidth": 180,
+      "frameHeight": 180,
+      "columns": 1,
+      "rows": 121,
+      "frameDurationMilliseconds": 84,
+      "loopCount": 0,
+      "displayWidth": 90,
+      "displayHeight": 90
+    },
+    {
+      "id": "crystal-sleep-decoration-bun",
+      "sourcePath": "候选素材_官方/睡觉小装饰/梦见包子",
+      "sourceSha256": "da50cec45d2dc00ee7ab2785ecca95fee0cf2d787c2b37870602dde8bc44b17f",
+      "atlas": "animations/runtime/crystal-sleep-decoration-bun.frames.webp",
+      "frameCount": 73,
+      "frameWidth": 240,
+      "frameHeight": 180,
+      "columns": 1,
+      "rows": 73,
+      "frameDurationMilliseconds": 84,
+      "loopCount": 0,
+      "displayWidth": 108,
+      "displayHeight": 81
+    },
+    {
+      "id": "crystal-sleep-decoration-yuezhengling",
+      "sourcePath": "候选素材_官方/睡觉小装饰/梦见乐正绫",
+      "sourceSha256": "21153222804c11c4504c0a11ce9d4d5f2c5f6d7fbd5442bbd4233ba9dbac2ff8",
+      "atlas": "animations/runtime/crystal-sleep-decoration-yuezhengling.frames.webp",
+      "frameCount": 73,
+      "frameWidth": 240,
+      "frameHeight": 180,
+      "columns": 1,
+      "rows": 73,
+      "frameDurationMilliseconds": 84,
+      "loopCount": 0,
+      "displayWidth": 108,
+      "displayHeight": 81
+    },
+    {
+      "id": "crystal-sleep-decoration-cloud-dissolve",
+      "sourcePath": "候选素材_官方/睡觉小装饰/云朵消散",
+      "sourceSha256": "373f5f8fd881b06c48ed2c82b9436cff698fdb842f3b3a6ab0c6b3edb13b20b0",
+      "atlas": "animations/runtime/crystal-sleep-decoration-cloud-dissolve.frames.webp",
+      "frameCount": 31,
+      "frameWidth": 240,
+      "frameHeight": 180,
+      "columns": 1,
+      "rows": 31,
+      "frameDurationMilliseconds": 42,
+      "loopCount": 1,
+      "displayWidth": 108,
+      "displayHeight": 81
     }
   ]
 }

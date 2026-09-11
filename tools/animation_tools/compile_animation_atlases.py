@@ -256,6 +256,8 @@ def compile_catalog(root: Path, configuration: Path, output: Path) -> None:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
         frame_width, frame_height = metadata["normalizedFrameSize"]
         for entry in metadata.get("catalogAnimations", []):
+            entry_frame_width = int(entry.get("frameWidth", frame_width))
+            entry_frame_height = int(entry.get("frameHeight", frame_height))
             atlas_path = root / "assets" / entry["atlas"]
             source_path = entry.get("sourcePath", metadata.get("sourceSequence"))
             source_sha256 = entry.get("sourceSha256", metadata.get("sourceSequenceSha256"))
@@ -270,8 +272,8 @@ def compile_catalog(root: Path, configuration: Path, output: Path) -> None:
                     "sourceSha256": source_sha256,
                     "atlasPath": atlas_path.relative_to(root / "assets").as_posix(),
                     "atlasSha256": sha256(atlas_path),
-                    "frameWidth": int(frame_width),
-                    "frameHeight": int(frame_height),
+                    "frameWidth": entry_frame_width,
+                    "frameHeight": entry_frame_height,
                     "columns": int(entry["columns"]),
                     "rows": int(entry["rows"]),
                     "frameDurationsMilliseconds": [
@@ -283,7 +285,7 @@ def compile_catalog(root: Path, configuration: Path, output: Path) -> None:
                     "displayHeight": int(entry["displayHeight"]),
                     "anchorX": 0.5,
                     "anchorY": 1.0,
-                    "alphaBounds": [0, 0, int(frame_width), int(frame_height)],
+                    "alphaBounds": [0, 0, entry_frame_width, entry_frame_height],
                 }
             )
     payload = {"schemaVersion": 1, "animations": animations}

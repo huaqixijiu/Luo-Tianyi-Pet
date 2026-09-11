@@ -60,9 +60,9 @@ public sealed class IdleSceneResolverTests
 
     [Theory]
     [InlineData(IdleSceneProfile.NoMediumIdle, PetContinuousState.Idle)]
-    [InlineData(IdleSceneProfile.CrystalDress, PetContinuousState.MediumIdle)]
+    [InlineData(IdleSceneProfile.CrystalDress, PetContinuousState.Sleeping)]
     [InlineData(IdleSceneProfile.ClassicCatEars, PetContinuousState.Sleeping)]
-    public void LongSleepOnlyAppliesToClassicCatEars(
+    public void LongSleepAppliesToBothInteractiveFullBodyAppearances(
         IdleSceneProfile profile,
         PetContinuousState expected)
     {
@@ -89,10 +89,10 @@ public sealed class IdleSceneResolverTests
     [InlineData(1, 0, PetContinuousState.Idle)]
     [InlineData(2, 0, PetContinuousState.Idle)]
     [InlineData(4, 59, PetContinuousState.Idle)]
-    [InlineData(5, 0, PetContinuousState.MediumIdle)]
-    [InlineData(29, 59, PetContinuousState.MediumIdle)]
-    [InlineData(30, 0, PetContinuousState.MediumIdle)]
-    public void CrystalDressSkipsCountdownAndStartsHeheAtFiveMinutes(
+    [InlineData(5, 0, PetContinuousState.Idle)]
+    [InlineData(29, 59, PetContinuousState.Idle)]
+    [InlineData(30, 0, PetContinuousState.Sleeping)]
+    public void CrystalDressSkipsHeheAndStartsItsOwnLongIdleAtThirtyMinutes(
         int minutes,
         int seconds,
         PetContinuousState expected)
@@ -103,6 +103,33 @@ public sealed class IdleSceneResolverTests
             IdleSceneProfile.CrystalDress);
 
         Assert.Equal(expected, decision.TargetState);
+    }
+
+    [Fact]
+    public void CrystalLongIdleVariantSelectionUsesEqualBuckets()
+    {
+        Assert.Equal(
+            CrystalLongIdleVariant.Sleep,
+            new CrystalLongIdleSelector((_, _) => 0).ChooseVariant());
+        Assert.Equal(
+            CrystalLongIdleVariant.DuckSit,
+            new CrystalLongIdleSelector((_, _) => 1).ChooseVariant());
+    }
+
+    [Theory]
+    [InlineData(0, CrystalSleepDecoration.Zzz)]
+    [InlineData(59, CrystalSleepDecoration.Zzz)]
+    [InlineData(60, CrystalSleepDecoration.DreamBun)]
+    [InlineData(94, CrystalSleepDecoration.DreamBun)]
+    [InlineData(95, CrystalSleepDecoration.DreamYuezhengLing)]
+    [InlineData(99, CrystalSleepDecoration.DreamYuezhengLing)]
+    public void CrystalDecorationSelectionUsesSixtyThirtyFiveFiveWeights(
+        int randomValue,
+        CrystalSleepDecoration expected)
+    {
+        Assert.Equal(
+            expected,
+            new CrystalLongIdleSelector((_, _) => randomValue).ChooseDecoration());
     }
 
     [Fact]

@@ -31,6 +31,16 @@ public partial class MainWindow : Window
     private const string ClassicSpinDanceAnimation = "tenth-anniversary-spin-dance";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
     private const string BunRequestAnimation = "resonance-cute-bun-request";
+    private const string CrystalLongIdleSleepAnimation = "crystal-long-idle-sleep";
+    private const string CrystalLongIdleDuckSitAnimation = "crystal-long-idle-duck-sit";
+    private const string CrystalSleepZzzDecoration = "crystal-sleep-decoration-zzz";
+    private const string CrystalSleepBunDecoration = "crystal-sleep-decoration-bun";
+    private const string CrystalSleepYuezhengLingDecoration = "crystal-sleep-decoration-yuezhengling";
+    private const string CrystalSleepCloudDissolveDecoration = "crystal-sleep-decoration-cloud-dissolve";
+    private const int CrystalSleepHoldFrame = 250;
+    private const int CrystalSleepLastFrame = 360;
+    private const int CrystalDuckSitHoldFrame = 120;
+    private const int CrystalDuckSitLastFrame = 216;
     private const double GenshinCameoSafeMargin = 24;
     private const double MediaControlsReservedHeight = 58;
     private const double TrackInfoReservedHeight = 52;
@@ -77,11 +87,13 @@ public partial class MainWindow : Window
     private static readonly TimeSpan CloudMusicLaunchRetryInterval = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan CloudMusicLaunchFallbackCommandDelay = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan CloudMusicLaunchTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan CrystalDecorationSelectionInterval = TimeSpan.FromMinutes(5);
     private const int CloudMusicLaunchMaximumAttempts = 3;
     private readonly ISettingsStore _settingsStore;
     private readonly IAppLogger _logger;
     private readonly AnimationCatalog? _animationCatalog;
     private readonly AnimationFramePlayer? _animationPlayer;
+    private readonly AnimationFramePlayer? _crystalLongIdleDecorationPlayer;
     private readonly VisualSwapTransition _visualSwapTransition;
     private readonly BodyReactionMotion _bodyReactionMotion;
     private readonly MediaControlsVisibilityMotion _mediaControlsMotion;
@@ -125,6 +137,7 @@ public partial class MainWindow : Window
     private readonly IWindowWorkAreaProvider _windowWorkAreaProvider;
     private readonly BirthdayEasterEggScheduler _birthdayEasterEggScheduler = new();
     private readonly CrystalYawnScheduler _crystalYawnScheduler = new();
+    private readonly CrystalLongIdleSelector _crystalLongIdleSelector = new();
     private readonly SystemResumeEventGate _systemResumeEventGate = new();
     private readonly TimeSceneTransitionTracker _timeSceneTransitionTracker = new();
     private readonly GenshinBackgroundCameoScheduler _genshinCameoScheduler = new();
@@ -246,6 +259,12 @@ public partial class MainWindow : Window
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
     private readonly ShellAttentionSessionTracker _shellAttentionSessions =
         new(TimeSpan.FromSeconds(8));
+    private CrystalLongIdleVariant? _crystalLongIdleVariant;
+    private CrystalSleepDecoration? _crystalSleepDecoration;
+    private DateTimeOffset? _nextCrystalDecorationSelectionAt;
+    private bool _crystalLongIdleHolding;
+    private bool _crystalLongIdleWaking;
+    private bool _crystalLongIdleWakeRequested;
 
     public MainWindow(
         AppSettings settings,
@@ -467,6 +486,9 @@ public partial class MainWindow : Window
         _animationPlayer = animationCatalog is null
             ? null
             : new AnimationFramePlayer(PetImage, animationCatalog);
+        _crystalLongIdleDecorationPlayer = animationCatalog is null
+            ? null
+            : new AnimationFramePlayer(CrystalLongIdleDecorationImage, animationCatalog);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -922,10 +944,17 @@ public partial class MainWindow : Window
         }
 
         ApplyIdleScene(IdleSceneResolver.SleepThreshold);
-        await Task.Delay(2400);
+        await Task.Delay(20000);
         if (!_isClosing)
         {
-            ApplyIdleScene(TimeSpan.Zero);
+            if (IsCrystalLongIdleActive)
+            {
+                WakeCrystalLongIdle();
+            }
+            else
+            {
+                ApplyIdleScene(TimeSpan.Zero);
+            }
         }
     }
 
@@ -1591,7 +1620,14 @@ public partial class MainWindow : Window
                 break;
             case PointerGestureActionType.ToggleDisplayMode:
                 _singleClickTimer.Stop();
-                CycleFullBodyStyle();
+                if (IsCrystalLongIdleActive)
+                {
+                    WakeCrystalLongIdle();
+                }
+                else
+                {
+                    CycleFullBodyStyle();
+                }
                 break;
             case PointerGestureActionType.BeginDrag:
                 BeginWindowDrag();
@@ -1827,6 +1863,12 @@ public partial class MainWindow : Window
     {
         if (_edgeDockSide != EdgeDockSide.None)
         {
+            return;
+        }
+
+        if (IsCrystalLongIdleActive)
+        {
+            WakeCrystalLongIdle();
             return;
         }
 
@@ -2085,8 +2127,11 @@ public partial class MainWindow : Window
         return pixel[3] >= 24;
     }
 
-    private void OnPetImageSizeChanged(object sender, SizeChangedEventArgs e) =>
+    private void OnPetImageSizeChanged(object sender, SizeChangedEventArgs e)
+    {
         UpdateBodyHitDebugOverlay();
+        UpdateCrystalLongIdleDecorationLayout();
+    }
 
     private void UpdateBodyHitDebugOverlay()
     {
@@ -2178,6 +2223,7 @@ public partial class MainWindow : Window
 
     private void StartMusicPlayback(string source, string? artistOverride = null)
     {
+        CancelCrystalLongIdle();
         _userPauseFastConfirmationUntil = null;
         if (_timeGreetingPresentationInFlight)
         {
@@ -2460,6 +2506,7 @@ public partial class MainWindow : Window
         }
 
         ApplyIdleScene(idleDuration.Value);
+        UpdateCrystalLongIdleDecoration(now: DateTimeOffset.Now);
 
         DateTimeOffset now = DateTimeOffset.Now;
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
@@ -2494,6 +2541,12 @@ public partial class MainWindow : Window
     private void ApplyIdleScene(TimeSpan idleDuration)
     {
         PetContinuousState previousState = _stateMachine.VisualState.ContinuousState;
+        if (IsCrystalLongIdleActive && previousState == PetContinuousState.Sleeping)
+        {
+            // A crystal long-idle scene remains posed until the user clicks the
+            // character. Unrelated desktop input must not wake it implicitly.
+            return;
+        }
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             idleDuration,
             previousState,
@@ -2504,6 +2557,12 @@ public partial class MainWindow : Window
         }
 
         _stateMachine.SetContinuousState(decision.TargetState);
+        if (decision.TargetState == PetContinuousState.Sleeping &&
+            IsCrystalDressFullBodyMode())
+        {
+            BeginCrystalLongIdle();
+            return;
+        }
         if (decision.RestoredFromSleep)
         {
             _logger.Info("animation.long_idle_wake", $"Restored={decision.TargetState}.");
@@ -2528,6 +2587,219 @@ public partial class MainWindow : Window
         {
             _ = TransitionToResolvedContinuousAnimationAsync(eventName + ".transition_completed");
         }
+    }
+
+    private bool IsCrystalLongIdleActive => _crystalLongIdleVariant is not null;
+
+    private void BeginCrystalLongIdle()
+    {
+        if (_isClosing || _animationPlayer is null || _animationCatalog is null ||
+            IsCrystalLongIdleActive)
+        {
+            return;
+        }
+
+        ResetBodyReactionMirror();
+        _crystalLongIdleVariant = _crystalLongIdleSelector.ChooseVariant();
+        _crystalLongIdleHolding = false;
+        _crystalLongIdleWaking = false;
+        _crystalLongIdleWakeRequested = false;
+        _crystalSleepDecoration = null;
+        _nextCrystalDecorationSelectionAt = null;
+        HideCrystalLongIdleDecoration();
+
+        string animationId = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? CrystalLongIdleSleepAnimation
+            : CrystalLongIdleDuckSitAnimation;
+        int holdFrame = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? CrystalSleepHoldFrame
+            : CrystalDuckSitHoldFrame;
+        CrystalLongIdleVariant expectedVariant = _crystalLongIdleVariant.Value;
+        PlayAnimationRange(
+            animationId,
+            0,
+            holdFrame,
+            () => HoldCrystalLongIdle(expectedVariant));
+        _logger.Info(
+            "animation.crystal_long_idle_started",
+            $"Variant={expectedVariant}; HoldFrame={holdFrame}.");
+    }
+
+    private void HoldCrystalLongIdle(CrystalLongIdleVariant expectedVariant)
+    {
+        if (_isClosing || _crystalLongIdleVariant != expectedVariant ||
+            _stateMachine.VisualState.ContinuousState != PetContinuousState.Sleeping)
+        {
+            return;
+        }
+
+        string animationId = expectedVariant == CrystalLongIdleVariant.Sleep
+            ? CrystalLongIdleSleepAnimation
+            : CrystalLongIdleDuckSitAnimation;
+        int holdFrame = expectedVariant == CrystalLongIdleVariant.Sleep
+            ? CrystalSleepHoldFrame
+            : CrystalDuckSitHoldFrame;
+        ShowAnimationFrame(animationId, holdFrame);
+        _crystalLongIdleHolding = true;
+        _nextCrystalDecorationSelectionAt = DateTimeOffset.Now;
+        UpdateCrystalLongIdleDecoration(DateTimeOffset.Now);
+        _logger.Info(
+            "animation.crystal_long_idle_holding",
+            $"Variant={expectedVariant}; Frame={holdFrame}.");
+        if (_crystalLongIdleWakeRequested)
+        {
+            WakeCrystalLongIdle();
+        }
+    }
+
+    private void UpdateCrystalLongIdleDecoration(DateTimeOffset now)
+    {
+        if (!_crystalLongIdleHolding || _crystalLongIdleWaking ||
+            _nextCrystalDecorationSelectionAt is not DateTimeOffset next || now < next)
+        {
+            return;
+        }
+
+        _crystalSleepDecoration = _crystalLongIdleSelector.ChooseDecoration();
+        _nextCrystalDecorationSelectionAt = now + CrystalDecorationSelectionInterval;
+        string animationId = _crystalSleepDecoration switch
+        {
+            CrystalSleepDecoration.Zzz => CrystalSleepZzzDecoration,
+            CrystalSleepDecoration.DreamBun => CrystalSleepBunDecoration,
+            CrystalSleepDecoration.DreamYuezhengLing => CrystalSleepYuezhengLingDecoration,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
+        PlayCrystalLongIdleDecoration(animationId);
+        _logger.Info(
+            "animation.crystal_long_idle_decoration_selected",
+            $"Decoration={_crystalSleepDecoration}; NextMinutes=5.");
+    }
+
+    private void PlayCrystalLongIdleDecoration(string animationId, Action? completed = null)
+    {
+        if (_crystalLongIdleDecorationPlayer is null || _animationCatalog is null)
+        {
+            return;
+        }
+
+        try
+        {
+            AnimationAssetManifest manifest = _crystalLongIdleDecorationPlayer.Play(
+                animationId,
+                completed);
+            double scale = _settings.Appearance.DisplayScalePercent / 100.0;
+            CrystalLongIdleDecorationImage.Width = manifest.DisplayWidth * scale;
+            CrystalLongIdleDecorationImage.Height = manifest.DisplayHeight * scale;
+            CrystalLongIdleDecorationLayer.Visibility = Visibility.Visible;
+            UpdateCrystalLongIdleDecorationLayout();
+        }
+        catch (Exception exception) when (
+            exception is IOException or InvalidDataException or ArgumentException or
+            KeyNotFoundException or NotSupportedException)
+        {
+            _logger.Error("animation.crystal_long_idle_decoration_failed", exception);
+            HideCrystalLongIdleDecoration();
+        }
+    }
+
+    private void UpdateCrystalLongIdleDecorationLayout()
+    {
+        if (CrystalLongIdleDecorationLayer.Visibility != Visibility.Visible ||
+            _crystalLongIdleVariant is null)
+        {
+            return;
+        }
+
+        double petWidth = PetImage.ActualWidth > 0 ? PetImage.ActualWidth : PetImage.Width;
+        double petHeight = PetImage.ActualHeight > 0 ? PetImage.ActualHeight : PetImage.Height;
+        double decorationWidth = CrystalLongIdleDecorationImage.Width;
+        double left = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? petWidth * 0.30
+            : Math.Max(0, petWidth - decorationWidth - petWidth * 0.02);
+        double top = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? petHeight * 0.29
+            : petHeight * 0.015;
+        Canvas.SetLeft(CrystalLongIdleDecorationImage, left);
+        Canvas.SetTop(CrystalLongIdleDecorationImage, top);
+    }
+
+    private void WakeCrystalLongIdle()
+    {
+        if (_crystalLongIdleVariant is not CrystalLongIdleVariant variant ||
+            _crystalLongIdleWaking)
+        {
+            return;
+        }
+
+        if (!_crystalLongIdleHolding)
+        {
+            _crystalLongIdleWakeRequested = true;
+            _logger.Info(
+                "animation.crystal_long_idle_wake_queued",
+                "Click occurred during the enter segment; wake will start from the hold frame.");
+            return;
+        }
+
+        _crystalLongIdleWaking = true;
+        _crystalLongIdleHolding = false;
+        _nextCrystalDecorationSelectionAt = null;
+        if (_crystalSleepDecoration is
+            CrystalSleepDecoration.DreamBun or CrystalSleepDecoration.DreamYuezhengLing)
+        {
+            PlayCrystalLongIdleDecoration(
+                CrystalSleepCloudDissolveDecoration,
+                HideCrystalLongIdleDecoration);
+        }
+        else
+        {
+            HideCrystalLongIdleDecoration();
+        }
+
+        string animationId = variant == CrystalLongIdleVariant.Sleep
+            ? CrystalLongIdleSleepAnimation
+            : CrystalLongIdleDuckSitAnimation;
+        int wakeStartFrame = variant == CrystalLongIdleVariant.Sleep
+            ? CrystalSleepHoldFrame + 1
+            : CrystalDuckSitHoldFrame + 1;
+        int wakeEndFrame = variant == CrystalLongIdleVariant.Sleep
+            ? CrystalSleepLastFrame
+            : CrystalDuckSitLastFrame;
+        PlayAnimationRange(
+            animationId,
+            wakeStartFrame,
+            wakeEndFrame,
+            CompleteCrystalLongIdleWake);
+        _logger.Info(
+            "animation.crystal_long_idle_wake_started",
+            $"Variant={variant}; Frames={wakeStartFrame}-{wakeEndFrame}.");
+    }
+
+    private void CompleteCrystalLongIdleWake()
+    {
+        CancelCrystalLongIdle();
+        _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        PlayResolvedContinuousAnimation();
+        _logger.Info(
+            "animation.crystal_long_idle_wake_completed",
+            "Clicked wake sequence completed and the idle clock was reset by user input.");
+    }
+
+    private void HideCrystalLongIdleDecoration()
+    {
+        _crystalLongIdleDecorationPlayer?.Stop();
+        CrystalLongIdleDecorationLayer.Visibility = Visibility.Collapsed;
+        CrystalLongIdleDecorationImage.Source = null;
+    }
+
+    private void CancelCrystalLongIdle()
+    {
+        _crystalLongIdleVariant = null;
+        _crystalSleepDecoration = null;
+        _nextCrystalDecorationSelectionAt = null;
+        _crystalLongIdleHolding = false;
+        _crystalLongIdleWaking = false;
+        _crystalLongIdleWakeRequested = false;
+        HideCrystalLongIdleDecoration();
     }
 
     private bool IsClassicCatEarsFullBodyMode() =>
@@ -2572,6 +2844,11 @@ public partial class MainWindow : Window
 
     private void PlayResolvedContinuousAnimation(bool preserveVisualTransition = false)
     {
+        if (_stateMachine.VisualState.ContinuousState != PetContinuousState.Sleeping &&
+            IsCrystalLongIdleActive)
+        {
+            CancelCrystalLongIdle();
+        }
         ResetBodyReactionMirror();
         PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (!plan.IsVisible || plan.AnimationId is null)
@@ -3778,6 +4055,11 @@ public partial class MainWindow : Window
             StringComparison.Ordinal);
         if (appearanceChanged)
         {
+            if (IsCrystalLongIdleActive)
+            {
+                CancelCrystalLongIdle();
+                _stateMachine.SetContinuousState(PetContinuousState.Idle);
+            }
             _bodyInteractionResolver.ResetConsecutivePairs();
         }
         bool scaleChanged = previousScale != normalized.DisplayScalePercent;
@@ -6037,8 +6319,10 @@ public partial class MainWindow : Window
         CancelGenshinPresentations(restoreContinuousAnimation: false);
         CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
         CancelBunChase(restorePosition: false, restoreContinuousAnimation: false);
+        CancelCrystalLongIdle();
         CancelVisualTransition();
         _animationPlayer?.Dispose();
+        _crystalLongIdleDecorationPlayer?.Dispose();
         _petPointerCursor?.Dispose();
         _headPatCursor?.Dispose();
         if (_systemResumeSource is not null)

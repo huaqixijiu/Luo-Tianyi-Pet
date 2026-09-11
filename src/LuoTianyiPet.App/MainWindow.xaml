@@ -188,6 +188,20 @@
                    SnapsToDevicePixels="True"
                    Stretch="Fill" />
 
+            <Canvas x:Name="CrystalLongIdleDecorationLayer"
+                    Panel.ZIndex="2"
+                    Width="{Binding ActualWidth, ElementName=PetImage}"
+                    Height="{Binding ActualHeight, ElementName=PetImage}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                <Image x:Name="CrystalLongIdleDecorationImage"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       SnapsToDevicePixels="True"
+                       Stretch="Fill" />
+            </Canvas>
+
             <Border x:Name="FallbackSurface"
                     Width="180"
                     Height="180"

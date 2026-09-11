@@ -23,7 +23,6 @@ public static class IdleSceneResolver
 {
     public static readonly TimeSpan MediumIdleCountdownThreshold = TimeSpan.FromMinutes(2);
     public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(3);
-    public static readonly TimeSpan CrystalDressMediumIdleThreshold = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(30);
 
     public static IdleSceneDecision Resolve(
@@ -48,8 +47,7 @@ public static class IdleSceneResolver
             _ when profile == IdleSceneProfile.ClassicCatEars &&
                 idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
             _ when profile == IdleSceneProfile.CrystalDress &&
-                idleDuration >= CrystalDressMediumIdleThreshold =>
-                PetContinuousState.MediumIdle,
+                idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
             _ when profile == IdleSceneProfile.ClassicCatEars &&
                 idleDuration >= MediumIdleThreshold =>
                 PetContinuousState.MediumIdle,
@@ -63,6 +61,43 @@ public static class IdleSceneResolver
             targetState,
             RestoredFromSleep: currentState == PetContinuousState.Sleeping &&
                 targetState != PetContinuousState.Sleeping);
+    }
+}
+
+public enum CrystalLongIdleVariant
+{
+    Sleep,
+    DuckSit,
+}
+
+public enum CrystalSleepDecoration
+{
+    Zzz,
+    DreamBun,
+    DreamYuezhengLing,
+}
+
+public sealed class CrystalLongIdleSelector
+{
+    private readonly Func<int, int, int> _next;
+
+    public CrystalLongIdleSelector(Func<int, int, int>? next = null)
+    {
+        _next = next ?? SharedRandom.Next;
+    }
+
+    public CrystalLongIdleVariant ChooseVariant() =>
+        _next(0, 2) == 0 ? CrystalLongIdleVariant.Sleep : CrystalLongIdleVariant.DuckSit;
+
+    public CrystalSleepDecoration ChooseDecoration()
+    {
+        int value = _next(0, 100);
+        return value switch
+        {
+            < 60 => CrystalSleepDecoration.Zzz,
+            < 95 => CrystalSleepDecoration.DreamBun,
+            _ => CrystalSleepDecoration.DreamYuezhengLing,
+        };
     }
 }
 

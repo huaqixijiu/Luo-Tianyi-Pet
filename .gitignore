@@ -35,6 +35,10 @@ __pycache__/
 # original authoring frames in place; commit only previews, atlases and hashes.
 /候选素材_官方/模式二新添加动作/**/*.png
 
+# Local long-idle decoration frame exports. Deterministic cleaned animated
+# WebP overlays and hashes are committed by prepare_crystal_interactions.py.
+/候选素材_官方/睡觉小装饰/**/*.png
+
 # Windows metadata
 Thumbs.db
 Desktop.ini

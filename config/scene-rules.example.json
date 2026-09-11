@@ -129,7 +129,21 @@
         "randomYawnMaximumPerIdleSession": 1,
         "randomYawnAnimation": "crystal-yawn",
         "countdownAnimation": null,
-        "mediumIdleAfterMinutes": 5
+        "mediumIdleAfterMinutes": null,
+        "longIdleAfterMinutes": 30,
+        "longIdleAnimations": [
+          "crystal-long-idle-sleep",
+          "crystal-long-idle-duck-sit"
+        ],
+        "longIdleAnimationWeights": [50, 50],
+        "wakeOnPetClickOnly": true,
+        "decorationReselectMinutes": 5,
+        "decorationAnimations": {
+          "zzz": { "animation": "crystal-sleep-decoration-zzz", "weight": 60 },
+          "dreamBun": { "animation": "crystal-sleep-decoration-bun", "weight": 35 },
+          "dreamYuezhengLing": { "animation": "crystal-sleep-decoration-yuezhengling", "weight": 5 }
+        },
+        "cloudDissolveAnimation": "crystal-sleep-decoration-cloud-dissolve"
       },
       "full-body-classic-cat-ears": {
         "countdownAfterMinutes": 2,
@@ -146,7 +160,10 @@
       "onlyWhileIdle": true
     },
     "sleepAfterMinutes": 30,
-    "sleepOnlyForAppearance": "full-body-classic-cat-ears",
+    "sleepOnlyForAppearances": [
+      "full-body-classic-cat-ears",
+      "full-body-crystal-dress"
+    ],
     "sleepRequiresMusicStopped": true,
     "sleepAnimation": "tenth-anniversary-goodnight-float",
     "wakeAnimation": null,
