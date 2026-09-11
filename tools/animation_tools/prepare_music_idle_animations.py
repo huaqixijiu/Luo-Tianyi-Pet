@@ -13,6 +13,8 @@ from PIL import Image, ImageSequence
 
 EXTERIOR_SEARCH_DISTANCE = 96
 TRANSPARENT_DISTANCE = 32
+SINGING_TEXT_BOUNDS = (0, 15, 33, 126)
+SINGING_FRAME_DURATION_MILLISECONDS = 160
 
 
 def sha256(path: Path) -> str:
@@ -124,6 +126,53 @@ def remove_exterior_white_background(frame: Image.Image) -> tuple[Image.Image, l
     return rgba, exterior
 
 
+def remove_singing_text(frame: Image.Image) -> Image.Image:
+    """Remove only the fixed vertical `一键唱歌` label from a singing frame.
+
+    The official character and the animated music notes begin to the right of
+    this narrow strip.  Keeping the operation spatial and deterministic avoids
+    recolouring or regenerating any part of the character.
+    """
+
+    rgba = frame.convert("RGBA")
+    pixels = rgba.load()
+    left, top, right, bottom = SINGING_TEXT_BOUNDS
+    for y in range(top, bottom):
+        for x in range(left, right):
+            red, green, blue, _ = pixels[x, y]
+            pixels[x, y] = (red, green, blue, 0)
+    return rgba
+
+
+def validate_singing_text_removal(
+    source_frames: list[Image.Image],
+    output_frames: list[Image.Image],
+) -> None:
+    if len(source_frames) != len(output_frames):
+        raise ValueError("Singing output frame count changed during preparation.")
+
+    left, top, right, bottom = SINGING_TEXT_BOUNDS
+    for index, (source, output) in enumerate(
+        zip(source_frames, output_frames, strict=True)
+    ):
+        source_bytes = source.convert("RGBA").tobytes()
+        output_rgba = output.convert("RGBA")
+        output_bytes = output_rgba.tobytes()
+        width, height = output_rgba.size
+        for y in range(height):
+            for x in range(width):
+                offset = (y * width + x) * 4
+                if left <= x < right and top <= y < bottom:
+                    if output_bytes[offset + 3] != 0:
+                        raise ValueError(
+                            f"Singing frame {index} still contains the text label."
+                        )
+                elif output_bytes[offset:offset + 4] != source_bytes[offset:offset + 4]:
+                    raise ValueError(
+                        f"Singing frame {index} changed outside the text label."
+                    )
+
+
 def validate_fishing_transparency(
     source_frames: list[Image.Image],
     output_path: Path,
@@ -192,11 +241,21 @@ def prepare(
         )
     ):
         raise ValueError("Singing loop must only cross adjacent source frames.")
-    singing_output_durations = [100] * len(singing_indices)
+    singing_output_durations = [
+        SINGING_FRAME_DURATION_MILLISECONDS
+    ] * len(singing_indices)
     singing_output = output_directory / "元旦祝福_一键唱歌_无缝循环.gif"
+    singing_output_frames = [
+        remove_singing_text(singing_frames[index])
+        for index in singing_indices
+    ]
+    validate_singing_text_removal(
+        [singing_frames[index] for index in singing_indices],
+        singing_output_frames,
+    )
     save_gif(
         singing_output,
-        [singing_frames[index] for index in singing_indices],
+        singing_output_frames,
         singing_output_durations,
         transparency_index=0,
     )
@@ -231,9 +290,11 @@ def prepare(
             "frameDurationsMilliseconds": singing_output_durations,
             "totalDurationMilliseconds": sum(singing_output_durations),
             "loopBoundarySourceFrameIndices": [singing_indices[-1], singing_indices[0]],
+            "removedTextBounds": list(SINGING_TEXT_BOUNDS),
             "transformation": (
-                "remove-one-click-entrance-and-ping-pong-stable-singing-frames-"
-                "using-only-adjacent-source-transitions"
+                "remove-one-click-entrance-and-vertical-text-label, then ping-pong-"
+                "stable-singing-frames-using-only-adjacent-source-transitions-at-"
+                "a-slower-mouth-motion-rate"
             ),
         },
     }

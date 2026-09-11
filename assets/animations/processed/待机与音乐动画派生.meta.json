@@ -160,7 +160,7 @@
     "source": "候选素材_官方/12_新添加_用户指定官方表情候选/洛天依元旦祝福_一键唱歌.gif",
     "sourceSha256": "fd46cbe473882b36a2da1dbc02fadeca64758f1704c26034e4a29ef4c98cf27a",
     "output": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif",
-    "outputSha256": "c7c514d3f80c7daec1e0dfc6c5519a215d62fcdbe56fd070f19be570968a5ee8",
+    "outputSha256": "4906f1da28a9c118a6cd3ae71727ed7b1157b2e05a792c19e4271b6d4c02f6d4",
     "sourceFrameIndices": [
       7,
       8,
@@ -180,28 +180,34 @@
       8
     ],
     "frameDurationsMilliseconds": [
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100,
-      100
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160
     ],
-    "totalDurationMilliseconds": 1600,
+    "totalDurationMilliseconds": 2560,
     "loopBoundarySourceFrameIndices": [
       8,
       7
     ],
-    "transformation": "remove-one-click-entrance-and-ping-pong-stable-singing-frames-using-only-adjacent-source-transitions"
+    "removedTextBounds": [
+      0,
+      15,
+      33,
+      126
+    ],
+    "transformation": "remove-one-click-entrance-and-vertical-text-label, then ping-pong-stable-singing-frames-using-only-adjacent-source-transitions-at-a-slower-mouth-motion-rate"
   }
 }

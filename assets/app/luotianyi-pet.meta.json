@@ -102,7 +102,7 @@
         "assets/ui/music-preview-sing.png"
       ],
       "output": "assets/ui/music-preview-auto.png",
-      "outputSha256": "c8970a0251d6fffc97a888f6a61efb3d6619deb31cbe7ad7648988c5a5c0f5ec",
+      "outputSha256": "cdd37f062be9188867a1bb0c8ab5720a6121c34e3685dd670b6670216e09ab46",
       "transformation": "three-preview-overlap-collage"
     },
     {
@@ -126,10 +126,10 @@
     {
       "id": "newyear-one-click-singing",
       "source": "assets/animations/runtime/newyear-one-click-singing.atlas.png",
-      "sourceSha256": "0c95ca94f07eb1a956139287747f291f727bde8b55a9c00d83fb012581694d64",
+      "sourceSha256": "8185c0beec61a35a1fa79d215b5b0b371ae75c948e25c1b83d5fa4e42c09274a",
       "frameIndex": 4,
       "output": "assets/ui/music-preview-sing.png",
-      "outputSha256": "0664be20bc1cbe6e6cb5845eb4e901271700b5b79a6e2196007e306db0ca3a53",
+      "outputSha256": "9b05964c2e7866eb7a837cbc4456e9c14fba889955e56f6dac061aeca940efec",
       "transformation": "extract-frame-and-fit-visible-alpha-bounds"
     }
   ]
