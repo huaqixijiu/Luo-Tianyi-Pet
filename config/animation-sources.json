@@ -473,6 +473,21 @@
       "anchorY": 1.0
     },
     {
+      "id": "twelfth-anniversary-call",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/02_打call.gif",
+      "atlas": "assets/animations/runtime/twelfth-anniversary-call.frames.webp",
+      "runtimeFormat": "animatedWebp",
+      "runtimeWebpQuality": 95,
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "loopCount": 0,
+      "maximumFrames": 14,
+      "minimumPixelsPerDisplayDip": 2,
+      "upscaleSharpenPercent": 30,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
       "id": "twelfth-anniversary-peek",
       "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/04_偷看.gif",
       "atlas": "assets/animations/runtime/twelfth-anniversary-peek.atlas.png",

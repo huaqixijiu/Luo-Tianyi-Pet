@@ -378,23 +378,45 @@
         </Border>
 
         <Border x:Name="FeedbackBubble"
-                Panel.ZIndex="4"
-                MaxWidth="240"
-                Margin="6,56,6,6"
-                Padding="9,6"
+                Panel.ZIndex="6"
+                MaxWidth="250"
+                Margin="5,6,5,0"
+                Padding="7,5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                Background="#EC07363B"
-                BorderBrush="#E86BE7E9"
+                Background="#FFF7FCFF"
+                BorderBrush="#B866CCFF"
                 BorderThickness="1"
-                CornerRadius="10"
+                CornerRadius="14"
                 IsHitTestVisible="False"
                 Visibility="Collapsed">
-            <TextBlock x:Name="FeedbackBubbleText"
-                       Foreground="White"
-                       FontSize="12"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="22"
+                        Height="22"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#2432B9F2"
+                        CornerRadius="11">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="#0878A9"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Text="依" />
+                </Border>
+                <TextBlock x:Name="FeedbackBubbleText"
+                           Grid.Column="1"
+                           Margin="3,0,2,0"
+                           VerticalAlignment="Center"
+                           Foreground="#173F54"
+                           FontSize="11.5"
+                           TextAlignment="Left"
+                           TextWrapping="Wrap" />
+            </Grid>
         </Border>
 
         <Border x:Name="MediaControls"

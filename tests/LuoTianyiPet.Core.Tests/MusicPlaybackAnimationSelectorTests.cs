@@ -24,10 +24,25 @@ public sealed class MusicPlaybackAnimationSelectorTests
 
         Assert.Equal(
             PetVisualState.EnjoyMusicAnimation,
-            selector.Select(MusicAnimationOptions.AutomaticSelection, "乐正绫"));
+            selector.Select(MusicAnimationOptions.AutomaticSelection, "言和"));
         Assert.Equal(
             PetVisualState.EnjoyMusicAnimation,
             selector.Select(MusicAnimationOptions.AutomaticSelection, null));
+    }
+
+    [Theory]
+    [InlineData("乐正绫")]
+    [InlineData("乐正绫 / 言和")]
+    [InlineData("Yuezheng Ling")]
+    [InlineData("Yuezheng Ling Official feat. Yan He")]
+    public void YuezhengLingSongsUseContinuousCallAnimation(string artist)
+    {
+        MusicPlaybackAnimationSelector selector = new(_ =>
+            throw new InvalidOperationException("Yuezheng Ling songs must not use the Luo Tianyi pool."));
+
+        Assert.Equal(
+            PetVisualState.YuezhengLingCallAnimation,
+            selector.Select(MusicAnimationOptions.AutomaticSelection, artist));
     }
 
     [Theory]
@@ -40,6 +55,9 @@ public sealed class MusicPlaybackAnimationSelectorTests
         Assert.Equal(
             expected,
             selector.Select(MusicAnimationOptions.AutomaticSelection, "洛天依/乐正绫"));
+        Assert.Equal(
+            expected,
+            selector.Select(MusicAnimationOptions.AutomaticSelection, "乐正绫 feat. 洛天依"));
     }
 
     [Fact]
@@ -135,6 +153,28 @@ public sealed class MusicPlaybackAnimationSelectorTests
     public void ArtistMatcherRecognizesLuoTianyiAndCollaborations(string artist)
     {
         Assert.True(MusicArtistMatcher.IsLuoTianyi(artist));
+    }
+
+    [Theory]
+    [InlineData("乐正绫")]
+    [InlineData("洛天依 / 乐正绫")]
+    [InlineData("言和 feat. 乐正绫")]
+    [InlineData("乐正绫Official")]
+    [InlineData("Yuezheng Ling")]
+    [InlineData("YUEZHENG-LING Official")]
+    public void ArtistMatcherRecognizesYuezhengLingAndCollaborations(string artist)
+    {
+        Assert.True(MusicArtistMatcher.IsYuezhengLing(artist));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("乐正绫音")]
+    [InlineData("洛天依")]
+    public void YuezhengLingMatcherRejectsOtherOrMissingArtists(string? artist)
+    {
+        Assert.False(MusicArtistMatcher.IsYuezhengLing(artist));
     }
 
     [Theory]

@@ -137,6 +137,20 @@ public sealed class PetStateMachineTests
         Assert.False(plan.BodyRegionInteractionsEnabled);
     }
 
+    [Fact]
+    public void DragFromHeheRestoresHeheAfterDrop()
+    {
+        PetStateMachine machine = new(new PetVisualState(
+            PetDisplayMode.FullBodyInteractive,
+            PetContinuousState.MediumIdle));
+
+        Assert.True(machine.BeginDrag());
+        Assert.True(machine.EndDrag());
+
+        Assert.Equal(PetContinuousState.MediumIdle, machine.VisualState.ContinuousState);
+        Assert.Equal(PetVisualState.MediumIdleAnimation, machine.Resolve(Now).AnimationId);
+    }
+
     [Theory]
     [InlineData(PetDisplayMode.Compact, PetVisualState.CompactIdleAnimation)]
     [InlineData(PetDisplayMode.FullBodyInteractive, PetVisualState.FullBodyIdleAnimation)]

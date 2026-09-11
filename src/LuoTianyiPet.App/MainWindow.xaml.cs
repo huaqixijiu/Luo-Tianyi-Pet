@@ -158,6 +158,7 @@ public partial class MainWindow : Window
     private readonly bool _previewBottomControlsLayout;
     private readonly bool _previewTopControlsLayout;
     private readonly string? _previewBodyReaction;
+    private readonly string? _previewFeedback;
     private readonly bool _persistSettings;
     private AppSettings _settings;
     private readonly PetStateMachine _stateMachine;
@@ -239,6 +240,7 @@ public partial class MainWindow : Window
     private bool _bunMotionRenderingSubscribed;
     private int _bunRequestPresentationGeneration;
     private bool _bodyReactionMirrorActive;
+    private bool _restoreTrackInfoAfterFeedback;
     private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
@@ -283,6 +285,7 @@ public partial class MainWindow : Window
         bool previewBottomControlsLayout,
         bool previewTopControlsLayout,
         string? previewBodyReaction,
+        string? previewFeedback,
         bool showQaTaskbar,
         bool persistSettings)
     {
@@ -375,6 +378,7 @@ public partial class MainWindow : Window
         _previewBottomControlsLayout = previewBottomControlsLayout;
         _previewTopControlsLayout = previewTopControlsLayout;
         _previewBodyReaction = previewBodyReaction;
+        _previewFeedback = previewFeedback;
         _persistSettings = persistSettings;
         InitializeComponent();
         if (!_showQaTaskbar)
@@ -575,6 +579,10 @@ public partial class MainWindow : Window
         if (_previewBodyReaction is not null)
         {
             _ = BeginPreviewBodyReactionAsync(_previewBodyReaction);
+        }
+        if (_previewFeedback is not null)
+        {
+            ShowPersistentFeedbackBubble(_previewFeedback);
         }
 
         if (_previewMediaControls)
@@ -1324,7 +1332,6 @@ public partial class MainWindow : Window
 
         PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
         if (continuousState is PetContinuousState.MediumIdleCountdown or
-            PetContinuousState.MediumIdle or
             PetContinuousState.Sleeping)
         {
             _stateMachine.SetContinuousState(PetContinuousState.Idle);
@@ -1779,6 +1786,13 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdle)
+        {
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+            PlayResolvedContinuousAnimation();
+            _logger.Info("idle.user_click_restored", PetContinuousState.MediumIdle.ToString());
+        }
+
         PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
         if (!plan.BodyRegionInteractionsEnabled)
         {
@@ -2152,7 +2166,6 @@ public partial class MainWindow : Window
         if (completedApplicationLaunchWait)
         {
             FinishCloudMusicLaunchWait(restoreContinuousAnimation: false);
-            ShowFeedbackBubble("网易云已开始播放");
         }
 
         UpdatePlayPauseGlyph();
@@ -3060,7 +3073,6 @@ public partial class MainWindow : Window
         _trayIcon?.RefreshChecks();
         if (result.Status is StartupRegistrationStatus.Succeeded or StartupRegistrationStatus.Unchanged)
         {
-            ShowFeedbackBubble(actual ? "已开启开机自启动" : "已关闭开机自启动");
             _logger.Info("startup.registration_changed", actual ? "Enabled." : "Disabled.");
             if (save && _persistSettings)
             {
@@ -3294,7 +3306,7 @@ public partial class MainWindow : Window
                 MediaControls.VerticalAlignment = VerticalAlignment.Top;
                 MediaControls.Margin = new Thickness(0, 60, 0, 0);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
-                FeedbackBubble.Margin = new Thickness(6, 110, 6, 6);
+                FeedbackBubble.Margin = new Thickness(5, 7, 5, 0);
                 break;
             case AccessoryLayout.BelowPet:
                 PetVisual.Margin = new Thickness(8, 8, 8, 118);
@@ -3304,7 +3316,7 @@ public partial class MainWindow : Window
                 MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
                 MediaControls.Margin = new Thickness(0, 0, 0, 7);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Bottom;
-                FeedbackBubble.Margin = new Thickness(6, 0, 6, 82);
+                FeedbackBubble.Margin = new Thickness(5, 0, 5, 60);
                 break;
             case AccessoryLayout.Split:
                 PetVisual.Margin = new Thickness(8, 60, 8, 66);
@@ -3314,7 +3326,7 @@ public partial class MainWindow : Window
                 MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
                 MediaControls.Margin = new Thickness(0, 0, 0, 7);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
-                FeedbackBubble.Margin = new Thickness(6, 56, 6, 6);
+                FeedbackBubble.Margin = new Thickness(5, 6, 5, 0);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(layout));
@@ -4241,19 +4253,21 @@ public partial class MainWindow : Window
             "media.command_result",
             $"Command={command}; Status={result.Status}; Delivery={result.DeliveryMethod}.");
 
-        string message = result.Status switch
+        if (!result.WasSent)
         {
-            MediaCommandSendStatus.Sent => "已发送网易云控制命令，等待播放器响应",
-            MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
-            MediaCommandSendStatus.InvalidShortcut => "快捷键设置无效，请检查配置",
-            MediaCommandSendStatus.ProtectedApplicationForeground => "游戏安全模式：这次没有发送快捷键",
-            MediaCommandSendStatus.ForegroundCheckUnavailable => "暂时无法确认前台程序，请稍后再试",
-            MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
-            MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
-            MediaCommandSendStatus.SystemRejected => "系统没有接受快捷键，请再试一次",
-            _ => "没有发送快捷键",
-        };
-        ShowFeedbackBubble(message);
+            string message = result.Status switch
+            {
+                MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
+                MediaCommandSendStatus.InvalidShortcut => "快捷键设置无效，请检查配置",
+                MediaCommandSendStatus.ProtectedApplicationForeground => "游戏安全模式：这次没有发送快捷键",
+                MediaCommandSendStatus.ForegroundCheckUnavailable => "暂时无法确认前台程序，请稍后再试",
+                MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
+                MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
+                MediaCommandSendStatus.SystemRejected => "系统没有接受快捷键，请再试一次",
+                _ => "没有发送快捷键",
+            };
+            ShowFeedbackBubble(message);
+        }
 
         if (result.WasSent && command == MediaCommand.TogglePlayPause)
         {
@@ -4524,6 +4538,7 @@ public partial class MainWindow : Window
         _cloudMusicLaunchCancellation?.Cancel();
         _cloudMusicLaunchCancellation?.Dispose();
         _cloudMusicLaunchCancellation = null;
+        HideFeedbackBubble(restoreTrackInfo: true);
         Guid? token = _cloudMusicLaunchReactionToken;
         _cloudMusicLaunchReactionToken = null;
         bool completed = token is Guid reactionToken &&
@@ -4556,7 +4571,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        FeedbackBubbleText.Text = message;
+        PrepareFeedbackBubble(message);
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
         _feedbackBubbleTimer.Start();
@@ -4569,9 +4584,36 @@ public partial class MainWindow : Window
             return;
         }
 
-        FeedbackBubbleText.Text = message;
+        PrepareFeedbackBubble(message);
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
+    }
+
+    private void PrepareFeedbackBubble(string message)
+    {
+        _restoreTrackInfoAfterFeedback |=
+            _previewTrackInfo || TrackInfoBubble.Opacity > 0.01;
+        _trackInfoHideTimer.Stop();
+        _trackInfoMotion.Hide(animate: false);
+        FeedbackBubbleText.Text = message;
+    }
+
+    private void HideFeedbackBubble(bool restoreTrackInfo)
+    {
+        _feedbackBubbleTimer.Stop();
+        FeedbackBubble.Visibility = Visibility.Collapsed;
+        bool shouldRestoreTrackInfo = restoreTrackInfo && _restoreTrackInfoAfterFeedback;
+        _restoreTrackInfoAfterFeedback = false;
+        if (!shouldRestoreTrackInfo || _bunChaseActive)
+        {
+            return;
+        }
+
+        _trackInfoMotion.Show();
+        if (!_previewTrackInfo && !IsMouseOver)
+        {
+            _trackInfoHideTimer.Start();
+        }
     }
 
     private void OnDesktopItemDisappeared(object? sender, DesktopItemDisappearedEventArgs e)
@@ -5186,14 +5228,12 @@ public partial class MainWindow : Window
                 MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             FinishFileDragPresentation(restoreContinuousAnimation: true);
-            ShowFeedbackBubble("已取消，文件仍在原处");
             _logger.Info("file_drop.cancelled", $"Count={paths.Length}; Confirmation declined.");
             return;
         }
 
         _fileDropInProgress = true;
         _suppressDesktopTreatUntil = DateTimeOffset.Now.AddSeconds(3);
-        ShowFeedbackBubble("正在放入 Windows 回收站…");
         RecycleBinOperationResult result;
         try
         {
@@ -5218,9 +5258,6 @@ public partial class MainWindow : Window
         if (result.Succeeded)
         {
             _suppressDesktopTreatUntil = DateTimeOffset.Now.AddSeconds(10);
-            ShowFeedbackBubble(result.RecycledCount == 1
-                ? "已放进回收站，需要时可以恢复"
-                : $"已将 {result.RecycledCount} 个项目放进回收站");
             _logger.Info(
                 "file_drop.recycled",
                 $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
@@ -5270,7 +5307,6 @@ public partial class MainWindow : Window
         else if (supported && !accepted && _fileDropTargetReady)
         {
             _fileDropTargetReady = false;
-            ShowFeedbackBubble("把文件放到我身上，停一下再松手");
         }
         else if (!supported && !_fileDropInProgress)
         {
@@ -5397,7 +5433,6 @@ public partial class MainWindow : Window
             () => _logger.Info(
                 "file_drop.prompt_held",
                 "Give-me animation completed and is holding its final frame."));
-        ShowFeedbackBubble("把文件放到我身上，停一下再松手");
         _logger.Info("file_drop.prompt_started", "A local file drag entered the pet target.");
     }
 
@@ -5453,7 +5488,7 @@ public partial class MainWindow : Window
         CloudMusicVolumePopup.IsOpen = false;
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);
-        FeedbackBubble.Visibility = Visibility.Collapsed;
+        HideFeedbackBubble(restoreTrackInfo: false);
         HideMessageNotification();
     }
 
@@ -5532,8 +5567,7 @@ public partial class MainWindow : Window
 
     private void OnFeedbackBubbleTimerTick(object? sender, EventArgs e)
     {
-        _feedbackBubbleTimer.Stop();
-        FeedbackBubble.Visibility = Visibility.Collapsed;
+        HideFeedbackBubble(restoreTrackInfo: true);
     }
 
     private async void OnTrackInfoRefreshTimerTick(object? sender, EventArgs e)
@@ -5699,7 +5733,11 @@ public partial class MainWindow : Window
     }
 
     private static string GetArtistClass(string? artist) =>
-        MusicArtistMatcher.IsLuoTianyi(artist) ? "LuoTianyi" : "OtherOrUnknown";
+        MusicArtistMatcher.IsLuoTianyi(artist)
+            ? "LuoTianyi"
+            : MusicArtistMatcher.IsYuezhengLing(artist)
+                ? "YuezhengLing"
+                : "OtherOrUnknown";
 
     private void ConfirmTrackSwitch(string source)
     {
@@ -5714,7 +5752,6 @@ public partial class MainWindow : Window
             _trackSwitchPlaybackHoldActive = false;
             _trackSwitchCancellation?.Cancel();
         }
-        ShowFeedbackBubble("切歌成功");
         _ = PlayReactionAsync("resonance-ok", ReactionPriority.MediaOrVolume);
         _logger.Info("media.track_switch_confirmed", $"Source={source}.");
     }

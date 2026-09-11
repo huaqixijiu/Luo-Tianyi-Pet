@@ -67,26 +67,38 @@ public sealed class MusicPlaybackAnimationSelector
             return MusicAnimationOptions.ResolveFixed(normalized).AnimationId;
         }
 
-        if (!MusicArtistMatcher.IsLuoTianyi(artist))
+        // 洛天依优先于其它合唱歌手，避免“洛天依 / 乐正绫”被分到打 call。
+        if (MusicArtistMatcher.IsLuoTianyi(artist))
         {
-            return PetVisualState.EnjoyMusicAnimation;
+            IReadOnlyList<string> easterEggPool =
+                [PetVisualState.MusicSwayAnimation, PetVisualState.OneClickSingingAnimation];
+            int index = _selectIndex(easterEggPool.Count);
+            if (index < 0 || index >= easterEggPool.Count)
+            {
+                throw new InvalidOperationException("The music animation selector returned an invalid index.");
+            }
+
+            return easterEggPool[index];
         }
 
-        IReadOnlyList<string> easterEggPool =
-            [PetVisualState.MusicSwayAnimation, PetVisualState.OneClickSingingAnimation];
-        int index = _selectIndex(easterEggPool.Count);
-        if (index < 0 || index >= easterEggPool.Count)
+        if (MusicArtistMatcher.IsYuezhengLing(artist))
         {
-            throw new InvalidOperationException("The music animation selector returned an invalid index.");
+            return PetVisualState.YuezhengLingCallAnimation;
         }
 
-        return easterEggPool[index];
+        return PetVisualState.EnjoyMusicAnimation;
     }
 }
 
 public static class MusicArtistMatcher
 {
-    public static bool IsLuoTianyi(string? artist)
+    public static bool IsLuoTianyi(string? artist) =>
+        ContainsArtist(artist, "洛天依", "luotianyi");
+
+    public static bool IsYuezhengLing(string? artist) =>
+        ContainsArtist(artist, "乐正绫", "yuezhengling");
+
+    private static bool ContainsArtist(string? artist, string chineseName, string englishName)
     {
         if (string.IsNullOrWhiteSpace(artist))
         {
@@ -105,18 +117,18 @@ public static class MusicArtistMatcher
         bool tokenMatch = TextParsing.SplitAndTrim(separated, separators)
             .Select(CompactArtistToken)
             .Any(token =>
-                token.Equals("洛天依", StringComparison.Ordinal) ||
-                token.StartsWith("洛天依official", StringComparison.Ordinal) ||
-                token.Equals("luotianyi", StringComparison.Ordinal) ||
-                token.StartsWith("luotianyiofficial", StringComparison.Ordinal));
+                token.Equals(chineseName, StringComparison.Ordinal) ||
+                token.StartsWith(chineseName + "official", StringComparison.Ordinal) ||
+                token.Equals(englishName, StringComparison.Ordinal) ||
+                token.StartsWith(englishName + "official", StringComparison.Ordinal));
         if (tokenMatch)
         {
             return true;
         }
 
         string compactArtist = CompactArtistToken(artist!);
-        return ContainsQualifiedName(compactArtist, "洛天依") ||
-            ContainsQualifiedName(compactArtist, "luotianyi");
+        return ContainsQualifiedName(compactArtist, chineseName) ||
+            ContainsQualifiedName(compactArtist, englishName);
     }
 
     private static string CompactArtistToken(string token) => new(

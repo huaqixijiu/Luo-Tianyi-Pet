@@ -76,6 +76,12 @@ MUSIC_PREVIEWS = (
         "frameIndex": 4,
         "output": ROOT / "assets" / "ui" / "music-preview-sing.png",
     },
+    {
+        "id": "twelfth-anniversary-call",
+        "animatedWebp": ROOT / "assets" / "animations" / "runtime" / "twelfth-anniversary-call.frames.webp",
+        "frameIndex": 7,
+        "output": ROOT / "assets" / "ui" / "music-preview-call.png",
+    },
 )
 MUSIC_AUTO_PREVIEW_OUTPUT = ROOT / "assets" / "ui" / "music-preview-auto.png"
 
@@ -236,16 +242,21 @@ def build_music_animation_previews() -> list[dict[str, object]]:
     previews: list[Image.Image] = []
     metadata: list[dict[str, object]] = []
     for specification in MUSIC_PREVIEWS:
-        atlas_path = specification["atlas"]
+        atlas_path = specification.get("atlas") or specification.get("animatedWebp")
         output_path = specification["output"]
         assert isinstance(atlas_path, Path)
         assert isinstance(output_path, Path)
-        frame = extract_atlas_frame(
-            atlas_path,
-            specification["frameSize"],
-            specification["columns"],
-            specification["frameIndex"],
-        )
+        if "animatedWebp" in specification:
+            with Image.open(atlas_path) as source:
+                source.seek(specification["frameIndex"])
+                frame = source.convert("RGBA")
+        else:
+            frame = extract_atlas_frame(
+                atlas_path,
+                specification["frameSize"],
+                specification["columns"],
+                specification["frameIndex"],
+            )
         preview = fit_visible_artwork(frame, MUSIC_PREVIEW_SIZE, padding=5)
         preview.save(output_path, optimize=True)
         previews.append(preview)
@@ -266,9 +277,9 @@ def build_music_animation_previews() -> list[dict[str, object]]:
         (MUSIC_PREVIEW_SIZE, MUSIC_PREVIEW_SIZE),
         (0, 0, 0, 0),
     )
-    placements = ((-7, 49), (32, 4), (71, 49))
+    placements = ((4, 4), (66, 4), (4, 66), (66, 66))
     for preview, position in zip(previews, placements):
-        miniature = preview.resize((64, 64), Image.Resampling.LANCZOS)
+        miniature = preview.resize((58, 58), Image.Resampling.LANCZOS)
         automatic.alpha_composite(miniature, position)
     automatic.save(MUSIC_AUTO_PREVIEW_OUTPUT, optimize=True)
     metadata.insert(
@@ -278,7 +289,7 @@ def build_music_animation_previews() -> list[dict[str, object]]:
             "sources": [item["output"] for item in metadata],
             "output": str(MUSIC_AUTO_PREVIEW_OUTPUT.relative_to(ROOT)).replace("\\", "/"),
             "outputSha256": sha256(MUSIC_AUTO_PREVIEW_OUTPUT),
-            "transformation": "three-preview-overlap-collage",
+            "transformation": "four-preview-grid-collage",
         },
     )
     return metadata

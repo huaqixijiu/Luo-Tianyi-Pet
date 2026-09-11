@@ -80,7 +80,7 @@
   ],
   "applicationIcon": {
     "source": "assets/animations/runtime/user-chibi-crystal-full-body-idle.atlas.png",
-    "sourceSha256": "a9dcf9c82cc29cb46ddfb1618d6e5c1910360cc0df199278b9bed891c656691c",
+    "sourceSha256": "4072b603dfdbf97ae1f09f5fea4f12da6400847c2d9ab43d9311768238240aa0",
     "crop": [
       60,
       0,
@@ -88,9 +88,9 @@
       360
     ],
     "outputPng": "assets/app/luotianyi-pet.png",
-    "outputPngSha256": "dab56058380e9ac0951c0d1b4a3743e5efd0de878949413e5a5b10d6cd193259",
+    "outputPngSha256": "d908d48ab888550fd9443478ac8c73b6066c554d1238c1ee60824659c9f23b43",
     "outputIco": "assets/app/luotianyi-pet.ico",
-    "outputIcoSha256": "d6557bb6659aee0e7d652a99f5b0b7d57f83bc0b990357319d6c270024512b71",
+    "outputIcoSha256": "3aa3cb4fa0e53afef0c3cb3646bea4d867edded8cb8defeaac20656cb760a245",
     "transformation": "portrait-crop-on-rounded-tianyi-blue-background"
   },
   "musicAnimationPreviews": [
@@ -99,11 +99,12 @@
       "sources": [
         "assets/ui/music-preview-enjoy.png",
         "assets/ui/music-preview-sway.png",
-        "assets/ui/music-preview-sing.png"
+        "assets/ui/music-preview-sing.png",
+        "assets/ui/music-preview-call.png"
       ],
       "output": "assets/ui/music-preview-auto.png",
-      "outputSha256": "cdd37f062be9188867a1bb0c8ab5720a6121c34e3685dd670b6670216e09ab46",
-      "transformation": "three-preview-overlap-collage"
+      "outputSha256": "aa76e9ec62de37d1aa17c405d95de4f3ac2297c29592843a0826e43add3f74da",
+      "transformation": "four-preview-grid-collage"
     },
     {
       "id": "resonance-enjoy-music",
@@ -130,6 +131,15 @@
       "frameIndex": 4,
       "output": "assets/ui/music-preview-sing.png",
       "outputSha256": "9b05964c2e7866eb7a837cbc4456e9c14fba889955e56f6dac061aeca940efec",
+      "transformation": "extract-frame-and-fit-visible-alpha-bounds"
+    },
+    {
+      "id": "twelfth-anniversary-call",
+      "source": "assets/animations/runtime/twelfth-anniversary-call.frames.webp",
+      "sourceSha256": "a79d8554ab030855c31fc30956fbca2fd195bb35e30680c50c6d0f46f4d4c234",
+      "frameIndex": 7,
+      "output": "assets/ui/music-preview-call.png",
+      "outputSha256": "777db86651a041f2580112f54d529fd4b602159970ac18b1a8a9cdcc462cfd11",
       "transformation": "extract-frame-and-fit-visible-alpha-bounds"
     }
   ]

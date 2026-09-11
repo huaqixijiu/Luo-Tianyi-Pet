@@ -29,6 +29,7 @@ public sealed record PetVisualState(
     public const string MusicSwayAnimation = "ninth-anniversary-music-sway";
     public const string EnjoyMusicAnimation = "resonance-enjoy-music";
     public const string OneClickSingingAnimation = "newyear-one-click-singing";
+    public const string YuezhengLingCallAnimation = "twelfth-anniversary-call";
     public const string NoMusicAnimation = "none";
     public const string SleepingAnimation = "tenth-anniversary-goodnight-float";
     public const string CompactDraggingAnimation = "resonance-expand";

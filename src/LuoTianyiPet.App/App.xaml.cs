@@ -119,6 +119,11 @@ public partial class App : Application
                     "--preview-body-reaction=",
                     StringComparison.OrdinalIgnoreCase))?
                 .Split(new[] { '=' }, 2)[1];
+            string? previewFeedback = e.Args
+                .FirstOrDefault(argument => argument.StartsWith(
+                    "--qa-feedback=",
+                    StringComparison.OrdinalIgnoreCase))?
+                .Split(new[] { '=' }, 2)[1];
             bool showQaTaskbar = e.Args.Contains("--qa-window", StringComparer.OrdinalIgnoreCase);
             IAudioSessionProbe? audioSessionProbe = settings.Media.EnableCloudMusicDetection &&
                 (!isPreviewOrQaRun || liveCloudMusicControlQa)
@@ -211,6 +216,7 @@ public partial class App : Application
                 previewBottomControlsLayout,
                 previewTopControlsLayout,
                 previewBodyReaction,
+                previewFeedback,
                 showQaTaskbar,
                 persistSettings: !isPreviewOrQaRun);
             MainWindow = window;

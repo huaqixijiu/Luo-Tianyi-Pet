@@ -1418,6 +1418,44 @@
       ]
     },
     {
+      "id": "twelfth-anniversary-call",
+      "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/02_打call.gif",
+      "sourceSha256": "b57fb4cc9b928bbd6e382caf2b5a7d53f99b491e6290680fc45a8d15232a3008",
+      "atlasPath": "animations/runtime/twelfth-anniversary-call.frames.webp",
+      "atlasSha256": "a79d8554ab030855c31fc30956fbca2fd195bb35e30680c50c6d0f46f4d4c234",
+      "frameWidth": 380,
+      "frameHeight": 380,
+      "columns": 1,
+      "rows": 14,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 0,
+      "displayWidth": 190,
+      "displayHeight": 190,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        3,
+        6,
+        377,
+        377
+      ]
+    },
+    {
       "id": "twelfth-anniversary-peek",
       "sourcePath": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/04_偷看.gif",
       "sourceSha256": "30ac7af60d2776196ce6776e35c75c7f8804e72f97e351ea365cfd3389e49a9c",

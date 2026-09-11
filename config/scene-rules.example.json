@@ -256,10 +256,12 @@
       "loopSelectedAnimation": true,
       "artistRouting": {
         "otherOrUnknown": "resonance-enjoy-music",
+        "yuezhengLingSoloOrCollaboration": "twelfth-anniversary-call",
         "luoTianyiSoloOrCollaboration": [
           "ninth-anniversary-music-sway",
           "newyear-one-click-singing"
         ],
+        "whenBothArtistsArePresent": "luoTianyiPriority",
         "fixedChoiceAppliesToEveryArtist": true
       },
       "selectableModes": [
@@ -284,6 +286,12 @@
           "id": "newyear-one-click-singing",
           "playbackRate": 1.0,
           "asset": "assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif"
+        },
+        {
+          "id": "twelfth-anniversary-call",
+          "playbackRate": 1.0,
+          "asset": "assets/animations/runtime/twelfth-anniversary-call.frames.webp",
+          "sourceCycleFrames": 14
         }
       ]
     },
@@ -424,6 +432,8 @@
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
+      "preserveMediumIdleHeheAfterDrop": true,
+      "singleClickStillExitsMediumIdleHehe": true,
       "whileMusicPlaying": {
         "animation": "keep-current-music-animation",
         "replaceCurrentAnimation": false,
@@ -557,6 +567,12 @@
     }
   },
   "operationFeedback": {
+    "presentation": {
+      "style": "tianyi-blue-dialog-pill-with-yi-badge",
+      "placement": "shared-track-info-slot-never-over-pet",
+      "criticalFeedbackTemporarilyReplacesTrackInfo": true,
+      "routineSuccessUsesAnimationOrControlStateOnly": true
+    },
     "failureOrTimeout": {
       "animation": null,
       "bubbleOnly": true,
