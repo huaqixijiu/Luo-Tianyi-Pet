@@ -1,6 +1,8 @@
 ﻿[CmdletBinding()]
 param(
-    [switch]$TrustCertificateOnly
+    [switch]$TrustCertificateOnly,
+    [switch]$Quiet,
+    [switch]$SkipDesktopShortcut
 )
 
 Set-StrictMode -Version Latest
@@ -142,7 +144,65 @@ if ($null -eq $installed -or [Version]$installed.Version -ne $packageVersion) {
         Select-Object -First 1
 }
 
-Write-Host "洛天依桌宠 $($installed.Version) 已安装。桌宠进程仍以普通用户权限运行。"
-Write-Host '首次使用 QQ / 微信提醒时，请在桌宠设置 → 通知中点击“授权访问”。'
 $appUserModelId = "$($installed.PackageFamilyName)!$applicationId"
-Start-Process -FilePath 'explorer.exe' -ArgumentList "shell:AppsFolder\$appUserModelId"
+$desktopShortcutPath = $null
+if (!$SkipDesktopShortcut) {
+    $desktopDirectory = [Environment]::GetFolderPath('DesktopDirectory')
+    if (![string]::IsNullOrWhiteSpace($desktopDirectory) -and
+        (Test-Path -LiteralPath $desktopDirectory -PathType Container)) {
+        $desktopShortcutPath = Join-Path $desktopDirectory '洛天依桌宠.lnk'
+        $shell = New-Object -ComObject WScript.Shell
+        try {
+            $shortcut = $shell.CreateShortcut($desktopShortcutPath)
+            $shortcut.TargetPath = Join-Path $env:WINDIR 'explorer.exe'
+            $shortcut.Arguments = "shell:AppsFolder\$appUserModelId"
+            $shortcut.IconLocation = "$(Join-Path $installed.InstallLocation 'LuoTianyiPet.exe'),0"
+            $shortcut.Description = '启动洛天依桌宠'
+            $shortcut.Save()
+            [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut) | Out-Null
+        }
+        finally {
+            [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell) | Out-Null
+        }
+    }
+}
+
+$running = @(Get-Process -Name 'LuoTianyiPet' -ErrorAction SilentlyContinue).Count -gt 0
+if (!$running) {
+    Start-Process -FilePath 'explorer.exe' -ArgumentList "shell:AppsFolder\$appUserModelId"
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
+    do {
+        Start-Sleep -Milliseconds 250
+        $running = @(Get-Process -Name 'LuoTianyiPet' -ErrorAction SilentlyContinue).Count -gt 0
+    } while (!$running -and [DateTime]::UtcNow -lt $deadline)
+}
+
+$shortcutMessage = if ($desktopShortcutPath) {
+    "`n桌面快捷方式：$desktopShortcutPath"
+}
+else {
+    ''
+}
+$runMessage = if ($running) {
+    '桌宠已经启动；如果暂时没看到，请查看桌面右下角托盘。'
+}
+else {
+    '安装已经完成，但自动启动没有被确认。请使用桌面快捷方式或开始菜单启动。'
+}
+$successMessage = @(
+    "洛天依桌宠 $($installed.Version) 已安装。",
+    "$runMessage$shortcutMessage",
+    '',
+    '首次使用 QQ / 微信提醒时，请在桌宠“设置 → 通知”中点击“授权访问”。'
+) -join [Environment]::NewLine
+
+Write-Host $successMessage
+if (!$Quiet) {
+    $shell = New-Object -ComObject WScript.Shell
+    try {
+        $null = $shell.Popup($successMessage, 0, '洛天依桌宠安装完成', 64)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell) | Out-Null
+    }
+}

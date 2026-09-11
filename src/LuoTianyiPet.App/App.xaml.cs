@@ -30,7 +30,10 @@ public partial class App : Application
             return;
         }
 
-        bool isPortable = e.Args.Contains("--portable", StringComparer.OrdinalIgnoreCase);
+        bool isPortable =
+            e.Args.Contains("--portable", StringComparer.OrdinalIgnoreCase) ||
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "LUOTIANYI_PET_PORTABLE.marker")) ||
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "PORTABLE_TEST_PACKAGE.marker"));
         LocalAppPaths paths = isPortable
             ? LocalAppPaths.CreatePortable(AppContext.BaseDirectory)
             : new LocalAppPaths();

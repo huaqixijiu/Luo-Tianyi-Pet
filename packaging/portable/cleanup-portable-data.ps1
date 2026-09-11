@@ -5,18 +5,18 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $portableRoot = [System.IO.Path]::GetFullPath($PSScriptRoot)
-$markerPath = Join-Path $portableRoot 'PORTABLE_TEST_PACKAGE.marker'
+$markerPath = Join-Path $portableRoot 'LUOTIANYI_PET_PORTABLE.marker'
 $executablePath = Join-Path $portableRoot 'LuoTianyiPet.exe'
 $dataPath = [System.IO.Path]::GetFullPath((Join-Path $portableRoot 'UserData'))
 $expectedDataPrefix = $portableRoot.TrimEnd('\') + '\'
 
 if (!(Test-Path -LiteralPath $markerPath -PathType Leaf) -or
     !(Test-Path -LiteralPath $executablePath -PathType Leaf)) {
-    throw 'This is not a complete LuoTianyiPet portable test directory. Cleanup stopped.'
+    throw 'This is not a complete LuoTianyiPet portable directory. Cleanup stopped.'
 }
 
 if (!$dataPath.StartsWith($expectedDataPrefix, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'The test data directory is outside the portable package. Cleanup stopped.'
+    throw 'The data directory is outside the portable package. Cleanup stopped.'
 }
 
 $stoppedCount = 0

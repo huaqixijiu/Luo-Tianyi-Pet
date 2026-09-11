@@ -1,9 +1,11 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.21',
+    [string]$Version = '0.1.0.37',
     [ValidateSet('win-x64')]
-    [string]$Runtime = 'win-x64'
+    [string]$Runtime = 'win-x64',
+    [ValidateSet('Net10SelfContained', 'NetFramework48')]
+    [string]$Framework = 'NetFramework48'
 )
 
 Set-StrictMode -Version Latest
@@ -13,9 +15,9 @@ $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $artifactRoot = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'artifacts\portable'))
 $stagingRoot = Join-Path $artifactRoot 'staging'
-$layoutRoot = Join-Path $stagingRoot "LuoTianyiPet-Portable-Test-$Version"
+$layoutRoot = Join-Path $stagingRoot "LuoTianyiPet-Portable-$Version"
 $releaseRoot = Join-Path $artifactRoot 'release'
-$packageName = "LuoTianyiPet-Portable-Test-$Version-win-x64.zip"
+$packageName = "LuoTianyiPet-Portable-$Version-win-x64.zip"
 $packagePath = Join-Path $releaseRoot $packageName
 
 function Assert-ArtifactPath([string]$Path) {
@@ -49,17 +51,37 @@ Reset-ArtifactDirectory $stagingRoot
 New-Item -ItemType Directory -Path $layoutRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
 
-& $dotnet publish (Join-Path $repoRoot 'src\LuoTianyiPet.App\LuoTianyiPet.App.csproj') `
-    -c Release `
-    -r $Runtime `
-    --self-contained true `
-    -p:Version=$Version `
-    -p:PublishSingleFile=false `
-    -p:DebugType=None `
-    -p:DebugSymbols=false `
-    -o $layoutRoot
-if ($LASTEXITCODE -ne 0) {
-    throw 'Self-contained portable publish failed.'
+$applicationProject = Join-Path $repoRoot 'src\LuoTianyiPet.App\LuoTianyiPet.App.csproj'
+if ($Framework -eq 'NetFramework48') {
+    & $dotnet publish $applicationProject `
+        -c Release `
+        -f net48 `
+        -r $Runtime `
+        --self-contained false `
+        -p:EnableNetFrameworkBuild=true `
+        -p:PlatformTarget=x64 `
+        -p:Prefer32Bit=false `
+        -p:Version=$Version `
+        -p:DebugType=None `
+        -p:DebugSymbols=false `
+        -o $layoutRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw '.NET Framework 4.8 portable publish failed.'
+    }
+}
+else {
+    & $dotnet publish $applicationProject `
+        -c Release `
+        -r $Runtime `
+        --self-contained true `
+        -p:Version=$Version `
+        -p:PublishSingleFile=false `
+        -p:DebugType=None `
+        -p:DebugSymbols=false `
+        -o $layoutRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw '.NET 10 self-contained portable publish failed.'
+    }
 }
 
 Copy-Item -Path (Join-Path $repoRoot 'packaging\portable\*') `
@@ -68,15 +90,16 @@ Copy-Item -Path (Join-Path $repoRoot 'packaging\portable\*') `
 foreach ($requiredPath in @(
     'LuoTianyiPet.exe',
     'assets\manifests\animations.json',
-    '启动桌宠.cmd',
-    '清理测试数据.cmd',
     'cleanup-portable-data.ps1',
-    '使用说明.txt',
-    'PORTABLE_TEST_PACKAGE.marker'
+    'LUOTIANYI_PET_PORTABLE.marker'
 )) {
     if (!(Test-Path -LiteralPath (Join-Path $layoutRoot $requiredPath))) {
         throw "Portable package verification failed; missing: $requiredPath"
     }
+}
+$commandFiles = @(Get-ChildItem -LiteralPath $layoutRoot -Filter '*.cmd' -File)
+if ($commandFiles.Count -lt 2) {
+    throw 'Portable package verification failed; launch or cleanup command file is missing.'
 }
 
 foreach ($forbiddenPattern in @('*.cer', '*.pfx', '*.msix')) {
@@ -92,6 +115,7 @@ Assert-ArtifactPath $packagePath
 if (Test-Path -LiteralPath $packagePath) {
     Remove-Item -LiteralPath $packagePath -Force
 }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory(
     $layoutRoot,
     $packagePath,
@@ -105,6 +129,6 @@ $hashPath = Join-Path $releaseRoot "$packageName.sha256.txt"
     "$packageHash  $packageName`r`n",
     [Text.UTF8Encoding]::new($false))
 
-Write-Host "Built clean portable test package: $packagePath"
+Write-Host "Built clean portable package: $packagePath"
 Write-Host "SHA-256: $packageHash"
 Write-Host 'No certificate, package registration, installer, registry entry, or mutable user data was included.'
