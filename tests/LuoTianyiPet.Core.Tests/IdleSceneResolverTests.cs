@@ -45,8 +45,8 @@ public sealed class IdleSceneResolverTests
     [InlineData(2, PetContinuousState.Idle)]
     [InlineData(3, PetContinuousState.Idle)]
     [InlineData(29, PetContinuousState.Idle)]
-    [InlineData(30, PetContinuousState.Sleeping)]
-    public void MediumIdleCanBeDisabledWithoutDisablingLongSleep(
+    [InlineData(30, PetContinuousState.Idle)]
+    public void NoMediumIdleProfileAlsoSkipsLongSleep(
         int idleMinutes,
         PetContinuousState expectedTarget)
     {
@@ -56,6 +56,22 @@ public sealed class IdleSceneResolverTests
             IdleSceneProfile.NoMediumIdle);
 
         Assert.Equal(expectedTarget, decision.TargetState);
+    }
+
+    [Theory]
+    [InlineData(IdleSceneProfile.NoMediumIdle, PetContinuousState.Idle)]
+    [InlineData(IdleSceneProfile.CrystalDress, PetContinuousState.MediumIdle)]
+    [InlineData(IdleSceneProfile.ClassicCatEars, PetContinuousState.Sleeping)]
+    public void LongSleepOnlyAppliesToClassicCatEars(
+        IdleSceneProfile profile,
+        PetContinuousState expected)
+    {
+        IdleSceneDecision decision = IdleSceneResolver.Resolve(
+            TimeSpan.FromMinutes(30),
+            PetContinuousState.Idle,
+            profile);
+
+        Assert.Equal(expected, decision.TargetState);
     }
 
     [Fact]
@@ -75,7 +91,7 @@ public sealed class IdleSceneResolverTests
     [InlineData(4, 59, PetContinuousState.Idle)]
     [InlineData(5, 0, PetContinuousState.MediumIdle)]
     [InlineData(29, 59, PetContinuousState.MediumIdle)]
-    [InlineData(30, 0, PetContinuousState.Sleeping)]
+    [InlineData(30, 0, PetContinuousState.MediumIdle)]
     public void CrystalDressSkipsCountdownAndStartsHeheAtFiveMinutes(
         int minutes,
         int seconds,

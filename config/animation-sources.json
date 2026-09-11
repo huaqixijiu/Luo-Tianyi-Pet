@@ -106,17 +106,6 @@
       "anchorY": 1.0
     },
     {
-      "id": "codename-landing-bounce",
-      "source": "候选素材_官方/03_官方表情包/1842-代号洛天依/代号洛天依_降落.png",
-      "atlas": "assets/animations/runtime/codename-landing-bounce.atlas.png",
-      "displayWidth": 180,
-      "displayHeight": 180,
-      "loopCount": 1,
-      "defaultFrameDurationMilliseconds": 420,
-      "anchorX": 0.5,
-      "anchorY": 1.0
-    },
-    {
       "id": "official-v4-chibi-full-body-idle",
       "source": "assets/animations/processed/用户提供_新全身_透明.png",
       "atlas": "assets/animations/runtime/official-v4-chibi-full-body-idle.atlas.png",
@@ -227,8 +216,9 @@
       "displayHeight": 180,
       "minimumPixelsPerDisplayDip": 2,
       "upscaleSharpenPercent": 55,
-      "loopCount": 2,
-      "durationScale": 1.2,
+      "loopCount": 1,
+      "durationScale": 0.8,
+      "frameSequence": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -258,7 +248,7 @@
       "minimumPixelsPerDisplayDip": 2,
       "upscaleSharpenPercent": 55,
       "loopCount": 1,
-      "durationScale": 1.4285714286,
+      "durationScale": 1.25,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -273,7 +263,7 @@
       "minimumPixelsPerDisplayDip": 2,
       "upscaleSharpenPercent": 55,
       "loopCount": 1,
-      "durationScale": 2.0,
+      "durationScale": 1.6666666667,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -298,7 +288,7 @@
       "atlas": "assets/animations/runtime/tenth-anniversary-spin-dance.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
-      "loopCount": 1,
+      "loopCount": 0,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -350,17 +340,6 @@
       "displayHeight": 180,
       "loopCount": 0,
       "defaultFrameDurationMilliseconds": 1000,
-      "anchorX": 0.5,
-      "anchorY": 1.0
-    },
-    {
-      "id": "resonance-cry-shake",
-      "source": "候选素材_官方/03_官方表情包/5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_呜呜.png",
-      "atlas": "assets/animations/runtime/resonance-cry-shake.atlas.png",
-      "displayWidth": 180,
-      "displayHeight": 180,
-      "loopCount": 1,
-      "defaultFrameDurationMilliseconds": 900,
       "anchorX": 0.5,
       "anchorY": 1.0
     },
@@ -428,6 +407,21 @@
       "displayHeight": 180,
       "loopCount": 1,
       "defaultFrameDurationMilliseconds": 2200,
+      "anchorX": 0.5,
+      "anchorY": 1.0
+    },
+    {
+      "id": "startup-evening-hungry",
+      "source": "候选素材_官方/05_新添加_洛天依12周年QQ动态表情/16_饿.gif",
+      "atlas": "assets/animations/runtime/startup-evening-hungry.frames.webp",
+      "runtimeFormat": "animatedWebp",
+      "runtimeWebpQuality": 95,
+      "displayWidth": 180,
+      "displayHeight": 180,
+      "minimumPixelsPerDisplayDip": 2,
+      "upscaleSharpenPercent": 55,
+      "maximumFrames": 16,
+      "loopCount": 0,
       "anchorX": 0.5,
       "anchorY": 1.0
     },

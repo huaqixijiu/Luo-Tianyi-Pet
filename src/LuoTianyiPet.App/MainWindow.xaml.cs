@@ -23,13 +23,12 @@ namespace LuoTianyiPet.App;
 public partial class MainWindow : Window
 {
     private const string CloseAnimation = "resonance-cracked-shake";
-    private const string LandingAnimation = "codename-landing-bounce";
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
     private const string FileDropPromptAnimation = "resonance-give-me";
     private const string FileDropSuccessAnimation = "resonance-big-success";
-    private const string FileDropFailureAnimation = "resonance-cry-shake";
+    private const string ClassicSpinDanceAnimation = "tenth-anniversary-spin-dance";
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
     private const string BunRequestAnimation = "resonance-cute-bun-request";
     private const double GenshinCameoSafeMargin = 24;
@@ -84,12 +83,11 @@ public partial class MainWindow : Window
     private readonly AnimationCatalog? _animationCatalog;
     private readonly AnimationFramePlayer? _animationPlayer;
     private readonly VisualSwapTransition _visualSwapTransition;
-    private readonly LandingBounceMotion _landingBounceMotion;
     private readonly BodyReactionMotion _bodyReactionMotion;
     private readonly MediaControlsVisibilityMotion _mediaControlsMotion;
     private readonly MediaControlsVisibilityMotion _trackInfoMotion;
     private readonly PointerGestureRecognizer _pointerGesture = new(6, DoubleClickInterval);
-    private readonly DownwardFlingTracker _downwardFlingTracker = new();
+    private readonly RapidBackAndForthDragTracker _rapidDragTracker = new();
     private readonly PettingGestureRecognizer _pettingGesture = new(
         TimeSpan.FromMilliseconds(350),
         24,
@@ -179,7 +177,7 @@ public partial class MainWindow : Window
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
-    private readonly CancellationTokenSource _timeGreetingPresentationCancellation = new();
+    private CancellationTokenSource? _timeGreetingPresentationCancellation;
     private string _trackSwitchInitialIdentity = string.Empty;
     private string _musicAnimationTrackIdentity = string.Empty;
     private bool _trackSwitchSawAudioGap;
@@ -191,7 +189,8 @@ public partial class MainWindow : Window
     private EdgeDockSide _dragEdgeCandidate;
     private DesktopRectangle? _dragIntentPetBoundsInWindow;
     private bool _classicDragExpansionStarted;
-    private bool _dragReleaseRequestsLanding;
+    private bool _classicSpinDanceActive;
+    private Guid? _classicSpinDanceReactionToken;
     private bool _edgeDockRevealed;
     private AccessoryLayout _accessoryLayout = AccessoryLayout.Split;
     private int _edgeDockAnimationGeneration;
@@ -221,6 +220,9 @@ public partial class MainWindow : Window
     private DateTimeOffset? _fileDropHoverStartedAt;
     private TrayIconController? _trayIcon;
     private StartupTimeSceneDecision? _pendingTimeGreetingDecision;
+    private DateTimeOffset? _pendingTimeGreetingEligibleAt;
+    private string _pendingTimeGreetingEventName = "time.period_boundary_greeting";
+    private Guid? _timeGreetingReactionToken;
     private bool _timeGreetingPresentationInFlight;
     private readonly List<BunTargetWindow> _bunTargets = [];
     private BunTargetWindow? _activeBunTarget;
@@ -386,7 +388,6 @@ public partial class MainWindow : Window
             PetScaleTransform,
             MusicTransitionFlash,
             MusicTransitionFlashScale);
-        _landingBounceMotion = new LandingBounceMotion(PetShakeTransform);
         _bodyReactionMotion = new BodyReactionMotion(PetScaleTransform, PetShakeTransform);
         _mediaControlsMotion = new MediaControlsVisibilityMotion(
             MediaControls,
@@ -504,7 +505,10 @@ public partial class MainWindow : Window
         if (_persistSettings)
         {
             _timeSceneTransitionTracker.Seed(TimeOnly.FromDateTime(DateTime.Now));
-            _ = PlayStartupGreetingAsync(DateTimeOffset.Now);
+            QueueTimeGreeting(
+                StartupTimeSceneResolver.Resolve(TimeOnly.FromDateTime(DateTime.Now)),
+                "time.startup_greeting",
+                DateTimeOffset.Now);
             _timeSceneTimer.Start();
         }
         StartSystemResumeMonitoring();
@@ -527,8 +531,14 @@ public partial class MainWindow : Window
         }
         if (_audioSessionProbe is not null)
         {
+            OnMusicDetectionTimerTick(null, EventArgs.Empty);
             _musicDetectionTimer.Start();
             _logger.Info("media.detection_started", "Cloud music Core Audio detection enabled.");
+        }
+
+        if (_persistSettings)
+        {
+            _ = TryPlayPendingTimeGreetingAsync();
         }
 
         if (_mediaTrackInfoSource is not null)
@@ -615,11 +625,23 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task PlayStartupGreetingAsync(DateTimeOffset now)
+    private bool IsMusicPlaybackActive =>
+        _musicActivityDetector.IsPlaying ||
+        _musicPlaybackIndicator.IsPlaying ||
+        _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
+
+    private void QueueTimeGreeting(
+        StartupTimeSceneDecision decision,
+        string eventName,
+        DateTimeOffset now)
     {
-        StartupTimeSceneDecision decision = StartupTimeSceneResolver.Resolve(
-            TimeOnly.FromDateTime(now.LocalDateTime));
-        await PlayTimeGreetingPresentationAsync(decision, "time.startup_greeting");
+        _pendingTimeGreetingDecision = decision;
+        _pendingTimeGreetingEventName = eventName;
+        _pendingTimeGreetingEligibleAt = IsMusicPlaybackActive ? null : now;
+        if (IsMusicPlaybackActive)
+        {
+            _logger.Info(eventName + ".deferred", "Music playback has priority.");
+        }
     }
 
     private void OnTimeSceneTimerTick(object? sender, EventArgs e)
@@ -633,7 +655,7 @@ public partial class MainWindow : Window
             TimeOnly.FromDateTime(DateTime.Now));
         if (decision is not null)
         {
-            _pendingTimeGreetingDecision = decision;
+            QueueTimeGreeting(decision, "time.period_boundary_greeting", DateTimeOffset.Now);
             _logger.Info("time.period_boundary_detected", decision.Scene.ToString());
         }
 
@@ -645,8 +667,13 @@ public partial class MainWindow : Window
 
     private async Task TryPlayPendingTimeGreetingAsync()
     {
+        DateTimeOffset now = DateTimeOffset.Now;
         if (_pendingTimeGreetingDecision is not StartupTimeSceneDecision decision ||
-            _timeGreetingPresentationInFlight)
+            _timeGreetingPresentationInFlight ||
+            _classicSpinDanceActive ||
+            IsMusicPlaybackActive ||
+            _pendingTimeGreetingEligibleAt is not DateTimeOffset eligibleAt ||
+            now < eligibleAt)
         {
             return;
         }
@@ -656,7 +683,7 @@ public partial class MainWindow : Window
         {
             bool accepted = await PlayTimeGreetingPresentationAsync(
                 decision,
-                "time.period_boundary_greeting");
+                _pendingTimeGreetingEventName);
             if (accepted && _pendingTimeGreetingDecision == decision)
             {
                 _pendingTimeGreetingDecision = null;
@@ -672,6 +699,11 @@ public partial class MainWindow : Window
         StartupTimeSceneDecision decision,
         string eventName)
     {
+        if (IsMusicPlaybackActive || _classicSpinDanceActive)
+        {
+            return false;
+        }
+
         DateTimeOffset startedAt = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
@@ -684,6 +716,10 @@ public partial class MainWindow : Window
             _logger.Info(eventName + ".deferred", outcome.Result.ToString());
             return false;
         }
+
+        _timeGreetingReactionToken = token;
+        CancellationTokenSource cancellation = new();
+        _timeGreetingPresentationCancellation = cancellation;
 
         if (outcome.Result == ReactionStartResult.Replaced)
         {
@@ -701,6 +737,7 @@ public partial class MainWindow : Window
             {
                 _stateMachine.CancelActiveReaction();
             }
+            ReleaseTimeGreetingCancellation(cancellation, token);
             return false;
         }
 
@@ -712,21 +749,58 @@ public partial class MainWindow : Window
         {
             await Task.Delay(
                 TimeGreetingPresentationDuration,
-                _timeGreetingPresentationCancellation.Token);
+                cancellation.Token);
         }
         catch (OperationCanceledException)
         {
-            return true;
+            ReleaseTimeGreetingCancellation(cancellation, token);
+            return false;
         }
 
         if (_isClosing || !_stateMachine.CompleteReaction(token, DateTimeOffset.Now))
         {
+            ReleaseTimeGreetingCancellation(cancellation, token);
             return true;
         }
 
         _bodyReactionMotion.Cancel();
+        ReleaseTimeGreetingCancellation(cancellation, token);
         await TransitionToResolvedContinuousAnimationAsync(eventName + ".completed");
         return true;
+    }
+
+    private void ReleaseTimeGreetingCancellation(CancellationTokenSource cancellation, Guid token)
+    {
+        if (ReferenceEquals(_timeGreetingPresentationCancellation, cancellation))
+        {
+            _timeGreetingPresentationCancellation = null;
+        }
+
+        cancellation.Dispose();
+        if (_timeGreetingReactionToken == token)
+        {
+            _timeGreetingReactionToken = null;
+        }
+    }
+
+    private void CancelTimeGreetingPresentation(bool restoreContinuousAnimation, string reason)
+    {
+        _timeGreetingPresentationCancellation?.Cancel();
+        _timeGreetingPresentationCancellation = null;
+        if (_timeGreetingReactionToken is Guid token &&
+            _stateMachine.ActiveReactionToken == token)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+
+        _timeGreetingReactionToken = null;
+        _bodyReactionMotion.Cancel();
+        if (restoreContinuousAnimation && !_isClosing)
+        {
+            PlayResolvedContinuousAnimation();
+        }
+
+        _logger.Info("time.greeting_interrupted", reason);
     }
 
     private void StartSystemResumeMonitoring()
@@ -1146,6 +1220,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        _messageNotificationSource?.Start();
+
         ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
         if (!IsMessageNotificationDisplaySafe(foreground))
         {
@@ -1230,6 +1306,32 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_classicSpinDanceActive)
+        {
+            StopClassicSpinDance(restoreContinuousAnimation: true, "interaction.click_stopped_spin_dance");
+            e.Handled = true;
+            return;
+        }
+
+        if (_timeGreetingPresentationInFlight)
+        {
+            _pendingTimeGreetingDecision = null;
+            _pendingTimeGreetingEligibleAt = null;
+            CancelTimeGreetingPresentation(
+                restoreContinuousAnimation: true,
+                "Interrupted by direct user input.");
+        }
+
+        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
+        if (continuousState is PetContinuousState.MediumIdleCountdown or
+            PetContinuousState.MediumIdle or
+            PetContinuousState.Sleeping)
+        {
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+            PlayResolvedContinuousAnimation();
+            _logger.Info("idle.user_input_restored", continuousState.ToString());
+        }
+
         Point position = e.GetPosition(this);
         _dragPressScreenPoint = GetPointerScreenPositionInDips(e);
         _dragStartLeft = Left;
@@ -1287,14 +1389,6 @@ public partial class MainWindow : Window
         }
 
         DateTimeOffset now = DateTimeOffset.Now;
-        Point releaseScreenPoint = GetPointerScreenPositionInDips(e);
-        if (_isWindowDragging)
-        {
-            _dragReleaseRequestsLanding = _downwardFlingTracker.Complete(
-                ToPointerPoint(releaseScreenPoint),
-                now);
-        }
-
         if (_pettingGestureConsumedPress)
         {
             _pettingGestureConsumedPress = false;
@@ -1327,8 +1421,7 @@ public partial class MainWindow : Window
         }
 
         _pointerGesture.Cancel();
-        _downwardFlingTracker.Cancel();
-        _dragReleaseRequestsLanding = false;
+        _rapidDragTracker.Cancel();
         EndWindowDrag();
     }
 
@@ -1482,13 +1575,19 @@ public partial class MainWindow : Window
 
         if (!_stateMachine.BeginDrag())
         {
-            _downwardFlingTracker.Cancel();
+            _rapidDragTracker.Cancel();
             return;
         }
 
         _isWindowDragging = true;
-        _dragReleaseRequestsLanding = false;
-        _downwardFlingTracker.Begin(ToPointerPoint(_dragPressScreenPoint), DateTimeOffset.Now);
+        if (IsClassicCatEarsFullBodyMode())
+        {
+            _rapidDragTracker.Begin(ToPointerPoint(_dragPressScreenPoint), DateTimeOffset.Now);
+        }
+        else
+        {
+            _rapidDragTracker.Cancel();
+        }
         PlayCurrentDragVisual();
 
         _dragStartLeft = Left;
@@ -1501,7 +1600,11 @@ public partial class MainWindow : Window
 
     private void MoveWindowWithPointer(Point currentScreenPoint, DateTimeOffset observedAt)
     {
-        _downwardFlingTracker.Add(ToPointerPoint(currentScreenPoint), observedAt);
+        if (!_classicSpinDanceActive && IsClassicCatEarsFullBodyMode() &&
+            _rapidDragTracker.Add(ToPointerPoint(currentScreenPoint), observedAt))
+        {
+            StartClassicSpinDance();
+        }
         double desiredLeft = _dragStartLeft + currentScreenPoint.X - _dragPressScreenPoint.X;
         double desiredTop = _dragStartTop + currentScreenPoint.Y - _dragPressScreenPoint.Y;
         double horizontalOverscan = Math.Max(
@@ -1527,7 +1630,10 @@ public partial class MainWindow : Window
         {
             _dragIntentPetBoundsInWindow = GetPetImageAlphaBoundsInWindow();
         }
-        UpdateDragEdgePreview();
+        if (!_classicSpinDanceActive)
+        {
+            UpdateDragEdgePreview();
+        }
     }
 
     private void EndWindowDrag()
@@ -1537,12 +1643,24 @@ public partial class MainWindow : Window
             return;
         }
 
-        bool playLandingFeedback = _dragReleaseRequestsLanding;
-        _dragReleaseRequestsLanding = false;
-        _downwardFlingTracker.Cancel();
+        _rapidDragTracker.Cancel();
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
+            if (_classicSpinDanceActive)
+            {
+                SnapDragIntentPetInsideWorkArea();
+                _classicDragExpansionStarted = false;
+                _dragIntentPetBoundsInWindow = null;
+                _dragEdgeCandidate = EdgeDockSide.None;
+                SetEdgeMirror(false);
+                UpdateAccessoryLayoutForCurrentPosition();
+                _logger.Info(
+                    "interaction.drag_ended",
+                    "Classic spin dance remains active until the next click.");
+                return;
+            }
+
             if (TryEnterEdgeDock())
             {
                 _classicDragExpansionStarted = false;
@@ -1565,20 +1683,10 @@ public partial class MainWindow : Window
             }
             else if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
             {
-                if (playLandingFeedback)
-                {
-                    PlayLandingFeedback();
-                    _logger.Info(
-                        "interaction.drag_ended",
-                        "Fast downward compact fling requested landing feedback.");
-                }
-                else
-                {
-                    RestoreAfterCompactDrag();
-                    _logger.Info(
-                        "interaction.drag_ended",
-                        "Compact drag restored without routine landing feedback.");
-                }
+                RestoreAfterCompactDrag();
+                _logger.Info(
+                    "interaction.drag_ended",
+                    "Compact drag restored without landing feedback.");
             }
             else
             {
@@ -1616,30 +1724,52 @@ public partial class MainWindow : Window
         _ = TransitionToResolvedContinuousAnimationAsync("animation.full_body_drag_restored");
     }
 
-    private void PlayLandingFeedback()
+    private void StartClassicSpinDance()
     {
         DateTimeOffset now = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
-                LandingAnimation,
+                ClassicSpinDanceAnimation,
                 ReactionPriority.UserInteraction,
-                now.AddSeconds(3)),
+                DateTimeOffset.MaxValue,
+                InterruptibleByDrag: false),
             now);
         if (outcome.Token is not Guid token)
         {
-            PlayResolvedContinuousAnimation();
             return;
         }
 
-        PlayAnimation(
-            LandingAnimation,
-            () =>
-            {
-                _stateMachine.CompleteReaction(token, DateTimeOffset.Now);
-                _landingBounceMotion.Cancel();
-                PlayResolvedContinuousAnimation();
-            });
-        _landingBounceMotion.Play();
+        _classicSpinDanceActive = true;
+        _classicSpinDanceReactionToken = token;
+        _dragEdgeCandidate = EdgeDockSide.None;
+        PlayAnimation(ClassicSpinDanceAnimation);
+        _logger.Info(
+            "interaction.classic_spin_dance_started",
+            "Fast back-and-forth drag detected; animation loops until the next click.");
+    }
+
+    private void StopClassicSpinDance(bool restoreContinuousAnimation, string eventName)
+    {
+        if (!_classicSpinDanceActive)
+        {
+            return;
+        }
+
+        if (_classicSpinDanceReactionToken is Guid token &&
+            _stateMachine.ActiveReactionToken == token)
+        {
+            _stateMachine.CancelActiveReaction();
+        }
+
+        _classicSpinDanceActive = false;
+        _classicSpinDanceReactionToken = null;
+        _rapidDragTracker.Cancel();
+        if (restoreContinuousAnimation && !_isClosing)
+        {
+            _ = TransitionToResolvedContinuousAnimationAsync(eventName);
+        }
+
+        _logger.Info(eventName, "Classic spin dance stopped.");
     }
 
     private void HandleSingleClick(PointerPoint windowPoint)
@@ -1991,6 +2121,21 @@ public partial class MainWindow : Window
     private void StartMusicPlayback(string source, string? artistOverride = null)
     {
         _userPauseFastConfirmationUntil = null;
+        if (_timeGreetingPresentationInFlight)
+        {
+            _pendingTimeGreetingDecision = null;
+            _pendingTimeGreetingEligibleAt = null;
+            CancelTimeGreetingPresentation(
+                restoreContinuousAnimation: false,
+                "Music playback took priority.");
+        }
+        if (_pendingTimeGreetingDecision is not null)
+        {
+            _pendingTimeGreetingEligibleAt = null;
+        }
+        StopClassicSpinDance(
+            restoreContinuousAnimation: false,
+            "media.music_stopped_spin_dance");
         DateTimeOffset now = DateTimeOffset.Now;
         string artist = artistOverride ?? _lastTrackSnapshot.Artist;
         string selectedAnimation = _musicAnimationSelector.Select(
@@ -2037,6 +2182,14 @@ public partial class MainWindow : Window
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
         _musicPlaybackIndicator.SetPlaying(false);
         _userPauseFastConfirmationUntil = null;
+        if (_pendingTimeGreetingDecision is not null)
+        {
+            _pendingTimeGreetingEligibleAt =
+                DateTimeOffset.Now + StartupTimeSceneResolver.MusicStopDeferral;
+            _logger.Info(
+                "time.greeting_waiting_after_music",
+                $"DelaySeconds={StartupTimeSceneResolver.MusicStopDeferral.TotalSeconds:0}.");
+        }
         UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
@@ -2426,7 +2579,6 @@ public partial class MainWindow : Window
         bool reverse = false,
         double playbackRate = 1.0)
     {
-        _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         if (!preserveVisualTransition)
         {
@@ -2463,7 +2615,6 @@ public partial class MainWindow : Window
         Action? completed = null,
         double playbackRate = 1.0)
     {
-        _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         CancelVisualTransition();
         if (_animationPlayer is null || _animationCatalog is null)
@@ -2493,7 +2644,6 @@ public partial class MainWindow : Window
 
     private void ShowAnimationFrame(string animationId, int frameIndex)
     {
-        _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         CancelVisualTransition();
         if (_animationPlayer is null || _animationCatalog is null)
@@ -3787,17 +3937,37 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnPreviousTrackClick(object sender, RoutedEventArgs e) =>
+    private void OnPreviousTrackClick(object sender, RoutedEventArgs e)
+    {
+        InterruptTimeGreetingFromAccessoryInput();
         TrySendMediaCommand(MediaCommand.PreviousTrack);
+    }
 
-    private void OnTogglePlayPauseClick(object sender, RoutedEventArgs e) =>
+    private void OnTogglePlayPauseClick(object sender, RoutedEventArgs e)
+    {
+        InterruptTimeGreetingFromAccessoryInput();
         HandleTogglePlayPauseRequest();
+    }
 
-    private void OnNextTrackClick(object sender, RoutedEventArgs e) =>
+    private void OnNextTrackClick(object sender, RoutedEventArgs e)
+    {
+        InterruptTimeGreetingFromAccessoryInput();
         TrySendMediaCommand(MediaCommand.NextTrack);
+    }
+
+    private void InterruptTimeGreetingFromAccessoryInput()
+    {
+        if (_timeGreetingPresentationInFlight)
+        {
+            CancelTimeGreetingPresentation(
+                restoreContinuousAnimation: true,
+                "Interrupted by accessory control input.");
+        }
+    }
 
     private void OnCloudMusicVolumeClick(object sender, RoutedEventArgs e)
     {
+        InterruptTimeGreetingFromAccessoryInput();
         if (_bunChaseActive)
         {
             HideAccessorySurfacesForBunChase();
@@ -5072,7 +5242,7 @@ public partial class MainWindow : Window
         _logger.Info(
             "file_drop.failed",
             $"Status={result.Status}; Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
-        await PlayReactionAsync(FileDropFailureAnimation, ReactionPriority.UserInteraction);
+        PlayResolvedContinuousAnimation();
     }
 
     private void UpdateFileDragTarget(WpfDragEventArgs e)
@@ -5759,8 +5929,12 @@ public partial class MainWindow : Window
         _idleSceneTimer.Tick -= OnIdleSceneTimerTick;
         _timeSceneTimer.Stop();
         _timeSceneTimer.Tick -= OnTimeSceneTimerTick;
-        _timeGreetingPresentationCancellation.Cancel();
-        _timeGreetingPresentationCancellation.Dispose();
+        CancelTimeGreetingPresentation(
+            restoreContinuousAnimation: false,
+            "Application is closing.");
+        StopClassicSpinDance(
+            restoreContinuousAnimation: false,
+            "application.closing_spin_dance");
         _genshinStatusTimer.Stop();
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer.Stop();
@@ -5771,7 +5945,6 @@ public partial class MainWindow : Window
         _pointerGesture.Cancel();
         _pettingGesture.Cancel();
         ReleaseFileDragCursorOverride();
-        _landingBounceMotion.Cancel();
         _bodyReactionMotion.Cancel();
         _mediaControlsMotion.Cancel();
         _trackInfoMotion.Cancel();

@@ -45,7 +45,8 @@ public static class IdleSceneResolver
 
         PetContinuousState targetState = idleDuration switch
         {
-            _ when idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
+            _ when profile == IdleSceneProfile.ClassicCatEars &&
+                idleDuration >= SleepThreshold => PetContinuousState.Sleeping,
             _ when profile == IdleSceneProfile.CrystalDress &&
                 idleDuration >= CrystalDressMediumIdleThreshold =>
                 PetContinuousState.MediumIdle,

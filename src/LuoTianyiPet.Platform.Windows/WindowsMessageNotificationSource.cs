@@ -10,8 +10,12 @@ namespace LuoTianyiPet.Platform.Windows;
 public sealed class WindowsMessageNotificationSource : IMessageNotificationSource
 {
     private const ulong MaximumIconBytes = 1024 * 1024;
+    private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750);
     private readonly MessageProviderMatcher _matcher;
+    private readonly SemaphoreSlim _pollGate = new(1, 1);
+    private readonly NotificationIdSnapshotTracker _snapshotTracker = new();
     private UserNotificationListener? _listener;
+    private Timer? _pollTimer;
     private bool _started;
     private bool _disposed;
 
@@ -69,38 +73,29 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
             return;
         }
 
-        try
-        {
-            _listener!.NotificationChanged += OnNotificationChanged;
-            _started = true;
-        }
-        catch (Exception exception) when (IsRecoverablePlatformException(exception))
-        {
-            // The Windows notification RPC service may be restarting even though the
-            // cached access status is Allowed. Treat this as temporarily unavailable;
-            // the settings/status refresh can establish a fresh listener later.
-            _listener = null;
-            _started = false;
-        }
+        // NotificationChanged can raise a non-catchable WinRT dispatcher fault when
+        // the Windows notification platform is temporarily unavailable (0x803E0105).
+        // Polling the official notification snapshot avoids that unstable event bridge
+        // while retaining sub-second QQ/WeChat reminder latency on packaged installs.
+        _started = true;
+        _pollTimer ??= new Timer(
+            _ => _ = PollNotificationsAsync(),
+            null,
+            Timeout.InfiniteTimeSpan,
+            Timeout.InfiniteTimeSpan);
+        _pollTimer.Change(TimeSpan.Zero, PollInterval);
     }
 
     public void Stop()
     {
-        if (!_started || _listener is null)
+        if (!_started)
         {
             return;
         }
 
-        try
-        {
-            _listener.NotificationChanged -= OnNotificationChanged;
-        }
-        catch (Exception exception) when (IsRecoverablePlatformException(exception))
-        {
-            // A disconnected Windows notification service has no live subscription
-            // left to remove.
-        }
         _started = false;
+        _pollTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _snapshotTracker.Reset();
     }
 
     public void Dispose()
@@ -111,56 +106,80 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         }
 
         Stop();
+        _pollTimer?.Dispose();
         _disposed = true;
         GC.SuppressFinalize(this);
     }
 
-    private async void OnNotificationChanged(
-        UserNotificationListener sender,
-        UserNotificationChangedEventArgs args)
+    private async Task PollNotificationsAsync()
     {
-        if (_disposed || args.ChangeKind != UserNotificationChangedKind.Added)
+        if (_disposed || !_started || !_pollGate.Wait(0))
         {
             return;
         }
 
         try
         {
-            UserNotification? notification = sender.GetNotification(args.UserNotificationId);
-            if (notification is null)
+            _listener ??= UserNotificationListener.Current;
+            IReadOnlyList<UserNotification> notifications = await _listener.GetNotificationsAsync(
+                NotificationKinds.Toast);
+            if (_disposed || !_started)
             {
                 return;
             }
 
-            MessageProvider? provider = _matcher.Identify(
-                notification.AppInfo.AppUserModelId,
-                notification.AppInfo.DisplayInfo.DisplayName);
-            if (provider is MessageProvider matched)
+            HashSet<uint> addedIds = _snapshotTracker
+                .Observe(notifications.Select(notification => notification.Id))
+                .ToHashSet();
+            UserNotification[] added = notifications
+                .Where(notification => addedIds.Contains(notification.Id))
+                .OrderBy(notification => notification.CreationTime)
+                .ToArray();
+            foreach (UserNotification notification in added)
             {
-                string? conversationDisplayName = TryReadConversationDisplayName(notification);
-                byte[]? applicationIcon = await TryReadApplicationIconAsync(notification);
-                if (_disposed)
-                {
-                    return;
-                }
-
-                NotificationReceived?.Invoke(
-                    this,
-                    new MessageNotificationReceivedEventArgs(
-                        new MessageNotificationSummary(
-                            matched,
-                            notification.CreationTime,
-                            conversationDisplayName,
-                            applicationIcon,
-                            ContactAvatar: null)));
+                await ProcessNotificationAsync(notification);
             }
+        }
+        catch (Exception exception) when (IsRecoverablePlatformException(exception))
+        {
+            _listener = null;
         }
         catch (Exception)
         {
-            // Permission may be revoked while the app is running. The next status check
-            // reports the unavailable state. Platform payload failures are isolated here
-            // because this is an async WinRT event boundary. Nothing is persisted.
+            // Malformed third-party notification payloads must not affect the desktop pet.
         }
+        finally
+        {
+            _pollGate.Release();
+        }
+    }
+
+    private async Task ProcessNotificationAsync(UserNotification notification)
+    {
+        MessageProvider? provider = _matcher.Identify(
+            notification.AppInfo.AppUserModelId,
+            notification.AppInfo.DisplayInfo.DisplayName);
+        if (provider is not MessageProvider matched)
+        {
+            return;
+        }
+
+        string? conversationDisplayName = TryReadConversationDisplayName(notification);
+        byte[]? applicationIcon = await TryReadApplicationIconAsync(notification);
+        if (_disposed || !_started)
+        {
+            return;
+        }
+
+        NotificationReceived?.Invoke(
+            this,
+            new MessageNotificationReceivedEventArgs(
+                new MessageNotificationSummary(
+                    matched,
+                    notification.CreationTime,
+                    conversationDisplayName,
+                    applicationIcon,
+                    ContactAvatar: null)));
     }
 
     private static string? TryReadConversationDisplayName(UserNotification notification)
@@ -223,13 +242,50 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         exception is UnauthorizedAccessException or COMException or InvalidOperationException ||
         exception.HResult is unchecked((int)0x800706BA) or
             unchecked((int)0x800706BE) or
-            unchecked((int)0x80010108);
+            unchecked((int)0x80010108) or
+            unchecked((int)0x803E0105);
 
     private void ThrowIfDisposed()
     {
         if (_disposed)
         {
             throw new ObjectDisposedException(nameof(WindowsMessageNotificationSource));
+        }
+    }
+}
+
+internal sealed class NotificationIdSnapshotTracker
+{
+    private readonly object _sync = new();
+    private readonly HashSet<uint> _knownIds = new();
+    private bool _hasBaseline;
+
+    public IReadOnlyList<uint> Observe(IEnumerable<uint> notificationIds)
+    {
+        if (notificationIds is null)
+        {
+            throw new ArgumentNullException(nameof(notificationIds));
+        }
+        lock (_sync)
+        {
+            HashSet<uint> currentIds = notificationIds.ToHashSet();
+            uint[] addedIds = _hasBaseline
+                ? currentIds.Where(id => !_knownIds.Contains(id)).ToArray()
+                : Array.Empty<uint>();
+
+            _knownIds.Clear();
+            _knownIds.UnionWith(currentIds);
+            _hasBaseline = true;
+            return addedIds;
+        }
+    }
+
+    public void Reset()
+    {
+        lock (_sync)
+        {
+            _knownIds.Clear();
+            _hasBaseline = false;
         }
     }
 }

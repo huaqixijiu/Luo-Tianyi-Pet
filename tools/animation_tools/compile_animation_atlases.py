@@ -99,6 +99,17 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
     if not math.isfinite(duration_scale) or duration_scale <= 0:
         raise ValueError(f"Invalid durationScale for {entry['id']}")
     durations = [max(1, round(duration * duration_scale)) for duration in durations]
+    frame_sequence = entry.get("frameSequence")
+    if frame_sequence is not None:
+        if (
+            not isinstance(frame_sequence, list)
+            or not frame_sequence
+            or any(not isinstance(index, int) or isinstance(index, bool) for index in frame_sequence)
+            or any(index < 0 or index >= len(frames) for index in frame_sequence)
+        ):
+            raise ValueError(f"Invalid frameSequence for {entry['id']}")
+        frames = [frames[index].copy() for index in frame_sequence]
+        durations = [durations[index] for index in frame_sequence]
     maximum_frames = int(entry.get("maximumFrames", 0))
     if maximum_frames > 0:
         frames = frames[:maximum_frames]

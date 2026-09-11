@@ -146,6 +146,7 @@
       "onlyWhileIdle": true
     },
     "sleepAfterMinutes": 30,
+    "sleepOnlyForAppearance": "full-body-classic-cat-ears",
     "sleepRequiresMusicStopped": true,
     "sleepAnimation": "tenth-anniversary-goodnight-float",
     "wakeAnimation": null,
@@ -371,8 +372,10 @@
         "minimumStrokeDistanceDips": 24,
         "minimumDirectionChanges": 1,
         "animation": "guoyue-headpat",
-        "playbackRate": 0.60,
-        "loopCount": 2
+        "playbackRate": 1.0,
+        "compiledStrokeCount": 3,
+        "compiledFrameDurationScale": 0.8,
+        "loopCount": 1
       },
       "hands": {
         "regions": [
@@ -390,6 +393,8 @@
         ],
         "firstClickAnimation": "resonance-guilty",
         "repeatClickAnimation": "resonance-dark",
+        "firstClickEffectivePlaybackRate": 0.8,
+        "repeatClickEffectivePlaybackRate": 0.6,
         "repeatWithinMilliseconds": 4000,
         "cooldownAfterRepeatMilliseconds": 10000,
         "shareRepeatWindowAcrossRegions": true
@@ -431,7 +436,15 @@
           "matchCurrentAppearanceDisplaySize": true,
           "preserveSourceAspectRatioWithTransparentPadding": true,
           "loopWhileDragging": false,
-          "holdLastFrameAfterOnePlay": true
+          "holdLastFrameAfterOnePlay": true,
+          "rapidBackAndForthEasterEgg": {
+            "animation": "tenth-anniversary-spin-dance",
+            "minimumLegDistanceDips": 32,
+            "minimumLegVelocityDipsPerSecond": 360,
+            "requiredDirectionChanges": 2,
+            "maximumSequenceMilliseconds": 900,
+            "loopUntilNextClick": true
+          }
         },
         "full-body-long-hair": {
           "animation": "keep-current-full-body-idle",
@@ -505,16 +518,7 @@
       "behaviorByDisplayMode": {
         "compact": {
           "routineReleaseAnimation": null,
-          "routineReleaseTransition": "pulse-swap-to-resolved-state",
-          "fastDownwardFling": {
-            "animation": "codename-landing-bounce",
-            "minimumTotalDropDips": 72,
-            "minimumRecentDropDips": 22,
-            "minimumRecentVelocityDipsPerSecond": 650,
-            "recentWindowMilliseconds": 180,
-            "loopCount": 1,
-            "addSpringMotion": true
-          }
+          "routineReleaseTransition": "pulse-swap-to-resolved-state"
         },
         "fullBodyInteractive": {
           "animation": null,
@@ -554,9 +558,8 @@
   },
   "operationFeedback": {
     "failureOrTimeout": {
-      "animation": "resonance-cry-shake",
-      "motion": "shake",
-      "loopCount": 1,
+      "animation": null,
+      "bubbleOnly": true,
       "bubbleMessages": {
         "operationFailure": "操作失败，请再试一次",
         "timeout": "等太久了，再试一次吧",
@@ -571,8 +574,8 @@
       "id": "morning",
       "start": "06:00",
       "end": "12:00",
-      "animation": "collection-good-morning-float",
-      "presentationSeconds": 15,
+      "animation": "startup-morning-float",
+      "presentationSeconds": 10,
       "triggerOnAppStartup": true,
       "triggerOnBoundary": true
     },
@@ -580,17 +583,26 @@
       "id": "lunch",
       "start": "12:00",
       "end": "13:30",
-      "animation": "tenth-anniversary-meal-bounce",
-      "presentationSeconds": 15,
+      "animation": "startup-lunch-bounce",
+      "presentationSeconds": 10,
       "triggerOnAppStartup": true,
       "triggerOnBoundary": true
     },
     {
       "id": "afternoon",
       "start": "13:30",
+      "end": "18:00",
+      "animation": "startup-afternoon-float",
+      "presentationSeconds": 10,
+      "triggerOnAppStartup": true,
+      "triggerOnBoundary": true
+    },
+    {
+      "id": "evening",
+      "start": "18:00",
       "end": "20:00",
-      "animation": "tenth-anniversary-slacking-float",
-      "presentationSeconds": 15,
+      "animation": "startup-evening-hungry",
+      "presentationSeconds": 10,
       "triggerOnAppStartup": true,
       "triggerOnBoundary": true
     },
@@ -600,11 +612,17 @@
       "end": "06:00",
       "spansMidnight": true,
       "animation": "startup-night-breathe",
-      "presentationSeconds": 15,
+      "presentationSeconds": 10,
       "triggerOnAppStartup": true,
       "triggerOnBoundary": true
     }
   ],
+  "startupTimeScenePlaybackPolicy": {
+    "interruptibleByUserInput": true,
+    "suppressWhileMusicPlaying": true,
+    "deferAfterMusicStopsMilliseconds": 10000,
+    "musicTakesPriorityDuringPresentation": true
+  },
   "systemResume": {
     "sources": [
       "windows-session-unlock",

@@ -19,6 +19,7 @@ for (const expected of [
   "删掉这个动画",
   "只看待删除",
   "目前已经使用的动画与位置",
+  "三个待机模式与触发规则",
   "尚未删除任何素材",
 ]) {
   assert(html.includes(expected), `missing required text: ${expected}`);
@@ -41,6 +42,18 @@ assert(
 );
 assert(current.elements.get("grid").innerHTML.includes("data-delete="), "cards must render delete checkboxes");
 assert(!current.elements.get("grid").innerHTML.includes("data-keep="), "legacy keep checkboxes must not render");
+assert(
+  ["华裳长发版", "晶蓝礼服版", "经典猫耳版"].every(name =>
+    current.elements.get("modeOverviewList").innerHTML.includes(name)),
+  "mode overview must render all three appearance profiles",
+);
+for (const removedId of [
+  "thumb10", "thumbCode", "file_run_preview", "file_eat_preview",
+  "file_full_flow_preview", "new_headpat_orange", "p_wake", "p_launch",
+  "p_wink", "p_land", "p_goodjob", "p_lowbattery",
+]) {
+  assert(!itemIds.includes(removedId), `removed preview remains: ${removedId}`);
+}
 
 const legacyState = {
   version: 3,

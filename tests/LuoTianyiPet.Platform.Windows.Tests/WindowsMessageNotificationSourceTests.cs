@@ -8,6 +8,7 @@ public sealed class WindowsMessageNotificationSourceTests
     [InlineData(unchecked((int)0x800706BA))]
     [InlineData(unchecked((int)0x800706BE))]
     [InlineData(unchecked((int)0x80010108))]
+    [InlineData(unchecked((int)0x803E0105))]
     public void RecoverableRpcFailuresAreRecognizedEvenWhenProjectionUsesBaseException(int hresult)
     {
         Assert.True(WindowsMessageNotificationSource.IsRecoverablePlatformException(
@@ -47,6 +48,36 @@ public sealed class WindowsMessageNotificationSourceTests
 
         Assert.Equal(64, result.Length);
         Assert.EndsWith("…", result);
+    }
+
+    [Fact]
+    public void NotificationSnapshotUsesFirstObservationOnlyAsBaseline()
+    {
+        NotificationIdSnapshotTracker tracker = new();
+
+        Assert.Empty(tracker.Observe(new uint[] { 10, 11 }));
+        Assert.Equal(new uint[] { 12 }, tracker.Observe(new uint[] { 10, 11, 12 }));
+    }
+
+    [Fact]
+    public void NotificationSnapshotTreatsReintroducedIdAsNewNotification()
+    {
+        NotificationIdSnapshotTracker tracker = new();
+        tracker.Observe(new uint[] { 10, 11 });
+        tracker.Observe(new uint[] { 10 });
+
+        Assert.Equal(new uint[] { 11 }, tracker.Observe(new uint[] { 10, 11 }));
+    }
+
+    [Fact]
+    public void NotificationSnapshotResetRequiresANewBaseline()
+    {
+        NotificationIdSnapshotTracker tracker = new();
+        tracker.Observe(new uint[] { 10 });
+        tracker.Reset();
+
+        Assert.Empty(tracker.Observe(new uint[] { 20 }));
+        Assert.Equal(new uint[] { 21 }, tracker.Observe(new uint[] { 20, 21 }));
     }
 
     [Fact]

@@ -5,6 +5,7 @@ public enum StartupTimeScene
     Morning,
     Lunch,
     Afternoon,
+    Evening,
     Night,
 }
 
@@ -14,16 +15,19 @@ public sealed record StartupTimeSceneDecision(
 
 public static class StartupTimeSceneResolver
 {
-    public static readonly TimeSpan PresentationDuration = TimeSpan.FromSeconds(15);
+    public static readonly TimeSpan PresentationDuration = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan MusicStopDeferral = TimeSpan.FromSeconds(10);
 
     public const string MorningAnimation = "startup-morning-float";
     public const string LunchAnimation = "startup-lunch-bounce";
     public const string AfternoonAnimation = "startup-afternoon-float";
+    public const string EveningAnimation = "startup-evening-hungry";
     public const string NightAnimation = "startup-night-breathe";
 
     private static readonly TimeOnly MorningStart = new(6, 0);
     private static readonly TimeOnly LunchStart = new(12, 0);
     private static readonly TimeOnly AfternoonStart = new(13, 30);
+    private static readonly TimeOnly EveningStart = new(18, 0);
     private static readonly TimeOnly NightStart = new(20, 0);
 
     public static StartupTimeSceneDecision Resolve(TimeOnly localTime)
@@ -38,9 +42,14 @@ public static class StartupTimeSceneResolver
             return new(StartupTimeScene.Lunch, LunchAnimation);
         }
 
-        if (localTime >= AfternoonStart && localTime < NightStart)
+        if (localTime >= AfternoonStart && localTime < EveningStart)
         {
             return new(StartupTimeScene.Afternoon, AfternoonAnimation);
+        }
+
+        if (localTime >= EveningStart && localTime < NightStart)
+        {
+            return new(StartupTimeScene.Evening, EveningAnimation);
         }
 
         return new(StartupTimeScene.Night, NightAnimation);

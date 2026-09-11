@@ -5,9 +5,10 @@ namespace LuoTianyiPet.Core.Tests;
 public sealed class TimeSceneTests
 {
     [Fact]
-    public void PresentationDuration_IsFifteenSeconds()
+    public void PresentationDuration_IsTenSeconds()
     {
-        Assert.Equal(TimeSpan.FromSeconds(15), StartupTimeSceneResolver.PresentationDuration);
+        Assert.Equal(TimeSpan.FromSeconds(10), StartupTimeSceneResolver.PresentationDuration);
+        Assert.Equal(TimeSpan.FromSeconds(10), StartupTimeSceneResolver.MusicStopDeferral);
     }
 
     [Theory]
@@ -17,7 +18,9 @@ public sealed class TimeSceneTests
     [InlineData(12, 0, StartupTimeScene.Lunch, StartupTimeSceneResolver.LunchAnimation)]
     [InlineData(13, 29, StartupTimeScene.Lunch, StartupTimeSceneResolver.LunchAnimation)]
     [InlineData(13, 30, StartupTimeScene.Afternoon, StartupTimeSceneResolver.AfternoonAnimation)]
-    [InlineData(19, 59, StartupTimeScene.Afternoon, StartupTimeSceneResolver.AfternoonAnimation)]
+    [InlineData(17, 59, StartupTimeScene.Afternoon, StartupTimeSceneResolver.AfternoonAnimation)]
+    [InlineData(18, 0, StartupTimeScene.Evening, StartupTimeSceneResolver.EveningAnimation)]
+    [InlineData(19, 59, StartupTimeScene.Evening, StartupTimeSceneResolver.EveningAnimation)]
     [InlineData(20, 0, StartupTimeScene.Night, StartupTimeSceneResolver.NightAnimation)]
     [InlineData(23, 59, StartupTimeScene.Night, StartupTimeSceneResolver.NightAnimation)]
     public void Resolve_UsesConfirmedHalfOpenTimeRanges(
@@ -36,13 +39,13 @@ public sealed class TimeSceneTests
     public void TransitionTracker_TriggersWhenRunningAppCrossesTimeBoundary()
     {
         TimeSceneTransitionTracker tracker = new();
-        tracker.Seed(new TimeOnly(19, 59, 59));
+        tracker.Seed(new TimeOnly(17, 59, 59));
 
-        StartupTimeSceneDecision? decision = tracker.Observe(new TimeOnly(20, 0));
+        StartupTimeSceneDecision? decision = tracker.Observe(new TimeOnly(18, 0));
 
         Assert.NotNull(decision);
-        Assert.Equal(StartupTimeScene.Night, decision.Scene);
-        Assert.Equal(StartupTimeSceneResolver.NightAnimation, decision.AnimationId);
+        Assert.Equal(StartupTimeScene.Evening, decision.Scene);
+        Assert.Equal(StartupTimeSceneResolver.EveningAnimation, decision.AnimationId);
     }
 
     [Fact]
@@ -61,7 +64,7 @@ public sealed class TimeSceneTests
         TimeSceneTransitionTracker tracker = new();
 
         Assert.Null(tracker.Observe(new TimeOnly(13, 30)));
-        Assert.Null(tracker.Observe(new TimeOnly(19, 59)));
+        Assert.Null(tracker.Observe(new TimeOnly(17, 59)));
     }
 
     [Fact]
