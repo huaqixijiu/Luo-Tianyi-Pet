@@ -68,6 +68,10 @@ public partial class MainWindow : Window
     private static readonly TimeSpan TimeGreetingPresentationDuration =
         StartupTimeSceneResolver.PresentationDuration;
     private static readonly TimeSpan UserPauseFastConfirmationWindow = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan PlaybackIndicatorCommandExpectationWindow =
+        TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan VolumePopupSameClickSuppression =
+        TimeSpan.FromMilliseconds(250);
     private static readonly TimeSpan GenshinLaunchPresentationDuration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan FileDropDwellDuration = TimeSpan.FromMilliseconds(400);
     private static readonly TimeSpan CloudMusicLaunchShortcutDelay = TimeSpan.FromSeconds(2);
@@ -131,6 +135,7 @@ public partial class MainWindow : Window
     private readonly MessageProviderMatcher _messageProviderMatcher;
     private readonly MessageNotificationCoordinator _messageNotificationCoordinator;
     private readonly MusicAudioActivityDetector _musicActivityDetector;
+    private readonly MusicPlaybackIndicatorTracker _musicPlaybackIndicator;
     private readonly System.Windows.Input.Cursor? _petPointerCursor;
     private readonly System.Windows.Input.Cursor? _headPatCursor;
     private readonly string _musicTargetProcessName;
@@ -170,6 +175,7 @@ public partial class MainWindow : Window
     private bool _showNextTrackChange;
     private bool _updatingCloudMusicVolumeSlider;
     private bool _isCloudMusicVolumeTrackDragging;
+    private DateTimeOffset? _cloudMusicVolumePopupClosedAt;
     private bool _permanentTopmost;
     private CancellationTokenSource? _trackSwitchCancellation;
     private CancellationTokenSource? _cloudMusicLaunchCancellation;
@@ -323,6 +329,10 @@ public partial class MainWindow : Window
         _musicActivityDetector = new MusicAudioActivityDetector(
             audiblePeakThreshold,
             TimeSpan.FromMilliseconds(silenceGraceMilliseconds));
+        _musicPlaybackIndicator = new MusicPlaybackIndicatorTracker(
+            audiblePeakThreshold,
+            MusicPlaybackIndicatorTracker.DefaultSilenceDelay,
+            initialVisualState.ContinuousState == PetContinuousState.MusicPlaying);
         string fullBodyAnimation = AppearanceOptionIds.ResolveFullBodyAnimation(
             _settings.Appearance.FullBodyStyle);
         _crystalBodyHitMap = LoadBodyHitMap(
@@ -1992,6 +2002,7 @@ public partial class MainWindow : Window
             : "preview-luo-tianyi";
         _stateMachine.SetMusicAnimation(selectedAnimation);
         _stateMachine.SetContinuousState(PetContinuousState.MusicPlaying);
+        _musicPlaybackIndicator.SetPlaying(true);
         bool completedApplicationLaunchWait = _cloudMusicLaunchWaiting;
         if (completedApplicationLaunchWait)
         {
@@ -2024,6 +2035,7 @@ public partial class MainWindow : Window
     {
         _musicAnimationTrackIdentity = string.Empty;
         _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        _musicPlaybackIndicator.SetPlaying(false);
         _userPauseFastConfirmationUntil = null;
         UpdatePlayPauseGlyph();
         if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
@@ -2082,6 +2094,12 @@ public partial class MainWindow : Window
         }
 
         DateTimeOffset now = DateTimeOffset.Now;
+        if (!_trackSwitchPlaybackHoldActive &&
+            _musicPlaybackIndicator.Observe(snapshot, now))
+        {
+            UpdatePlayPauseGlyph();
+        }
+
         MusicActivityTransition transition = _musicActivityDetector.Update(snapshot, now);
         if (transition == MusicActivityTransition.None &&
             _userPauseFastConfirmationUntil is DateTimeOffset confirmationUntil)
@@ -3786,6 +3804,19 @@ public partial class MainWindow : Window
             return;
         }
 
+        DateTimeOffset now = DateTimeOffset.Now;
+        if (CloudMusicVolumePopup.IsOpen)
+        {
+            CloudMusicVolumePopup.IsOpen = false;
+            return;
+        }
+
+        if (_cloudMusicVolumePopupClosedAt is DateTimeOffset closedAt &&
+            now - closedAt <= VolumePopupSameClickSuppression)
+        {
+            return;
+        }
+
         _mediaControlsHideTimer.Stop();
         RefreshCloudMusicVolumeControl();
         CloudMusicVolumePopup.IsOpen = true;
@@ -3894,6 +3925,7 @@ public partial class MainWindow : Window
 
     private void OnCloudMusicVolumePopupClosed(object? sender, EventArgs e)
     {
+        _cloudMusicVolumePopupClosedAt = DateTimeOffset.Now;
         StopCloudMusicVolumeTrackDrag();
         if (!_previewMediaControls && !IsMouseOver)
         {
@@ -4018,7 +4050,7 @@ public partial class MainWindow : Window
 
     private void UpdatePlayPauseGlyph()
     {
-        bool isPlaying = _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
+        bool isPlaying = _musicPlaybackIndicator.IsPlaying;
         PlayGlyph.Visibility = isPlaying ? Visibility.Collapsed : Visibility.Visible;
         PauseGlyph.Visibility = isPlaying ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -4031,9 +4063,10 @@ public partial class MainWindow : Window
             return;
         }
 
+        DateTimeOffset now = DateTimeOffset.Now;
         bool userRequestedPause = command == MediaCommand.TogglePlayPause &&
-            _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
-        MediaCommandSendResult result = _mediaCommandSender.TrySend(command, DateTimeOffset.Now);
+            _musicPlaybackIndicator.IsPlaying;
+        MediaCommandSendResult result = _mediaCommandSender.TrySend(command, now);
         _logger.Info(
             "media.command_result",
             $"Command={command}; Status={result.Status}; Delivery={result.DeliveryMethod}.");
@@ -4051,6 +4084,15 @@ public partial class MainWindow : Window
             _ => "没有发送快捷键",
         };
         ShowFeedbackBubble(message);
+
+        if (result.WasSent && command == MediaCommand.TogglePlayPause)
+        {
+            _musicPlaybackIndicator.Expect(
+                !userRequestedPause,
+                now,
+                PlaybackIndicatorCommandExpectationWindow);
+            UpdatePlayPauseGlyph();
+        }
 
         if (result.WasSent && userRequestedPause)
         {

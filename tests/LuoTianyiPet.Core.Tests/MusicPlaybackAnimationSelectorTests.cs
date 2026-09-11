@@ -122,7 +122,15 @@ public sealed class MusicPlaybackAnimationSelectorTests
     [Theory]
     [InlineData("洛天依")]
     [InlineData("洛天依/乐正绫")]
+    [InlineData("乐正绫 feat. 洛天依")]
+    [InlineData("乐正绫 洛天依")]
+    [InlineData("乐正绫｜洛天依")]
+    [InlineData("乐正绫 × 洛天依")]
+    [InlineData("洛天依Official")]
+    [InlineData("乐正绫 / 洛天依Official")]
     [InlineData("Luo Tianyi")]
+    [InlineData("Luo Tianyi Official")]
+    [InlineData("Yuezheng Ling Luo Tianyi")]
     [InlineData("LUO-TIANYI & Yan He")]
     public void ArtistMatcherRecognizesLuoTianyiAndCollaborations(string artist)
     {

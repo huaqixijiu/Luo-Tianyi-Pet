@@ -93,16 +93,85 @@ public static class MusicArtistMatcher
             return false;
         }
 
-        char[] separators = ['/', '\\', '、', ',', '，', '&', '+', '＋', ';', '；'];
-        return TextParsing.SplitAndTrim(artist!, separators)
-            .Select(token => new string(
-                token
-                    .Where(character =>
-                        !char.IsWhiteSpace(character) && character is not '-' and not '_')
-                    .Select(char.ToLowerInvariant)
-                    .ToArray()))
+        string separated = artist!;
+        string[] collaborationMarkers = ["featuring", "feat.", "feat", "with", "vs.", "vs"];
+        foreach (string marker in collaborationMarkers)
+        {
+            separated = ReplaceOrdinalIgnoreCase(separated, marker, "|");
+        }
+
+        char[] separators =
+            ['/', '\\', '、', ',', '，', '&', '+', '＋', ';', '；', '|', '｜', '×', '·', '•'];
+        bool tokenMatch = TextParsing.SplitAndTrim(separated, separators)
+            .Select(CompactArtistToken)
             .Any(token =>
                 token.Equals("洛天依", StringComparison.Ordinal) ||
-                token.Equals("luotianyi", StringComparison.Ordinal));
+                token.StartsWith("洛天依official", StringComparison.Ordinal) ||
+                token.Equals("luotianyi", StringComparison.Ordinal) ||
+                token.StartsWith("luotianyiofficial", StringComparison.Ordinal));
+        if (tokenMatch)
+        {
+            return true;
+        }
+
+        string compactArtist = CompactArtistToken(artist!);
+        return ContainsQualifiedName(compactArtist, "洛天依") ||
+            ContainsQualifiedName(compactArtist, "luotianyi");
+    }
+
+    private static string CompactArtistToken(string token) => new(
+        token
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToLowerInvariant)
+            .ToArray());
+
+    private static bool ContainsQualifiedName(string compactArtist, string name)
+    {
+        int searchIndex = 0;
+        while (searchIndex < compactArtist.Length)
+        {
+            int matchIndex = compactArtist.IndexOf(
+                name,
+                searchIndex,
+                StringComparison.Ordinal);
+            if (matchIndex < 0)
+            {
+                return false;
+            }
+
+            string suffix = compactArtist.Substring(matchIndex + name.Length);
+            if (suffix.Length == 0 || suffix.StartsWith("official", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            searchIndex = matchIndex + name.Length;
+        }
+
+        return false;
+    }
+
+    private static string ReplaceOrdinalIgnoreCase(
+        string source,
+        string oldValue,
+        string newValue)
+    {
+        int startIndex = 0;
+        while (true)
+        {
+            int matchIndex = source.IndexOf(
+                oldValue,
+                startIndex,
+                StringComparison.OrdinalIgnoreCase);
+            if (matchIndex < 0)
+            {
+                return source;
+            }
+
+            source = source.Substring(0, matchIndex) +
+                newValue +
+                source.Substring(matchIndex + oldValue.Length);
+            startIndex = matchIndex + newValue.Length;
+        }
     }
 }
