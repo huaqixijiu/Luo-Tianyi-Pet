@@ -1,0 +1,76 @@
+PASS Fishing artwork starts at two minutes
+PASS Mouse movement and Windows idle reset do not cancel fishing
+PASS Movement does not restart the countdown clock
+PASS Fishing stays active at 100% on #0756B8
+PASS Fishing stays active at 100% on #161A26
+PASS Fishing stays active at 150% on #0756B8
+PASS Fishing stays active at 150% on #161A26
+PASS Fishing stays active at 200% on #0756B8
+PASS Fishing stays active at 200% on #161A26
+PASS Sixty seconds completes into Hehe despite mouse movement
+PASS Hehe is not immediately cancelled by the next input poll
+PASS Hehe 100% left: dragging keeps Hehe without expansion
+PASS Hehe 100% left: rapid dragging keeps Hehe
+PASS Hehe 100% left: edge contact keeps Hehe
+PASS Hehe 100% left: drop preserves artwork and contact; gap=0.00
+PASS Hehe 100% right: dragging keeps Hehe without expansion
+PASS Hehe 100% right: rapid dragging keeps Hehe
+PASS Hehe 100% right: edge contact keeps Hehe
+PASS Hehe 100% right: drop preserves artwork and contact; gap=0.00
+PASS Hehe 100% top: dragging keeps Hehe without expansion
+PASS Hehe 100% top: rapid dragging keeps Hehe
+PASS Hehe 100% top: edge contact keeps Hehe
+PASS Hehe 100% top: drop preserves artwork and contact; gap=0.00
+PASS Hehe 100% bottom: dragging keeps Hehe without expansion
+PASS Hehe 100% bottom: rapid dragging keeps Hehe
+PASS Hehe 100% bottom: edge contact keeps Hehe
+PASS Hehe 100% bottom: drop preserves artwork and contact; gap=0.00
+PASS Hehe 150% left: dragging keeps Hehe without expansion
+PASS Hehe 150% left: rapid dragging keeps Hehe
+PASS Hehe 150% left: edge contact keeps Hehe
+PASS Hehe 150% left: drop preserves artwork and contact; gap=0.00
+PASS Hehe 150% right: dragging keeps Hehe without expansion
+PASS Hehe 150% right: rapid dragging keeps Hehe
+PASS Hehe 150% right: edge contact keeps Hehe
+PASS Hehe 150% right: drop preserves artwork and contact; gap=0.00
+PASS Hehe 150% top: dragging keeps Hehe without expansion
+PASS Hehe 150% top: rapid dragging keeps Hehe
+PASS Hehe 150% top: edge contact keeps Hehe
+PASS Hehe 150% top: drop preserves artwork and contact; gap=0.00
+PASS Hehe 150% bottom: dragging keeps Hehe without expansion
+PASS Hehe 150% bottom: rapid dragging keeps Hehe
+PASS Hehe 150% bottom: edge contact keeps Hehe
+PASS Hehe 150% bottom: drop preserves artwork and contact; gap=0.00
+PASS Hehe 200% left: dragging keeps Hehe without expansion
+PASS Hehe 200% left: rapid dragging keeps Hehe
+PASS Hehe 200% left: edge contact keeps Hehe
+PASS Hehe 200% left: drop preserves artwork and contact; gap=0.00
+PASS Hehe 200% right: dragging keeps Hehe without expansion
+PASS Hehe 200% right: rapid dragging keeps Hehe
+PASS Hehe 200% right: edge contact keeps Hehe
+PASS Hehe 200% right: drop preserves artwork and contact; gap=0.00
+PASS Hehe 200% top: dragging keeps Hehe without expansion
+PASS Hehe 200% top: rapid dragging keeps Hehe
+PASS Hehe 200% top: edge contact keeps Hehe
+PASS Hehe 200% top: drop preserves artwork and contact; gap=0.00
+PASS Hehe 200% bottom: dragging keeps Hehe without expansion
+PASS Hehe 200% bottom: rapid dragging keeps Hehe
+PASS Hehe 200% bottom: edge contact keeps Hehe
+PASS Hehe 200% bottom: drop preserves artwork and contact; gap=0.00
+PASS Hehe Left: overscan keeps artwork and readable text
+PASS Hehe Left: cancelled overscan keeps Hehe
+PASS Hehe Right: overscan keeps artwork and readable text
+PASS Hehe Right: cancelled overscan keeps Hehe
+PASS Hehe Bottom: overscan keeps artwork and readable text
+PASS Hehe Bottom: cancelled overscan keeps Hehe
+PASS Hehe single click still exits to idle
+PASS Fishing artwork starts at two minutes
+PASS Actual pet left-button handler exits fishing
+PASS Next poll does not restore a cancelled countdown
+PASS Fishing artwork starts at two minutes
+PASS Direct drag enters dragging
+PASS Fishing exit still uses the ordinary classic expansion drag
+PASS Drag release restores idle instead of fishing
+PASS Fishing artwork starts at two minutes
+PASS New countdown receives a fresh monotonic start time
+PASS Music retains priority
