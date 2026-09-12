@@ -1,0 +1,890 @@
+PASS 50% center round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-compact-idle: artwork remains on screen
+PASS 50% center round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% center round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% center round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% center round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% center newyear-one-click-singing: artwork remains on screen
+PASS 50% center round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% center resonance-enjoy-music: artwork remains on screen
+PASS 50% center round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% center twelfth-anniversary-call: artwork remains on screen
+PASS 50% center round 0 resonance-expand: stable window, islands and attachment side
+PASS 50% center resonance-expand: artwork remains on screen
+PASS 50% center round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% center crystal-long-idle-sleep: artwork remains on screen
+PASS 50% center round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% center crystal-cover-eyes: artwork remains on screen
+PASS 50% center round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-compact-idle: artwork remains on screen
+PASS 50% center round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% center round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% center round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% center round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% center newyear-one-click-singing: artwork remains on screen
+PASS 50% center round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% center resonance-enjoy-music: artwork remains on screen
+PASS 50% center round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% center twelfth-anniversary-call: artwork remains on screen
+PASS 50% center round 1 resonance-expand: stable window, islands and attachment side
+PASS 50% center resonance-expand: artwork remains on screen
+PASS 50% center round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% center crystal-long-idle-sleep: artwork remains on screen
+PASS 50% center round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% center crystal-cover-eyes: artwork remains on screen
+PASS 50% top-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 50% top-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% top-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% top-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% top-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% top-left newyear-one-click-singing: artwork remains on screen
+PASS 50% top-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% top-left resonance-enjoy-music: artwork remains on screen
+PASS 50% top-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 50% top-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 50% top-left resonance-expand: artwork remains on screen
+PASS 50% top-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 50% top-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% top-left crystal-cover-eyes: artwork remains on screen
+PASS 50% top-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 50% top-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% top-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% top-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% top-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% top-left newyear-one-click-singing: artwork remains on screen
+PASS 50% top-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% top-left resonance-enjoy-music: artwork remains on screen
+PASS 50% top-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 50% top-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 50% top-left resonance-expand: artwork remains on screen
+PASS 50% top-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 50% top-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% top-left crystal-cover-eyes: artwork remains on screen
+PASS 50% top-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 50% top-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% top-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% top-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% top-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% top-right newyear-one-click-singing: artwork remains on screen
+PASS 50% top-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% top-right resonance-enjoy-music: artwork remains on screen
+PASS 50% top-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 50% top-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 50% top-right resonance-expand: artwork remains on screen
+PASS 50% top-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 50% top-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% top-right crystal-cover-eyes: artwork remains on screen
+PASS 50% top-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 50% top-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% top-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% top-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% top-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% top-right newyear-one-click-singing: artwork remains on screen
+PASS 50% top-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% top-right resonance-enjoy-music: artwork remains on screen
+PASS 50% top-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 50% top-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 50% top-right resonance-expand: artwork remains on screen
+PASS 50% top-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 50% top-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% top-right crystal-cover-eyes: artwork remains on screen
+PASS 50% bottom-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 50% bottom-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% bottom-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% bottom-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% bottom-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 50% bottom-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 50% bottom-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 50% bottom-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 50% bottom-left resonance-expand: artwork remains on screen
+PASS 50% bottom-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 50% bottom-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 50% bottom-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 50% bottom-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% bottom-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% bottom-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% bottom-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 50% bottom-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 50% bottom-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 50% bottom-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 50% bottom-left resonance-expand: artwork remains on screen
+PASS 50% bottom-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 50% bottom-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 50% bottom-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 50% bottom-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% bottom-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% bottom-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% bottom-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 50% bottom-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 50% bottom-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 50% bottom-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 50% bottom-right resonance-expand: artwork remains on screen
+PASS 50% bottom-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 50% bottom-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 50% bottom-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 50% bottom-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 50% bottom-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 50% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 50% bottom-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 50% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 50% bottom-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 50% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 50% bottom-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 50% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 50% bottom-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 50% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 50% bottom-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 50% bottom-right resonance-expand: artwork remains on screen
+PASS 50% bottom-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 50% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 50% bottom-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 50% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 100% center round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-compact-idle: artwork remains on screen
+PASS 100% center round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% center round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% center round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% center round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% center newyear-one-click-singing: artwork remains on screen
+PASS 100% center round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% center resonance-enjoy-music: artwork remains on screen
+PASS 100% center round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% center twelfth-anniversary-call: artwork remains on screen
+PASS 100% center round 0 resonance-expand: stable window, islands and attachment side
+PASS 100% center resonance-expand: artwork remains on screen
+PASS 100% center round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% center crystal-long-idle-sleep: artwork remains on screen
+PASS 100% center round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% center crystal-cover-eyes: artwork remains on screen
+PASS 100% center round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-compact-idle: artwork remains on screen
+PASS 100% center round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% center round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% center round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% center round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% center newyear-one-click-singing: artwork remains on screen
+PASS 100% center round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% center resonance-enjoy-music: artwork remains on screen
+PASS 100% center round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% center twelfth-anniversary-call: artwork remains on screen
+PASS 100% center round 1 resonance-expand: stable window, islands and attachment side
+PASS 100% center resonance-expand: artwork remains on screen
+PASS 100% center round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% center crystal-long-idle-sleep: artwork remains on screen
+PASS 100% center round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% center crystal-cover-eyes: artwork remains on screen
+PASS 100% top-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 100% top-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% top-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% top-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% top-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% top-left newyear-one-click-singing: artwork remains on screen
+PASS 100% top-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% top-left resonance-enjoy-music: artwork remains on screen
+PASS 100% top-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 100% top-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 100% top-left resonance-expand: artwork remains on screen
+PASS 100% top-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 100% top-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% top-left crystal-cover-eyes: artwork remains on screen
+PASS 100% top-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 100% top-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% top-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% top-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% top-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% top-left newyear-one-click-singing: artwork remains on screen
+PASS 100% top-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% top-left resonance-enjoy-music: artwork remains on screen
+PASS 100% top-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 100% top-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 100% top-left resonance-expand: artwork remains on screen
+PASS 100% top-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 100% top-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% top-left crystal-cover-eyes: artwork remains on screen
+PASS 100% top-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 100% top-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS Snapshot islands are fully visible: user-chibi-crystal-full-body-idle
+PASS 100% top-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS Snapshot islands are fully visible: user-chibi-classic-full-body-idle
+PASS 100% top-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS Snapshot islands are fully visible: ninth-anniversary-music-sway
+PASS 100% top-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% top-right newyear-one-click-singing: artwork remains on screen
+PASS Snapshot islands are fully visible: newyear-one-click-singing
+PASS 100% top-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% top-right resonance-enjoy-music: artwork remains on screen
+PASS 100% top-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 100% top-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 100% top-right resonance-expand: artwork remains on screen
+PASS 100% top-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 100% top-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% top-right crystal-cover-eyes: artwork remains on screen
+PASS 100% top-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 100% top-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% top-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% top-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% top-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% top-right newyear-one-click-singing: artwork remains on screen
+PASS 100% top-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% top-right resonance-enjoy-music: artwork remains on screen
+PASS 100% top-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 100% top-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 100% top-right resonance-expand: artwork remains on screen
+PASS 100% top-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 100% top-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% top-right crystal-cover-eyes: artwork remains on screen
+PASS 100% bottom-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 100% bottom-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% bottom-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% bottom-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% bottom-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 100% bottom-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 100% bottom-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 100% bottom-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 100% bottom-left resonance-expand: artwork remains on screen
+PASS 100% bottom-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 100% bottom-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 100% bottom-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 100% bottom-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% bottom-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% bottom-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% bottom-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 100% bottom-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 100% bottom-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 100% bottom-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 100% bottom-left resonance-expand: artwork remains on screen
+PASS 100% bottom-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 100% bottom-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 100% bottom-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 100% bottom-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% bottom-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% bottom-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% bottom-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 100% bottom-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 100% bottom-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 100% bottom-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 100% bottom-right resonance-expand: artwork remains on screen
+PASS 100% bottom-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 100% bottom-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 100% bottom-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 100% bottom-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 100% bottom-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 100% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 100% bottom-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 100% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 100% bottom-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 100% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 100% bottom-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 100% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 100% bottom-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 100% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 100% bottom-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 100% bottom-right resonance-expand: artwork remains on screen
+PASS 100% bottom-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 100% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 100% bottom-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 100% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 150% center round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-compact-idle: artwork remains on screen
+PASS 150% center round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% center round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% center round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% center round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% center newyear-one-click-singing: artwork remains on screen
+PASS 150% center round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% center resonance-enjoy-music: artwork remains on screen
+PASS 150% center round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% center twelfth-anniversary-call: artwork remains on screen
+PASS 150% center round 0 resonance-expand: stable window, islands and attachment side
+PASS 150% center resonance-expand: artwork remains on screen
+PASS 150% center round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% center crystal-long-idle-sleep: artwork remains on screen
+PASS 150% center round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% center crystal-cover-eyes: artwork remains on screen
+PASS 150% center round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-compact-idle: artwork remains on screen
+PASS 150% center round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% center round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% center round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% center round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% center newyear-one-click-singing: artwork remains on screen
+PASS 150% center round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% center resonance-enjoy-music: artwork remains on screen
+PASS 150% center round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% center twelfth-anniversary-call: artwork remains on screen
+PASS 150% center round 1 resonance-expand: stable window, islands and attachment side
+PASS 150% center resonance-expand: artwork remains on screen
+PASS 150% center round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% center crystal-long-idle-sleep: artwork remains on screen
+PASS 150% center round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% center crystal-cover-eyes: artwork remains on screen
+PASS 150% top-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 150% top-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% top-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% top-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% top-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% top-left newyear-one-click-singing: artwork remains on screen
+PASS 150% top-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% top-left resonance-enjoy-music: artwork remains on screen
+PASS 150% top-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 150% top-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 150% top-left resonance-expand: artwork remains on screen
+PASS 150% top-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 150% top-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% top-left crystal-cover-eyes: artwork remains on screen
+PASS 150% top-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 150% top-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% top-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% top-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% top-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% top-left newyear-one-click-singing: artwork remains on screen
+PASS 150% top-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% top-left resonance-enjoy-music: artwork remains on screen
+PASS 150% top-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 150% top-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 150% top-left resonance-expand: artwork remains on screen
+PASS 150% top-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 150% top-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% top-left crystal-cover-eyes: artwork remains on screen
+PASS 150% top-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 150% top-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% top-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% top-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% top-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% top-right newyear-one-click-singing: artwork remains on screen
+PASS 150% top-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% top-right resonance-enjoy-music: artwork remains on screen
+PASS 150% top-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 150% top-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 150% top-right resonance-expand: artwork remains on screen
+PASS 150% top-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 150% top-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% top-right crystal-cover-eyes: artwork remains on screen
+PASS 150% top-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 150% top-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% top-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% top-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% top-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% top-right newyear-one-click-singing: artwork remains on screen
+PASS 150% top-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% top-right resonance-enjoy-music: artwork remains on screen
+PASS 150% top-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 150% top-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 150% top-right resonance-expand: artwork remains on screen
+PASS 150% top-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 150% top-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% top-right crystal-cover-eyes: artwork remains on screen
+PASS 150% bottom-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 150% bottom-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% bottom-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% bottom-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% bottom-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 150% bottom-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 150% bottom-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 150% bottom-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 150% bottom-left resonance-expand: artwork remains on screen
+PASS 150% bottom-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 150% bottom-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 150% bottom-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 150% bottom-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% bottom-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% bottom-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% bottom-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 150% bottom-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 150% bottom-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 150% bottom-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 150% bottom-left resonance-expand: artwork remains on screen
+PASS 150% bottom-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 150% bottom-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 150% bottom-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 150% bottom-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% bottom-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% bottom-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% bottom-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 150% bottom-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 150% bottom-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 150% bottom-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 150% bottom-right resonance-expand: artwork remains on screen
+PASS 150% bottom-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 150% bottom-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 150% bottom-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 150% bottom-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 150% bottom-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 150% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 150% bottom-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 150% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 150% bottom-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 150% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 150% bottom-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 150% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 150% bottom-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 150% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 150% bottom-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 150% bottom-right resonance-expand: artwork remains on screen
+PASS 150% bottom-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 150% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 150% bottom-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 150% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 200% center round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-compact-idle: artwork remains on screen
+PASS 200% center round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% center round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% center round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% center round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% center newyear-one-click-singing: artwork remains on screen
+PASS 200% center round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% center resonance-enjoy-music: artwork remains on screen
+PASS 200% center round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% center twelfth-anniversary-call: artwork remains on screen
+PASS 200% center round 0 resonance-expand: stable window, islands and attachment side
+PASS 200% center resonance-expand: artwork remains on screen
+PASS 200% center round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% center crystal-long-idle-sleep: artwork remains on screen
+PASS 200% center round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% center crystal-cover-eyes: artwork remains on screen
+PASS 200% center round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-compact-idle: artwork remains on screen
+PASS 200% center round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% center round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% center user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% center round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% center ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% center round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% center newyear-one-click-singing: artwork remains on screen
+PASS 200% center round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% center resonance-enjoy-music: artwork remains on screen
+PASS 200% center round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% center twelfth-anniversary-call: artwork remains on screen
+PASS 200% center round 1 resonance-expand: stable window, islands and attachment side
+PASS 200% center resonance-expand: artwork remains on screen
+PASS 200% center round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% center crystal-long-idle-sleep: artwork remains on screen
+PASS 200% center round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% center crystal-cover-eyes: artwork remains on screen
+PASS 200% top-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 200% top-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% top-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% top-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% top-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% top-left newyear-one-click-singing: artwork remains on screen
+PASS 200% top-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% top-left resonance-enjoy-music: artwork remains on screen
+PASS 200% top-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 200% top-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 200% top-left resonance-expand: artwork remains on screen
+PASS 200% top-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 200% top-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% top-left crystal-cover-eyes: artwork remains on screen
+PASS 200% top-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-compact-idle: artwork remains on screen
+PASS 200% top-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% top-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% top-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% top-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% top-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% top-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% top-left newyear-one-click-singing: artwork remains on screen
+PASS 200% top-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% top-left resonance-enjoy-music: artwork remains on screen
+PASS 200% top-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% top-left twelfth-anniversary-call: artwork remains on screen
+PASS 200% top-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 200% top-left resonance-expand: artwork remains on screen
+PASS 200% top-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% top-left crystal-long-idle-sleep: artwork remains on screen
+PASS 200% top-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% top-left crystal-cover-eyes: artwork remains on screen
+PASS 200% top-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 200% top-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% top-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% top-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% top-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% top-right newyear-one-click-singing: artwork remains on screen
+PASS 200% top-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% top-right resonance-enjoy-music: artwork remains on screen
+PASS 200% top-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 200% top-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 200% top-right resonance-expand: artwork remains on screen
+PASS 200% top-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 200% top-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% top-right crystal-cover-eyes: artwork remains on screen
+PASS 200% top-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-compact-idle: artwork remains on screen
+PASS 200% top-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% top-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% top-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% top-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% top-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% top-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% top-right newyear-one-click-singing: artwork remains on screen
+PASS 200% top-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% top-right resonance-enjoy-music: artwork remains on screen
+PASS 200% top-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% top-right twelfth-anniversary-call: artwork remains on screen
+PASS 200% top-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 200% top-right resonance-expand: artwork remains on screen
+PASS 200% top-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% top-right crystal-long-idle-sleep: artwork remains on screen
+PASS 200% top-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% top-right crystal-cover-eyes: artwork remains on screen
+PASS 200% bottom-left round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 200% bottom-left round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% bottom-left round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% bottom-left round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% bottom-left round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 200% bottom-left round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 200% bottom-left round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 200% bottom-left round 0 resonance-expand: stable window, islands and attachment side
+PASS 200% bottom-left resonance-expand: artwork remains on screen
+PASS 200% bottom-left round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 200% bottom-left round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 200% bottom-left round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-compact-idle: artwork remains on screen
+PASS 200% bottom-left round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% bottom-left round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-left user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% bottom-left round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% bottom-left ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% bottom-left round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% bottom-left newyear-one-click-singing: artwork remains on screen
+PASS 200% bottom-left round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% bottom-left resonance-enjoy-music: artwork remains on screen
+PASS 200% bottom-left round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% bottom-left twelfth-anniversary-call: artwork remains on screen
+PASS 200% bottom-left round 1 resonance-expand: stable window, islands and attachment side
+PASS 200% bottom-left resonance-expand: artwork remains on screen
+PASS 200% bottom-left round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% bottom-left crystal-long-idle-sleep: artwork remains on screen
+PASS 200% bottom-left round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% bottom-left crystal-cover-eyes: artwork remains on screen
+PASS 200% bottom-right round 0 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 200% bottom-right round 0 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% bottom-right round 0 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% bottom-right round 0 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% bottom-right round 0 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 200% bottom-right round 0 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 200% bottom-right round 0 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 200% bottom-right round 0 resonance-expand: stable window, islands and attachment side
+PASS 200% bottom-right resonance-expand: artwork remains on screen
+PASS 200% bottom-right round 0 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 200% bottom-right round 0 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS 200% bottom-right round 1 user-chibi-compact-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-compact-idle: artwork remains on screen
+PASS 200% bottom-right round 1 user-chibi-crystal-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-crystal-full-body-idle: artwork remains on screen
+PASS 200% bottom-right round 1 user-chibi-classic-full-body-idle: stable window, islands and attachment side
+PASS 200% bottom-right user-chibi-classic-full-body-idle: artwork remains on screen
+PASS 200% bottom-right round 1 ninth-anniversary-music-sway: stable window, islands and attachment side
+PASS 200% bottom-right ninth-anniversary-music-sway: artwork remains on screen
+PASS 200% bottom-right round 1 newyear-one-click-singing: stable window, islands and attachment side
+PASS 200% bottom-right newyear-one-click-singing: artwork remains on screen
+PASS 200% bottom-right round 1 resonance-enjoy-music: stable window, islands and attachment side
+PASS 200% bottom-right resonance-enjoy-music: artwork remains on screen
+PASS 200% bottom-right round 1 twelfth-anniversary-call: stable window, islands and attachment side
+PASS 200% bottom-right twelfth-anniversary-call: artwork remains on screen
+PASS 200% bottom-right round 1 resonance-expand: stable window, islands and attachment side
+PASS 200% bottom-right resonance-expand: artwork remains on screen
+PASS 200% bottom-right round 1 crystal-long-idle-sleep: stable window, islands and attachment side
+PASS 200% bottom-right crystal-long-idle-sleep: artwork remains on screen
+PASS 200% bottom-right round 1 crystal-cover-eyes: stable window, islands and attachment side
+PASS 200% bottom-right crystal-cover-eyes: artwork remains on screen
+PASS Catalog: resonance-hehe
+PASS Catalog: tenth-birthday-fishing-countdown
+PASS Catalog: user-chibi-compact-idle
+PASS Catalog: user-chibi-classic-full-body-idle
+PASS Catalog: user-chibi-crystal-full-body-idle
+PASS Catalog: resonance-expand
+PASS Catalog: resonance-no-playing
+PASS Catalog: resonance-please
+PASS Catalog: resonance-give-me
+PASS Catalog: official-v4-chibi-full-body-idle
+PASS Catalog: ninth-anniversary-music-sway
+PASS Catalog: resonance-enjoy-music
+PASS Catalog: newyear-one-click-singing
+PASS Catalog: resonance-voice
+PASS Catalog: resonance-voice-reversed
+PASS Catalog: resonance-cracked-shake
+PASS Catalog: resonance-kiss
+PASS Catalog: resonance-soft-heart
+PASS Catalog: guoyue-headpat
+PASS Catalog: tenth-anniversary-high-five-bounce
+PASS Catalog: resonance-guilty
+PASS Catalog: resonance-dark
+PASS Catalog: tenth-anniversary-oops-shake
+PASS Catalog: tenth-anniversary-spin-dance
+PASS Catalog: ninth-anniversary-thumbup
+PASS Catalog: eighth-anniversary-thumbup
+PASS Catalog: resonance-my-pick
+PASS Catalog: resonance-so-good
+PASS Catalog: resonance-loading-sway
+PASS Catalog: resonance-big-success
+PASS Catalog: resonance-cute-bun-request
+PASS Catalog: resonance-ok
+PASS Catalog: startup-morning-float
+PASS Catalog: startup-lunch-bounce
+PASS Catalog: startup-afternoon-float
+PASS Catalog: startup-evening-hungry
+PASS Catalog: startup-night-breathe
+PASS Catalog: resonance-awake-pop
+PASS Catalog: tenth-anniversary-goodnight-float
+PASS Catalog: twelfth-anniversary-entrance
+PASS Catalog: twelfth-anniversary-call
+PASS Catalog: twelfth-anniversary-peek
+PASS Catalog: twelfth-anniversary-stop
+PASS Catalog: twelfth-anniversary-charge
+PASS Catalog: twelfth-anniversary-cry
+PASS Catalog: twelfth-anniversary-hug
+PASS Catalog: twelfth-anniversary-stick-together
+PASS Catalog: twelfth-anniversary-happy-birthday
+PASS Catalog: codename-curious-sway
+PASS Catalog: ai-bun-chase-run
+PASS Catalog: ai-bun-eat
+PASS Catalog: ai-bun-v2-chase-run
+PASS Catalog: ai-bun-v2-eat
+PASS Catalog: crystal-cover-mouth
+PASS Catalog: crystal-hand-heart
+PASS Catalog: crystal-touch-leg
+PASS Catalog: crystal-hold-belly
+PASS Catalog: crystal-headpat
+PASS Catalog: crystal-cover-eyes
+PASS Catalog: crystal-pinch-cheeks
+PASS Catalog: crystal-touch-chest
+PASS Catalog: crystal-touch-skirt
+PASS Catalog: crystal-yawn
+PASS Catalog: crystal-long-idle-duck-sit
+PASS Catalog: crystal-long-idle-sleep
+PASS Catalog: crystal-sleep-decoration-zzz
+PASS Catalog: crystal-sleep-decoration-bun
+PASS Catalog: crystal-sleep-decoration-yuezhengling
+PASS Catalog: crystal-sleep-decoration-cloud-dissolve
+PASS Real transition pipeline: full-body-crystal-dress MusicPlaying
+PASS Real transition pipeline: full-body-crystal-dress Idle
+PASS Real transition pipeline: full-body-crystal-dress MusicPlaying
+PASS Real transition pipeline: full-body-crystal-dress Idle
+PASS Real transition pipeline: full-body-classic-cat-ears MusicPlaying
+PASS Real transition pipeline: full-body-classic-cat-ears Idle
+PASS Real transition pipeline: full-body-classic-cat-ears MusicPlaying
+PASS Real transition pipeline: full-body-classic-cat-ears Idle
+PASS Explicit edge docking still starts: Left
+PASS Edge handle remains reachable: Left
+PASS Recall exits edge docking: Left
+PASS Explicit edge docking still starts: Right
+PASS Edge handle remains reachable: Right
+PASS Recall exits edge docking: Right
+PASS Explicit edge docking still starts: Bottom
+PASS Edge handle remains reachable: Bottom
+PASS Recall exits edge docking: Bottom

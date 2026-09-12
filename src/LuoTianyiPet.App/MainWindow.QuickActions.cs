@@ -125,7 +125,7 @@ public partial class MainWindow
         Show();
         WindowState = WindowState.Normal;
         DesktopRectangle work = GetQuickActionsWorkArea();
-        DesktopRectangle pet = GetPetImageAlphaBoundsInWindow();
+        DesktopRectangle pet = GetStableStageBoundsInWindow();
         Left = Clamp(Left, work.Left - pet.Left, work.Right - pet.Right);
         Top = Clamp(Top, work.Top - pet.Top, work.Bottom - pet.Bottom);
         UpdateAccessoryLayoutForCurrentPosition();
