@@ -163,7 +163,7 @@ public partial class MainWindow : Window
     private readonly bool _previewSettings;
     private readonly bool _previewTray;
     private readonly bool _previewSystemResume;
-    private readonly bool _previewLongIdle;
+    private readonly CrystalLongIdlePreviewMode _previewLongIdle;
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
     private readonly bool _previewBunChase;
@@ -299,7 +299,7 @@ public partial class MainWindow : Window
         bool previewSettings,
         bool previewTray,
         bool previewSystemResume,
-        bool previewLongIdle,
+        CrystalLongIdlePreviewMode previewLongIdle,
         bool previewGenshinLaunch,
         bool previewGenshinCameo,
         bool previewBunChase,
@@ -562,7 +562,7 @@ public partial class MainWindow : Window
                     "Desktop disappearance observer started without retaining file paths.");
             }
         }
-        if (!_previewLongIdle)
+        if (_previewLongIdle == CrystalLongIdlePreviewMode.Disabled)
         {
             _idleSceneTimer.Start();
         }
@@ -644,7 +644,7 @@ public partial class MainWindow : Window
         {
             _ = BeginSystemResumePreviewAsync();
         }
-        if (_previewLongIdle)
+        if (_previewLongIdle != CrystalLongIdlePreviewMode.Disabled)
         {
             _ = BeginLongIdlePreviewAsync();
         }
@@ -945,7 +945,25 @@ public partial class MainWindow : Window
             return;
         }
 
-        ApplyIdleScene(IdleSceneResolver.SleepThreshold);
+        CrystalLongIdleVariant? forcedVariant = _previewLongIdle switch
+        {
+            CrystalLongIdlePreviewMode.Sleep => CrystalLongIdleVariant.Sleep,
+            CrystalLongIdlePreviewMode.DuckSit => CrystalLongIdleVariant.DuckSit,
+            _ => null,
+        };
+        _stateMachine.SetContinuousState(PetContinuousState.Sleeping);
+        BeginCrystalLongIdle(forcedVariant);
+        _logger.Info(
+            "animation.crystal_long_idle_preview_started",
+            forcedVariant is CrystalLongIdleVariant variant
+                ? $"Variant={variant}; WakeMode=CharacterClick."
+                : "Variant=Random; WakeMode=AutomaticAfter20Seconds.");
+
+        if (forcedVariant is not null)
+        {
+            return;
+        }
+
         await Task.Delay(20000);
         if (!_isClosing)
         {
@@ -2633,7 +2651,7 @@ public partial class MainWindow : Window
 
     private bool IsCrystalLongIdleActive => _crystalLongIdleVariant is not null;
 
-    private void BeginCrystalLongIdle()
+    private void BeginCrystalLongIdle(CrystalLongIdleVariant? forcedVariant = null)
     {
         if (_isClosing || _animationPlayer is null || _animationCatalog is null ||
             IsCrystalLongIdleActive)
@@ -2642,7 +2660,7 @@ public partial class MainWindow : Window
         }
 
         ResetBodyReactionMirror();
-        _crystalLongIdleVariant = _crystalLongIdleSelector.ChooseVariant();
+        _crystalLongIdleVariant = forcedVariant ?? _crystalLongIdleSelector.ChooseVariant();
         _crystalLongIdleHolding = false;
         _crystalLongIdleWaking = false;
         _crystalLongIdleWakeRequested = false;

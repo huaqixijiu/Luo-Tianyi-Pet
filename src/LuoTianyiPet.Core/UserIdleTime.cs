@@ -70,6 +70,55 @@ public enum CrystalLongIdleVariant
     DuckSit,
 }
 
+public enum CrystalLongIdlePreviewMode
+{
+    Disabled,
+    Automatic,
+    Sleep,
+    DuckSit,
+}
+
+public static class CrystalLongIdlePreviewModeParser
+{
+    private const string ArgumentName = "--qa-long-idle";
+
+    public static CrystalLongIdlePreviewMode Parse(IEnumerable<string> arguments)
+    {
+        if (arguments is null)
+        {
+            throw new ArgumentNullException(nameof(arguments));
+        }
+
+        foreach (string argument in arguments)
+        {
+            if (string.Equals(argument, ArgumentName, StringComparison.OrdinalIgnoreCase))
+            {
+                return CrystalLongIdlePreviewMode.Automatic;
+            }
+
+            if (!argument.StartsWith(ArgumentName + "=", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string value = argument.Substring(ArgumentName.Length + 1);
+            if (string.Equals(value, "sleep", StringComparison.OrdinalIgnoreCase))
+            {
+                return CrystalLongIdlePreviewMode.Sleep;
+            }
+
+            if (string.Equals(value, "duck-sit", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(value, "ducksit", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(value, "duck", StringComparison.OrdinalIgnoreCase))
+            {
+                return CrystalLongIdlePreviewMode.DuckSit;
+            }
+        }
+
+        return CrystalLongIdlePreviewMode.Disabled;
+    }
+}
+
 public enum CrystalSleepDecoration
 {
     Zzz,

@@ -100,9 +100,8 @@ public partial class App : Application
             bool previewSystemResume = e.Args.Contains(
                 "--qa-system-resume",
                 StringComparer.OrdinalIgnoreCase);
-            bool previewLongIdle = e.Args.Contains(
-                "--qa-long-idle",
-                StringComparer.OrdinalIgnoreCase);
+            CrystalLongIdlePreviewMode previewLongIdle =
+                CrystalLongIdlePreviewModeParser.Parse(e.Args);
             bool previewGenshinLaunch = e.Args.Contains(
                 "--qa-genshin-launch",
                 StringComparer.OrdinalIgnoreCase);
