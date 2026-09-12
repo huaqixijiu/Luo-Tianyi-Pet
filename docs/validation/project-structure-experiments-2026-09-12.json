@@ -1,0 +1,57 @@
+[
+  {
+    "Path": "artifacts/size-audit/framework-dependent-20260908",
+    "Files": 74,
+    "Bytes": 171332015.0
+  },
+  {
+    "Path": "artifacts/size-audit/net48-publish",
+    "Files": 96,
+    "Bytes": 197789285.0
+  },
+  {
+    "Path": "artifacts/size-audit/webp-framework-dependent-20260911",
+    "Files": 87,
+    "Bytes": 174187913.0
+  },
+  {
+    "Path": "artifacts/size-audit/webp-self-contained-20260911",
+    "Files": 352,
+    "Bytes": 420705537.0
+  },
+  {
+    "Path": "artifacts/size-audit/webp-self-contained-20260911-v2",
+    "Files": 351,
+    "Bytes": 336672001.0
+  },
+  {
+    "Path": "artifacts/size-audit/zh-hans-self-contained-20260908",
+    "Files": 338,
+    "Bytes": 333816103.0
+  },
+  {
+    "Path": "artifacts/size-audit/LuoTianyiPet-framework-dependent-20260908.zip",
+    "Files": 1,
+    "Bytes": 151785570.0
+  },
+  {
+    "Path": "artifacts/size-audit/webp-framework-dependent-20260911.zip",
+    "Files": 1,
+    "Bytes": 148006613.0
+  },
+  {
+    "Path": "artifacts/size-audit/webp-self-contained-20260911-v2.zip",
+    "Files": 1,
+    "Bytes": 218201984.0
+  },
+  {
+    "Path": "artifacts/size-audit/zh-hans-self-contained-20260908.zip",
+    "Files": 1,
+    "Bytes": 221998115.0
+  },
+  {
+    "Path": "artifacts/zip-verify-464c3ba0cb0e49dc87e47f7e9b1672b4",
+    "Files": 104,
+    "Bytes": 292402467.0
+  }
+]

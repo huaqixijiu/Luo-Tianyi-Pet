@@ -1,0 +1,738 @@
+{
+  "Apply": true,
+  "KeepVersions": 2,
+  "Files": [
+    {
+      "Action": "Keep",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.56_x64.msix",
+      "Bytes": 178272327,
+      "Sha256": "192b618df12312bfb34dafeec4252de8a582c5bfe97e84836967bc5176ce4da3"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.51_x64.msix",
+      "Bytes": 178256371,
+      "Sha256": "6d8d63e56d72f2e5f661b9bdbb3751e3c97959730a6999fce6da05769c8fcce7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.50_x64.msix",
+      "Bytes": 178007372,
+      "Sha256": "443e599aca99c09d42b1dcf70aafc89b9b0fca307bbd0358e8e349ae04783c1f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.49_x64.msix",
+      "Bytes": 178006996,
+      "Sha256": "173d3e9cc600456b87aa7a14c366ce4842e1958d4f57abd7de2bfdebbf087928"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.48_x64.msix",
+      "Bytes": 178006257,
+      "Sha256": "e82d1bcd3e23d1a09215099af2bf7d928b0bed2d43bbde9a448775789f14640f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.47_x64.msix",
+      "Bytes": 144133936,
+      "Sha256": "919f1462ce26c5efd072d7f50e22b2748bd4ebd0eb736068feec7a009b3d5137"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.46_x64.msix",
+      "Bytes": 144133937,
+      "Sha256": "fcb70af3732ce208d665f69fbb19d454a568134e14b73616a497c39663ff575f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.45_x64.msix",
+      "Bytes": 144134684,
+      "Sha256": "b585d3e592ab53a9d128f19cbed77aa448c0c040f81f29b49f4d9bc1d1297e54"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.44_x64.msix",
+      "Bytes": 144132104,
+      "Sha256": "ac355cb07f1309a46a301dbd277af8937c2bf69e6fdacdc6f963d3702b69e76d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.43_x64.msix",
+      "Bytes": 143342544,
+      "Sha256": "c12e510ca9618034cad5d8a7a9f30d5a9dc755abe56e710a127b5703871b2a19"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.42_x64.msix",
+      "Bytes": 143343058,
+      "Sha256": "a765a63d65df409d9ddcd111701d6a61c6fa96115510f29f336689e6446084df"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.41_x64.msix",
+      "Bytes": 143342366,
+      "Sha256": "e54369bfdc8d215d411dfc6819560c55431ac4496fe66bde8494101aa61f53b4"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.40_x64.msix",
+      "Bytes": 143343118,
+      "Sha256": "0a360e7d7b46a19b77b4f0f1d0f702288eeb25504f39a7f42afd08b5ac3685d7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.39_x64.msix",
+      "Bytes": 141916506,
+      "Sha256": "dae922731ed43787d1a3e84ac8428dacf40312f378a77229d1787c7ed08d6337"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.38_x64.msix",
+      "Bytes": 141915558,
+      "Sha256": "fbce769bba7b9bf3359878d3a79ded6bccf4e1c0521cd20db41f15f33766ca5e"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.37_x64.msix",
+      "Bytes": 141967129,
+      "Sha256": "ff60c03da58ac1a8cf1f46f5392a8681337c9eee7769c18beee563cb3b5aff1e"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.36_x64.msix",
+      "Bytes": 141967058,
+      "Sha256": "8c88b5159e49be5164dc3e2ca80dee9dcda76a00682268b53854b2d2e1e4e05c"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.35_x64.msix",
+      "Bytes": 141967041,
+      "Sha256": "f28e9a6842e30d9148223b63650f4e1ed6b05ebf08b1795f19007255e24cf0d4"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.34_x64.msix",
+      "Bytes": 217080402,
+      "Sha256": "5afb34793ff897223c0231a460ceb78dd3a9625e7f8274df18112a8a73c6f0d0"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.33_x64.msix",
+      "Bytes": 231977252,
+      "Sha256": "0a44a5ed6aa2e2a73a700a3f80dcaddca337f7542b72c090d8812313326ca843"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.32_x64.msix",
+      "Bytes": 231977261,
+      "Sha256": "7b1dc6aa00e830ed678535d5de41daf8f2d5be4d6a033e21a7e7be9865d5ffac"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.31_x64.msix",
+      "Bytes": 231520386,
+      "Sha256": "af4f807b8873f06135d88d4d743c8003c6a9acee552615db2cef70da85810c56"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.30_x64.msix",
+      "Bytes": 231262103,
+      "Sha256": "a2e94196100a6605601e15adff11053578ed516327afe9ba6d2c98814bc4b853"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.29_x64.msix",
+      "Bytes": 231261979,
+      "Sha256": "7df696346f96d548106b1d913da3fc980de0ad6b82ff451fe3c8b06eef61f95c"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.28_x64.msix",
+      "Bytes": 231262273,
+      "Sha256": "29c711ebbfff81471c33f5caf12a1bc6233e296ae74aecf998777cffc12b6b09"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.27_x64.msix",
+      "Bytes": 231264182,
+      "Sha256": "20df7c4ea1baad01357fe3a1502f610cffbe0a7e450d4ee08ad72e16fab0d51d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.26_x64.msix",
+      "Bytes": 231264182,
+      "Sha256": "6e243b41668fb2009163c1ab75e0f09285e6e32a66effdcda8a3d8e1f35669c7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.25_x64.msix",
+      "Bytes": 227751043,
+      "Sha256": "f91c5c19e71076aa11663c0e966f7421be7eb02fd33d451fcbc15ea16f16c073"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.24_x64.msix",
+      "Bytes": 227749882,
+      "Sha256": "2bf2f0b082cd062d64cac7e43442ea4aa47820d539e21f3c571e55efdecc897d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.23_x64.msix",
+      "Bytes": 227749434,
+      "Sha256": "bb45c44343e3ffe860e0390ce1d59996109815dec1329599a593382dbecfd12f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.22_x64.msix",
+      "Bytes": 227630687,
+      "Sha256": "615067e9c161e0e9ed423ddd3002fbd4e182b6bf843f9533f217dde072e1ddd4"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.21_x64.msix",
+      "Bytes": 103391145,
+      "Sha256": "cbce42b16062ab2b6b1122bf87b014a65c84f9faf0f7adda832c445d0d2d0ebf"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.20_x64.msix",
+      "Bytes": 108061612,
+      "Sha256": "ae2b7b7858465869ddeaa495861d91b88461b2a04d0195395233853242b0616b"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.19_x64.msix",
+      "Bytes": 108057802,
+      "Sha256": "7025ec0c39b706489eb8bb65870b2916a26c7328387559973de9b1bab6c8c31d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.18_x64.msix",
+      "Bytes": 107679590,
+      "Sha256": "f842e9e927958fadf5365cba4e9342c6c0ba9c96a68078491f28908d911f612e"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.17_x64.msix",
+      "Bytes": 107685646,
+      "Sha256": "0abc4ea13c35903b9a78059003faef3394f873d822b002fdbea33f93469f74e0"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.16_x64.msix",
+      "Bytes": 103013143,
+      "Sha256": "77200106de922c7209de7eacd35c26b90297878962b37ca619a5101126c5f90d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.15_x64.msix",
+      "Bytes": 103013125,
+      "Sha256": "d1a19f805f4bd60946adf3c45f3c79e7b49e132208a459ee8ae5c123a377b32f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.14_x64.msix",
+      "Bytes": 103013121,
+      "Sha256": "98d1af31388b77e14e4720a7066dfff49551eda5ff816cbfe60f5dd6e54d73c5"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.13_x64.msix",
+      "Bytes": 103178038,
+      "Sha256": "d745f290c6f1d7ae01f3f57659b9d023c1e31f327004a419b9df5142ec13a86b"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.12_x64.msix",
+      "Bytes": 103176321,
+      "Sha256": "82056e95de31ae3c1e71aef37eee2c11f9b870088e2bb5e9a0fdf8269d467e89"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.11_x64.msix",
+      "Bytes": 103176159,
+      "Sha256": "e869b128e7b89de671728f91971c118506ee84df2cef10efc639045fa96149c0"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.10_x64.msix",
+      "Bytes": 103175395,
+      "Sha256": "4ad02ae5caa784a029a59a8b4fc855ca6b9f0d6f1b11861eb84b1891103eb2e1"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.9_x64.msix",
+      "Bytes": 103175465,
+      "Sha256": "26d384eb7952a940d5b4a53cc20139a4a76a00c3d8a681e7a1a8412d5dfe90ce"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.8_x64.msix",
+      "Bytes": 103171036,
+      "Sha256": "ae452c44d236931a077500303131fc77b16191f36e780cbdcfeb64908471c1be"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.7_x64.msix",
+      "Bytes": 103171037,
+      "Sha256": "8cb42d29bf11b4d930b987ddc15108073821a02737c3629639b99ba90e8a1d1c"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.6_x64.msix",
+      "Bytes": 103168575,
+      "Sha256": "ccb2e7017a08c5961db2ad81309a0f75790df6b44255d409b36e2eab52183016"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.5_x64.msix",
+      "Bytes": 103168214,
+      "Sha256": "ef962e22a4cdd6d0aede7b039c7ef473228f8843cb9e4d5646636e9821b81656"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.4_x64.msix",
+      "Bytes": 103171657,
+      "Sha256": "35396df355c8eb4b0a4c7ab79c71378921327f2e7175579a169f2b167f9a6cf8"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.3_x64.msix",
+      "Bytes": 103162368,
+      "Sha256": "8ee146dc8d6e274838515be408763cd14b9ff1c65f695992da6453351560a9a0"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.1_x64.msix",
+      "Bytes": 103162062,
+      "Sha256": "07c54fcd11c3e27b02a4b6a091d0c30f18d3d4fbef45b6ba98b16e22475994d1"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/msix/release/LuoTianyiPet_0.1.0.0_x64.msix",
+      "Bytes": 103161345,
+      "Sha256": "0a06989cc0c543b8a6876b343826b5ff1951e720fce87bd5e8ce73b1e6e3c513"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.56-win-x64.zip",
+      "Bytes": 178075268,
+      "Sha256": "3a5438dc8e003bad351c3929e1007aa994957e1d2ee1e725701626d3ec83e4b2"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.56-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "61d220fd1e2c3438c31f7aae7076fbedb70adfd6460e588a2a7b8aeff1265df3"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.51-win-x64.zip",
+      "Bytes": 178057823,
+      "Sha256": "6c8d5e2b8aa064e2456fc71924fe5a7f6c21e950728d3d747bde05fbacca64e3"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.51-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "f2e9bfdb0eb3af57f8fd120027c9f09ee50c372df9ab1b6a57a5daf07f001f82"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.50-win-x64.zip",
+      "Bytes": 177809259,
+      "Sha256": "bddfd1f73fb3e61239ed7d1d2bb37a705435ef8f9f6b78e49ad9c18eeb6be056"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.50-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "44772724243edeb200c24ccb12f5341047848236c8da95e97a09e7033fe14fd8"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.49-win-x64.zip",
+      "Bytes": 177808787,
+      "Sha256": "afde2b99d963b00bda1bb509ee6cefac52fe8f59a8786c5d7a3877c78c70e77d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.49-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "8506ea96ff3cbdba0f7e75c69f76719c12d5fa4611af0cef6cf5b9e7a2c25dfa"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.48-win-x64.zip",
+      "Bytes": 177808116,
+      "Sha256": "aa2f645bcf331d51564d1f9cbeed8c0234ad14a446b72e7a5aa60997ba74d8ad"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.48-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "16d3ed5b93a609b46474d56f109b75689dd2c0db4d5407cfafe7ac7e6eda6e19"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.47-win-x64.zip",
+      "Bytes": 143738704,
+      "Sha256": "8f327e4089b9211d222aa77fa20391bdad1303bf3766b060cc76e7c162d9c852"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.47-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "25b8db738d121109cf2f8c1a0d00ddf5d0af9a40d90cf3856bca34845a766638"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.46-win-x64.zip",
+      "Bytes": 143738707,
+      "Sha256": "c90f7131aa5343ecb7a1593b3baa4c020a561f175822d48d26b0980021b63149"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.46-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "0d61679310878b31294ec7946d51592ce8d03c0bc37a29f8e20da6955d0bb5b6"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.45-win-x64.zip",
+      "Bytes": 143738696,
+      "Sha256": "a19706610fe59c2fc3f5c4518b0269d40b5ba79f7af736b0060ea91f3cf37fca"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.45-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "0ac15de80ffadcb2776b10b1c28ab60f53306ed5ef869f7ddcc7657c6ec049d7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.44-win-x64.zip",
+      "Bytes": 143736883,
+      "Sha256": "3d414ba8d24b1a62dc6bfdec33a9fe055eeb20e69c29d3b6426a5ab55ccf8ebd"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.44-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "bae80aaabbaf217b0f0b956557f3893612caf94667d9235f8ed00a235674a1ed"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.43-win-x64.zip",
+      "Bytes": 143170367,
+      "Sha256": "8d8bc6cdb14f7a472e18d3af2776a1d63d19b26a5b3c0f4be30968e261fe4c36"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.43-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "ad7020dc4390f841ac42ab48595d8e8b70d38d0c7099c289b5a5bde7a3ca2120"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.42-win-x64.zip",
+      "Bytes": 143170328,
+      "Sha256": "030881ca91d2495a0f62c43f1802bd091bd0dda8fa506ffd9aafd75aec9390d6"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.42-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "296c002ee06255eebf07ea2563bc166e498ca21aa745c0efbe142981bd938f60"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.41-win-x64.zip",
+      "Bytes": 143170106,
+      "Sha256": "58148cae319332744f6d92164c75291a63b70d88a36f197a8b30385dbf177349"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.41-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "d759fb22e8ba7fdf96d8c636d7a2cc9241dfebfdfc610f9129634c4aaeb9863f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.40-win-x64.zip",
+      "Bytes": 143170098,
+      "Sha256": "fbf700df0c7841b8a1f176fcd53942b3c786ade55b5014a66b8c7450f799fc4d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.40-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "6cc717f2e3dc30355549dfec371408a2d129c87042d8d9000daf112df8cd77a7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.37-win-x64.zip",
+      "Bytes": 141573824,
+      "Sha256": "7e742444b46e16fb90840ca11a724e29c4ddb0ee4a09b2ee2842d2e5c7805e84"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-0.1.0.37-win-x64.zip.sha256.txt",
+      "Bytes": 110,
+      "Sha256": "5c244288b2aeef799004c503ddf7b09e363d59802ed61f1a7b42ff6448b18434"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.21-win-x64.zip",
+      "Bytes": 227706210,
+      "Sha256": "c5a8a3a95bab9d4c22a89b8441a0caeef110f379d83019f53332b2e9c22f6ad8"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.21-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "f3cb59ce12277d156449b81a46d2b18366bca7081a5cf85be537651493c989f1"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.20-win-x64.zip",
+      "Bytes": 109077100,
+      "Sha256": "1999d6191138dcda103f75aa6f01435e2046a9882bca8b03e1d29d6971331019"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.20-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "a37bb59c8306dd18c87965b6c82067cc6e9a5ff68d186aaafa39c962878e46a5"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.19-win-x64.zip",
+      "Bytes": 109073457,
+      "Sha256": "dbcdd70a7b54aab6c21c927ff94edcaf607c9d0a63e91e74f5ce703ad56c4444"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.19-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "a016ee89433a4b631a8c09f6a8bc6c94c2347ebaabd17ca8056d587bc13c2589"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.18-win-x64.zip",
+      "Bytes": 108697336,
+      "Sha256": "3a10e1ddd4e9a10b274c7621a5cdf85efaa99b6f6ee5d94d5911c3e0821da33a"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.18-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "6f8d3aae093e27a5387b4f0505443acaf102cae4946023ef19c6e1984c02b752"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.16-win-x64.zip",
+      "Bytes": 104051614,
+      "Sha256": "72c48777f7f13fe471653526f26fb5577bc8e95242d08301e6cc00ac7cc581a5"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.16-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "1153603746a786ae7d2b6ed3bc2c68f59a54008281611d6b53f4808f66babda7"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.15-win-x64.zip",
+      "Bytes": 104051615,
+      "Sha256": "21d2c21ee29b03f9daf9327099b6bb64b8b377fdda488d95447460f1330d3456"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.15-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "0be7f6e9452b55eff2a96c58b19313028c79b5f7b938a8b60e3799f5209ca122"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.14-win-x64.zip",
+      "Bytes": 104051606,
+      "Sha256": "0a8ca9f03879ab07341075259f31b9b7bdecdebb3905cc82bc76a3ec86ccef16"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.14-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "0d59088576485b8ab6f3b9c5381059e0eefb116019ed832122ce84f09f659363"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.13-win-x64.zip",
+      "Bytes": 104215788,
+      "Sha256": "699fda92ddae9c6251d221cf138568166cf073d492277fa296830d139831a6a2"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.13-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "e293f1db7a77a554dedb4e1496991c76fccebc5cce37eb69289c72f021d0cecb"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.12-win-x64.zip",
+      "Bytes": 104213420,
+      "Sha256": "d36e85b20d153e96454e0613df67e7bf8d035593f0bc818c967fd339a8ae1b5f"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.12-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "bfc696c38ee0cd11747e718159ef1e3a18cef4d991c155bde0adf353f30c0532"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.11-win-x64.zip",
+      "Bytes": 104213221,
+      "Sha256": "42f005199b9f2527ee6c292871d224db65ded3ced3ba41bb2366bad0e0bae206"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.11-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "31293086bf1e810f50133459fd1a6b3f443759def62821b2d48bd774588e02f4"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.10-win-x64.zip",
+      "Bytes": 104212364,
+      "Sha256": "5fba6382bfff0644dd2f944fffa566e49033c88082541f16625b85a604d72523"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.10-win-x64.zip.sha256.txt",
+      "Bytes": 115,
+      "Sha256": "dc401a0eafe8ce621f3a34166bcede41acbdf37621d863dd19fa90c0fdf0d284"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.9-win-x64.zip",
+      "Bytes": 104211324,
+      "Sha256": "1fb57674957c76ac9687897fa33717b09a3ef4d9fd7ee239cf4021ded5d73851"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.9-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "1a593044e27f9461fa377614b750bf186343931b73d4ca8b6e56dd807feab950"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.8-win-x64.zip",
+      "Bytes": 104206781,
+      "Sha256": "f0cc6f33ca1ea6e2cdb71a8bfa712750b59d6d90622c894ae861cce5c5603f7d"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.8-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "869d337ebe0f877bee8de81c5e4c04a8cb51d5b5d127084d8aff9fd231e83272"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.7-win-x64.zip",
+      "Bytes": 104206794,
+      "Sha256": "50a574549c4a27168b4eb668d005733cf72cbd67900c8521cc4def0b0a45f488"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.7-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "123b56a43183ccd69202e93abef4e27ccdee9109bab47be0af83b809e1bd70d9"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.6-win-x64.zip",
+      "Bytes": 104204772,
+      "Sha256": "8e2ecf81048584088ca4b37d2fa6be551c977eee30b8aec938f902a1eb5effbb"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.6-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "668e9358a29be539850cb3531fb56f0d2711468a1be379bea59d91a4d99774f4"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.5-win-x64.zip",
+      "Bytes": 104204480,
+      "Sha256": "1dbd658c5b88c7927a690d1fc5cd571ec0a902697ad25ff6156c6269827fd83a"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.5-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "12121dc12f77219581a130f0529b7c848a5bddb25468836699f9c84e093f3645"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.4-win-x64.zip",
+      "Bytes": 104208007,
+      "Sha256": "72fd536afede9e8bbd72e29b1a7759b35c269fb47de9ed5cb8e8cf0034983f7c"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.4-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "fbc2a210e6c7685cd1a585f063f1de831bf29d268e0d3d9aab6cfcac3093c6c0"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.3-win-x64.zip",
+      "Bytes": 104198442,
+      "Sha256": "cbd6f9a4cc9a83205f13a2ca13bb2c0164b05622121931869594d453223d9c72"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.3-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "0f29323f46b2c0dc0a4e1c88c0cda27c5129eead331263cee6149951c84ac8e8"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.2-win-x64.zip",
+      "Bytes": 104197822,
+      "Sha256": "3f3ffee1d181498f617ce8e7ad158e1142280daf732072fe1cb8b0c7b36dbf7e"
+    },
+    {
+      "Action": "Delete",
+      "Path": "artifacts/portable/release/LuoTianyiPet-Portable-Test-0.1.0.2-win-x64.zip.sha256.txt",
+      "Bytes": 114,
+      "Sha256": "740d5c3b5437d3a6bd9714801d0caac3e58ec85e440ef47c934866b1dbe1f470"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/sideload/release/LuoTianyiPet-Installer-0.1.0.56-win-x64.zip",
+      "Bytes": 178196058,
+      "Sha256": "a0e0c5661a705e599e5d7e420f0fb1625277d97d0d4e7cb2a026dc49e918c365"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/sideload/release/LuoTianyiPet-Installer-0.1.0.56-win-x64.zip.sha256.txt",
+      "Bytes": 111,
+      "Sha256": "86672638e35cb2706692b46050150cd966d4efa963cdfa119ca5cb3d08c23cd1"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/sideload/release/LuoTianyiPet-Installer-0.1.0.51-win-x64.zip",
+      "Bytes": 178180047,
+      "Sha256": "ed4738ad83b2c1b073b8f7a806c53ba210dfdaa3511e2dc1fb2f031a6f60d6ac"
+    },
+    {
+      "Action": "Keep",
+      "Path": "artifacts/sideload/release/LuoTianyiPet-Installer-0.1.0.51-win-x64.zip.sha256.txt",
+      "Bytes": 111,
+      "Sha256": "ba8aca7c56b8312f53f36982cd2c759dc7654d208ce5b19a15778c8307758acb"
+    }
+  ]
+}

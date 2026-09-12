@@ -1,6 +1,6 @@
 # 洛天依桌宠
 
-一个面向 Windows 的洛天依 Q 版桌面宠物项目。M0 工程骨架已经完成：项目现在可以编译、测试并启动透明 WPF 桌宠窗口，正在进入真实动画播放器阶段。
+一个面向 Windows 的洛天依 Q 版桌面宠物项目，已接入真实动画、三种外观、鼠标互动及音乐和消息联动。当前阶段、实测结果和唯一下一步以 [`docs/项目总控.md`](docs/项目总控.md) 为准。
 
 计划功能包括透明桌宠窗口、待机与鼠标区域互动、网易云音乐全局快捷键控制、音乐播放状态检测、QQ/微信简要提醒，以及可配置的应用启动反应。
 
@@ -32,7 +32,7 @@
 - [`docs/开发路线图.md`](docs/开发路线图.md)
 - [`docs/决策记录.md`](docs/决策记录.md)
 - [`docs/开发日志.md`](docs/开发日志.md)
-- [`docs/全身基础待机动画调研.md`](docs/全身基础待机动画调研.md)
+- [`docs/research/全身基础待机动画调研.md`](docs/research/全身基础待机动画调研.md)
 - [`config/scene-rules.example.json`](config/scene-rules.example.json)
 
 Codex 在任何新任务开始前都必须先阅读根目录的 [`AGENTS.md`](AGENTS.md) 和项目总控，以仓库内容恢复上下文，不依赖聊天历史。
@@ -43,14 +43,19 @@ Codex 在任何新任务开始前都必须先阅读根目录的 [`AGENTS.md`](AG
 洛天依桌宠/
 ├─ src/                WPF 应用、核心逻辑、动画和 Windows 平台适配
 ├─ tests/              自动化测试
-├─ tools/              资产编译等开发工具
+├─ tools/              资产编译、打包、界面素材和维护工具
 ├─ config/             可编辑的场景规则与默认设置
-├─ docs/               需求、安全约束和动画映射
+├─ docs/               权威文档；research 调研、authoring 制作、validation 验证
+├─ packaging/          安装包模板、图标和安装/清理脚本
 ├─ assets/             已确认用于运行时的处理后素材
 ├─ 候选素材_官方/      官方模型、动画、表情与动画挑选器
+├─ artifacts/          本地发布包、测试输出、工作区和历史实验归档（不提交）
+├─ .local-tools/       本地 Blender、插件、制作场景与中间帧（不提交）
 ├─ .gitattributes      Git LFS 资源类型
 └─ .gitignore          构建产物和本地临时文件忽略规则
 ```
+
+完整用途、归档位置和清理边界见 [`docs/目录与归档指南.md`](docs/目录与归档指南.md)。
 
 ## 开发与验证
 
@@ -63,7 +68,8 @@ dotnet test LuoTianyiPet.sln --configuration Release --no-build
 dotnet run --project src/LuoTianyiPet.App/LuoTianyiPet.App.csproj --configuration Release
 ```
 
-当前运行窗口中的“M0 · 透明窗口验证”角色仅用于窗口骨架验证，M1 会用已确认的真实素材替换。
+如终端的 `dotnet` 未识别 SDK，本机用户级 SDK 位于 `$env:LOCALAPPDATA\Microsoft\dotnet\dotnet.exe`。
+双目标构建和测试附加 `-p:EnableNetFrameworkBuild=true`。安装包构建与使用说明见 [`packaging/README.md`](packaging/README.md)。
 
 ## 资源管理
 
