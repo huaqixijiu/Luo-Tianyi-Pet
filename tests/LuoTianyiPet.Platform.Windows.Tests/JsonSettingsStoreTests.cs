@@ -5,6 +5,43 @@ namespace LuoTianyiPet.Platform.Windows.Tests;
 public sealed class JsonSettingsStoreTests
 {
     [Fact]
+    public async Task Load_Version14_KeepsExistingPreferencesAndStartsWithMusicIslandsHidden()
+    {
+        string testDirectory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(testDirectory);
+            Directory.CreateDirectory(testDirectory);
+            await WriteAllTextAsync(paths.SettingsFile,
+                """
+                {
+                  "schemaVersion": 14,
+                  "window": { "alwaysOnTop": true, "left": 123, "top": 456 },
+                  "appearance": { "fullBodyStyle": "full-body-crystal-dress", "displayScalePercent": 150 },
+                  "media": { "silenceGraceMilliseconds": 1000, "musicAnimationSelection": "none" },
+                  "notifications": { "windowsNotificationAccessGranted": true }
+                }
+                """);
+            AppSettings actual = await new JsonSettingsStore(paths).LoadAsync();
+            Assert.Equal(AppSettings.CurrentSchemaVersion, actual.SchemaVersion);
+            Assert.False(actual.Media.ShowMusicIslands);
+            Assert.False(actual.Window.LockPosition);
+            Assert.True(actual.Window.AlwaysOnTop);
+            Assert.Equal(123, actual.Window.Left);
+            Assert.Equal(456, actual.Window.Top);
+            Assert.Equal(150, actual.Appearance.DisplayScalePercent);
+            Assert.Equal(AppearanceOptionIds.FullBodyCrystalDress, actual.Appearance.FullBodyStyle);
+            Assert.Equal(1000, actual.Media.SilenceGraceMilliseconds);
+            Assert.Equal("none", actual.Media.MusicAnimationSelection);
+            Assert.True(actual.Notifications.WindowsNotificationAccessGranted);
+        }
+        finally
+        {
+            Directory.Delete(testDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task SaveAndLoad_RoundTripsWindowPreferences()
     {
         string testDirectory = CreateTestDirectory();
@@ -15,6 +52,7 @@ public sealed class JsonSettingsStoreTests
             {
                 Media = new MediaPreferences
                 {
+                    ShowMusicIslands = true,
                     EnableCloudMusicDetection = false,
                     TargetProcessName = "custom-player.exe",
                     MusicAnimationSelection = PetVisualState.MusicSwayAnimation,
@@ -47,6 +85,7 @@ public sealed class JsonSettingsStoreTests
                 },
                 Window = new WindowPreferences
                 {
+                    LockPosition = true,
                     AlwaysOnTop = true,
                     Left = 123.5,
                     Top = 456.25,

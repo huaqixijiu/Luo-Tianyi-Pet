@@ -23,6 +23,10 @@ public partial class App : Application
             argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
         string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
+        if (e.Args.Contains("--qa-quick-actions", StringComparer.OrdinalIgnoreCase))
+        {
+            instanceId = $"{ApplicationId}.QA.QuickActions";
+        }
         _singleInstance = SingleInstanceGuard.Acquire(instanceId);
         if (!_singleInstance.IsPrimaryInstance)
         {
@@ -91,6 +95,10 @@ public partial class App : Application
                 "--qa-cloudmusic-control-live",
                 StringComparer.OrdinalIgnoreCase);
             previewMediaControls |= liveCloudMusicControlQa;
+            if (previewMediaControls || previewTrackInfo || liveTrackInfoQa)
+            {
+                settings = settings with { Media = settings.Media with { ShowMusicIslands = true } };
+            }
             bool previewSettings = e.Args.Contains(
                 "--qa-settings",
                 StringComparer.OrdinalIgnoreCase);

@@ -2,7 +2,7 @@ namespace LuoTianyiPet.Core;
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 14;
+    public const int CurrentSchemaVersion = 15;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
 
@@ -197,6 +197,8 @@ public sealed record WindowPreferences
 {
     public bool AlwaysOnTop { get; init; }
 
+    public bool LockPosition { get; init; }
+
     public bool StartWithWindows { get; init; }
 
     public double? Left { get; init; }
@@ -221,6 +223,8 @@ public sealed record MediaPreferences
     public float AudiblePeakThreshold { get; init; } = DefaultAudiblePeakThreshold;
 
     public bool EnableCloudMusicShortcutControl { get; init; } = true;
+
+    public bool ShowMusicIslands { get; init; }
 
     public string PreviousTrackShortcut { get; init; } = "Ctrl+Alt+Left";
 

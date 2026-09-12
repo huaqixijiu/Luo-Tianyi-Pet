@@ -37,6 +37,7 @@ public partial class SettingsWindow : Window
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
         AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
+        DisplayScaleSlider.Value = SelectedAppearancePreferences.DisplayScalePercent;
         FullBodyStyleCyclingCheckBox.IsChecked =
             SelectedAppearancePreferences.EnableFullBodyStyleCycling;
         DesktopFileTreatsCheckBox.IsChecked = fileTreatPreferences.EnableDesktopFileTreats;
@@ -203,6 +204,7 @@ public partial class SettingsWindow : Window
             SelectedAppearancePreferences with
             {
                 EnableFullBodyStyleCycling = FullBodyStyleCyclingCheckBox.IsChecked == true,
+                DisplayScalePercent = (int)Math.Round(DisplayScaleSlider.Value / 5d) * 5,
             });
         WpfRadioButton? selectedMusicAnimation = MusicAnimationSelectionPanel.Children
             .OfType<WpfRadioButton>()

@@ -11,35 +11,23 @@ public sealed class TrayIconController : IDisposable
     private bool _disposed;
 
     public TrayIconController(
+        Action showPet,
+        Action hidePet,
+        Func<bool> isPetVisible,
         Action openSettings,
-        Func<bool> isTopmostEnabled,
-        Action<bool> setTopmostEnabled,
-        Func<bool> isStartupEnabled,
-        Action<bool> setStartupEnabled,
-        Func<int> getDisplayScalePercent,
-        Action<int> previewDisplayScalePercent,
-        Action<int> commitDisplayScalePercent,
         Action exit)
     {
         Guard.NotNull(openSettings, nameof(openSettings));
-        Guard.NotNull(isTopmostEnabled, nameof(isTopmostEnabled));
-        Guard.NotNull(setTopmostEnabled, nameof(setTopmostEnabled));
-        Guard.NotNull(isStartupEnabled, nameof(isStartupEnabled));
-        Guard.NotNull(setStartupEnabled, nameof(setStartupEnabled));
-        Guard.NotNull(getDisplayScalePercent, nameof(getDisplayScalePercent));
-        Guard.NotNull(previewDisplayScalePercent, nameof(previewDisplayScalePercent));
-        Guard.NotNull(commitDisplayScalePercent, nameof(commitDisplayScalePercent));
+        Guard.NotNull(showPet, nameof(showPet));
+        Guard.NotNull(hidePet, nameof(hidePet));
+        Guard.NotNull(isPetVisible, nameof(isPetVisible));
         Guard.NotNull(exit, nameof(exit));
 
         _quickPanel = new TrayQuickPanel(
+            showPet,
+            hidePet,
+            isPetVisible,
             openSettings,
-            isTopmostEnabled,
-            setTopmostEnabled,
-            isStartupEnabled,
-            setStartupEnabled,
-            getDisplayScalePercent,
-            previewDisplayScalePercent,
-            commitDisplayScalePercent,
             exit);
 
         Drawing.Icon icon = ExtractApplicationIcon();
@@ -53,7 +41,8 @@ public sealed class TrayIconController : IDisposable
         {
             if (eventArgs.Button == Forms.MouseButtons.Left)
             {
-                openSettings();
+                _quickPanel.HidePanel();
+                showPet();
             }
             else if (eventArgs.Button == Forms.MouseButtons.Right)
             {

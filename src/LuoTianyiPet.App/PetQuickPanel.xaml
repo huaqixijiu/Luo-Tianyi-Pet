@@ -1,0 +1,28 @@
+<Window x:Class="LuoTianyiPet.App.PetQuickPanel"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="天依常用功能" Width="264" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        WindowStartupLocation="Manual" UseLayoutRounding="True"
+        Deactivated="OnDeactivated" PreviewKeyDown="OnPreviewKeyDown">
+    <Window.Resources><ResourceDictionary Source="QuickPanelResources.xaml" /></Window.Resources>
+    <Border Style="{StaticResource PanelSurface}">
+        <StackPanel>
+            <TextBlock Margin="10,2,0,8" FontSize="13" FontWeight="SemiBold" Text="天依 · 常用功能" />
+            <CheckBox x:Name="LockPositionCheckBox" Content="锁定位置" Click="OnLockClick" ToolTip="防止误拖，仍可摸头、点击和双击换装" />
+            <CheckBox x:Name="TopmostCheckBox" Content="始终置顶" Click="OnTopmostClick" />
+            <CheckBox x:Name="MusicIslandsCheckBox" Content="显示音乐悬浮岛" Click="OnMusicClick" ToolTip="开启后悬停显示歌名和音乐控制；关闭后全部隐藏" />
+            <Border Height="1" Background="#D8E8EF" Margin="10,8" />
+            <Grid Margin="10,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" /><ColumnDefinition Width="30" /><ColumnDefinition Width="48" /><ColumnDefinition Width="30" />
+                </Grid.ColumnDefinitions>
+                <TextBlock FontSize="12" Text="显示大小" VerticalAlignment="Center" />
+                <Button x:Name="DecreaseScaleButton" Grid.Column="1" Content="−" Padding="0" HorizontalContentAlignment="Center" FontSize="19" Click="OnDecreaseClick" AutomationProperties.Name="缩小桌宠" />
+                <TextBlock x:Name="ScaleValueText" Grid.Column="2" FontSize="12" Foreground="#0878A9" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Button x:Name="IncreaseScaleButton" Grid.Column="3" Content="+" Padding="0" HorizontalContentAlignment="Center" FontSize="19" Click="OnIncreaseClick" AutomationProperties.Name="放大桌宠" />
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>

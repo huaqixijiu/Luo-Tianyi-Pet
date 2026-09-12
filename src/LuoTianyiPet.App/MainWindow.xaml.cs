@@ -605,6 +605,10 @@ public partial class MainWindow : Window
         {
             CreateTrayIcon();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-quick-actions"))
+        {
+            _ = RunQuickActionsQaAsync();
+        }
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
@@ -1370,7 +1374,7 @@ public partial class MainWindow : Window
                 _stateMachine.Resolve(DateTimeOffset.Now).Source,
                 _stateMachine.ActiveReactionToken,
                 _messageNotificationReactionToken);
-        return foreground.Succeeded &&
+        return !_hiddenByUser && foreground.Succeeded &&
             !foreground.IsFullscreen &&
             !_systemSessionUnavailable &&
             _edgeDockSide == EdgeDockSide.None &&
@@ -1686,6 +1690,12 @@ public partial class MainWindow : Window
 
     private void BeginWindowDrag()
     {
+        if (_settings.Window.LockPosition)
+        {
+            _pointerGesture.Cancel();
+            _singleClickTimer.Stop();
+            return;
+        }
         _singleClickTimer.Stop();
         ResetBodyReactionMirror();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
@@ -3416,14 +3426,10 @@ public partial class MainWindow : Window
         try
         {
             _trayIcon = new TrayIconController(
+                () => Dispatcher.BeginInvoke(ShowPetFromTray),
+                () => Dispatcher.BeginInvoke(HidePetFromTray),
+                () => IsVisible,
                 () => Dispatcher.BeginInvoke(ShowSettingsDialog),
-                () => _permanentTopmost,
-                enabled => Dispatcher.BeginInvoke(() => SetPermanentTopmost(enabled, save: true)),
-                () => _startupRegistrationService?.IsEnabled ?? false,
-                enabled => Dispatcher.BeginInvoke(() => SetStartupEnabled(enabled, save: true)),
-                () => _settings.Appearance.DisplayScalePercent,
-                percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: false)),
-                percent => Dispatcher.BeginInvoke(() => SetDisplayScalePercent(percent, save: true)),
                 () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()));
             if (_previewTray)
             {
@@ -4568,7 +4574,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_settings.Media.EnableCloudMusicShortcutControl && !_isClosing)
+        if (!CanShowMusicIslands)
+        {
+            HideMusicIslands();
+            return;
+        }
+
+        if (_settings.Media.EnableCloudMusicShortcutControl)
         {
             _mediaControlsHideTimer.Stop();
             _mediaControlsMotion.Show();
@@ -5005,7 +5017,7 @@ public partial class MainWindow : Window
         FeedbackBubble.Visibility = Visibility.Collapsed;
         bool shouldRestoreTrackInfo = restoreTrackInfo && _restoreTrackInfoAfterFeedback;
         _restoreTrackInfoAfterFeedback = false;
-        if (!shouldRestoreTrackInfo || _bunChaseActive)
+        if (!shouldRestoreTrackInfo || !CanShowMusicIslands)
         {
             return;
         }
@@ -5737,7 +5749,7 @@ public partial class MainWindow : Window
 
     private bool IsBunChaseEnvironmentSafe()
     {
-        if (_isClosing || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
+        if (_isClosing || _hiddenByUser || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
             _isWindowDragging || _foregroundApplicationProbe is null)
         {
             return false;
@@ -6183,18 +6195,18 @@ public partial class MainWindow : Window
 
     private void ShowTrackInfoUnavailable()
     {
-        TrackTitleText.Text = "暂未读取到歌曲名称";
-        TrackArtistText.Text = "请确认网易云正在播放并允许系统媒体控制";
-        TrackArtistText.Visibility = Visibility.Visible;
+        TrackTitleText.Text = "未在播放";
+        TrackArtistText.Text = string.Empty;
+        TrackArtistText.Visibility = Visibility.Collapsed;
         System.Windows.Automation.AutomationProperties.SetName(
             TrackInfoBubble,
-            "暂未读取到歌曲名称");
+            "未在播放");
         ShowTrackInfoSurface(holdAfterLeave: false);
     }
 
     private void ShowTrackInfoSurface(bool holdAfterLeave)
     {
-        if (_bunChaseActive)
+        if (!CanShowMusicIslands)
         {
             _trackInfoMotion.Hide(animate: false);
             return;
@@ -6285,7 +6297,10 @@ public partial class MainWindow : Window
         Rect workArea = SystemParameters.WorkArea;
         Top = Clamp(Top + 300, workArea.Top, workArea.Bottom - ActualHeight);
         Topmost = true;
-        _mediaControlsMotion.Show();
+        if (CanShowMusicIslands)
+        {
+            _mediaControlsMotion.Show();
+        }
     }
 
     private async Task BeginLiveCloudMusicControlPreviewAsync()
@@ -6351,6 +6366,7 @@ public partial class MainWindow : Window
         _desktopToolWindowBehavior?.Dispose();
         _desktopToolWindowBehavior = null;
         _isClosing = true;
+        _petQuickPanel?.Close();
         _trayIcon?.Dispose();
         _trayIcon = null;
         _trackSwitchCancellation?.Cancel();

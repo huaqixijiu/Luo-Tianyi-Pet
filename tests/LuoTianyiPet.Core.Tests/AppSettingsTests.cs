@@ -12,6 +12,8 @@ public sealed class AppSettingsTests
         Assert.Equal(AppSettings.CurrentSchemaVersion, settings.SchemaVersion);
         Assert.False(settings.Window.AlwaysOnTop);
         Assert.False(settings.Window.StartWithWindows);
+        Assert.False(settings.Window.LockPosition);
+        Assert.False(settings.Media.ShowMusicIslands);
         Assert.Null(settings.Window.Left);
         Assert.Null(settings.Window.Top);
         Assert.True(settings.Media.EnableCloudMusicDetection);

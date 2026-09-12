@@ -19,6 +19,7 @@
         LostMouseCapture="OnLostMouseCapture"
         MouseEnter="OnRootMouseEnter"
         MouseLeave="OnRootMouseLeave"
+        MouseRightButtonUp="OnPetMouseRightButtonUp"
         MouseLeftButtonDown="OnMouseLeftButtonDown"
         MouseLeftButtonUp="OnMouseLeftButtonUp"
         MouseMove="OnMouseMove">

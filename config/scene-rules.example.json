@@ -4,6 +4,10 @@
     "userTopmostDefault": false,
     "startWithWindowsDefault": false,
     "settingsEntryPoint": "windows-system-tray",
+    "trayLeftClick": "show-and-recall-pet-never-toggle-hidden",
+    "trayRightClick": "show-hide-settings-exit-menu",
+    "lockPositionDefault": false,
+    "petRightClick": ["lockPosition", "alwaysOnTop", "showMusicIslands", "displayScale"],
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true
   },
@@ -190,6 +194,10 @@
     }
   },
   "media": {
+    "showMusicIslandsDefault": false,
+    "musicIslandsEntryPoint": "pet-right-click-toggle",
+    "persistMusicIslandsPreference": true,
+    "disabledIslandsBehavior": "hide-track-controls-volume-no-mini-button-no-auto-reopen",
     "targetProcess": "cloudmusic.exe",
     "commandMode": "cloudmusic-global-shortcuts-with-public-state-confirmation",
     "detectAudioWithCoreAudio": true,
@@ -205,7 +213,7 @@
       ],
       "pollIntervalMilliseconds": 1000,
       "showOnPointerHover": true,
-      "showAfterTrackChangeMilliseconds": 4000,
+      "showAfterTrackChangeMilliseconds": 5000,
       "placement": "above-animation",
       "reservedHeightDips": 52,
       "persistHistory": false,
@@ -225,7 +233,7 @@
       },
       "motion": {
         "showDurationMilliseconds": 170,
-        "hideDelayMilliseconds": 220,
+        "hideDelayMilliseconds": 5000,
         "hideDurationMilliseconds": 120,
         "translateFromBottomPixels": 8
       },

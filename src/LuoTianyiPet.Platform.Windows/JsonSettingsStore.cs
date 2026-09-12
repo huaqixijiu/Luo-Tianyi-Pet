@@ -36,6 +36,7 @@ public sealed class JsonSettingsStore : ISettingsStore
             return settings?.SchemaVersion switch
             {
                 AppSettings.CurrentSchemaVersion => Normalize(settings),
+                14 => Normalize(settings with { SchemaVersion = AppSettings.CurrentSchemaVersion }),
                 1 => MigrateFromPreviousVersion(settings, 1500),
                 2 => MigrateFromPreviousVersion(settings, 500),
                 >= 3 and <= 13 => MigrateFromPreviousVersion(
