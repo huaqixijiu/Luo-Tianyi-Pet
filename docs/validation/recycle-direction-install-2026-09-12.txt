@@ -1,0 +1,2 @@
+﻿Version 0.1.0.72 Status Ok Signature Valid Installed hashes verified: 74 MSIX SHA256 32F9CC122C6CE532D484886EAAAB170E58064C9A9E3CDFA501470B8B7C0897A5
+Installed WindowsApps process Responding=True; version 0.1.0.72
