@@ -45,6 +45,7 @@ public partial class App : Application
             System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         }
         if (e.Args.Contains("--qa-message-details", StringComparer.OrdinalIgnoreCase)) instanceId += ".MessageDetails";
+        if (e.Args.Contains("--qa-afternoon-greeting", StringComparer.OrdinalIgnoreCase)) instanceId += ".AfternoonGreeting";
         _singleInstance = SingleInstanceGuard.Acquire(instanceId);
         if (!_singleInstance.IsPrimaryInstance)
         {

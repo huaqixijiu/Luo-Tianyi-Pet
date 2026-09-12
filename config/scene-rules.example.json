@@ -645,7 +645,7 @@
       "id": "afternoon",
       "start": "13:30",
       "end": "18:00",
-      "animation": "startup-afternoon-float",
+      "animation": "startup-afternoon-hurry",
       "presentationSeconds": 10,
       "triggerOnAppStartup": true,
       "triggerOnBoundary": true

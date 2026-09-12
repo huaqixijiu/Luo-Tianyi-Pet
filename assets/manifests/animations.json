@@ -1238,28 +1238,36 @@
       ]
     },
     {
-      "id": "startup-afternoon-float",
-      "sourcePath": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_摸鱼.png",
-      "sourceSha256": "bf30e5bbcb86ad97d589511c0b85de3175ae966bd4349cf806714df26359ccef",
-      "atlasPath": "animations/runtime/startup-afternoon-float.atlas.png",
-      "atlasSha256": "683b1d79a58b8bf638f27cb006d1fdf963d4910b2facf7274a967bb48b5abc81",
-      "frameWidth": 695,
-      "frameHeight": 704,
-      "columns": 1,
-      "rows": 1,
+      "id": "startup-afternoon-hurry",
+      "sourcePath": "候选素材_官方/13_新添加_下午问候/洛天依十周年生日_来不及了.gif",
+      "sourceSha256": "545d03d9664fd9965369a5c86940731093f690b0a071c1836282db8772a2ba8e",
+      "atlasPath": "animations/runtime/startup-afternoon-hurry.atlas.png",
+      "atlasSha256": "f385f277cc728368393beecc5ce80fa3d1fb0100deff27bbc9fc6fe18dc8d313",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "columns": 8,
+      "rows": 2,
       "frameDurationsMilliseconds": [
-        2200
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ],
-      "loopCount": 1,
+      "loopCount": 0,
       "displayWidth": 180,
       "displayHeight": 180,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
-        1,
         0,
-        695,
-        704
+        9,
+        240,
+        240
       ]
     },
     {
