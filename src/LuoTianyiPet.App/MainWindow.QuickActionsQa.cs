@@ -86,6 +86,20 @@ public partial class MainWindow
             await Task.Delay(120);
             double trayLeft = tray.Left, trayTop = tray.Top;
             double trayHeight = tray.ActualHeight;
+            Check(!tray.ShowPetButton.IsKeyboardFocused, "Mouse opening does not preselect a menu action");
+            tray.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            Check(tray.ShowPetButton.IsKeyboardFocused, "Tab enters the first menu action");
+            tray.ShowPetButton.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            Check(tray.HidePetButton.IsKeyboardFocused, "Keyboard navigation reaches hide");
+            tray.HidePetButton.IsEnabled = false;
+            tray.ShowPetButton.Focus();
+            tray.ShowPetButton.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            Check(tray.OpenSettingsButton.IsKeyboardFocused, "Keyboard navigation skips disabled hide");
+            tray.RefreshState();
+            tray.HidePanel();
+            tray.ShowNearTray(trayAnchor);
+            Check(!tray.ShowPetButton.IsKeyboardFocused && !tray.OpenSettingsButton.IsKeyboardFocused,
+                "Mouse reopening clears the previous keyboard selection");
             CaptureQuickActionsQa(tray, Path.Combine(directory, "04-tray-menu.png"));
             for (int reopen = 0; reopen < 8; reopen++)
             {
