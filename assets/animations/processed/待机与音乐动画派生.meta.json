@@ -4,7 +4,7 @@
     "source": "候选素材_官方/12_新添加_用户指定官方表情候选/洛天依十周年生日_摸鱼.gif",
     "sourceSha256": "c74d708d9e5ed9c2f8aecd7a2f70a7349efbb813ff843506d0ee9e97e8966385",
     "output": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
-    "outputSha256": "ee7132337a6b48e6de70d4be26b7d106c4f563e20d5b2b8703c75966c24049b1",
+    "outputSha256": "65899ed289b486de79ac7f8d7293586e5c731df60a731ee7068185f8411d928a",
     "sourceFrameIndices": [
       1,
       2,
@@ -148,12 +148,10 @@
       1000
     ],
     "totalDurationMilliseconds": 60000,
-    "transformation": "remove-five-second-01:00-hold, normalize-00:00-to-one-second, and-remove-only-border-connected-white-canvas",
+    "transformation": "remove-five-second-01:00-hold, normalize-00:00-to-one-second, preserve-original-white-canvas-and-all-original-pixels",
     "backgroundRemoval": {
-      "method": "near-white flood fill seeded only from the canvas boundary",
-      "exteriorSearchDistance": 96,
-      "transparentDistance": 32,
-      "protectedRegion": "every pixel not connected to the canvas boundary"
+      "enabled": false,
+      "method": "none; preserve original white canvas"
     }
   },
   "oneClickSinging": {

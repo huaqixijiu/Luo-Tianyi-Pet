@@ -23,21 +23,42 @@ public static class IdleSceneResolver
 {
     public static readonly TimeSpan MediumIdleCountdownThreshold = TimeSpan.FromMinutes(2);
     public static readonly TimeSpan MediumIdleThreshold = TimeSpan.FromMinutes(3);
+    public static readonly TimeSpan CountdownDuration = TimeSpan.FromSeconds(60);
     public static readonly TimeSpan SleepThreshold = TimeSpan.FromMinutes(30);
 
     public static IdleSceneDecision Resolve(
         TimeSpan idleDuration,
         PetContinuousState currentState,
-        IdleSceneProfile profile = IdleSceneProfile.ClassicCatEars)
+        IdleSceneProfile profile = IdleSceneProfile.ClassicCatEars,
+        TimeSpan? countdownElapsed = null)
     {
         if (idleDuration < TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(idleDuration));
         }
+        if (countdownElapsed < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(countdownElapsed));
+        }
 
         if (currentState is PetContinuousState.MusicPlaying or
             PetContinuousState.Dragging or
             PetContinuousState.HiddenForSafety)
+        {
+            return new IdleSceneDecision(currentState, RestoredFromSleep: false);
+        }
+
+        // Windows inactivity is an entrance trigger, not a cancellation signal.
+        // Once fishing starts, only direct pet interaction exits it early.
+        if (profile == IdleSceneProfile.ClassicCatEars &&
+            currentState == PetContinuousState.MediumIdleCountdown)
+        {
+            return new IdleSceneDecision(countdownElapsed >= CountdownDuration
+                ? PetContinuousState.MediumIdle
+                : PetContinuousState.MediumIdleCountdown, RestoredFromSleep: false);
+        }
+        if (profile == IdleSceneProfile.ClassicCatEars &&
+            currentState == PetContinuousState.MediumIdle && idleDuration < SleepThreshold)
         {
             return new IdleSceneDecision(currentState, RestoredFromSleep: false);
         }

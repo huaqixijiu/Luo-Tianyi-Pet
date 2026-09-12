@@ -120,6 +120,11 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
     private readonly DispatcherTimer _idleSceneTimer;
+    private long? _fishingCountdownStartedTimestamp;
+
+    private TimeSpan FishingCountdownElapsed => _fishingCountdownStartedTimestamp is long start
+        ? TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - start) / (double)Stopwatch.Frequency)
+        : TimeSpan.Zero;
     private readonly DispatcherTimer _timeSceneTimer;
     private readonly DispatcherTimer _genshinStatusTimer;
     private readonly DispatcherTimer _messageNotificationStatusTimer;
@@ -629,6 +634,10 @@ public partial class MainWindow : Window
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-drag-edges"))
         {
             _ = RunDragEdgesQaAsync();
+        }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-fishing"))
+        {
+            _ = RunFishingQaAsync();
         }
         if (_previewExit)
         {
@@ -1728,6 +1737,10 @@ public partial class MainWindow : Window
             return;
         }
         _singleClickTimer.Stop();
+        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdleCountdown)
+        {
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        }
         ResetBodyReactionMirror();
         CancelGenshinPresentations(restoreContinuousAnimation: false);
         CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
@@ -2627,12 +2640,14 @@ public partial class MainWindow : Window
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             idleDuration,
             previousState,
-            ResolveIdleSceneProfile());
+            ResolveIdleSceneProfile(),
+            FishingCountdownElapsed);
         if (!decision.ChangesStateFrom(previousState))
         {
             return;
         }
 
+        _fishingCountdownStartedTimestamp = null;
         _stateMachine.SetContinuousState(decision.TargetState);
         if (decision.TargetState == PetContinuousState.Sleeping &&
             IsCrystalDressFullBodyMode())
@@ -2942,9 +2957,11 @@ public partial class MainWindow : Window
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             idleDuration.Value,
             currentState,
-            ResolveIdleSceneProfile());
+            ResolveIdleSceneProfile(),
+            FishingCountdownElapsed);
         if (decision.ChangesStateFrom(currentState))
         {
+            _fishingCountdownStartedTimestamp = null;
             _stateMachine.SetContinuousState(decision.TargetState);
         }
     }
@@ -3058,6 +3075,11 @@ public partial class MainWindow : Window
                 completed,
                 reverse,
                 playbackRate);
+            if (animationId == PetVisualState.MediumIdleCountdownAnimation &&
+                _fishingCountdownStartedTimestamp is null)
+            {
+                _fishingCountdownStartedTimestamp = Stopwatch.GetTimestamp();
+            }
             ApplyAnimationManifest(manifest);
         }
         catch (Exception exception) when (
