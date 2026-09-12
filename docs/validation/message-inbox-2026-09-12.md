@@ -33,6 +33,8 @@
 
 ## 未验证项
 
-原生桌面自动化截图在本机 Windows 10 报 SetIsBorderRequired／0x80004002，随后原生点击报 coordinate input geometry is unavailable，未继续盲点。上面的 WPF 路由与命中测试不等于真实物理鼠标端到端验收；已请用户实际验证图标→列表连续操作、固定与外部收起。不同 DPI 的真实多显示器拖动仍待实机验证。旧版真实 QQ／微信读取已获用户确认，本轮合成列表检查不替代新界面真实收信反馈。
+原生桌面自动化截图在本机 Windows 10 报 SetIsBorderRequired／0x80004002，随后原生点击报 coordinate input geometry is unavailable，未继续盲点。上面的 WPF 路由与命中测试不等于真实物理鼠标端到端验收；已请用户实际验证图标→列表连续操作、固定与外部收起；用户回复“还没测试”，保持待测试。不同 DPI 的真实多显示器拖动仍待实机验证。旧版真实 QQ／微信读取已获用户确认，本轮合成列表检查不替代新界面真实收信反馈。
 
 下一步唯一入口：收集 0.1.0.71 的真实新消息和鼠标交互反馈，必要时按此报告的未验证项补测。
+
+实现提交：3625c1c，已推送 origin/codex/notification-side-details。主目录差异同步后 .NET 10 编译 0 警告／错误，保留原有暂存；见 [主目录构建](message-inbox-root-build-2026-09-12.txt)。
