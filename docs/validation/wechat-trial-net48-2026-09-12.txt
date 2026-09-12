@@ -1,0 +1,37 @@
+PASS Message card is shown in its own surface
+PASS Synchronous card show preserves foreground focus
+PASS Unknown foreground and fullscreen fail closed for notifications
+PASS Preview and new-notification count are visible together
+PASS Richer same-source details update the existing card without replaying the reaction
+PASS Scale 50: centered character faces right
+PASS Scale 50: card sits on the character right
+PASS Scale 50: music refresh does not move the character
+PASS Scale 50: right edge mirrors character
+PASS Scale 50: right edge puts the card to the left
+PASS Scale 50: card fits the work area
+PASS Scale 50: mirrored character does not mirror or lose text
+PASS Scale 100: centered character faces right
+PASS Scale 100: card sits on the character right
+PASS Scale 100: music refresh does not move the character
+PASS Scale 100: right edge mirrors character
+PASS Scale 100: right edge puts the card to the left
+PASS Scale 100: card fits the work area
+PASS Scale 100: mirrored character does not mirror or lose text
+PASS Scale 200: centered character faces right
+PASS Scale 200: card sits on the character right
+PASS Scale 200: music refresh does not move the character
+PASS Scale 200: right edge mirrors character
+PASS Scale 200: right edge puts the card to the left
+PASS Scale 200: card fits the work area
+PASS Scale 200: mirrored character does not mirror or lose text
+PASS Second source queues without creating a second card or replacing active token
+PASS Disabling QQ details removes nickname, preview, both counts and restores compact layout
+PASS Late detailed event cannot restore QQ details after disable
+PASS WeChat unified details use the shared card with a distinct reminder-count label
+PASS WeChat disable clears nickname preview and count together
+PASS Disabling all reminders clears the card and pending details
+PASS Clearing a reminder releases text and accessibility metadata
+PASS Settings are registered before the modal loop
+PASS Repeated settings request restores the single existing window
+PASS Repeated settings request preserves unsaved edits
+PASS Closing settings releases the singleton reference

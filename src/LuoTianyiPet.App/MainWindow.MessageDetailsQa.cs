@@ -81,6 +81,17 @@ public partial class MainWindow
                 "Disabling QQ details removes nickname, preview, both counts and restores compact layout");
             Check(!TryEnrichActiveMessage(message, false, true),
                 "Late detailed event cannot restore QQ details after disable");
+            var wechat = new MessageNotificationSummary(MessageProvider.WeChat, DateTimeOffset.Now,
+                "测试微信好友", MessagePreview: "微信会话摘要测试", NewNotificationCount: 2);
+            ShowMessageNotification(wechat);
+            Check(_messageBubble.MessageConversationText.Text == "测试微信好友" &&
+                _messageBubble.MessagePreviewText.Text == "微信会话摘要测试" &&
+                _messageBubble.MessageSourceText.Text == "微信 · 新增 2 次提醒", "WeChat unified details use the shared card with a distinct reminder-count label");
+            CaptureMessageQa(directory, "wechat.png");
+            ApplyMessageNotificationPreferences(_settings.Notifications with { EnableWeChatDetailedReminders = false });
+            Check(_displayedMessageSummary!.ConversationDisplayName is null && _displayedMessageSummary.MessagePreview is null &&
+                _displayedMessageSummary.NewNotificationCount is null && _messageBubble.MessagePreviewText.Text.Length == 0,
+                "WeChat disable clears nickname preview and count together");
             ApplyMessageNotificationPreferences(_settings.Notifications with { EnableMessageReminders = false });
             Check(!_messageBubble.IsVisible && !_messageNotificationCoordinator.HasPending,
                 "Disabling all reminders clears the card and pending details");

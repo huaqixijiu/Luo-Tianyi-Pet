@@ -36,6 +36,7 @@ public partial class SettingsWindow : Window
 
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         QqDetailedReminderCheckBox.IsChecked = notificationPreferences.EnableQqDetailedReminders;
+        WeChatDetailedReminderCheckBox.IsChecked = notificationPreferences.EnableWeChatDetailedReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
         AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
         DisplayScaleSlider.Value = SelectedAppearancePreferences.DisplayScalePercent;
@@ -191,6 +192,7 @@ public partial class SettingsWindow : Window
         {
             EnableMessageReminders = MessageReminderCheckBox.IsChecked == true,
             EnableQqDetailedReminders = QqDetailedReminderCheckBox.IsChecked == true,
+            EnableWeChatDetailedReminders = WeChatDetailedReminderCheckBox.IsChecked == true,
         };
         StartWithWindowsSelected = StartWithWindowsCheckBox.IsChecked == true;
         SelectedWindowPreferences = SelectedWindowPreferences with

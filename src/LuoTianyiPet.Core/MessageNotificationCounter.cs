@@ -8,11 +8,11 @@ public sealed class MessageNotificationCounter
     private readonly Queue<string> _seenOrder = [];
 
     public bool TryObserve(MessageNotificationSummary notification, bool sourceIsForeground,
-        bool enableQqDetails, out MessageNotificationSummary result)
+        bool enableQqDetails, out MessageNotificationSummary result, bool enableWeChatDetails = true)
     {
-        result = notification.ForDisplay(enableQqDetails);
+        result = notification.ForDisplay(enableQqDetails, enableWeChatDetails);
         if (sourceIsForeground) { Reset(notification.Provider); return true; }
-        if (notification.Provider != MessageProvider.Qq || !enableQqDetails || notification.NotificationKey is null)
+        if ((notification.Provider == MessageProvider.Qq ? !enableQqDetails : !enableWeChatDetails) || notification.NotificationKey is null)
             return true; // Shell flashing identifies attention, not individual messages.
         string key = notification.Provider + ":" + notification.NotificationKey;
         if (!_seen.Add(key)) return false;

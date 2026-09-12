@@ -1290,6 +1290,7 @@ public partial class MainWindow : Window
         }
 
         _messageNotificationStatusTimer.Start();
+        UpdateWeChatMonitoring();
         if (_messageNotificationSource is null) return;
         if (!_messageNotificationSubscribed)
         {
@@ -1298,6 +1299,8 @@ public partial class MainWindow : Window
         }
         (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetQqDetailsEnabled(
             _settings.Notifications.EnableQqDetailedReminders);
+        (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetWeChatDetailsEnabled(
+            _settings.Notifications.EnableWeChatDetailedReminders);
         _messageNotificationSource.Start();
         _messageNotificationStatusTimer.Start();
         _logger.Info(
@@ -1354,7 +1357,10 @@ public partial class MainWindow : Window
             _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
         bool canShow = IsMessageNotificationDisplaySafe(foreground);
         if (!_messageNotificationCounter.TryObserve(e.Notification, sourceIsForeground,
-            _settings.Notifications.EnableQqDetailedReminders, out MessageNotificationSummary displayNotification)) return;
+            _settings.Notifications.EnableQqDetailedReminders, out MessageNotificationSummary displayNotification,
+            _settings.Notifications.EnableWeChatDetailedReminders)) return;
+        if (!sourceIsForeground && _activeMessageProvider == e.Provider && _displayedMessageSummary is not null &&
+            displayNotification.NotificationKey is null) return;
         if (TryEnrichActiveMessage(displayNotification, sourceIsForeground, canShow)) return;
         MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
             displayNotification,
@@ -1374,6 +1380,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        UpdateWeChatMonitoring();
         _messageNotificationSource?.Start();
 
         ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
@@ -4343,7 +4350,11 @@ public partial class MainWindow : Window
         bool wasEnabled = _settings.Notifications.EnableMessageReminders;
         _settings = _settings with { Notifications = preferences };
         (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetQqDetailsEnabled(preferences.EnableQqDetailedReminders);
-        if (!preferences.EnableQqDetailedReminders || !preferences.EnableMessageReminders) _messageNotificationCounter.Clear();
+        (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetWeChatDetailsEnabled(preferences.EnableWeChatDetailedReminders);
+        if (!preferences.EnableMessageReminders) _messageNotificationCounter.Clear();
+        if (!preferences.EnableQqDetailedReminders) _messageNotificationCounter.Reset(MessageProvider.Qq);
+        if (!preferences.EnableWeChatDetailedReminders) _messageNotificationCounter.Reset(MessageProvider.WeChat);
+        UpdateWeChatMonitoring();
         _messageNotificationCoordinator.ClearPending();
         if (_displayedMessageSummary is not null) ShowMessageNotification(_displayedMessageSummary);
         if (preferences.EnableMessageReminders)
@@ -5941,7 +5952,7 @@ public partial class MainWindow : Window
         }
 
         _messageBubble ??= new MessageNotificationWindow { Owner = this };
-        notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
+        notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders, _settings.Notifications.EnableWeChatDetailedReminders);
         _displayedMessageSummary = notification;
         string providerName = MessageProviderMatcher.GetDisplayName(notification.Provider);
         ImageSource? applicationIcon = DecodeNotificationImage(notification.ApplicationIcon);
@@ -5949,7 +5960,7 @@ public partial class MainWindow : Window
         ImageSource? primaryIcon = contactAvatar ?? applicationIcon;
 
         _messageBubble.MessageSourceText.Text = notification.NewNotificationCount is int newCount
-            ? $"{providerName} · 新增 {newCount} 条通知"
+            ? notification.Provider == MessageProvider.WeChat ? $"{providerName} · 新增 {newCount} 次提醒" : $"{providerName} · 新增 {newCount} 条通知"
             : notification.UnreadCount is int count ? $"{providerName} · {count} 条未读" : $"{providerName} · 新消息";
         bool hasPreview = !string.IsNullOrWhiteSpace(notification.MessagePreview);
         _messageBubble.Width = hasPreview ? 272 : 212;
@@ -6448,6 +6459,7 @@ public partial class MainWindow : Window
         _genshinStatusTimer.Tick -= OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer.Stop();
         _messageNotificationStatusTimer.Tick -= OnMessageNotificationStatusTimerTick;
+        _weChatSessionSource?.Dispose();
         StopBunMotionLoop();
         _singleClickTimer.Stop();
         _singleClickTimer.Tick -= OnSingleClickTimerTick;
