@@ -27,8 +27,7 @@ internal sealed class BodyReactionMotion
         {
             PlayOopsShake(playbackRate, mirrorHorizontally);
         }
-        else if (animationId is Core.StartupTimeSceneResolver.MorningAnimation or
-            Core.StartupTimeSceneResolver.AfternoonAnimation)
+        else if (animationId == Core.StartupTimeSceneResolver.MorningAnimation)
         {
             PlayGreetingFloat();
         }

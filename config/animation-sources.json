@@ -19,7 +19,7 @@
     },
     {
       "id": "tenth-birthday-fishing-countdown",
-      "source": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
+      "source": "assets/animations/processed/十周年生日_摸鱼一分钟_透明无损.webp",
       "atlas": "assets/animations/runtime/tenth-birthday-fishing-countdown.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
@@ -400,13 +400,13 @@
       "anchorY": 1.0
     },
     {
-      "id": "startup-afternoon-float",
-      "source": "候选素材_官方/03_官方表情包/340-洛天依十周年/洛天依_摸鱼.png",
-      "atlas": "assets/animations/runtime/startup-afternoon-float.atlas.png",
+      "id": "startup-afternoon-hurry",
+      "source": "候选素材_官方/13_新添加_下午问候/洛天依十周年生日_来不及了.gif",
+      "atlas": "assets/animations/runtime/startup-afternoon-hurry.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,
-      "loopCount": 1,
-      "defaultFrameDurationMilliseconds": 2200,
+      "loopCount": 0,
+      "defaultFrameDurationMilliseconds": 100,
       "anchorX": 0.5,
       "anchorY": 1.0
     },

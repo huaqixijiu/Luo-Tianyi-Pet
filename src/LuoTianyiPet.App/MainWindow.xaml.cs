@@ -612,6 +612,8 @@ public partial class MainWindow : Window
         }
 
         UpdateBodyHitDebugOverlay();
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-afternoon-greeting"))
+            _ = RunAfternoonGreetingQaAsync();
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-message-details"))
             _ = RunMessageDetailsQaAsync();
 

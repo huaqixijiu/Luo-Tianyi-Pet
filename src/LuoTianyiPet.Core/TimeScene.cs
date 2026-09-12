@@ -20,7 +20,7 @@ public static class StartupTimeSceneResolver
 
     public const string MorningAnimation = "startup-morning-float";
     public const string LunchAnimation = "startup-lunch-bounce";
-    public const string AfternoonAnimation = "startup-afternoon-float";
+    public const string AfternoonAnimation = "startup-afternoon-hurry";
     public const string EveningAnimation = "startup-evening-hungry";
     public const string NightAnimation = "startup-night-breathe";
 
