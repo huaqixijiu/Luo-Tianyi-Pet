@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>洛天依桌宠 · 动画挑选器</title>
+  <title>洛天依桌宠 · 动画挑选器 · 0.1.0.65</title>
   <style>
     :root {
       color-scheme: dark;
@@ -436,6 +436,7 @@
 
     <div class="catalog-heading">
       <h2>全部素材与候选</h2>
+      <p>规则已同步至 0.1.0.65 · 2026-09-12。优先展示当前透明、去字与循环版本；“打开原文件”仍保留原始素材。此页预览素材本身，定格、点击起身与程序动效按规则说明执行，不在页面中模拟。</p>
       <p>这里保留完整素材库，用搜索与筛选做候选比较；上方模式视图才是正式运行规则。</p>
     </div>
 
@@ -469,7 +470,7 @@
       </div>
       <div class="detector-note">
         <strong>怎么知道音乐正在播放？</strong>
-        推荐读取 Windows Core Audio 的网易云音频会话：检测到 <code>cloudmusic.exe</code> 正在实际输出声音后进入跳舞；普通静音间隙保留约 1.0 秒宽限以覆盖切歌，用户亲自点击暂停后则用第一份静音采样快速确认。进一步可用 WASAPI 回环采样计算音量和低频节拍，让动作速度、幅度随音乐变化，全程不调用网易云接口。
+        <strong>当前音乐规则：</strong>关闭播放动画时保留待机画面，不再闪光换图。智能分配：洛天依（含合唱、洛天依Official）优先使用音乐摇摆／一键唱歌；其次乐正绫使用打 call；普通或未知歌手使用享受音乐。固定选择会覆盖全部歌曲。切歌等待保留音乐画面，真实暂停后恢复；操作提示独立显示在歌名岛下方。下方场景勾选仅作候选规划，不代表已经实现。
       </div>
       <div class="scenario-groups" id="scenarioGroups"></div>
     </section>
@@ -532,7 +533,7 @@
       { id:"mode1", title:"模式一 · 华裳长发版", short:"华裳长发版", rules:"待机使用华裳长发全身图，不开放身体部位点击。保留拖拽、边缘收纳、音乐覆盖、桌面包子追逐与公共时间问候；没有“嘿嘿”和眠了呼吸。" },
       { id:"mode2", title:"模式二 · 晶蓝礼服版", short:"晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，30 分钟后随机进入睡觉或鸭子坐。最小 Z/云朵从头侧出发，屏幕右侧放不下时自动换到左侧；点击完整起身后重置无操作时间。没有“嘿嘿”、一分钟倒计时和眠了呼吸。" },
       { id:"mode3", title:"模式三 · 经典猫耳版", short:"经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。拖拽时至少完成两次完整左右往返才触发旋转舞，并循环到下一次点击。" },
-      { id:"shared", title:"三个模式通用", short:"公共动画", rules:"集中显示三个模式都会使用的音乐识别、QQ/微信提醒、文件回收、时间问候、屏幕边缘与应用联动动画。它们也会出现在每个对应模式的清单中。" }
+      { id:"shared", title:"三个模式通用", short:"公共动画", rules:"集中显示三个模式都会使用的音乐识别、QQ/微信提醒、吃包子、时间问候、屏幕边缘与应用联动动画。快捷回收站仅模式二、三支持；它们也会出现在每个对应模式的清单中。" }
     ];
 
     const scenarios = [
@@ -589,10 +590,10 @@
       { id:"crystal_yawn", title:"晶蓝礼服待机 · 打哈欠", category:"body", kind:"169 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：连续无操作 1～5 分钟之间随机播放一次；不进入嘿嘿。", src:baseCrystalInteractions+"10_打哈欠.webp", source:"模式二新添加动作/打哈欠", tags:["新添加","已使用","晶蓝礼服版","随机待机","打哈欠"], desc:"不使用一分钟倒计时；每轮无操作最多随机触发一次，任何输入后重新安排。" },
       { id:"crystal_duck_sit", title:"晶蓝礼服长待机 · 鸭子坐", category:"body", kind:"217 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与睡觉各 50% 随机；第 120 帧闭眼坐姿定格，点击后完整播放 121～216 帧站起。", src:baseCrystalInteractions+"11_鸭子坐.webp", source:"模式二新添加动作/鸭子坐", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画"], desc:"第一段坐下闭眼，第二段由点击唤醒并完整站起；定格期间每 5 分钟按 60:35:5 重抽睡眠小装饰。最小 Z/云朵从头侧统一锚点出发，靠屏幕右边会镜像到左侧。" },
       { id:"crystal_sleep", title:"晶蓝礼服长待机 · 睡觉", category:"body", kind:"361 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与鸭子坐各 50% 随机；第 220 帧闭眼卧姿定格，点击后完整播放 221～360 帧睁眼起身。", src:baseCrystalInteractions+"12_睡觉.webp", source:"模式二新添加动作/睡觉", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画","已去Z字"], desc:"透明宽画布保持人物大小并完整保留左右头发；人物上方原素材自带的 Z 字只从派生帧清除，原始 PNG 不覆盖。梦境云朵点击唤醒时会快速消散，zzz 直接隐藏。" },
-      { id:"requested_birthday_fishing", title:"十周年生日 · 摸鱼一分钟", category:"expression", kind:"69 帧动态 GIF · 精确 60 秒", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", source:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", tags:["新添加","用户指定","已使用","摸鱼","一分钟","嘿嘿前倒计时"], desc:"经典猫耳版无操作 2 分钟后开始，画面从 00:59 倒数到 00:00；移除原素材开头额外停留的 5 秒并把末帧规范为 1 秒，使 3 分钟时恰好切到“嘿嘿”。" },
-      { id:"requested_newyear_oneclick_sing", title:"元旦祝福 · 一键唱歌", category:"expression", kind:"16 帧动态 GIF · 相邻帧往返循环", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", source:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", tags:["新添加","用户指定","已使用","洛天依歌曲","合唱","唱歌","循环"], desc:"用于洛天依本人或参与合唱歌曲的随机彩蛋。正式运行版移除前 7 帧按键入场，以源第 7→15→8 帧往返闭环，末帧回到首帧仍只跨相邻动作；可在设置中固定选择、关闭唱歌彩蛋或关闭全部听歌动画。" },
+      { id:"requested_birthday_fishing", title:"十周年生日 · 摸鱼一分钟", category:"expression", kind:"69 帧透明动画 · 精确 60 秒", priority:true, newlyAdded:true, src:"../assets/animations/processed/十周年生日_摸鱼一分钟_透明无损.webp", source:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", tags:["新添加","用户指定","已使用","摸鱼","一分钟","嘿嘿前倒计时"], desc:"经典猫耳版无操作 2 分钟后开始，画面从 00:59 倒数到 00:00；移除原素材开头额外停留的 5 秒并把末帧规范为 1 秒，倒计时独立运行满一分钟后切到“嘿嘿”；普通移动或悬停不重置，点击人物或拖拽可退出。" },
+      { id:"requested_newyear_oneclick_sing", title:"元旦祝福 · 一键唱歌", category:"expression", kind:"16 帧动态 GIF · 相邻帧往返循环", priority:true, newlyAdded:true, src:"../assets/animations/processed/元旦祝福_一键唱歌_无缝循环.gif", source:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", tags:["新添加","用户指定","已使用","洛天依歌曲","合唱","唱歌","循环"], desc:"用于洛天依本人或参与合唱歌曲的随机彩蛋。预览使用已去掉左侧文字、保留角色并放慢嘴型的正式派生版，移除前 7 帧按键入场，以源第 7→15→8 帧往返闭环，末帧回到首帧仍只跨相邻动作；可在设置中固定选择、关闭唱歌彩蛋或关闭全部听歌动画。" },
       { id:"requested_tiger_goodnight", title:"虎年贺新春 · 晚安", category:"expression", kind:"静态 PNG", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", source:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", tags:["新添加","用户指定","候选","晚安","睡眠"], desc:"来自“洛天依虎年贺新春”官方表情包的晚安静态图；当前不替换既有夜间问候或 30 分钟长睡眠。" },
-      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","模式三","拖拽彩蛋","循环"], desc:"经典猫耳版拖拽时至少完成两次完整左右往返后触发，保持连贯循环，直到用户下一次点击。" },
+      { id:"dance10", title:"十周年 · 旋转舞", category:"body", kind:"原始预览 · 正式播放 0.8 倍速", priority:true, src:baseQuick+"01_十周年_旋转舞.webp", source:baseTheme+"35789_洛天依十周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","模式三","拖拽彩蛋","循环"], desc:"经典猫耳版拖拽时至少完成两次完整左右往返后触发，正式运行 0.8 倍速（每圈 1 秒）连贯循环，直到用户下一次点击。" },
       { id:"dance9", title:"九周年 · 音乐摇摆", category:"body", kind:"动态 WebP", priority:true, src:baseQuick+"02_九周年_音乐摇摆.webp", source:baseTheme+"5766_洛天依9周年/suit_items.loading.0.properties.loading_url.webp", tags:["已使用","洛天依歌曲","合唱","彩蛋","循环"], desc:"洛天依本人或参与合唱歌曲的彩蛋动画；自动模式会与“一键唱歌”随机选择，也可在设置中固定选择。" },
       { id:"holo", title:"代号洛天依 · 全息操作", category:"feedback", kind:"动态 WebP", priority:true, src:baseQuick+"03_代号洛天依_全息操作.webp", source:baseTheme+"54182_代号洛天依/suit_items.loading.0.properties.loading_url.webp", tags:["切歌","暂停","拖拽"], desc:"带科技感的完整动作。适合作为切歌、暂停、继续的统一反馈，也可用于鼠标拖拽。" },
 
@@ -606,7 +607,7 @@
       { id:"ai_file_eating_v2", title:"AI 文件吞食 · 甜笑寻包新版", category:"body", kind:"121 帧透明源动画", priority:true, newlyAdded:true, activeUsage:"华裳长发版与晶蓝礼服版处理桌面包子时，用于追逐、张嘴进食和返程；与元气追包版并存。", src:baseAiFileEating+"新版/预览_吃包子_新版.webp", source:baseAiFileEating+"新版/7e845b0a115897207a7fb4cbb5859654/新版_00000.png", tags:["新添加","已使用","文件回收站","小笼包","AI生成","原始透明通道","62.5FPS"], desc:"直接保留用户提供的 121 帧 PNG 原始 Alpha 与颜色。奔跑先稳定上半身全局位移再补到 60 帧；包子飞入点随朝向镜像，闭嘴等待缩短。" },
       { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["候选","音量反馈","当前未分配"], desc:"曾用于系统主音量提高/降低反馈；系统主音量功能现已撤销，本素材保留为将来网易云独立音量反馈候选。" },
       { id:"e_great", title:"心律共鸣 · 好厉害", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_好厉害.gif", source:baseEmoji+"心律共鸣动态表情包_好厉害.gif", tags:["夸奖","操作反馈"], desc:"正向反馈感明显，适合操作成功、恢复播放或用户连续互动之后播放。" },
-      { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["胸部","下体","重复点击","0.5倍速"], desc:"胸部或下体敏感区域在 4 秒内被再次点击时播放；运行时使用 0.5 倍速，双脚不触发黑化。" },
+      { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["胸部","下体","重复点击","0.6倍速"], desc:"胸部或下体敏感区域在 4 秒内被再次点击时播放；运行时使用 0.6 倍速，双脚不触发黑化。" },
       { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["模式三3分钟","中等待机","已采用"], desc:"仅经典猫耳版在摸鱼一分钟倒计时结束且达到 3 分钟后进入；单击等操作会恢复待机，但只拖拽移动并松手仍保持嘿嘿。" },
       { id:"e_join", title:"心律共鸣 · 加入我们", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_加入我们.gif", source:baseEmoji+"心律共鸣动态表情包_加入我们.gif", tags:["招手","随机待机"], desc:"适合首次启动或桌宠主动招手，不太适合频繁的按键反馈。" },
       { id:"e_kiss", title:"心律共鸣 · 啾啾", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_啾啾.gif", source:baseEmoji+"心律共鸣动态表情包_啾啾.gif", tags:["嘴部","点击互动"], desc:"已确定为短按嘴部时的一次性反馈；脸部现在单独使用十二周年“贴贴”。" },
@@ -616,15 +617,15 @@
       { id:"listen_good", title:"九周年 · 太好听了", category:"expression", kind:"官方静态 PNG + 陪听摇摆预演", priority:true, newlyAdded:true, motion:"listen", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_太好听了.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_太好听了.png", tags:["新添加","普通歌曲","听歌","陶醉","无麦克风"], desc:"目前最贴近“洛天依在听普通歌曲”的官方候选：画面是听到好音乐后的陶醉反应，只有音符、没有麦克风。挑选器加入轻柔点头摇摆预演，可作为普通歌曲持续陪听或低频反应。" },
       { id:"listen_request", title:"收藏集 · 给我听", category:"expression", kind:"官方静态 PNG + 轻回弹预演", priority:false, newlyAdded:true, motion:"pop", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_给我听.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_给我听.png", tags:["新添加","普通歌曲","开始播放","邀请听歌","无麦克风"], desc:"适合普通歌曲刚开始时的“让我听听”反应；它不是持续听歌姿态，因此更适合一次性开场，而不建议长时间循环。" },
       { id:"listen_refuse", title:"古色花香 · 我不听", category:"expression", kind:"官方静态 PNG + 晃动预演", priority:false, newlyAdded:true, motion:"shake", src:baseListening+"古色花香洛天依_我不听.png", source:baseListening+"古色花香洛天依_我不听.png", tags:["新添加","普通歌曲","跳过歌曲","拒绝听","低频彩蛋"], desc:"双手挡在耳边的明确“拒绝听”动作。适合连续快速切歌、播放失败或以后加入“不喜欢这首”交互时作为低频彩蛋，不适合默认持续陪听。" },
-      { id:"e_expand", title:"心律共鸣 · 膨胀", category:"expression", kind:"动态 GIF（等尺寸透明画布）", priority:true, src:baseEmoji+"心律共鸣动态表情包_膨胀.gif", source:baseEmoji+"心律共鸣动态表情包_膨胀.gif", tags:["经典猫耳版","拖拽中","单次","等尺寸"], desc:"仅第三种“经典猫耳版”进入拖拽时播放；运行时透明补边并统一为 220×238 DIP，保持原始正方形画面比例，同时避免拖拽开始和松手时窗口缩放。每次拖拽完整播放一次并停在末帧。" },
+      { id:"e_expand", title:"心律共鸣 · 膨胀", category:"expression", kind:"正式透明动画 · 已去文字", priority:true, src:"../assets/animations/runtime/resonance-expand.frames.webp", source:baseEmoji+"心律共鸣动态表情包_膨胀.gif", tags:["经典猫耳版","拖拽中","单次","等尺寸"], desc:"仅第三种“经典猫耳版”进入拖拽时播放；运行时透明补边并统一为 220×238 DIP，保持原始正方形画面比例，同时避免拖拽开始和松手时窗口缩放。每次拖拽完整播放一次并停在末帧。" },
       { id:"e_poor", title:"心律共鸣 · 贫穷", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_贫穷.gif", source:baseEmoji+"心律共鸣动态表情包_贫穷.gif", tags:["委屈","彩蛋"], desc:"个性较强，更适合作为隐藏互动，而不是第一版固定状态。" },
       { id:"e_omg", title:"心律共鸣 · 天哪", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_天哪.gif", source:baseEmoji+"心律共鸣动态表情包_天哪.gif", tags:["惊讶","切歌反馈"], desc:"适合快速切歌、操作失败或意外状态时播放一次。" },
       { id:"e_oshi", title:"心律共鸣 · 我推", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_我推.gif", source:baseEmoji+"心律共鸣动态表情包_我推.gif", tags:["支持","候选"], desc:"已取消普通身体点击触发，继续作为未分配候选保留。" },
-      { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["已使用","持续音乐","普通歌曲","未知歌手"], desc:"智能分配下普通或未知歌手固定使用本动画；运行时为 0.5 倍速无缝循环。用户固定其它动画时则所有歌曲都只用所选画面。" },
+      { id:"e_music", title:"心律共鸣 · 享受音乐", category:"body", kind:"动态 GIF", priority:true, src:"../assets/animations/processed/心律共鸣_享受音乐_无缝_0.5x.gif", source:baseEmoji+"心律共鸣动态表情包_享受音乐.gif", tags:["已使用","持续音乐","普通歌曲","未知歌手"], desc:"智能分配下普通或未知歌手固定使用本动画；运行时为 0.5 倍速无缝循环。用户固定其它动画时则所有歌曲都只用所选画面。" },
       { id:"e_soft", title:"心律共鸣 · 心软软", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_心软软.gif", source:baseEmoji+"心律共鸣动态表情包_心软软.gif", tags:["右眼镜像","左眼原向","首次点击","已使用"], desc:"经典猫耳版首次点击眼睛时播放：左眼保持原方向，右眼运行时水平镜像；4 秒内连续第二次点击眼睛改播“哭唧唧”。" },
       { id:"e_nice", title:"心律共鸣 · 真好", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_真好.gif", source:baseEmoji+"心律共鸣动态表情包_真好.gif", tags:["满足","候选"], desc:"已取消普通身体点击触发，继续作为未分配候选保留。" },
-      { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["胸部","下体","首次点击","0.7倍速"], desc:"完整全身模式下首次点击胸部或下体时播放，运行时使用 0.7 倍速，并开启 4 秒重复点击窗口。" },
-      { id:"e_ok", title:"心律共鸣 · OK", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_OK.gif", source:baseEmoji+"心律共鸣动态表情包_OK.gif", tags:["确认","操作反馈"], desc:"含义最清楚的通用操作反馈，上一首、下一首、暂停和继续都能复用。" },
+      { id:"e_guilty", title:"心律共鸣 · 重罪", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_重罪.gif", source:baseEmoji+"心律共鸣动态表情包_重罪.gif", tags:["胸部","下体","首次点击","0.8倍速"], desc:"仅经典猫耳版首次点击胸部或下体时播放，运行时使用 0.8 倍速，并开启 4 秒重复点击窗口。" },
+      { id:"e_ok", title:"心律共鸣 · OK", category:"feedback", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_OK.gif", source:baseEmoji+"心律共鸣动态表情包_OK.gif", tags:["确认","操作反馈"], desc:"仅在切歌或冷启动播放得到公开状态确认后作为反馈；文件回收成功使用“大成功”，不以 OK 代替。" },
 
       { id:"new12_entrance", title:"十二周年 · 闪亮登场", category:"feedback", kind:"256 帧动态 GIF", priority:true, newlyAdded:true, src:baseNew12+"01_闪亮登场.gif", source:baseNew12+"01_闪亮登场.gif", tags:["屏幕下边缘","正放","倒放"], desc:"已用于屏幕下边缘躲藏：拖到底边时倒放缩下去，鼠标移入保留条后正放一次并定格，移出再倒放。" },
       { id:"new12_call", title:"十二周年 · 打 call", category:"body", kind:"196 帧动态 GIF · 首周期运行", priority:true, newlyAdded:true, activeUsage:"智能分配下，乐正绫本人或参与合唱的歌曲持续循环；若歌手同时包含洛天依，则洛天依彩蛋优先。", src:baseNew12+"02_打call.gif", source:baseNew12+"02_打call.gif", tags:["已使用","音乐","乐正绫","合唱","无缝循环","首周期"], desc:"源 GIF 是同一套 14 帧动作重复 14 次；运行时只保留首个完整周期并无限循环，减少重复体积且保持首尾连贯。" },
@@ -650,7 +651,7 @@
       { id:"p_goodnight", title:"十周年 · 晚安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"340-洛天依十周年/洛天依_晚安.png", source:baseStatic+"340-洛天依十周年/洛天依_晚安.png", tags:["夜间启动","20:00至06:00","持续10秒","跨时段","已采用"], desc:"20:00～次日 06:00 启动或跨到 20:00 时播放 10 秒；输入可打断，音乐优先。" },
       { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演 · 30 秒", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["QQ","微信","消息提醒","持续30秒","三个模式通用"], desc:"QQ 或微信出现新消息时持续显示 30 秒并循环好奇摇摆；切到来源应用、进入全屏/锁屏或被更高优先级动作打断时提前结束。" },
       { id:"p_idle", title:"十周年生日 · 来不及了！", category:"expression", kind:"官方 GIF 动画", priority:true, src:"13_新添加_下午问候/洛天依十周年生日_来不及了.gif", source:"13_新添加_下午问候/洛天依十周年生日_来不及了.gif", tags:["下午问候","13:30至18:00","持续10秒","跨时段"], desc:"13:30～18:00 启动或跨到 13:30 时播放 10 秒；原始 9 帧、每帧 100 毫秒循环，保留文字和透明背景；输入可打断，音乐优先。" },
-      { id:"p_loading", title:"心律共鸣 · 加载中摇摆", category:"procedural", kind:"程序动效预演", priority:false, motion:"sway", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", tags:["候选","暂未分配"], desc:"已取消切歌和文件处理等待触发；因为当前程序摇摆不够明显，先保留素材供以后改进后重新使用。" },
+      { id:"p_loading", title:"心律共鸣 · 加载中摇摆", category:"procedural", kind:"静态等待画面", priority:false,  src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", tags:["已使用","网易云冷启动","静止等待"], desc:"只在主动打开网易云时静止等待，不用于日常切歌或文件处理；配合启动提示，成功播放后退出等待。" },
       { id:"p_pause", title:"九周年 · 没睡醒呼吸", category:"procedural", kind:"程序动效预演", priority:false, motion:"sleep", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", tags:["候选","已取消使用"], desc:"已取消音乐暂停触发；原始图片保留在候选素材库，当前正式桌宠不使用。" },
       { id:"p_sing", title:"九周年 · 一起唱摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_一起唱.png", tags:["音乐","跟唱"], desc:"静态表情配合节奏摇摆，可以作为另一套音乐舞蹈，避免长期重复同一个动作。" },
       { id:"p_energy", title:"九周年 · 精神抖擞弹跳", category:"procedural", kind:"程序动效预演", priority:false, motion:"bounce", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_精神抖擞.png", tags:["强节拍","充电完成"], desc:"适合强节拍段落、电脑唤醒、充电完成或专注计时开始。" },
@@ -659,6 +660,22 @@
       { id:"p_food", title:"十周年 · 干饭弹跳", category:"procedural", kind:"程序动效预演", priority:true, motion:"bounce", src:baseStatic+"340-洛天依十周年/洛天依_干饭.png", source:baseStatic+"340-洛天依十周年/洛天依_干饭.png", tags:["午间问候","12:00至13:30","持续10秒","跨时段"], desc:"12:00～13:30 启动或跨到 12:00 时播放 10 秒；输入可打断，音乐优先。" },
       { id:"p_highfive", title:"十周年 · 击掌回弹", category:"procedural", kind:"程序动效预演", priority:true, motion:"pop", src:baseStatic+"340-洛天依十周年/洛天依_击掌.png", source:baseStatic+"340-洛天依十周年/洛天依_击掌.png", tags:["左手原向","右手镜像","击掌","已使用"], desc:"经典猫耳版点击左手时保持原方向，点击右手时水平镜像；程序回弹与慢放时间轴同步。" }
     ];
+
+    // Use the current transparent runtime frame animations instead of older source previews.
+    const runtimePreviews = {
+      crystal_sleep:"crystal-long-idle-sleep", crystal_duck_sit:"crystal-long-idle-duck-sit",
+      new_headpat_guoyue:"guoyue-headpat"
+    };
+    items.forEach(item => {
+      if (runtimePreviews[item.id]) item.src = "../assets/animations/runtime/" + runtimePreviews[item.id] + ".frames.webp";
+    });
+    items.push(
+      { id:"sleep_zzz", title:"睡眠小装饰 · zzz", category:"expression", kind:"透明运行素材", priority:true, newlyAdded:true, src:"../assets/animations/runtime/crystal-sleep-decoration-zzz.frames.webp", source:"睡觉小装饰/zzz/", tags:["模式二","睡眠装饰","60%"], desc:"浅蓝色 Z 从头侧锚点向上飘；空间不足时换到脑袋另一侧。这里展示装饰自身的完整动画。" },
+      { id:"sleep_bun", title:"睡眠小装饰 · 梦见包子", category:"expression", kind:"透明运行素材", priority:true, newlyAdded:true, src:"../assets/animations/runtime/crystal-sleep-decoration-bun.frames.webp", source:"睡觉小装饰/梦见包子/", tags:["模式二","睡眠装饰","35%"], desc:"最小云朵从头侧出发，梦境显示在脑袋上方；醒来使用独立云朵消散动画。" },
+      { id:"sleep_ling", title:"睡眠小装饰 · 梦见乐正绫", category:"expression", kind:"透明运行素材", priority:true, newlyAdded:true, src:"../assets/animations/runtime/crystal-sleep-decoration-yuezhengling.frames.webp", source:"睡觉小装饰/梦见乐正绫/", tags:["模式二","睡眠装饰","5%"], desc:"低概率梦境，和包子梦共用定位与唤醒消散规则。" },
+      { id:"sleep_dissolve", title:"睡眠小装饰 · 云朵消散", category:"expression", kind:"透明运行素材", priority:true, newlyAdded:true, src:"../assets/animations/runtime/crystal-sleep-decoration-cloud-dissolve.frames.webp", source:"睡觉小装饰/云朵消散/", tags:["模式二","点击唤醒","仅梦境云朵"], desc:"在原梦境位置快速消散，与人物后半段起身同时开始；zzz 不使用此效果。" },
+      { id:"bun_request", title:"心律共鸣 · 我很可爱，请给我小笼包", category:"expression", kind:"透明运行素材 · 文字始终正向", priority:true, newlyAdded:true, src:"../assets/animations/runtime/resonance-cute-bun-request.frames.webp", source:"../assets/animations/runtime/resonance-cute-bun-request.frames.webp", tags:["吃包子","拖动彩蛋","定格等待投喂"], desc:"正式运行只播放一次后定格，不随追逐朝向镜像文字；本页连播素材供查看，实际等待和投喂按下方规则执行。" }
+    );
 
     const activeUsage = {
       user_compact_idle:"双击循环中的第二模型“晶蓝礼服版”待机；使用用户描边多边形、九组身体动作和专属待机链。",
@@ -676,19 +693,24 @@
       crystal_yawn:"仅第二模型：无操作 1～5 分钟期间随机播放一次打哈欠；不进入嘿嘿。",
       crystal_duck_sit:"仅第二模型：30 分钟无操作后与睡觉 50:50 随机；闭眼坐姿定格，点击后站起并恢复待机。",
       crystal_sleep:"仅第二模型：30 分钟无操作后与鸭子坐 50:50 随机；闭眼卧姿定格，点击后完整睁眼起身并恢复待机。",
-      requested_birthday_fishing:"仅经典猫耳版：无操作达到 2 分钟后播放 00:59→00:00 的精确一分钟倒计时，3 分钟时切到“嘿嘿”。",
-      requested_newyear_oneclick_sing:"歌手包含洛天依（含合唱）时，与“音乐摇摆”随机作为唱歌彩蛋；可在设置固定或关闭。",
+      sleep_zzz:"仅模式二睡觉／鸭子坐定格期间：60% 概率，每 5 分钟重新随机，可重复；醒来直接隐藏。",
+      sleep_bun:"仅模式二睡觉／鸭子坐定格期间：35% 概率，每 5 分钟重新随机，可重复；点击醒来时原位消散。",
+      sleep_ling:"仅模式二睡觉／鸭子坐定格期间：5% 概率，每 5 分钟重新随机，可重复；点击醒来时原位消散。",
+      sleep_dissolve:"仅模式二：从包子梦／乐正绫梦中点击唤醒时快速播放；人物继续后半段起身，不直接跳待机。",
+      bun_request:"各模式追包加速 3.5 秒达到上限后，目标仍被连续拖动 3 秒且未吃到时触发；单次播放后定格等待投喂，不因普通远距离追逐或包子排队触发。",
+      requested_birthday_fishing:"仅经典猫耳版：无操作 2 分钟进入独立的 60 秒透明倒计时，结束转嘿嘿；普通鼠标移动／悬停不退出，点击人物或拖拽才提前结束。",
+      requested_newyear_oneclick_sing:"歌手包含洛天依（含任意合唱位置、洛天依Official）时，与“音乐摇摆”随机作为唱歌彩蛋；去字、放慢嘴型、16 帧相邻帧循环；可在设置固定或关闭。",
       dance9:"歌手包含洛天依（含合唱）时，与“一键唱歌”随机作为彩蛋；可在设置固定选择。",
       e_baituo:"原神在后台运行时，每小时低频随机出现一次；游戏前台或全屏时不出现。",
-      e_give:"用户把文件拖入桌宠窗口时播放一次并定格末帧；文件离开投放区时恢复，成功移入回收站后改播“大成功”，不进入吃包子。",
-      e_success:"用户把文件拖入桌宠并成功移入 Windows 回收站后播放一次；播放完恢复此前持续状态，不创建包子。",
+      e_give:"仅模式二、模式三：用户把文件拖入桌宠窗口时播放一次并定格末帧；离开投放区恢复，成功回收后改播“大成功”。模式一不接受文件投放。",
+      e_success:"仅模式二、模式三：文件成功移入 Windows 回收站后播放一次，恢复此前持续状态，不创建包子。模式一不提供此功能。",
       ai_file_eating_approved:"仅桌面项目消失并被识别为桌面吃包子事件时，在原位置生成可拖动小笼包；天依循环奔跑追踪、张嘴吃掉，再返回原位。",
       ai_file_eating_v2:"华裳长发版与晶蓝礼服版触发文件吞食时使用；与经典猫耳版的元气追包版并存。",
       e_dark:"仅经典猫耳版：胸部或下体在 4 秒内第二次点击时以约 0.6 倍速播放。",
       e_hehe:"仅经典猫耳版一分钟倒计时结束并达到 3 分钟时循环；单击等操作恢复待机，只拖拽移动并松手仍保持嘿嘿。",
       e_kiss:"仅经典猫耳版点击嘴部播放，当前以 0.8 倍速度展示。",
       e_noPlay:"检测到原神从未运行变为运行时播放一次，结束后保持末帧，使总显示时间约 5 秒。",
-      e_expand:"仅第三种“经典猫耳版”拖拽时播放一次并停末帧；与模式三共用 220×238 DIP 外层尺寸，切换时窗口不缩放；拖到屏幕边缘会切换为对应探头动画。",
+      e_expand:"仅第三种“经典猫耳版”拖拽时播放一次并停末帧；去掉“膨胀”文字并保留嘴巴；使用稳定展示槽，切换时窗口不缩放；拖到屏幕边缘会切换为对应探头动画。",
       e_music:"智能分配下用于普通或未知歌手；固定选择时可作为所有歌曲的唯一动画。",
       new12_call:"智能分配下用于乐正绫本人或参与合唱的歌曲并持续循环；同时包含洛天依时改走洛天依优先分流。",
       e_soft:"仅经典猫耳版首次点击眼睛时播放；左眼原方向，右眼水平镜像。",
@@ -703,11 +725,11 @@
       new12_cry:"仅经典猫耳版在 4 秒内连续第二次点击任一眼睛时播放。",
       new12_close:"仅经典猫耳版点击人物右半脸时播放“贴贴”。",
       new_headpat_guoyue:"仅经典猫耳版点击头部或完成头顶往返抚摸时，连续播放约三次抚摸；帧速比旧版快。",
-      dance10:"仅经典猫耳版拖拽时快速左右来回甩动触发；连贯循环直到用户下一次点击，音乐开始时也会终止。",
+      dance10:"仅经典猫耳版拖拽时快速左右至少两次完整往返才触发；0.8 倍速、每圈 1 秒连贯循环直到用户下一次点击，音乐开始时也会终止。",
       p_morning:"06:00～12:00 启动或跨到 06:00 时播放 10 秒；可被输入打断，音乐优先。",
       p_sleep:"仅经典猫耳版无输入约 30 分钟且没有播放音乐时循环；晶蓝礼服版改用睡觉/鸭子坐两段式长待机。",
       p_goodnight:"20:00～次日 06:00 启动或跨到 20:00 时播放 10 秒，包括 Windows 开机自启动。",
-      p_curious:"QQ 或微信有系统通知且来源应用不在前台时持续显示 30 秒并循环摇摆；打开对应应用、全屏/锁屏或更高优先级动作会提前结束。",
+      p_curious:"QQ 或微信产生系统通知或任务栏闪烁且来源应用不在前台时持续显示 30 秒并循环摇摆；QQ 详情开关统一控制昵称、系统预览和本轮新增通知数（不是客户端未读总数），微信缺少通知时仅按来源提醒；打开对应应用、全屏/锁屏或更高优先级动作会提前结束。",
       p_idle:"13:30～18:00 启动或跨到 13:30 时播放 10 秒。",
       new12_hungry:"18:00～20:00 启动或跨到 18:00 时播放 10 秒。",
       p_loading:"网易云未运行时点击播放/暂停后静止显示，并配合“正在打开网易云音乐”文字；检测到开始出声后结束。",
@@ -723,7 +745,8 @@
       mode2:new Set([
         "user_compact_idle","crystal_cover_eyes","crystal_cover_mouth","crystal_pinch_cheeks",
         "crystal_hand_heart","crystal_touch_leg","crystal_headpat","crystal_hold_belly",
-        "crystal_touch_chest","crystal_touch_skirt","crystal_yawn","crystal_duck_sit","crystal_sleep"
+        "crystal_touch_chest","crystal_touch_skirt","crystal_yawn","crystal_duck_sit","crystal_sleep",
+        "sleep_zzz","sleep_bun","sleep_ling","sleep_dissolve"
       ]),
       mode3:new Set([
         "user_classic_fullbody_idle","requested_birthday_fishing","ai_file_eating_approved",
@@ -733,6 +756,8 @@
       ])
     };
     const partialSharedUsage = new Map([
+      ["e_give", ["mode2","mode3"]],
+      ["e_success", ["mode2","mode3"]],
       ["ai_file_eating_v2", ["mode1","mode2"]]
     ]);
     const allModeIds = ["mode1","mode2","mode3"];

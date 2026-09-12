@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import vm from "node:vm";
+import path from "node:path";
 
 const pickerPath = process.argv[2] || "候选素材_官方/动画挑选器.html";
 const html = fs.readFileSync(pickerPath, "utf8");
@@ -30,6 +31,19 @@ for (const stale of ["保留这个动画", "只看已保留", "勾选保留的�
 }
 
 const current = executePicker();
+for (const item of current.items) {
+  assert(fs.existsSync(path.resolve(path.dirname(pickerPath), item.src)), `missing preview: ${item.id}: ${item.src}`);
+}
+for (const [id, suffix] of Object.entries({
+  requested_birthday_fishing: "十周年生日_摸鱼一分钟_透明无损.webp",
+  requested_newyear_oneclick_sing: "元旦祝福_一键唱歌_无缝循环.gif",
+  e_music: "心律共鸣_享受音乐_无缝_0.5x.gif",
+  e_expand: "resonance-expand.frames.webp",
+  new_headpat_guoyue: "guoyue-headpat.frames.webp",
+  crystal_sleep: "crystal-long-idle-sleep.frames.webp"
+})) assert(current.items.find(item => item.id === id).src.endsWith(suffix), `stale preview: ${id}`);
+assert(html.includes("0.1.0.65") && html.includes("不再闪光换图"), "missing latest music rules");
+assert(!current.items.find(item => item.id === "p_loading").motion, "launch wait must remain still");
 assert(current.elements.get("deletionCount").textContent === 0, "new deletion list must start empty");
 assert(
   current.elements.get("usedOverviewTitle").textContent.includes("模式一"),
@@ -68,6 +82,24 @@ assert(
   "mode three must show classic interactions and hide mode-two-only rules",
 );
 const shared = executePicker(null, "shared");
+for (const id of ["sleep_zzz", "sleep_bun", "sleep_ling", "sleep_dissolve"]) {
+  const title = current.items.find(item => item.id === id).title;
+  assert(modeTwo.elements.get("usedOverviewList").innerHTML.includes(title), `missing mode-two decoration ${id}`);
+  for (const other of [current, modeThree, shared])
+    assert(!other.elements.get("usedOverviewList").innerHTML.includes(title), `decoration leaks to another mode ${id}`);
+}
+for (const title of ["心律共鸣 · 给我", "心律共鸣 · 大成功"]) {
+  assert(!current.elements.get("usedOverviewList").innerHTML.includes(title),
+    `mode one must not expose disabled file-drop animation: ${title}`);
+  assert(!shared.elements.get("usedOverviewList").innerHTML.includes(title),
+    `file-drop animations are no longer shared by all three modes: ${title}`);
+  for (const mode of [modeTwo, modeThree]) {
+    assert(mode.elements.get("usedOverviewList").innerHTML.includes(title),
+      `modes two and three must retain file-drop animation: ${title}`);
+  }
+  assert(current.elements.get("grid").innerHTML.includes(title),
+    `shared source assets must remain in the full candidate library: ${title}`);
+}
 assert(
   shared.elements.get("usedOverviewList").innerHTML.includes("代号洛天依 · 好奇摇摆") &&
     shared.elements.get("usedOverviewList").innerHTML.includes("持续显示 30 秒") &&
@@ -175,8 +207,8 @@ function executePicker(legacyState = null, selectedMode = null) {
     console,
   };
 
-  vm.runInNewContext(scriptBlocks[0], context, { filename: pickerPath });
-  return { elements, storage };
+  vm.runInNewContext(scriptBlocks[0] + "\n;globalThis.validatedItems = items;", context, { filename: pickerPath });
+  return { elements, storage, items: context.validatedItems };
 }
 
 function assert(condition, message) {
