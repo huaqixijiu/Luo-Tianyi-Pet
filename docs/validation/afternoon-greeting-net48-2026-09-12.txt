@@ -1,0 +1,11 @@
+PASS 13:30 selects the downloaded hurry animation
+PASS Nine original frames loop at native 100 ms timing
+PASS Real greeting path displays the new artwork
+PASS WPF actually advances multiple animation frames
+PASS Original GIF has no extra procedural floating
+PASS Greeting survives multiple 900 ms animation loops
+PASS Ten-second greeting completes normally
+PASS Presentation retains the ten-second duration
+PASS Normal completion restores the persistent appearance
+PASS Input cancellation releases the greeting
+PASS Playing music suppresses the afternoon greeting
