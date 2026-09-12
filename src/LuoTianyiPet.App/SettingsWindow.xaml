@@ -227,6 +227,7 @@
                     <TextBlock Style="{StaticResource PageTitle}" Text="通知" /><TextBlock Style="{StaticResource PageDescription}" Text="使用 Windows 通知或任务栏闪烁提醒，不读取消息正文。" />
                     <TextBlock Style="{StaticResource GroupTitle}" Text="消息提醒" />
                     <Border Style="{StaticResource GroupCard}"><CheckBox x:Name="MessageReminderCheckBox" AutomationProperties.Name="启用 QQ 和微信消息来源提醒" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="QQ / 微信消息提醒" /><TextBlock Style="{StaticResource OptionDescription}" Text="来源不在前台时提醒；系统未提供标题时只显示 QQ / 微信" /></StackPanel></CheckBox></Border>
+                    <Border Style="{StaticResource GroupCard}"><CheckBox x:Name="QqDetailedReminderCheckBox" AutomationProperties.Name="QQ 详细提醒" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><StackPanel><TextBlock Style="{StaticResource OptionTitle}" Text="QQ 详细提醒" /><TextBlock Style="{StaticResource OptionDescription}" Text="可用时显示昵称／群名和未读数，不显示正文。QQ 托盘卡需展开；读不到详情或关闭此项时，仅显示 QQ 有新消息。" /></StackPanel></CheckBox></Border>
                     <TextBlock Style="{StaticResource GroupTitle}" Text="Windows 通知权限（用于标题与应用图标）" />
                     <Border Style="{StaticResource GroupCard}" Padding="14,12"><StackPanel>
                         <Border Padding="10,8" Background="#1232B9F2" CornerRadius="8"><TextBlock x:Name="NotificationAccessStatusText" Foreground="{StaticResource PrimaryDark}" FontSize="10.5" TextWrapping="Wrap" Text="正在检查 Windows 通知访问状态……" /></Border>

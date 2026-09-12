@@ -143,6 +143,8 @@ public sealed record MessageNotificationPreferences
 
     public bool EnableMessageReminders { get; init; } = true;
 
+    public bool EnableQqDetailedReminders { get; init; } = true;
+
     public bool WindowsNotificationAccessGranted { get; init; }
 
     public int DuplicateWindowMilliseconds { get; init; } =

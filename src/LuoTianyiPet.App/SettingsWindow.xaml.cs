@@ -35,6 +35,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
 
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
+        QqDetailedReminderCheckBox.IsChecked = notificationPreferences.EnableQqDetailedReminders;
         StartWithWindowsCheckBox.IsChecked = startupRegistrationEnabled;
         AlwaysOnTopCheckBox.IsChecked = windowPreferences.AlwaysOnTop;
         DisplayScaleSlider.Value = SelectedAppearancePreferences.DisplayScalePercent;
@@ -189,6 +190,7 @@ public partial class SettingsWindow : Window
         SelectedNotificationPreferences = SelectedNotificationPreferences with
         {
             EnableMessageReminders = MessageReminderCheckBox.IsChecked == true,
+            EnableQqDetailedReminders = QqDetailedReminderCheckBox.IsChecked == true,
         };
         StartWithWindowsSelected = StartWithWindowsCheckBox.IsChecked == true;
         SelectedWindowPreferences = SelectedWindowPreferences with

@@ -607,6 +607,9 @@ public partial class MainWindow : Window
         }
 
         UpdateBodyHitDebugOverlay();
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-message-details"))
+            _ = RunMessageDetailsQaAsync();
+
         if (_persistSettings || _previewTray)
         {
             CreateTrayIcon();
@@ -622,6 +625,10 @@ public partial class MainWindow : Window
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-stable-layout"))
         {
             _ = RunStableLayoutQaAsync();
+        }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-drag-edges"))
+        {
+            _ = RunDragEdgesQaAsync();
         }
         if (_previewExit)
         {
@@ -1264,13 +1271,13 @@ public partial class MainWindow : Window
 
     private void StartMessageNotificationMonitoring()
     {
-        if (_messageNotificationSource is null ||
-            !_settings.Notifications.EnableMessageReminders ||
-            !_settings.Notifications.WindowsNotificationAccessGranted)
+        if (!_settings.Notifications.EnableMessageReminders)
         {
             return;
         }
 
+        _messageNotificationStatusTimer.Start();
+        if (_messageNotificationSource is null) return;
         if (!_messageNotificationSubscribed)
         {
             _messageNotificationSource.NotificationReceived += OnMessageNotificationReceived;
@@ -1331,14 +1338,17 @@ public partial class MainWindow : Window
         bool sourceIsForeground = foreground.Succeeded &&
             _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
         bool canShow = IsMessageNotificationDisplaySafe(foreground);
+        MessageNotificationSummary displayNotification =
+            e.Notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
+        if (TryEnrichActiveMessage(displayNotification, sourceIsForeground, canShow)) return;
         MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
-            e.Notification,
+            displayNotification,
             sourceIsForeground,
             canShow);
         _logger.Info("notification.signal_processed", decision.ToString());
         if (decision == MessageNotificationDecision.Show)
         {
-            _ = BeginMessageNotificationAsync(e.Notification);
+            _ = BeginMessageNotificationAsync(e.Notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders));
         }
     }
 
@@ -1360,6 +1370,12 @@ public partial class MainWindow : Window
         {
             CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
             return;
+        }
+
+        if (_messageNotificationReactionToken is not null)
+        {
+            PositionMessageNotification();
+            _ = RefreshQqDetailsAsync();
         }
 
         if (_activeMessageProvider is MessageProvider activeProvider &&
@@ -1421,6 +1437,7 @@ public partial class MainWindow : Window
         _messageNotificationTopmostToken = topmostToken;
         _activeMessageProvider = notification.Provider;
         ShowMessageNotification(notification);
+        _ = RefreshQqDetailsAsync();
         _logger.Info(
             "notification.reaction_started",
             $"DurationSeconds={MessageNotificationPresentationDuration.TotalSeconds:0}; " +
@@ -1804,7 +1821,7 @@ public partial class MainWindow : Window
         {
             if (_classicSpinDanceActive)
             {
-                SnapDragIntentPetInsideWorkArea();
+                ApplyDragReleasePlacement(GetPetImageDesktopBounds());
                 _classicDragExpansionStarted = false;
                 _dragIntentPetBoundsInWindow = null;
                 _dragEdgeCandidate = EdgeDockSide.None;
@@ -1824,84 +1841,29 @@ public partial class MainWindow : Window
                 return;
             }
 
-            // Capture contact before the taller idle bounds can move the expansion away
-            // from the top and make accessory layout reserve space above the pet again.
-            bool preserveTopEdge =
-                Math.Abs(GetPetImageDesktopBounds().Top - GetCurrentWorkArea().Top) <=
-                    EdgeAlignmentTolerance;
-            if (preserveTopEdge)
-            {
-                _classicDragExpansionStarted = false;
-                _dragIntentPetBoundsInWindow = null;
-                _dragEdgeCandidate = EdgeDockSide.None;
-                SetEdgeMirror(false);
-                if (_animationPlayer?.CurrentAnimationId != _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
-                {
-                    _ = TransitionToResolvedContinuousAnimationAsync(
-                        "animation.top_edge_drag_restored", preserveTopEdge: true);
-                }
-                else
-                {
-                    AlignVisiblePetToTopEdge();
-                    UpdateBodyHitDebugOverlay();
-                }
-                _logger.Info("interaction.drag_ended", "Top edge contact preserved across the animation swap.");
-                return;
-            }
-
-            SnapDragIntentPetInsideWorkArea();
+            // Keep the user's visible edge contact; transparent stage padding is
+            // allowed offscreen. Resolve placement only after the target art exists.
+            DesktopRectangle releaseBounds = GetPetImageDesktopBounds();
             _classicDragExpansionStarted = false;
             _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
-            UpdateAccessoryLayoutForCurrentPosition();
-
-            if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+            if (_animationPlayer?.CurrentAnimationId == _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
             {
-                RestoreAfterMusicDrag();
-                _logger.Info("interaction.drag_ended", "Music animation continued without landing feedback.");
-            }
-            else if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
-            {
-                RestoreAfterCompactDrag();
-                _logger.Info(
-                    "interaction.drag_ended",
-                    "Compact drag restored without landing feedback.");
+                ApplyDragReleasePlacement(releaseBounds);
+                UpdateBodyHitDebugOverlay();
             }
             else
             {
-                RestoreAfterFullBodyDrag();
-                _logger.Info("interaction.drag_ended", "Full-body mode restored without landing feedback.");
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "animation.drag_restored", dragReleaseBounds: releaseBounds);
             }
+            _logger.Info("interaction.drag_ended", "Visible artwork placement retained without landing feedback.");
         }
         else
         {
             _classicDragExpansionStarted = false;
         }
-    }
-
-    private void RestoreAfterMusicDrag()
-    {
-        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
-        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
-        {
-            UpdateBodyHitDebugOverlay();
-            return;
-        }
-
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.music_drag_restored");
-    }
-
-    private void RestoreAfterFullBodyDrag()
-    {
-        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
-        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
-        {
-            UpdateBodyHitDebugOverlay();
-            return;
-        }
-
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.full_body_drag_restored");
     }
 
     private void StartClassicSpinDance()
@@ -2574,9 +2536,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RestoreAfterCompactDrag() =>
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.compact_drag_restored");
-
     private void UpdateDragEdgePreview()
     {
         EdgeDockSide candidate = ResolveCurrentEdgeDockSide();
@@ -3017,7 +2976,7 @@ public partial class MainWindow : Window
     private async Task TransitionToResolvedContinuousAnimationAsync(
         string completionEvent,
         Action? afterTransition = null,
-        bool preserveTopEdge = false)
+        DesktopRectangle? dragReleaseBounds = null)
     {
         if (_animationPlayer is null || _animationCatalog is null || _isClosing)
         {
@@ -3029,23 +2988,22 @@ public partial class MainWindow : Window
         void SwapAnimation()
         {
             PlayResolvedContinuousAnimation(preserveVisualTransition: true);
-            if (preserveTopEdge)
+            if (dragReleaseBounds is DesktopRectangle releaseBounds)
             {
                 // At the invisible midpoint the restored art defines the geometry.
-                // A fade keeps that geometry unscaled while we align its alpha top.
-                ApplyAccessoryLayout(AccessoryLayout.BelowPet, preservePetPosition: false);
-                AlignVisiblePetToTopEdge();
+                // A fade keeps that geometry unscaled while preserving edge contact.
+                ApplyDragReleasePlacement(releaseBounds);
             }
         }
 
-        bool completed = preserveTopEdge
+        bool completed = dragReleaseBounds.HasValue
             ? await _visualSwapTransition.PlayFadeAsync(SwapAnimation)
             : await _visualSwapTransition.PlayAsync(SwapAnimation);
         if (completed && !_isClosing)
         {
             StartResolvedContinuousMotion();
             afterTransition?.Invoke();
-            _logger.Info(completionEvent, preserveTopEdge ? "Top-aligned fade completed." : "Pulse swap completed.");
+            _logger.Info(completionEvent, dragReleaseBounds.HasValue ? "Drag placement fade completed." : "Pulse swap completed.");
         }
         else if (!_isClosing)
         {
@@ -3053,12 +3011,14 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AlignVisiblePetToTopEdge()
+    private void ApplyDragReleasePlacement(DesktopRectangle releaseBounds)
     {
-        DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle pet = GetPetImageAlphaBoundsInWindow();
-        Top = workArea.Top - pet.Top;
-        Left = Clamp(Left, workArea.Left - pet.Left, workArea.Right - pet.Right);
+        PointerPoint position = DragReleasePlacement.Resolve(
+            new PointerPoint(Left, Top), releaseBounds, GetPetImageAlphaBoundsInWindow(),
+            GetCurrentWorkArea(), EdgeAlignmentTolerance);
+        Left = position.X;
+        Top = position.Y;
+        UpdateAccessoryLayoutForCurrentPosition();
     }
 
     private void StartResolvedContinuousMotion()
@@ -3799,29 +3759,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SnapDragIntentPetInsideWorkArea()
-    {
-        DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle pet = GetStableStageDesktopBounds();
-        if (pet.Left < workArea.Left)
-        {
-            Left += workArea.Left - pet.Left;
-        }
-        else if (pet.Right > workArea.Right)
-        {
-            Left -= pet.Right - workArea.Right;
-        }
-
-        if (pet.Top < workArea.Top)
-        {
-            Top += workArea.Top - pet.Top;
-        }
-        else if (pet.Bottom > workArea.Bottom)
-        {
-            Top -= pet.Bottom - workArea.Bottom;
-        }
-    }
-
     private DesktopRectangle GetDragIntentPetDesktopBounds()
     {
         if (_classicDragExpansionStarted &&
@@ -4050,6 +3987,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_settingsWindow is not null)
+        {
+            if (_settingsWindow.WindowState == WindowState.Minimized) _settingsWindow.WindowState = WindowState.Normal;
+            _settingsWindow.Activate();
+            return;
+        }
         _logger.Info("settings.window_opening", "Settings window requested.");
 
         SettingsWindow settingsWindow = new(
@@ -4063,6 +4006,8 @@ public partial class MainWindow : Window
         {
             Owner = this,
         };
+        _settingsWindow = settingsWindow;
+        settingsWindow.Closed += (_, _) => _settingsWindow = null;
         if (settingsWindow.ShowDialog() == true)
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
@@ -4349,6 +4294,8 @@ public partial class MainWindow : Window
     {
         bool wasEnabled = _settings.Notifications.EnableMessageReminders;
         _settings = _settings with { Notifications = preferences };
+        _messageNotificationCoordinator.ClearPending();
+        if (_displayedMessageSummary is not null) ShowMessageNotification(_displayedMessageSummary);
         if (preferences.EnableMessageReminders)
         {
             StartMessageNotificationMonitoring();
@@ -5939,43 +5886,53 @@ public partial class MainWindow : Window
             return;
         }
 
+        _messageBubble ??= new MessageNotificationWindow { Owner = this };
+        notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
+        _displayedMessageSummary = notification;
         string providerName = MessageProviderMatcher.GetDisplayName(notification.Provider);
         ImageSource? applicationIcon = DecodeNotificationImage(notification.ApplicationIcon);
         ImageSource? contactAvatar = DecodeNotificationImage(notification.ContactAvatar);
         ImageSource? primaryIcon = contactAvatar ?? applicationIcon;
 
-        MessageSourceText.Text = $"{providerName} · 新消息";
-        MessageConversationText.Text = string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
+        _messageBubble.MessageSourceText.Text = notification.UnreadCount is int count ? $"{providerName} · {count} 条未读" : $"{providerName} · 新消息";
+        _messageBubble.MessageConversationText.Text = string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
             ? "有新消息"
             : notification.ConversationDisplayName;
-        MessageProviderGlyph.Text = notification.Provider == MessageProvider.Qq ? "Q" : "微";
-        MessagePrimaryIconSurface.Background = notification.Provider == MessageProvider.Qq
+        _messageBubble.MessageProviderGlyph.Text = notification.Provider == MessageProvider.Qq ? "Q" : "微";
+        _messageBubble.MessagePrimaryIconSurface.Background = notification.Provider == MessageProvider.Qq
             ? new SolidColorBrush(Color.FromRgb(0x39, 0xA9, 0xF2))
             : new SolidColorBrush(Color.FromRgb(0x20, 0xC0, 0x5C));
-        MessagePrimaryIcon.Source = primaryIcon;
-        MessageProviderGlyph.Visibility = primaryIcon is null
+        _messageBubble.MessagePrimaryIcon.Source = primaryIcon;
+        _messageBubble.MessageProviderGlyph.Visibility = primaryIcon is null
             ? Visibility.Visible
             : Visibility.Collapsed;
 
         bool showApplicationBadge = contactAvatar is not null && applicationIcon is not null;
-        MessageAppBadgeIcon.Source = showApplicationBadge ? applicationIcon : null;
-        MessageAppBadge.Visibility = showApplicationBadge
+        _messageBubble.MessageAppBadgeIcon.Source = showApplicationBadge ? applicationIcon : null;
+        _messageBubble.MessageAppBadge.Visibility = showApplicationBadge
             ? Visibility.Visible
             : Visibility.Collapsed;
         AutomationProperties.SetName(
-            MessageNotificationBubble,
+            _messageBubble.MessageNotificationBubble,
             string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
                 ? $"{providerName} 有新消息"
                 : $"{providerName}，{notification.ConversationDisplayName} 有新消息");
-        MessageNotificationBubble.Visibility = Visibility.Visible;
+        _messageBubble.MessageNotificationBubble.Visibility = Visibility.Visible;
+        PositionMessageNotification();
     }
 
     private void HideMessageNotification()
     {
-        MessageNotificationBubble.Visibility = Visibility.Collapsed;
-        MessagePrimaryIcon.Source = null;
-        MessageAppBadgeIcon.Source = null;
-        MessageAppBadge.Visibility = Visibility.Collapsed;
+        _messageBubble?.Hide();
+        if (_messageBubble is not null)
+        {
+            _messageBubble.MessagePrimaryIcon.Source = null;
+            _messageBubble.MessageAppBadgeIcon.Source = null;
+            _messageBubble.MessageConversationText.Text = string.Empty;
+            _messageBubble.MessageSourceText.Text = string.Empty;
+            AutomationProperties.SetName(_messageBubble.MessageNotificationBubble, "聊天消息提醒");
+        }
+        _displayedMessageSummary = null;
     }
 
     private static ImageSource? DecodeNotificationImage(ReadOnlyMemory<byte>? encodedImage)
@@ -6385,6 +6342,7 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _messageBubble?.Close();
         if (_desktopToolWindowBehavior is not null)
         {
             _desktopToolWindowBehavior.WindowAttentionRequested -=

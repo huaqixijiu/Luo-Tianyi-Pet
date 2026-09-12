@@ -62,16 +62,7 @@ public sealed class TrayIconController : IDisposable
         _quickPanel.ShowNearTray();
     }
 
-    private void ToggleQuickPanel()
-    {
-        if (_quickPanel.IsVisible)
-        {
-            _quickPanel.HidePanel();
-            return;
-        }
-
-        ShowQuickPanel();
-    }
+    private void ToggleQuickPanel() => ShowQuickPanel();
 
     public void Dispose()
     {

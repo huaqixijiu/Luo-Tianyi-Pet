@@ -20,7 +20,14 @@ public sealed record MessageNotificationSummary(
     DateTimeOffset OccurredAt,
     string? ConversationDisplayName = null,
     ReadOnlyMemory<byte>? ApplicationIcon = null,
-    ReadOnlyMemory<byte>? ContactAvatar = null);
+    ReadOnlyMemory<byte>? ContactAvatar = null,
+    int? UnreadCount = null)
+{
+    public MessageNotificationSummary ForDisplay(bool enableQqDetails) =>
+        Provider == MessageProvider.Qq && !enableQqDetails
+            ? this with { ConversationDisplayName = null, ContactAvatar = null, UnreadCount = null }
+            : this;
+}
 
 public sealed class MessageNotificationReceivedEventArgs(
     MessageNotificationSummary notification) : EventArgs

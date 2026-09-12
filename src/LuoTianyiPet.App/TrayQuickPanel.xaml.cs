@@ -33,6 +33,7 @@ public partial class TrayQuickPanel : Window
     internal void ShowNearTray(System.Drawing.Point anchor)
     {
         RefreshState();
+        if (IsVisible) { Activate(); return; }
         Opacity = 0;
         Show();
         UpdateLayout();
