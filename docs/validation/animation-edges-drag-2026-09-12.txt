@@ -1,0 +1,553 @@
+PASS full-body-classic-cat-ears 50% right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% right: restored artwork touches edge; gap=-0.48
+PASS full-body-classic-cat-ears 50% right: resolved state remains visible
+PASS full-body-classic-cat-ears 50% right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 50% left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% left: restored artwork touches edge; gap=0.29
+PASS full-body-classic-cat-ears 50% left: resolved state remains visible
+PASS full-body-classic-cat-ears 50% left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 50% top: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% top: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% top: restored artwork touches edge; gap=-0.48
+PASS full-body-classic-cat-ears 50% top: top contact also preserved
+PASS full-body-classic-cat-ears 50% top: resolved state remains visible
+PASS full-body-classic-cat-ears 50% top: accessory refresh preserves position
+PASS full-body-classic-cat-ears 50% bottom: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% bottom: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% bottom: restored artwork touches edge; gap=-0.48
+PASS full-body-classic-cat-ears 50% bottom: bottom contact also preserved
+PASS full-body-classic-cat-ears 50% bottom: resolved state remains visible
+PASS full-body-classic-cat-ears 50% bottom: accessory refresh preserves position
+PASS full-body-classic-cat-ears 50% top-right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% top-right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% top-right: restored artwork touches edge; gap=-0.48
+PASS full-body-classic-cat-ears 50% top-right: top contact also preserved
+PASS full-body-classic-cat-ears 50% top-right: resolved state remains visible
+PASS full-body-classic-cat-ears 50% top-right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 50% bottom-left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 50% bottom-left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 50% bottom-left: restored artwork touches edge; gap=0.29
+PASS full-body-classic-cat-ears 50% bottom-left: bottom contact also preserved
+PASS full-body-classic-cat-ears 50% bottom-left: resolved state remains visible
+PASS full-body-classic-cat-ears 50% bottom-left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% right: restored artwork touches edge; gap=0.04
+PASS full-body-classic-cat-ears 100% right: resolved state remains visible
+PASS full-body-classic-cat-ears 100% right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% left: restored artwork touches edge; gap=-0.42
+PASS full-body-classic-cat-ears 100% left: resolved state remains visible
+PASS full-body-classic-cat-ears 100% left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% top: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% top: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% top: restored artwork touches edge; gap=0.03
+PASS full-body-classic-cat-ears 100% top: top contact also preserved
+PASS full-body-classic-cat-ears 100% top: resolved state remains visible
+PASS full-body-classic-cat-ears 100% top: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% bottom: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% bottom: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% bottom: restored artwork touches edge; gap=0.03
+PASS full-body-classic-cat-ears 100% bottom: bottom contact also preserved
+PASS full-body-classic-cat-ears 100% bottom: resolved state remains visible
+PASS full-body-classic-cat-ears 100% bottom: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% top-right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% top-right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% top-right: restored artwork touches edge; gap=0.04
+PASS full-body-classic-cat-ears 100% top-right: top contact also preserved
+PASS full-body-classic-cat-ears 100% top-right: resolved state remains visible
+PASS full-body-classic-cat-ears 100% top-right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 100% bottom-left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 100% bottom-left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 100% bottom-left: restored artwork touches edge; gap=-0.42
+PASS full-body-classic-cat-ears 100% bottom-left: bottom contact also preserved
+PASS full-body-classic-cat-ears 100% bottom-left: resolved state remains visible
+PASS full-body-classic-cat-ears 100% bottom-left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% right: restored artwork touches edge; gap=-0.44
+PASS full-body-classic-cat-ears 150% right: resolved state remains visible
+PASS full-body-classic-cat-ears 150% right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% left: restored artwork touches edge; gap=-0.13
+PASS full-body-classic-cat-ears 150% left: resolved state remains visible
+PASS full-body-classic-cat-ears 150% left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% top: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% top: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% top: restored artwork touches edge; gap=-0.45
+PASS full-body-classic-cat-ears 150% top: top contact also preserved
+PASS full-body-classic-cat-ears 150% top: resolved state remains visible
+PASS full-body-classic-cat-ears 150% top: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% bottom: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% bottom: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% bottom: restored artwork touches edge; gap=-0.45
+PASS full-body-classic-cat-ears 150% bottom: bottom contact also preserved
+PASS full-body-classic-cat-ears 150% bottom: resolved state remains visible
+PASS full-body-classic-cat-ears 150% bottom: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% top-right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% top-right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% top-right: restored artwork touches edge; gap=-0.44
+PASS full-body-classic-cat-ears 150% top-right: top contact also preserved
+PASS full-body-classic-cat-ears 150% top-right: resolved state remains visible
+PASS full-body-classic-cat-ears 150% top-right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 150% bottom-left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 150% bottom-left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 150% bottom-left: restored artwork touches edge; gap=-0.13
+PASS full-body-classic-cat-ears 150% bottom-left: bottom contact also preserved
+PASS full-body-classic-cat-ears 150% bottom-left: resolved state remains visible
+PASS full-body-classic-cat-ears 150% bottom-left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% right: restored artwork touches edge; gap=0.08
+PASS full-body-classic-cat-ears 200% right: resolved state remains visible
+PASS full-body-classic-cat-ears 200% right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% left: restored artwork touches edge; gap=0.17
+PASS full-body-classic-cat-ears 200% left: resolved state remains visible
+PASS full-body-classic-cat-ears 200% left: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% top: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% top: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% top: restored artwork touches edge; gap=0.07
+PASS full-body-classic-cat-ears 200% top: top contact also preserved
+PASS full-body-classic-cat-ears 200% top: resolved state remains visible
+PASS full-body-classic-cat-ears 200% top: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% bottom: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% bottom: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% bottom: restored artwork touches edge; gap=0.07
+PASS full-body-classic-cat-ears 200% bottom: bottom contact also preserved
+PASS full-body-classic-cat-ears 200% bottom: resolved state remains visible
+PASS full-body-classic-cat-ears 200% bottom: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% top-right: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% top-right: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% top-right: restored artwork touches edge; gap=0.08
+PASS full-body-classic-cat-ears 200% top-right: top contact also preserved
+PASS full-body-classic-cat-ears 200% top-right: resolved state remains visible
+PASS full-body-classic-cat-ears 200% top-right: accessory refresh preserves position
+PASS full-body-classic-cat-ears 200% bottom-left: contact does not trigger hiding
+PASS full-body-classic-cat-ears 200% bottom-left: pointer reaches visible edge
+PASS full-body-classic-cat-ears 200% bottom-left: restored artwork touches edge; gap=0.17
+PASS full-body-classic-cat-ears 200% bottom-left: bottom contact also preserved
+PASS full-body-classic-cat-ears 200% bottom-left: resolved state remains visible
+PASS full-body-classic-cat-ears 200% bottom-left: accessory refresh preserves position
+PASS full-body-crystal-dress 50% right: contact does not trigger hiding
+PASS full-body-crystal-dress 50% right: pointer reaches visible edge
+PASS full-body-crystal-dress 50% right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% right: resolved state remains visible
+PASS full-body-crystal-dress 50% right: accessory refresh preserves position
+PASS full-body-crystal-dress 50% left: contact does not trigger hiding
+PASS full-body-crystal-dress 50% left: pointer reaches visible edge
+PASS full-body-crystal-dress 50% left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% left: resolved state remains visible
+PASS full-body-crystal-dress 50% left: accessory refresh preserves position
+PASS full-body-crystal-dress 50% top: contact does not trigger hiding
+PASS full-body-crystal-dress 50% top: pointer reaches visible edge
+PASS full-body-crystal-dress 50% top: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% top: top contact also preserved
+PASS full-body-crystal-dress 50% top: resolved state remains visible
+PASS full-body-crystal-dress 50% top: accessory refresh preserves position
+PASS full-body-crystal-dress 50% bottom: contact does not trigger hiding
+PASS full-body-crystal-dress 50% bottom: pointer reaches visible edge
+PASS full-body-crystal-dress 50% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% bottom: bottom contact also preserved
+PASS full-body-crystal-dress 50% bottom: resolved state remains visible
+PASS full-body-crystal-dress 50% bottom: accessory refresh preserves position
+PASS full-body-crystal-dress 50% top-right: contact does not trigger hiding
+PASS full-body-crystal-dress 50% top-right: pointer reaches visible edge
+PASS full-body-crystal-dress 50% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% top-right: top contact also preserved
+PASS full-body-crystal-dress 50% top-right: resolved state remains visible
+PASS full-body-crystal-dress 50% top-right: accessory refresh preserves position
+PASS full-body-crystal-dress 50% bottom-left: contact does not trigger hiding
+PASS full-body-crystal-dress 50% bottom-left: pointer reaches visible edge
+PASS full-body-crystal-dress 50% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 50% bottom-left: bottom contact also preserved
+PASS full-body-crystal-dress 50% bottom-left: resolved state remains visible
+PASS full-body-crystal-dress 50% bottom-left: accessory refresh preserves position
+PASS full-body-crystal-dress 100% right: contact does not trigger hiding
+PASS full-body-crystal-dress 100% right: pointer reaches visible edge
+PASS full-body-crystal-dress 100% right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% right: resolved state remains visible
+PASS full-body-crystal-dress 100% right: accessory refresh preserves position
+PASS full-body-crystal-dress 100% left: contact does not trigger hiding
+PASS full-body-crystal-dress 100% left: pointer reaches visible edge
+PASS full-body-crystal-dress 100% left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% left: resolved state remains visible
+PASS full-body-crystal-dress 100% left: accessory refresh preserves position
+PASS full-body-crystal-dress 100% top: contact does not trigger hiding
+PASS full-body-crystal-dress 100% top: pointer reaches visible edge
+PASS full-body-crystal-dress 100% top: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% top: top contact also preserved
+PASS full-body-crystal-dress 100% top: resolved state remains visible
+PASS full-body-crystal-dress 100% top: accessory refresh preserves position
+PASS full-body-crystal-dress 100% bottom: contact does not trigger hiding
+PASS full-body-crystal-dress 100% bottom: pointer reaches visible edge
+PASS full-body-crystal-dress 100% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% bottom: bottom contact also preserved
+PASS full-body-crystal-dress 100% bottom: resolved state remains visible
+PASS full-body-crystal-dress 100% bottom: accessory refresh preserves position
+PASS full-body-crystal-dress 100% top-right: contact does not trigger hiding
+PASS full-body-crystal-dress 100% top-right: pointer reaches visible edge
+PASS full-body-crystal-dress 100% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% top-right: top contact also preserved
+PASS full-body-crystal-dress 100% top-right: resolved state remains visible
+PASS full-body-crystal-dress 100% top-right: accessory refresh preserves position
+PASS full-body-crystal-dress 100% bottom-left: contact does not trigger hiding
+PASS full-body-crystal-dress 100% bottom-left: pointer reaches visible edge
+PASS full-body-crystal-dress 100% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 100% bottom-left: bottom contact also preserved
+PASS full-body-crystal-dress 100% bottom-left: resolved state remains visible
+PASS full-body-crystal-dress 100% bottom-left: accessory refresh preserves position
+PASS full-body-crystal-dress 150% right: contact does not trigger hiding
+PASS full-body-crystal-dress 150% right: pointer reaches visible edge
+PASS full-body-crystal-dress 150% right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% right: resolved state remains visible
+PASS full-body-crystal-dress 150% right: accessory refresh preserves position
+PASS full-body-crystal-dress 150% left: contact does not trigger hiding
+PASS full-body-crystal-dress 150% left: pointer reaches visible edge
+PASS full-body-crystal-dress 150% left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% left: resolved state remains visible
+PASS full-body-crystal-dress 150% left: accessory refresh preserves position
+PASS full-body-crystal-dress 150% top: contact does not trigger hiding
+PASS full-body-crystal-dress 150% top: pointer reaches visible edge
+PASS full-body-crystal-dress 150% top: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% top: top contact also preserved
+PASS full-body-crystal-dress 150% top: resolved state remains visible
+PASS full-body-crystal-dress 150% top: accessory refresh preserves position
+PASS full-body-crystal-dress 150% bottom: contact does not trigger hiding
+PASS full-body-crystal-dress 150% bottom: pointer reaches visible edge
+PASS full-body-crystal-dress 150% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% bottom: bottom contact also preserved
+PASS full-body-crystal-dress 150% bottom: resolved state remains visible
+PASS full-body-crystal-dress 150% bottom: accessory refresh preserves position
+PASS full-body-crystal-dress 150% top-right: contact does not trigger hiding
+PASS full-body-crystal-dress 150% top-right: pointer reaches visible edge
+PASS full-body-crystal-dress 150% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% top-right: top contact also preserved
+PASS full-body-crystal-dress 150% top-right: resolved state remains visible
+PASS full-body-crystal-dress 150% top-right: accessory refresh preserves position
+PASS full-body-crystal-dress 150% bottom-left: contact does not trigger hiding
+PASS full-body-crystal-dress 150% bottom-left: pointer reaches visible edge
+PASS full-body-crystal-dress 150% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 150% bottom-left: bottom contact also preserved
+PASS full-body-crystal-dress 150% bottom-left: resolved state remains visible
+PASS full-body-crystal-dress 150% bottom-left: accessory refresh preserves position
+PASS full-body-crystal-dress 200% right: contact does not trigger hiding
+PASS full-body-crystal-dress 200% right: pointer reaches visible edge
+PASS full-body-crystal-dress 200% right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% right: resolved state remains visible
+PASS full-body-crystal-dress 200% right: accessory refresh preserves position
+PASS full-body-crystal-dress 200% left: contact does not trigger hiding
+PASS full-body-crystal-dress 200% left: pointer reaches visible edge
+PASS full-body-crystal-dress 200% left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% left: resolved state remains visible
+PASS full-body-crystal-dress 200% left: accessory refresh preserves position
+PASS full-body-crystal-dress 200% top: contact does not trigger hiding
+PASS full-body-crystal-dress 200% top: pointer reaches visible edge
+PASS full-body-crystal-dress 200% top: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% top: top contact also preserved
+PASS full-body-crystal-dress 200% top: resolved state remains visible
+PASS full-body-crystal-dress 200% top: accessory refresh preserves position
+PASS full-body-crystal-dress 200% bottom: contact does not trigger hiding
+PASS full-body-crystal-dress 200% bottom: pointer reaches visible edge
+PASS full-body-crystal-dress 200% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% bottom: bottom contact also preserved
+PASS full-body-crystal-dress 200% bottom: resolved state remains visible
+PASS full-body-crystal-dress 200% bottom: accessory refresh preserves position
+PASS full-body-crystal-dress 200% top-right: contact does not trigger hiding
+PASS full-body-crystal-dress 200% top-right: pointer reaches visible edge
+PASS full-body-crystal-dress 200% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% top-right: top contact also preserved
+PASS full-body-crystal-dress 200% top-right: resolved state remains visible
+PASS full-body-crystal-dress 200% top-right: accessory refresh preserves position
+PASS full-body-crystal-dress 200% bottom-left: contact does not trigger hiding
+PASS full-body-crystal-dress 200% bottom-left: pointer reaches visible edge
+PASS full-body-crystal-dress 200% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-crystal-dress 200% bottom-left: bottom contact also preserved
+PASS full-body-crystal-dress 200% bottom-left: resolved state remains visible
+PASS full-body-crystal-dress 200% bottom-left: accessory refresh preserves position
+PASS full-body-long-hair 50% right: contact does not trigger hiding
+PASS full-body-long-hair 50% right: pointer reaches visible edge
+PASS full-body-long-hair 50% right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% right: resolved state remains visible
+PASS full-body-long-hair 50% right: accessory refresh preserves position
+PASS full-body-long-hair 50% left: contact does not trigger hiding
+PASS full-body-long-hair 50% left: pointer reaches visible edge
+PASS full-body-long-hair 50% left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% left: resolved state remains visible
+PASS full-body-long-hair 50% left: accessory refresh preserves position
+PASS full-body-long-hair 50% top: contact does not trigger hiding
+PASS full-body-long-hair 50% top: pointer reaches visible edge
+PASS full-body-long-hair 50% top: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% top: top contact also preserved
+PASS full-body-long-hair 50% top: resolved state remains visible
+PASS full-body-long-hair 50% top: accessory refresh preserves position
+PASS full-body-long-hair 50% bottom: contact does not trigger hiding
+PASS full-body-long-hair 50% bottom: pointer reaches visible edge
+PASS full-body-long-hair 50% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% bottom: bottom contact also preserved
+PASS full-body-long-hair 50% bottom: resolved state remains visible
+PASS full-body-long-hair 50% bottom: accessory refresh preserves position
+PASS full-body-long-hair 50% top-right: contact does not trigger hiding
+PASS full-body-long-hair 50% top-right: pointer reaches visible edge
+PASS full-body-long-hair 50% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% top-right: top contact also preserved
+PASS full-body-long-hair 50% top-right: resolved state remains visible
+PASS full-body-long-hair 50% top-right: accessory refresh preserves position
+PASS full-body-long-hair 50% bottom-left: contact does not trigger hiding
+PASS full-body-long-hair 50% bottom-left: pointer reaches visible edge
+PASS full-body-long-hair 50% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 50% bottom-left: bottom contact also preserved
+PASS full-body-long-hair 50% bottom-left: resolved state remains visible
+PASS full-body-long-hair 50% bottom-left: accessory refresh preserves position
+PASS full-body-long-hair 100% right: contact does not trigger hiding
+PASS full-body-long-hair 100% right: pointer reaches visible edge
+PASS full-body-long-hair 100% right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% right: resolved state remains visible
+PASS full-body-long-hair 100% right: accessory refresh preserves position
+PASS full-body-long-hair 100% left: contact does not trigger hiding
+PASS full-body-long-hair 100% left: pointer reaches visible edge
+PASS full-body-long-hair 100% left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% left: resolved state remains visible
+PASS full-body-long-hair 100% left: accessory refresh preserves position
+PASS full-body-long-hair 100% top: contact does not trigger hiding
+PASS full-body-long-hair 100% top: pointer reaches visible edge
+PASS full-body-long-hair 100% top: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% top: top contact also preserved
+PASS full-body-long-hair 100% top: resolved state remains visible
+PASS full-body-long-hair 100% top: accessory refresh preserves position
+PASS full-body-long-hair 100% bottom: contact does not trigger hiding
+PASS full-body-long-hair 100% bottom: pointer reaches visible edge
+PASS full-body-long-hair 100% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% bottom: bottom contact also preserved
+PASS full-body-long-hair 100% bottom: resolved state remains visible
+PASS full-body-long-hair 100% bottom: accessory refresh preserves position
+PASS full-body-long-hair 100% top-right: contact does not trigger hiding
+PASS full-body-long-hair 100% top-right: pointer reaches visible edge
+PASS full-body-long-hair 100% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% top-right: top contact also preserved
+PASS full-body-long-hair 100% top-right: resolved state remains visible
+PASS full-body-long-hair 100% top-right: accessory refresh preserves position
+PASS full-body-long-hair 100% bottom-left: contact does not trigger hiding
+PASS full-body-long-hair 100% bottom-left: pointer reaches visible edge
+PASS full-body-long-hair 100% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 100% bottom-left: bottom contact also preserved
+PASS full-body-long-hair 100% bottom-left: resolved state remains visible
+PASS full-body-long-hair 100% bottom-left: accessory refresh preserves position
+PASS full-body-long-hair 150% right: contact does not trigger hiding
+PASS full-body-long-hair 150% right: pointer reaches visible edge
+PASS full-body-long-hair 150% right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% right: resolved state remains visible
+PASS full-body-long-hair 150% right: accessory refresh preserves position
+PASS full-body-long-hair 150% left: contact does not trigger hiding
+PASS full-body-long-hair 150% left: pointer reaches visible edge
+PASS full-body-long-hair 150% left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% left: resolved state remains visible
+PASS full-body-long-hair 150% left: accessory refresh preserves position
+PASS full-body-long-hair 150% top: contact does not trigger hiding
+PASS full-body-long-hair 150% top: pointer reaches visible edge
+PASS full-body-long-hair 150% top: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% top: top contact also preserved
+PASS full-body-long-hair 150% top: resolved state remains visible
+PASS full-body-long-hair 150% top: accessory refresh preserves position
+PASS full-body-long-hair 150% bottom: contact does not trigger hiding
+PASS full-body-long-hair 150% bottom: pointer reaches visible edge
+PASS full-body-long-hair 150% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% bottom: bottom contact also preserved
+PASS full-body-long-hair 150% bottom: resolved state remains visible
+PASS full-body-long-hair 150% bottom: accessory refresh preserves position
+PASS full-body-long-hair 150% top-right: contact does not trigger hiding
+PASS full-body-long-hair 150% top-right: pointer reaches visible edge
+PASS full-body-long-hair 150% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% top-right: top contact also preserved
+PASS full-body-long-hair 150% top-right: resolved state remains visible
+PASS full-body-long-hair 150% top-right: accessory refresh preserves position
+PASS full-body-long-hair 150% bottom-left: contact does not trigger hiding
+PASS full-body-long-hair 150% bottom-left: pointer reaches visible edge
+PASS full-body-long-hair 150% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 150% bottom-left: bottom contact also preserved
+PASS full-body-long-hair 150% bottom-left: resolved state remains visible
+PASS full-body-long-hair 150% bottom-left: accessory refresh preserves position
+PASS full-body-long-hair 200% right: contact does not trigger hiding
+PASS full-body-long-hair 200% right: pointer reaches visible edge
+PASS full-body-long-hair 200% right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% right: resolved state remains visible
+PASS full-body-long-hair 200% right: accessory refresh preserves position
+PASS full-body-long-hair 200% left: contact does not trigger hiding
+PASS full-body-long-hair 200% left: pointer reaches visible edge
+PASS full-body-long-hair 200% left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% left: resolved state remains visible
+PASS full-body-long-hair 200% left: accessory refresh preserves position
+PASS full-body-long-hair 200% top: contact does not trigger hiding
+PASS full-body-long-hair 200% top: pointer reaches visible edge
+PASS full-body-long-hair 200% top: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% top: top contact also preserved
+PASS full-body-long-hair 200% top: resolved state remains visible
+PASS full-body-long-hair 200% top: accessory refresh preserves position
+PASS full-body-long-hair 200% bottom: contact does not trigger hiding
+PASS full-body-long-hair 200% bottom: pointer reaches visible edge
+PASS full-body-long-hair 200% bottom: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% bottom: bottom contact also preserved
+PASS full-body-long-hair 200% bottom: resolved state remains visible
+PASS full-body-long-hair 200% bottom: accessory refresh preserves position
+PASS full-body-long-hair 200% top-right: contact does not trigger hiding
+PASS full-body-long-hair 200% top-right: pointer reaches visible edge
+PASS full-body-long-hair 200% top-right: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% top-right: top contact also preserved
+PASS full-body-long-hair 200% top-right: resolved state remains visible
+PASS full-body-long-hair 200% top-right: accessory refresh preserves position
+PASS full-body-long-hair 200% bottom-left: contact does not trigger hiding
+PASS full-body-long-hair 200% bottom-left: pointer reaches visible edge
+PASS full-body-long-hair 200% bottom-left: restored artwork touches edge; gap=0.00
+PASS full-body-long-hair 200% bottom-left: bottom contact also preserved
+PASS full-body-long-hair 200% bottom-left: resolved state remains visible
+PASS full-body-long-hair 200% bottom-left: accessory refresh preserves position
+PASS music 50% right: contact does not trigger hiding
+PASS music 50% right: pointer reaches visible edge
+PASS music 50% right: restored artwork touches edge; gap=0.00
+PASS music 50% right: resolved state remains visible
+PASS music 50% right: accessory refresh preserves position
+PASS music 50% left: contact does not trigger hiding
+PASS music 50% left: pointer reaches visible edge
+PASS music 50% left: restored artwork touches edge; gap=0.00
+PASS music 50% left: resolved state remains visible
+PASS music 50% left: accessory refresh preserves position
+PASS music 50% top: contact does not trigger hiding
+PASS music 50% top: pointer reaches visible edge
+PASS music 50% top: restored artwork touches edge; gap=0.00
+PASS music 50% top: top contact also preserved
+PASS music 50% top: resolved state remains visible
+PASS music 50% top: accessory refresh preserves position
+PASS music 50% bottom: contact does not trigger hiding
+PASS music 50% bottom: pointer reaches visible edge
+PASS music 50% bottom: restored artwork touches edge; gap=0.00
+PASS music 50% bottom: bottom contact also preserved
+PASS music 50% bottom: resolved state remains visible
+PASS music 50% bottom: accessory refresh preserves position
+PASS music 50% top-right: contact does not trigger hiding
+PASS music 50% top-right: pointer reaches visible edge
+PASS music 50% top-right: restored artwork touches edge; gap=0.00
+PASS music 50% top-right: top contact also preserved
+PASS music 50% top-right: resolved state remains visible
+PASS music 50% top-right: accessory refresh preserves position
+PASS music 50% bottom-left: contact does not trigger hiding
+PASS music 50% bottom-left: pointer reaches visible edge
+PASS music 50% bottom-left: restored artwork touches edge; gap=0.00
+PASS music 50% bottom-left: bottom contact also preserved
+PASS music 50% bottom-left: resolved state remains visible
+PASS music 50% bottom-left: accessory refresh preserves position
+PASS music 100% right: contact does not trigger hiding
+PASS music 100% right: pointer reaches visible edge
+PASS music 100% right: restored artwork touches edge; gap=0.00
+PASS music 100% right: resolved state remains visible
+PASS music 100% right: accessory refresh preserves position
+PASS music 100% left: contact does not trigger hiding
+PASS music 100% left: pointer reaches visible edge
+PASS music 100% left: restored artwork touches edge; gap=0.00
+PASS music 100% left: resolved state remains visible
+PASS music 100% left: accessory refresh preserves position
+PASS music 100% top: contact does not trigger hiding
+PASS music 100% top: pointer reaches visible edge
+PASS music 100% top: restored artwork touches edge; gap=0.00
+PASS music 100% top: top contact also preserved
+PASS music 100% top: resolved state remains visible
+PASS music 100% top: accessory refresh preserves position
+PASS music 100% bottom: contact does not trigger hiding
+PASS music 100% bottom: pointer reaches visible edge
+PASS music 100% bottom: restored artwork touches edge; gap=0.00
+PASS music 100% bottom: bottom contact also preserved
+PASS music 100% bottom: resolved state remains visible
+PASS music 100% bottom: accessory refresh preserves position
+PASS music 100% top-right: contact does not trigger hiding
+PASS music 100% top-right: pointer reaches visible edge
+PASS music 100% top-right: restored artwork touches edge; gap=0.00
+PASS music 100% top-right: top contact also preserved
+PASS music 100% top-right: resolved state remains visible
+PASS music 100% top-right: accessory refresh preserves position
+PASS music 100% bottom-left: contact does not trigger hiding
+PASS music 100% bottom-left: pointer reaches visible edge
+PASS music 100% bottom-left: restored artwork touches edge; gap=0.00
+PASS music 100% bottom-left: bottom contact also preserved
+PASS music 100% bottom-left: resolved state remains visible
+PASS music 100% bottom-left: accessory refresh preserves position
+PASS music 150% right: contact does not trigger hiding
+PASS music 150% right: pointer reaches visible edge
+PASS music 150% right: restored artwork touches edge; gap=0.00
+PASS music 150% right: resolved state remains visible
+PASS music 150% right: accessory refresh preserves position
+PASS music 150% left: contact does not trigger hiding
+PASS music 150% left: pointer reaches visible edge
+PASS music 150% left: restored artwork touches edge; gap=0.00
+PASS music 150% left: resolved state remains visible
+PASS music 150% left: accessory refresh preserves position
+PASS music 150% top: contact does not trigger hiding
+PASS music 150% top: pointer reaches visible edge
+PASS music 150% top: restored artwork touches edge; gap=0.00
+PASS music 150% top: top contact also preserved
+PASS music 150% top: resolved state remains visible
+PASS music 150% top: accessory refresh preserves position
+PASS music 150% bottom: contact does not trigger hiding
+PASS music 150% bottom: pointer reaches visible edge
+PASS music 150% bottom: restored artwork touches edge; gap=0.00
+PASS music 150% bottom: bottom contact also preserved
+PASS music 150% bottom: resolved state remains visible
+PASS music 150% bottom: accessory refresh preserves position
+PASS music 150% top-right: contact does not trigger hiding
+PASS music 150% top-right: pointer reaches visible edge
+PASS music 150% top-right: restored artwork touches edge; gap=0.00
+PASS music 150% top-right: top contact also preserved
+PASS music 150% top-right: resolved state remains visible
+PASS music 150% top-right: accessory refresh preserves position
+PASS music 150% bottom-left: contact does not trigger hiding
+PASS music 150% bottom-left: pointer reaches visible edge
+PASS music 150% bottom-left: restored artwork touches edge; gap=0.00
+PASS music 150% bottom-left: bottom contact also preserved
+PASS music 150% bottom-left: resolved state remains visible
+PASS music 150% bottom-left: accessory refresh preserves position
+PASS music 200% right: contact does not trigger hiding
+PASS music 200% right: pointer reaches visible edge
+PASS music 200% right: restored artwork touches edge; gap=0.00
+PASS music 200% right: resolved state remains visible
+PASS music 200% right: accessory refresh preserves position
+PASS music 200% left: contact does not trigger hiding
+PASS music 200% left: pointer reaches visible edge
+PASS music 200% left: restored artwork touches edge; gap=0.00
+PASS music 200% left: resolved state remains visible
+PASS music 200% left: accessory refresh preserves position
+PASS music 200% top: contact does not trigger hiding
+PASS music 200% top: pointer reaches visible edge
+PASS music 200% top: restored artwork touches edge; gap=0.00
+PASS music 200% top: top contact also preserved
+PASS music 200% top: resolved state remains visible
+PASS music 200% top: accessory refresh preserves position
+PASS music 200% bottom: contact does not trigger hiding
+PASS music 200% bottom: pointer reaches visible edge
+PASS music 200% bottom: restored artwork touches edge; gap=0.00
+PASS music 200% bottom: bottom contact also preserved
+PASS music 200% bottom: resolved state remains visible
+PASS music 200% bottom: accessory refresh preserves position
+PASS music 200% top-right: contact does not trigger hiding
+PASS music 200% top-right: pointer reaches visible edge
+PASS music 200% top-right: restored artwork touches edge; gap=0.00
+PASS music 200% top-right: top contact also preserved
+PASS music 200% top-right: resolved state remains visible
+PASS music 200% top-right: accessory refresh preserves position
+PASS music 200% bottom-left: contact does not trigger hiding
+PASS music 200% bottom-left: pointer reaches visible edge
+PASS music 200% bottom-left: restored artwork touches edge; gap=0.00
+PASS music 200% bottom-left: bottom contact also preserved
+PASS music 200% bottom-left: resolved state remains visible
+PASS music 200% bottom-left: accessory refresh preserves position
+PASS Actual overscan selects Left hiding preview
+PASS Actual overscan still docks on Left
+PASS Recall from Left remains available
+PASS Actual overscan selects Right hiding preview
+PASS Actual overscan still docks on Right
+PASS Recall from Right remains available
+PASS Actual overscan selects Bottom hiding preview
+PASS Actual overscan still docks on Bottom
+PASS Recall from Bottom remains available

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from PIL import Image, ImageFilter, ImageSequence
+from animation_edge_cleanup import clean_edges
 
 
 def sha256(path: Path) -> str:
@@ -118,6 +119,9 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
         durations = durations[:maximum_frames]
     if not frames:
         raise ValueError(f"No frames found in {source}")
+    cleanup = entry.get("edgeCleanup")
+    if cleanup is not None:
+        frames = [clean_edges(frame, cleanup) for frame in frames]
     resize_width = int(entry.get("resizeWidth", 0))
     resize_height = int(entry.get("resizeHeight", 0))
     if resize_width > 0 and resize_height > 0:
@@ -203,7 +207,7 @@ def compile_entry(root: Path, entry: dict[str, Any], maximum_columns: int) -> di
             append_images=frames[1:],
             duration=durations,
             loop=0,
-            lossless=False,
+            lossless=bool(entry.get("runtimeWebpLossless", False)),
             quality=quality,
             method=3,
             exact=True,

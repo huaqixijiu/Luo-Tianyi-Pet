@@ -1,0 +1,186 @@
+{
+  "catalogAnimations": 69,
+  "logicalFrames": 3375,
+  "changed": [
+    {
+      "id": "resonance-hehe",
+      "frames": 10,
+      "softenedPixels": 7594,
+      "unmattedPixels": 18
+    },
+    {
+      "id": "resonance-expand",
+      "frames": 10,
+      "softenedPixels": 7752,
+      "unmattedPixels": 22
+    },
+    {
+      "id": "resonance-no-playing",
+      "frames": 10,
+      "softenedPixels": 8401,
+      "unmattedPixels": 9
+    },
+    {
+      "id": "resonance-please",
+      "frames": 10,
+      "softenedPixels": 8198,
+      "unmattedPixels": 36
+    },
+    {
+      "id": "resonance-give-me",
+      "frames": 10,
+      "softenedPixels": 7809,
+      "unmattedPixels": 134
+    },
+    {
+      "id": "resonance-enjoy-music",
+      "frames": 10,
+      "softenedPixels": 12095,
+      "unmattedPixels": 73
+    },
+    {
+      "id": "newyear-one-click-singing",
+      "frames": 16,
+      "softenedPixels": 18755,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "resonance-voice",
+      "frames": 10,
+      "softenedPixels": 10717,
+      "unmattedPixels": 25
+    },
+    {
+      "id": "resonance-voice-reversed",
+      "frames": 10,
+      "softenedPixels": 10717,
+      "unmattedPixels": 22
+    },
+    {
+      "id": "resonance-kiss",
+      "frames": 10,
+      "softenedPixels": 4167,
+      "unmattedPixels": 28
+    },
+    {
+      "id": "resonance-soft-heart",
+      "frames": 10,
+      "softenedPixels": 891,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "guoyue-headpat",
+      "frames": 28,
+      "softenedPixels": 25798,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "resonance-guilty",
+      "frames": 10,
+      "softenedPixels": 8240,
+      "unmattedPixels": 61
+    },
+    {
+      "id": "resonance-dark",
+      "frames": 10,
+      "softenedPixels": 8908,
+      "unmattedPixels": 104
+    },
+    {
+      "id": "resonance-my-pick",
+      "frames": 10,
+      "softenedPixels": 12397,
+      "unmattedPixels": 32
+    },
+    {
+      "id": "resonance-so-good",
+      "frames": 10,
+      "softenedPixels": 8046,
+      "unmattedPixels": 72
+    },
+    {
+      "id": "resonance-big-success",
+      "frames": 10,
+      "softenedPixels": 9066,
+      "unmattedPixels": 22
+    },
+    {
+      "id": "resonance-cute-bun-request",
+      "frames": 10,
+      "softenedPixels": 10468,
+      "unmattedPixels": 70
+    },
+    {
+      "id": "resonance-ok",
+      "frames": 10,
+      "softenedPixels": 7597,
+      "unmattedPixels": 41
+    },
+    {
+      "id": "startup-afternoon-hurry",
+      "frames": 9,
+      "softenedPixels": 14861,
+      "unmattedPixels": 5752
+    },
+    {
+      "id": "startup-evening-hungry",
+      "frames": 16,
+      "softenedPixels": 30878,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-entrance",
+      "frames": 16,
+      "softenedPixels": 34674,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-call",
+      "frames": 14,
+      "softenedPixels": 35229,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-peek",
+      "frames": 20,
+      "softenedPixels": 28460,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-stop",
+      "frames": 13,
+      "softenedPixels": 28395,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-charge",
+      "frames": 15,
+      "softenedPixels": 30523,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-cry",
+      "frames": 14,
+      "softenedPixels": 30538,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-hug",
+      "frames": 14,
+      "softenedPixels": 28842,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-stick-together",
+      "frames": 14,
+      "softenedPixels": 27602,
+      "unmattedPixels": 0
+    },
+    {
+      "id": "twelfth-anniversary-happy-birthday",
+      "frames": 14,
+      "softenedPixels": 43274,
+      "unmattedPixels": 0
+    }
+  ]
+}

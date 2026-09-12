@@ -643,6 +643,10 @@ public partial class MainWindow : Window
         {
             _ = RunFishingQaAsync();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-animation-edges"))
+        {
+            _ = RunAnimationEdgesQaAsync();
+        }
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
