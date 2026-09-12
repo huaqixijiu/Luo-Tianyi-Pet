@@ -1,0 +1,6 @@
+Version 0.1.0.68
+Status Ok
+Signature Valid
+Installed hashes verified: 74
+MSIX SHA256 779824a518216b15f460593bb00ac9def978c868a64b953b5f4e9b978cf50ce6
+WindowsApps process Responding=True
