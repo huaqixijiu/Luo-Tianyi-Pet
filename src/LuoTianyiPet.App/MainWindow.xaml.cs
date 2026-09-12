@@ -487,10 +487,25 @@ public partial class MainWindow : Window
         ShowInTaskbar = showQaTaskbar;
         _animationPlayer = animationCatalog is null
             ? null
-            : new AnimationFramePlayer(PetImage, animationCatalog);
+            : new AnimationFramePlayer(PetImage, animationCatalog, OnAnimationDecodeFailed);
         _crystalLongIdleDecorationPlayer = animationCatalog is null
             ? null
-            : new AnimationFramePlayer(CrystalLongIdleDecorationImage, animationCatalog);
+            : new AnimationFramePlayer(
+                CrystalLongIdleDecorationImage,
+                animationCatalog,
+                OnCrystalDecorationDecodeFailed);
+    }
+
+    private void OnAnimationDecodeFailed(string animationId, Exception exception)
+    {
+        _logger.Error($"animation.progressive_decode_failed.{animationId}", exception);
+        ShowFallback("Animation playback failed during background decoding.");
+    }
+
+    private void OnCrystalDecorationDecodeFailed(string animationId, Exception exception)
+    {
+        _logger.Error($"animation.decoration_decode_failed.{animationId}", exception);
+        HideCrystalLongIdleDecoration();
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)

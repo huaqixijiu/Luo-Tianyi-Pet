@@ -11,6 +11,7 @@ internal sealed class AnimationFramePlayer : IDisposable
 {
     private readonly Image _target;
     private readonly AnimationCatalog _catalog;
+    private readonly Action<string, Exception>? _playbackFailed;
     private readonly Stopwatch _stopwatch = new();
     private readonly Dictionary<string, CachedAnimation> _cache = new(StringComparer.Ordinal);
     private const long DecodedCacheBudgetBytes = 192L * 1024 * 1024;
@@ -22,11 +23,16 @@ internal sealed class AnimationFramePlayer : IDisposable
     private int _currentFrameIndex = -1;
     private bool _completionRaised;
     private bool _renderingSubscribed;
+    private BitmapSource? _displayedFrame;
 
-    public AnimationFramePlayer(Image target, AnimationCatalog catalog)
+    public AnimationFramePlayer(
+        Image target,
+        AnimationCatalog catalog,
+        Action<string, Exception>? playbackFailed = null)
     {
         _target = target;
         _catalog = catalog;
+        _playbackFailed = playbackFailed;
     }
 
     public string? CurrentAnimationId => _current?.Manifest.Id;
@@ -39,9 +45,13 @@ internal sealed class AnimationFramePlayer : IDisposable
         bool reverse = false,
         double playbackRate = 1.0)
     {
-        CachedAnimation animation = GetOrLoad(animationId);
-        int start = reverse ? animation.Frames.Count - 1 : 0;
-        int end = reverse ? 0 : animation.Frames.Count - 1;
+        AnimationAssetManifest manifest = _catalog.GetRequired(animationId);
+        int initialFrameIndex = reverse
+            ? manifest.FrameDurationsMilliseconds.Count - 1
+            : 0;
+        CachedAnimation animation = GetOrLoad(animationId, initialFrameIndex);
+        int start = reverse ? animation.FrameCount - 1 : 0;
+        int end = reverse ? 0 : animation.FrameCount - 1;
         return StartPlayback(
             animation,
             start,
@@ -58,7 +68,7 @@ internal sealed class AnimationFramePlayer : IDisposable
         Action? completed = null,
         double playbackRate = 1.0)
     {
-        CachedAnimation animation = GetOrLoad(animationId);
+        CachedAnimation animation = GetOrLoad(animationId, startFrameIndex);
         return StartPlayback(
             animation,
             startFrameIndex,
@@ -70,8 +80,8 @@ internal sealed class AnimationFramePlayer : IDisposable
 
     public AnimationAssetManifest ShowFrame(string animationId, int frameIndex)
     {
-        CachedAnimation animation = GetOrLoad(animationId);
-        if ((uint)frameIndex >= (uint)animation.Frames.Count)
+        CachedAnimation animation = GetOrLoad(animationId, frameIndex);
+        if ((uint)frameIndex >= (uint)animation.FrameCount)
         {
             throw new ArgumentOutOfRangeException(nameof(frameIndex));
         }
@@ -84,7 +94,11 @@ internal sealed class AnimationFramePlayer : IDisposable
         _completed = null;
         _completionRaised = false;
         _currentFrameIndex = frameIndex;
-        _target.Source = animation.Frames[frameIndex];
+        ShowBestAvailableFrame(animation, frameIndex);
+        if (!animation.IsFrameReady(frameIndex))
+        {
+            StartRendering();
+        }
         TrimDecodedCache();
         return animation.Manifest;
     }
@@ -99,16 +113,21 @@ internal sealed class AnimationFramePlayer : IDisposable
         _completed = null;
         _completionRaised = false;
         _currentFrameIndex = -1;
+        _displayedFrame = null;
         _target.Source = null;
     }
 
     public void Dispose()
     {
         Stop();
+        foreach (CachedAnimation animation in _cache.Values)
+        {
+            animation.Dispose();
+        }
         _cache.Clear();
     }
 
-    private CachedAnimation GetOrLoad(string animationId)
+    private CachedAnimation GetOrLoad(string animationId, int initialFrameIndex)
     {
         if (_cache.TryGetValue(animationId, out CachedAnimation? cached))
         {
@@ -118,16 +137,26 @@ internal sealed class AnimationFramePlayer : IDisposable
 
         AnimationAssetManifest manifest = _catalog.GetRequired(animationId);
         string assetPath = _catalog.GetAtlasPath(manifest);
-        IReadOnlyList<BitmapSource> frames = Path.GetExtension(assetPath)
-            .Equals(".webp", StringComparison.OrdinalIgnoreCase)
-            ? AnimatedWebpFrameDecoder.Decode(assetPath, manifest)
-            : LoadPngAtlas(assetPath, manifest);
-
-        CachedAnimation animation = new(
-            manifest,
-            frames,
-            EstimateDecodedBytes(manifest),
-            ++_cacheAccessSequence);
+        CachedAnimation animation;
+        if (Path.GetExtension(assetPath).Equals(".webp", StringComparison.OrdinalIgnoreCase))
+        {
+            animation = new CachedAnimation(
+                manifest,
+                AnimatedWebpFrameDecoder.StartDecode(
+                    assetPath,
+                    manifest,
+                    initialFrameIndex),
+                EstimateDecodedBytes(manifest),
+                ++_cacheAccessSequence);
+        }
+        else
+        {
+            animation = new CachedAnimation(
+                manifest,
+                LoadPngAtlas(assetPath, manifest),
+                EstimateDecodedBytes(manifest),
+                ++_cacheAccessSequence);
+        }
         _cache.Add(animationId, animation);
         return animation;
     }
@@ -176,6 +205,7 @@ internal sealed class AnimationFramePlayer : IDisposable
             }
 
             _cache.Remove(oldest.Manifest.Id);
+            oldest.Dispose();
         }
     }
 
@@ -203,20 +233,37 @@ internal sealed class AnimationFramePlayer : IDisposable
 
     private void OnRendering(object? sender, EventArgs e)
     {
-        if (_current is null || _activeTimeline is null || _activeFrameIndices is null)
+        if (_current is null)
         {
+            return;
+        }
+
+        if (_current.TakeDecodeFailure() is Exception decodeFailure)
+        {
+            FailPlayback(_current, decodeFailure);
+            return;
+        }
+
+        if (_activeTimeline is null || _activeFrameIndices is null)
+        {
+            if (_currentFrameIndex >= 0)
+            {
+                ShowBestAvailableFrame(_current, _currentFrameIndex);
+                if (_current.IsFrameReady(_currentFrameIndex))
+                {
+                    StopRendering();
+                }
+            }
             return;
         }
 
         PlaybackFrame playbackFrame = _activeTimeline.GetFrame(_stopwatch.Elapsed);
         int frameIndex = _activeFrameIndices[playbackFrame.Index];
-        if (frameIndex != _currentFrameIndex)
-        {
-            _currentFrameIndex = frameIndex;
-            _target.Source = _current.Frames[frameIndex];
-        }
+        _currentFrameIndex = frameIndex;
+        ShowBestAvailableFrame(_current, frameIndex);
 
-        if (!playbackFrame.IsCompleted || _completionRaised)
+        if (!playbackFrame.IsCompleted || _completionRaised ||
+            !_current.IsFrameReady(frameIndex))
         {
             return;
         }
@@ -227,6 +274,34 @@ internal sealed class AnimationFramePlayer : IDisposable
         Action? completed = _completed;
         _completed = null;
         completed?.Invoke();
+    }
+
+    private void ShowBestAvailableFrame(CachedAnimation animation, int frameIndex)
+    {
+        BitmapSource frame = animation.GetBestAvailableFrame(frameIndex);
+        if (!ReferenceEquals(frame, _displayedFrame))
+        {
+            _displayedFrame = frame;
+            _target.Source = frame;
+        }
+    }
+
+    private void FailPlayback(CachedAnimation animation, Exception exception)
+    {
+        string animationId = animation.Manifest.Id;
+        StopRendering();
+        _stopwatch.Stop();
+        _cache.Remove(animationId);
+        animation.Dispose();
+        _current = null;
+        _activeTimeline = null;
+        _activeFrameIndices = null;
+        _completed = null;
+        _completionRaised = false;
+        _currentFrameIndex = -1;
+        _displayedFrame = null;
+        _target.Source = null;
+        _playbackFailed?.Invoke(animationId, exception);
     }
 
     private AnimationAssetManifest StartPlayback(
@@ -240,7 +315,7 @@ internal sealed class AnimationFramePlayer : IDisposable
         IReadOnlyList<int> indices = FrameIndexSequence.Create(
             startFrameIndex,
             endFrameIndex,
-            animation.Frames.Count);
+            animation.FrameCount);
         int[] durations = indices
             .Select(index => animation.Manifest.FrameDurationsMilliseconds[index])
             .ToArray();
@@ -251,25 +326,60 @@ internal sealed class AnimationFramePlayer : IDisposable
         _completed = completed;
         _completionRaised = false;
         _currentFrameIndex = startFrameIndex;
-        _target.Source = animation.Frames[startFrameIndex];
+        ShowBestAvailableFrame(animation, startFrameIndex);
         TrimDecodedCache();
         _stopwatch.Restart();
         StartRendering();
         return animation.Manifest;
     }
 
-    private sealed class CachedAnimation(
-        AnimationAssetManifest manifest,
-        IReadOnlyList<BitmapSource> frames,
-        long estimatedDecodedBytes,
-        long lastAccess)
+    private sealed class CachedAnimation : IDisposable
     {
-        public AnimationAssetManifest Manifest { get; } = manifest;
+        private readonly IReadOnlyList<BitmapSource>? _frames;
+        private readonly AnimatedWebpFrameDecoder.ProgressiveBitmapFrames? _progressiveFrames;
 
-        public IReadOnlyList<BitmapSource> Frames { get; } = frames;
+        public CachedAnimation(
+            AnimationAssetManifest manifest,
+            IReadOnlyList<BitmapSource> frames,
+            long estimatedDecodedBytes,
+            long lastAccess)
+        {
+            Manifest = manifest;
+            _frames = frames;
+            EstimatedDecodedBytes = estimatedDecodedBytes;
+            LastAccess = lastAccess;
+        }
 
-        public long EstimatedDecodedBytes { get; } = estimatedDecodedBytes;
+        public CachedAnimation(
+            AnimationAssetManifest manifest,
+            AnimatedWebpFrameDecoder.ProgressiveBitmapFrames progressiveFrames,
+            long estimatedDecodedBytes,
+            long lastAccess)
+        {
+            Manifest = manifest;
+            _progressiveFrames = progressiveFrames;
+            EstimatedDecodedBytes = estimatedDecodedBytes;
+            LastAccess = lastAccess;
+        }
 
-        public long LastAccess { get; set; } = lastAccess;
+        public AnimationAssetManifest Manifest { get; }
+
+        public int FrameCount => _frames?.Count ?? _progressiveFrames!.Count;
+
+        public long EstimatedDecodedBytes { get; }
+
+        public long LastAccess { get; set; }
+
+        public bool IsFrameReady(int frameIndex) =>
+            _frames is not null || _progressiveFrames!.IsFrameReady(frameIndex);
+
+        public BitmapSource GetBestAvailableFrame(int frameIndex) =>
+            _frames is not null
+                ? _frames[frameIndex]
+                : _progressiveFrames!.GetBestAvailableFrame(frameIndex);
+
+        public Exception? TakeDecodeFailure() => _progressiveFrames?.TakeFailure();
+
+        public void Dispose() => _progressiveFrames?.Dispose();
     }
 }
