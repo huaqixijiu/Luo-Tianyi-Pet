@@ -160,6 +160,11 @@ public sealed class WindowsWeChatSessionNotificationSource : IDisposable
         get { lock (_sync) return _started && !_disposed && _now() - _lastSuccess < TimeSpan.FromSeconds(3)
             ? _hasUnreadConversations : null; }
     }
+    public bool? IsConversationUnread(string key)
+    {
+        lock (_sync) return _started && !_disposed && _now() - _lastSuccess < TimeSpan.FromSeconds(3)
+            ? _tracker.IsConversationUnread(key) : null;
+    }
     internal void Poll()
     {
         if(Interlocked.Exchange(ref _reading,1)!=0)return;
