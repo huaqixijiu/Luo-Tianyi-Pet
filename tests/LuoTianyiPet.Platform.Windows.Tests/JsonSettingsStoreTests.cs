@@ -4,6 +4,49 @@ namespace LuoTianyiPet.Platform.Windows.Tests;
 
 public sealed class JsonSettingsStoreTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConcurrentSavesAreSerializedAndLastSnapshotWins(bool existingFile)
+    {
+        string directory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(directory);
+            JsonSettingsStore store = new(paths);
+            if (existingFile) await store.SaveAsync(new AppSettings());
+            Task[] saves = Enumerable.Range(0, 64).Select(index => store.SaveAsync(
+                new AppSettings { Window = new WindowPreferences { Left = index } })).ToArray();
+            await Task.WhenAll(saves);
+            Assert.Equal(63, (await store.LoadAsync()).Window.Left);
+            Assert.Empty(Directory.GetFiles(directory, "settings-*.tmp"));
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+
+    [Fact]
+    public async Task FailedOrCancelledSaveDoesNotPoisonNextSaveOrLeaveTemporaryFiles()
+    {
+        string directory = CreateTestDirectory();
+        try
+        {
+            LocalAppPaths paths = new(directory);
+            JsonSettingsStore store = new(paths);
+            await store.SaveAsync(new AppSettings { Window = new WindowPreferences { Left = 10 } });
+            using (FileStream locked = new(paths.SettingsFile, FileMode.Open, FileAccess.Read, FileShare.None))
+                await Assert.ThrowsAnyAsync<IOException>(() => store.SaveAsync(new AppSettings()));
+            Assert.Equal(10, (await store.LoadAsync()).Window.Left);
+            Assert.Empty(Directory.GetFiles(directory, "settings-*.tmp"));
+            using CancellationTokenSource cancelled = new();
+            cancelled.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => store.SaveAsync(new AppSettings(), cancelled.Token));
+            await store.SaveAsync(new AppSettings { Window = new WindowPreferences { Left = 20 } });
+            Assert.Equal(20, (await store.LoadAsync()).Window.Left);
+            Assert.Empty(Directory.GetFiles(directory, "settings-*.tmp"));
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+
     [Fact]
     public async Task Load_Version14_KeepsExistingPreferencesAndStartsWithMusicIslandsHidden()
     {

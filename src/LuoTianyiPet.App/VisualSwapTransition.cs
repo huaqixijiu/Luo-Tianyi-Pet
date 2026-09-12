@@ -11,6 +11,7 @@ internal sealed class VisualSwapTransition
     private readonly UIElement _flash;
     private readonly ScaleTransform _flashScale;
     private int _version;
+    public bool IsActive { get; private set; }
 
     public VisualSwapTransition(
         UIElement visual,
@@ -31,6 +32,7 @@ internal sealed class VisualSwapTransition
         int version = ++_version;
         ResetVisuals();
 
+        IsActive = true;
         Animate(_visual, UIElement.OpacityProperty, 1, 0.06, 145, EasingMode.EaseIn);
         Animate(_visualScale, ScaleTransform.ScaleXProperty, 1, 0.84, 145, EasingMode.EaseIn);
         Animate(_visualScale, ScaleTransform.ScaleYProperty, 1, 0.84, 145, EasingMode.EaseIn);
@@ -88,6 +90,7 @@ internal sealed class VisualSwapTransition
         int version = ++_version;
         ResetVisuals();
 
+        IsActive = true;
         const int fadeOutMilliseconds = 110;
         const int fadeInMilliseconds = 170;
         Animate(
@@ -133,6 +136,7 @@ internal sealed class VisualSwapTransition
 
     private void ResetVisuals()
     {
+        IsActive = false;
         ClearAnimationsAndSet(_visual, UIElement.OpacityProperty, 1);
         ClearAnimationsAndSet(_visualScale, ScaleTransform.ScaleXProperty, 1);
         ClearAnimationsAndSet(_visualScale, ScaleTransform.ScaleYProperty, 1);

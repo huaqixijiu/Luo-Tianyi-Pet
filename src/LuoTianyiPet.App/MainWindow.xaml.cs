@@ -262,7 +262,7 @@ public partial class MainWindow : Window
     private bool _bunMotionRenderingSubscribed;
     private int _bunRequestPresentationGeneration;
     private bool _bodyReactionMirrorActive;
-    private bool _restoreTrackInfoAfterFeedback;
+    private double _feedbackSlotHeight;
     private double _bunMotionSpeed = BunStartingSpeed;
     private DateTimeOffset _suppressDesktopTreatUntil;
     private DesktopToolWindowBehavior? _desktopToolWindowBehavior;
@@ -612,6 +612,8 @@ public partial class MainWindow : Window
         }
 
         UpdateBodyHitDebugOverlay();
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-music-settings-feedback"))
+            _ = RunMusicSettingsFeedbackQaAsync();
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-afternoon-greeting"))
             _ = RunAfternoonGreetingQaAsync();
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-message-details"))
@@ -3004,6 +3006,18 @@ public partial class MainWindow : Window
             return;
         }
 
+        PetPlaybackPlan target = _stateMachine.Resolve(DateTimeOffset.Now);
+        if (!dragReleaseBounds.HasValue && !_visualSwapTransition.IsActive &&
+            !_bodyReactionMirrorActive && target.Source == PlaybackPlanSource.Continuous &&
+            target.AnimationId == _animationPlayer.CurrentAnimationId &&
+            PetImage.Visibility == Visibility.Visible)
+        {
+            // A media state/glyph update need not change the picture (music animation: off).
+            // Keep the frame, motion clock and opacity when the resolved picture is unchanged.
+            afterTransition?.Invoke();
+            return;
+        }
+
         void SwapAnimation()
         {
             PlayResolvedContinuousAnimation(preserveVisualTransition: true);
@@ -3202,6 +3216,7 @@ public partial class MainWindow : Window
             workArea.Right - width + 8);
         double minimumTop = workArea.Top - PetVisual.Margin.Top;
         Top = Clamp(bottom - height, minimumTop, workArea.Bottom - height + PetVisual.Margin.Bottom);
+        UpdateFeedbackLayout();
     }
 
     private void ApplyAccessorySizing(AccessorySizing sizing)
@@ -3684,7 +3699,7 @@ public partial class MainWindow : Window
             EdgeDockResolver.IsNearTop(
                 petBounds,
                 workArea,
-                EdgeAccessoryLayoutDistance);
+                EdgeAccessoryLayoutDistance + _feedbackSlotHeight);
         AccessoryLayout layout = useAbovePetLayout
             ? AccessoryLayout.AbovePet
             : useBelowPetLayout
@@ -3696,9 +3711,10 @@ public partial class MainWindow : Window
 
     private void ApplyAccessoryLayout(
         AccessoryLayout layout,
-        bool preservePetPosition = true)
+        bool preservePetPosition = true,
+        bool force = false)
     {
-        if (_accessoryLayout == layout)
+        if (_accessoryLayout == layout && !force)
         {
             return;
         }
@@ -3706,37 +3722,38 @@ public partial class MainWindow : Window
         UpdateLayout();
         double petBottomBefore = Top + GetStableStageBoundsInWindow().Bottom;
         _accessoryLayout = layout;
+        Height = GetAnimationStageSizing().Height;
         switch (layout)
         {
             case AccessoryLayout.AbovePet:
-                PetVisual.Margin = new Thickness(8, 118, 8, 8);
-                MusicTransitionFlash.Margin = new Thickness(8, 118, 8, 8);
+                PetVisual.Margin = new Thickness(8, 118 + _feedbackSlotHeight, 8, 8);
+                MusicTransitionFlash.Margin = PetVisual.Margin;
                 TrackInfoBubble.VerticalAlignment = VerticalAlignment.Top;
                 TrackInfoBubble.Margin = new Thickness(5, 7, 5, 0);
                 MediaControls.VerticalAlignment = VerticalAlignment.Top;
-                MediaControls.Margin = new Thickness(0, 60, 0, 0);
+                MediaControls.Margin = new Thickness(0, 60 + _feedbackSlotHeight, 0, 0);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
-                FeedbackBubble.Margin = new Thickness(5, 7, 5, 0);
+                FeedbackBubble.Margin = new Thickness(5, 57, 5, 0);
                 break;
             case AccessoryLayout.BelowPet:
-                PetVisual.Margin = new Thickness(8, 8, 8, 118);
-                MusicTransitionFlash.Margin = new Thickness(8, 8, 8, 118);
+                PetVisual.Margin = new Thickness(8, 8, 8, 118 + _feedbackSlotHeight);
+                MusicTransitionFlash.Margin = PetVisual.Margin;
                 TrackInfoBubble.VerticalAlignment = VerticalAlignment.Bottom;
-                TrackInfoBubble.Margin = new Thickness(5, 0, 5, 60);
+                TrackInfoBubble.Margin = new Thickness(5, 0, 5, 60 + _feedbackSlotHeight);
                 MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
                 MediaControls.Margin = new Thickness(0, 0, 0, 7);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Bottom;
                 FeedbackBubble.Margin = new Thickness(5, 0, 5, 60);
                 break;
             case AccessoryLayout.Split:
-                PetVisual.Margin = new Thickness(8, 60, 8, 66);
-                MusicTransitionFlash.Margin = new Thickness(8, 60, 8, 66);
+                PetVisual.Margin = new Thickness(8, 60 + _feedbackSlotHeight, 8, 66);
+                MusicTransitionFlash.Margin = PetVisual.Margin;
                 TrackInfoBubble.VerticalAlignment = VerticalAlignment.Top;
                 TrackInfoBubble.Margin = new Thickness(5, 6, 5, 0);
                 MediaControls.VerticalAlignment = VerticalAlignment.Bottom;
                 MediaControls.Margin = new Thickness(0, 0, 0, 7);
                 FeedbackBubble.VerticalAlignment = VerticalAlignment.Top;
-                FeedbackBubble.Margin = new Thickness(5, 6, 5, 0);
+                FeedbackBubble.Margin = new Thickness(5, 56, 5, 0);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(layout));
@@ -4004,7 +4021,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ShowSettingsDialog()
+    private async void ShowSettingsDialog()
     {
         if (_isClosing)
         {
@@ -4035,12 +4052,14 @@ public partial class MainWindow : Window
         if (settingsWindow.ShowDialog() == true)
         {
             ApplyMessageNotificationPreferences(settingsWindow.SelectedNotificationPreferences);
-            ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences);
-            ApplyAppearancePreferences(settingsWindow.SelectedAppearancePreferences);
-            ApplyMediaPreferences(settingsWindow.SelectedMediaPreferences);
+            ApplyFileTreatPreferences(settingsWindow.SelectedFileTreatPreferences, save: false);
+            ApplyAppearancePreferences(settingsWindow.SelectedAppearancePreferences, save: false);
+            ApplyMediaPreferences(settingsWindow.SelectedMediaPreferences, save: false);
             ApplyWindowPreferences(
                 settingsWindow.SelectedWindowPreferences,
-                settingsWindow.StartWithWindowsSelected);
+                settingsWindow.StartWithWindowsSelected, save: false);
+            if (_persistSettings)
+                await SaveSettingsAsync("settings.dialog_saved", "All settings saved together.");
         }
     }
 
@@ -4111,7 +4130,7 @@ public partial class MainWindow : Window
             _ => new BodyInteractionDecision(BodyInteractionDecisionKind.NoAction),
         };
 
-    private void ApplyAppearancePreferences(AppearancePreferences preferences)
+    private void ApplyAppearancePreferences(AppearancePreferences preferences, bool save = true)
     {
         AppearancePreferences normalized = AppearancePreferences.Normalize(preferences);
         string previousFullBodyAnimation = _stateMachine.VisualState.FullBodyAnimationId;
@@ -4157,13 +4176,13 @@ public partial class MainWindow : Window
         _logger.Info(
             "settings.appearance_applied",
             $"FullBodyStyle={normalized.FullBodyStyle}; BunEatingStyle={normalized.BunEatingStyle}; ScalePercent={normalized.DisplayScalePercent}.");
-        if (_persistSettings)
+        if (_persistSettings && save)
         {
             _ = SaveSettingsAsync("settings.appearance_saved", "Appearance preferences saved.");
         }
     }
 
-    private void ApplyMediaPreferences(MediaPreferences preferences)
+    private void ApplyMediaPreferences(MediaPreferences preferences, bool save = true)
     {
         MediaPreferences normalized = MediaPreferences.Normalize(preferences);
         bool musicAnimationChanged = !string.Equals(
@@ -4192,7 +4211,7 @@ public partial class MainWindow : Window
             "settings.media_applied",
             $"MusicAnimationSelection={normalized.MusicAnimationSelection}; " +
             $"SingingEasterEgg={normalized.EnableLuoTianyiSingingEasterEgg}.");
-        if (_persistSettings)
+        if (_persistSettings && save)
         {
             _ = SaveSettingsAsync("settings.media_saved", "Media preferences saved.");
         }
@@ -4258,7 +4277,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplyFileTreatPreferences(FileTreatPreferences preferences)
+    private void ApplyFileTreatPreferences(FileTreatPreferences preferences, bool save = true)
     {
         bool wasEnabled = _settings.FileTreats.EnableDesktopFileTreats;
         _settings = _settings with { FileTreats = preferences };
@@ -4286,7 +4305,7 @@ public partial class MainWindow : Window
                 preferences.EnableDesktopFileTreats ? "Enabled." : "Disabled.");
         }
 
-        if (_persistSettings)
+        if (_persistSettings && save)
         {
             _ = SaveSettingsAsync("settings.file_treat_saved", "File treat preferences saved.");
         }
@@ -4294,7 +4313,7 @@ public partial class MainWindow : Window
 
     private void ApplyWindowPreferences(
         WindowPreferences preferences,
-        bool startWithWindows)
+        bool startWithWindows, bool save = true)
     {
         SetPermanentTopmost(preferences.AlwaysOnTop, save: false);
         SetStartupEnabled(startWithWindows, save: false);
@@ -4308,7 +4327,7 @@ public partial class MainWindow : Window
                 Top = Top,
             },
         };
-        if (_persistSettings)
+        if (_persistSettings && save)
         {
             _ = SaveSettingsAsync("settings.window_saved", "Window preferences saved.");
         }
@@ -5002,29 +5021,33 @@ public partial class MainWindow : Window
 
     private void PrepareFeedbackBubble(string message)
     {
-        _restoreTrackInfoAfterFeedback |=
-            _previewTrackInfo || TrackInfoBubble.Opacity > 0.01;
-        _trackInfoHideTimer.Stop();
-        _trackInfoMotion.Hide(animate: false);
         FeedbackBubbleText.Text = message;
+        FeedbackBubble.Visibility = Visibility.Visible;
+        UpdateFeedbackLayout();
     }
 
     private void HideFeedbackBubble(bool restoreTrackInfo)
     {
         _feedbackBubbleTimer.Stop();
         FeedbackBubble.Visibility = Visibility.Collapsed;
-        bool shouldRestoreTrackInfo = restoreTrackInfo && _restoreTrackInfoAfterFeedback;
-        _restoreTrackInfoAfterFeedback = false;
-        if (!shouldRestoreTrackInfo || !CanShowMusicIslands)
-        {
-            return;
-        }
+        UpdateFeedbackLayout();
+    }
 
-        _trackInfoMotion.Show();
-        if (!_previewTrackInfo && !IsMouseOver)
+    private void UpdateFeedbackLayout()
+    {
+        // Only reserve the measured row while needed. Keep the pet anchored as it expands.
+        double slot = 0;
+        if (FeedbackBubble.Visibility == Visibility.Visible)
         {
-            _trackInfoHideTimer.Start();
+            FeedbackBubble.Width = Math.Max(80, Math.Min(250, Width - 10));
+            FeedbackBubble.Measure(new System.Windows.Size(Width, double.PositiveInfinity));
+            slot = Math.Ceiling(FeedbackBubble.DesiredSize.Height -
+                FeedbackBubble.Margin.Top - FeedbackBubble.Margin.Bottom) + 8;
         }
+        if (Math.Abs(slot - _feedbackSlotHeight) < 0.1) return;
+        _feedbackSlotHeight = slot;
+        ApplyAccessoryLayout(_accessoryLayout, force: true);
+        UpdateAccessoryLayoutForCurrentPosition();
     }
 
     private void OnDesktopItemDisappeared(object? sender, DesktopItemDisappearedEventArgs e)

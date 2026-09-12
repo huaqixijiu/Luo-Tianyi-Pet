@@ -1,0 +1,276 @@
+PASS Music off: no start flash user-chibi-compact-idle/0/0
+PASS Music off: no start flash user-chibi-compact-idle/0/1
+PASS Music off: no start flash user-chibi-compact-idle/0/2
+PASS Music off: no start flash user-chibi-compact-idle/0/3
+PASS Music off: no start flash user-chibi-compact-idle/0/4
+PASS Music off: no start flash user-chibi-compact-idle/0/5
+PASS Music off: no start flash user-chibi-compact-idle/0/6
+PASS Music off: no start flash user-chibi-compact-idle/0/7
+PASS Music off: no stop flash user-chibi-compact-idle/0
+PASS Music off: no start flash user-chibi-compact-idle/1/0
+PASS Music off: no start flash user-chibi-compact-idle/1/1
+PASS Music off: no start flash user-chibi-compact-idle/1/2
+PASS Music off: no start flash user-chibi-compact-idle/1/3
+PASS Music off: no start flash user-chibi-compact-idle/1/4
+PASS Music off: no start flash user-chibi-compact-idle/1/5
+PASS Music off: no start flash user-chibi-compact-idle/1/6
+PASS Music off: no start flash user-chibi-compact-idle/1/7
+PASS Music off: no stop flash user-chibi-compact-idle/1
+PASS Music off: no start flash user-chibi-compact-idle/2/0
+PASS Music off: no start flash user-chibi-compact-idle/2/1
+PASS Music off: no start flash user-chibi-compact-idle/2/2
+PASS Music off: no start flash user-chibi-compact-idle/2/3
+PASS Music off: no start flash user-chibi-compact-idle/2/4
+PASS Music off: no start flash user-chibi-compact-idle/2/5
+PASS Music off: no start flash user-chibi-compact-idle/2/6
+PASS Music off: no start flash user-chibi-compact-idle/2/7
+PASS Music off: no stop flash user-chibi-compact-idle/2
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/0
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/1
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/2
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/3
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/4
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/5
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/6
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/0/7
+PASS Music off: no stop flash user-chibi-crystal-full-body-idle/0
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/0
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/1
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/2
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/3
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/4
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/5
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/6
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/1/7
+PASS Music off: no stop flash user-chibi-crystal-full-body-idle/1
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/0
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/1
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/2
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/3
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/4
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/5
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/6
+PASS Music off: no start flash user-chibi-crystal-full-body-idle/2/7
+PASS Music off: no stop flash user-chibi-crystal-full-body-idle/2
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/0
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/1
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/2
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/3
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/4
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/5
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/6
+PASS Music off: no start flash user-chibi-classic-full-body-idle/0/7
+PASS Music off: no stop flash user-chibi-classic-full-body-idle/0
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/0
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/1
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/2
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/3
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/4
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/5
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/6
+PASS Music off: no start flash user-chibi-classic-full-body-idle/1/7
+PASS Music off: no stop flash user-chibi-classic-full-body-idle/1
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/0
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/1
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/2
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/3
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/4
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/5
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/6
+PASS Music off: no start flash user-chibi-classic-full-body-idle/2/7
+PASS Music off: no stop flash user-chibi-classic-full-body-idle/2
+PASS Different art still uses a transition
+PASS Enabled music animation is preserved
+PASS Actual edge layout 50/Split
+PASS Feedback below song, outside controls 50/Split/16
+PASS Feedback fits window 50/Split/16
+PASS Islands remain on screen 50/Split/16
+PASS Feedback does not shift or resize pet 50/Split/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/Split
+PASS Feedback below song, outside controls 50/Split/14
+PASS Feedback fits window 50/Split/14
+PASS Islands remain on screen 50/Split/14
+PASS Feedback does not shift or resize pet 50/Split/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/Split
+PASS Feedback below song, outside controls 50/Split/40
+PASS Feedback fits window 50/Split/40
+PASS Islands remain on screen 50/Split/40
+PASS Feedback does not shift or resize pet 50/Split/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/AbovePet
+PASS Feedback below song, outside controls 50/AbovePet/16
+PASS Feedback fits window 50/AbovePet/16
+PASS Islands remain on screen 50/AbovePet/16
+PASS Feedback does not shift or resize pet 50/AbovePet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/AbovePet
+PASS Feedback below song, outside controls 50/AbovePet/14
+PASS Feedback fits window 50/AbovePet/14
+PASS Islands remain on screen 50/AbovePet/14
+PASS Feedback does not shift or resize pet 50/AbovePet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/AbovePet
+PASS Feedback below song, outside controls 50/AbovePet/40
+PASS Feedback fits window 50/AbovePet/40
+PASS Islands remain on screen 50/AbovePet/40
+PASS Feedback does not shift or resize pet 50/AbovePet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/BelowPet
+PASS Feedback below song, outside controls 50/BelowPet/16
+PASS Feedback fits window 50/BelowPet/16
+PASS Islands remain on screen 50/BelowPet/16
+PASS Feedback does not shift or resize pet 50/BelowPet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/BelowPet
+PASS Feedback below song, outside controls 50/BelowPet/14
+PASS Feedback fits window 50/BelowPet/14
+PASS Islands remain on screen 50/BelowPet/14
+PASS Feedback does not shift or resize pet 50/BelowPet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 50/BelowPet
+PASS Feedback below song, outside controls 50/BelowPet/40
+PASS Feedback fits window 50/BelowPet/40
+PASS Islands remain on screen 50/BelowPet/40
+PASS Feedback does not shift or resize pet 50/BelowPet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/Split
+PASS Feedback below song, outside controls 100/Split/16
+PASS Feedback fits window 100/Split/16
+PASS Islands remain on screen 100/Split/16
+PASS Feedback does not shift or resize pet 100/Split/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/Split
+PASS Feedback below song, outside controls 100/Split/14
+PASS Feedback fits window 100/Split/14
+PASS Islands remain on screen 100/Split/14
+PASS Feedback does not shift or resize pet 100/Split/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/Split
+PASS Feedback below song, outside controls 100/Split/40
+PASS Feedback fits window 100/Split/40
+PASS Islands remain on screen 100/Split/40
+PASS Feedback does not shift or resize pet 100/Split/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/AbovePet
+PASS Feedback below song, outside controls 100/AbovePet/16
+PASS Feedback fits window 100/AbovePet/16
+PASS Islands remain on screen 100/AbovePet/16
+PASS Feedback does not shift or resize pet 100/AbovePet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/AbovePet
+PASS Feedback below song, outside controls 100/AbovePet/14
+PASS Feedback fits window 100/AbovePet/14
+PASS Islands remain on screen 100/AbovePet/14
+PASS Feedback does not shift or resize pet 100/AbovePet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/AbovePet
+PASS Feedback below song, outside controls 100/AbovePet/40
+PASS Feedback fits window 100/AbovePet/40
+PASS Islands remain on screen 100/AbovePet/40
+PASS Feedback does not shift or resize pet 100/AbovePet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/BelowPet
+PASS Feedback below song, outside controls 100/BelowPet/16
+PASS Feedback fits window 100/BelowPet/16
+PASS Islands remain on screen 100/BelowPet/16
+PASS Feedback does not shift or resize pet 100/BelowPet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/BelowPet
+PASS Feedback below song, outside controls 100/BelowPet/14
+PASS Feedback fits window 100/BelowPet/14
+PASS Islands remain on screen 100/BelowPet/14
+PASS Feedback does not shift or resize pet 100/BelowPet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 100/BelowPet
+PASS Feedback below song, outside controls 100/BelowPet/40
+PASS Feedback fits window 100/BelowPet/40
+PASS Islands remain on screen 100/BelowPet/40
+PASS Feedback does not shift or resize pet 100/BelowPet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/Split
+PASS Feedback below song, outside controls 200/Split/16
+PASS Feedback fits window 200/Split/16
+PASS Islands remain on screen 200/Split/16
+PASS Feedback does not shift or resize pet 200/Split/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/Split
+PASS Feedback below song, outside controls 200/Split/14
+PASS Feedback fits window 200/Split/14
+PASS Islands remain on screen 200/Split/14
+PASS Feedback does not shift or resize pet 200/Split/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/Split
+PASS Feedback below song, outside controls 200/Split/40
+PASS Feedback fits window 200/Split/40
+PASS Islands remain on screen 200/Split/40
+PASS Feedback does not shift or resize pet 200/Split/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/AbovePet
+PASS Feedback below song, outside controls 200/AbovePet/16
+PASS Feedback fits window 200/AbovePet/16
+PASS Islands remain on screen 200/AbovePet/16
+PASS Feedback does not shift or resize pet 200/AbovePet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/AbovePet
+PASS Feedback below song, outside controls 200/AbovePet/14
+PASS Feedback fits window 200/AbovePet/14
+PASS Islands remain on screen 200/AbovePet/14
+PASS Feedback does not shift or resize pet 200/AbovePet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/AbovePet
+PASS Feedback below song, outside controls 200/AbovePet/40
+PASS Feedback fits window 200/AbovePet/40
+PASS Islands remain on screen 200/AbovePet/40
+PASS Feedback does not shift or resize pet 200/AbovePet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/BelowPet
+PASS Feedback below song, outside controls 200/BelowPet/16
+PASS Feedback fits window 200/BelowPet/16
+PASS Islands remain on screen 200/BelowPet/16
+PASS Feedback does not shift or resize pet 200/BelowPet/16
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/BelowPet
+PASS Feedback below song, outside controls 200/BelowPet/14
+PASS Feedback fits window 200/BelowPet/14
+PASS Islands remain on screen 200/BelowPet/14
+PASS Feedback does not shift or resize pet 200/BelowPet/14
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Actual edge layout 200/BelowPet
+PASS Feedback below song, outside controls 200/BelowPet/40
+PASS Feedback fits window 200/BelowPet/40
+PASS Islands remain on screen 200/BelowPet/40
+PASS Feedback does not shift or resize pet 200/BelowPet/40
+PASS Feedback does not hide the song
+PASS Feedback dismissal releases only its own row
+PASS Important feedback never re-enables disabled islands
+PASS Visible feedback reflows when resizing to minimum size
+PASS Actual app saves round-trip all preference groups
+PASS Successful overlapping saves never show a failure bubble

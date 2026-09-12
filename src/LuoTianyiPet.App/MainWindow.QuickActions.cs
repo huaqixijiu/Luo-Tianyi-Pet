@@ -99,7 +99,6 @@ public partial class MainWindow
         _mediaControlsHideTimer.Stop();
         _trackInfoHideTimer.Stop();
         _trackInfoShowRequested = false;
-        _restoreTrackInfoAfterFeedback = false;
         CloudMusicVolumePopup.IsOpen = false;
         _mediaControlsMotion.Hide(animate: false);
         _trackInfoMotion.Hide(animate: false);

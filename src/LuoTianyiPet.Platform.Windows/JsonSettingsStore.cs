@@ -14,6 +14,7 @@ public sealed class JsonSettingsStore : ISettingsStore
     };
 
     private readonly LocalAppPaths _paths;
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
 
     public JsonSettingsStore(LocalAppPaths paths)
     {
@@ -105,16 +106,27 @@ public sealed class JsonSettingsStore : ISettingsStore
     {
         Guard.NotNull(settings, nameof(settings));
 
-        Directory.CreateDirectory(_paths.RootDirectory);
-        string temporaryFile = Path.Combine(
-            _paths.RootDirectory,
-            $"settings-{Guid.NewGuid():N}.tmp");
-
         string json = JsonSerializer.Serialize(settings, SerializerOptions);
-        await Task.Run(
-            () => File.WriteAllText(temporaryFile, json),
-            cancellationToken).ConfigureAwait(false);
-        MoveReplacing(temporaryFile, _paths.SettingsFile);
+        await _saveGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        string? temporaryFile = null;
+        try
+        {
+            Directory.CreateDirectory(_paths.RootDirectory);
+            temporaryFile = Path.Combine(_paths.RootDirectory, $"settings-{Guid.NewGuid():N}.tmp");
+            await Task.Run(() => File.WriteAllText(temporaryFile, json), cancellationToken)
+                .ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            MoveReplacing(temporaryFile, _paths.SettingsFile);
+        }
+        finally
+        {
+            if (temporaryFile is not null)
+            {
+                try { File.Delete(temporaryFile); }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
+            }
+            _saveGate.Release();
+        }
     }
 
     private void TryPreserveCorruptSettings()

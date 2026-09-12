@@ -43,7 +43,6 @@ public partial class MainWindow
             await Task.Delay(220);
             CaptureQuickActionsQa(this, Path.Combine(directory, "02-visible.png"));
             SetMusicIslandsVisible(false);
-            _restoreTrackInfoAfterFeedback = true;
             HideFeedbackBubble(restoreTrackInfo: true);
             // Simulate a metadata response already in flight when the switch was turned off.
             ShowTrackInfo(new MediaTrackSnapshot(true, true, "延迟返回的歌曲", "测试歌手"), true);

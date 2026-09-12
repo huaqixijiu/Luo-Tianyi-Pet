@@ -46,6 +46,11 @@ public partial class App : Application
         }
         if (e.Args.Contains("--qa-message-details", StringComparer.OrdinalIgnoreCase)) instanceId += ".MessageDetails";
         if (e.Args.Contains("--qa-afternoon-greeting", StringComparer.OrdinalIgnoreCase)) instanceId += ".AfternoonGreeting";
+        if (e.Args.Contains("--qa-music-settings-feedback", StringComparer.OrdinalIgnoreCase))
+        {
+            instanceId += ".MusicSettingsFeedback";
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+        }
         _singleInstance = SingleInstanceGuard.Acquire(instanceId);
         if (!_singleInstance.IsPrimaryInstance)
         {
@@ -60,6 +65,8 @@ public partial class App : Application
         LocalAppPaths paths = isPortable
             ? LocalAppPaths.CreatePortable(AppContext.BaseDirectory)
             : new LocalAppPaths();
+        if (e.Args.Contains("--qa-music-settings-feedback", StringComparer.OrdinalIgnoreCase))
+            paths = new LocalAppPaths(Path.Combine(AppContext.BaseDirectory, "MusicSettingsFeedbackQa", "UserData"));
         _logger = new FileAppLogger(paths);
         JsonSettingsStore settingsStore = new(paths);
 
