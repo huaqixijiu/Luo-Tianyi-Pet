@@ -1,0 +1,19 @@
+  正在确定要还原的项目…
+  已还原 C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Animation\LuoTianyiPet.Animation.csproj (用时 480 毫秒)。
+  已还原 C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Core\LuoTianyiPet.Core.csproj (用时 480 毫秒)。
+  已还原 C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Platform.Windows\LuoTianyiPet.Platform.Windows.csproj (用时 480 毫秒)。
+  已还原 C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.App\LuoTianyiPet.App.csproj (用时 532 毫秒)。
+  LuoTianyiPet.Core -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Core\bin\Release\net48\LuoTianyiPet.Core.dll
+  LuoTianyiPet.Core -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Core\bin\Release\net10.0\LuoTianyiPet.Core.dll
+  LuoTianyiPet.Animation -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Animation\bin\Release\net48\LuoTianyiPet.Animation.dll
+  LuoTianyiPet.Platform.Windows -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Platform.Windows\bin\Release\net48\LuoTianyiPet.Platform.Windows.dll
+  LuoTianyiPet.App -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.App\bin\Release\net48\LuoTianyiPet.exe
+  LuoTianyiPet.Animation -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Animation\bin\Release\net10.0\LuoTianyiPet.Animation.dll
+  LuoTianyiPet.Platform.Windows -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.Platform.Windows\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.Platform.Windows.dll
+  LuoTianyiPet.App -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\top-drag-fix-worktree\src\LuoTianyiPet.App\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:09.28

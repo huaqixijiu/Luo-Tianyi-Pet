@@ -1,7 +1,7 @@
 <Window x:Class="LuoTianyiPet.App.TrayQuickPanel"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="洛天依桌宠菜单" Width="224" SizeToContent="Height"
+ Title="洛天依桌宠菜单" Width="194" SizeToContent="Height"
  WindowStyle="None" AllowsTransparency="True" Background="Transparent"
  ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
  WindowStartupLocation="Manual" UseLayoutRounding="True" Focusable="True" FontFamily="Microsoft YaHei UI"
@@ -15,7 +15,7 @@
   </Style>
   <Style TargetType="Button">
    <Setter Property="Height" Value="35" />
-   <Setter Property="Padding" Value="10,0" />
+   <Setter Property="Padding" Value="7,0" />
    <Setter Property="FontSize" Value="12" />
    <Setter Property="Foreground" Value="#303D43" />
    <Setter Property="Background" Value="Transparent" />
@@ -39,7 +39,7 @@
    </Setter.Value></Setter>
   </Style>
  </Window.Resources>
- <Border Margin="12" Padding="6" Background="#FBFDFE" BorderBrush="#DEE6E9" BorderThickness="1" CornerRadius="11">
+ <Border Margin="12" Padding="4,6" Background="#FBFDFE" BorderBrush="#DEE6E9" BorderThickness="1" CornerRadius="11">
   <Border.Effect><DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.14" Color="#253D49" /></Border.Effect>
   <StackPanel>
    <Button x:Name="ShowPetButton" Content="召回天依" Tag="&#xE80F;" Click="OnShowPetClick" />
