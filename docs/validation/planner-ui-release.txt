@@ -1,0 +1,26 @@
+PASS rendered month
+PASS rendered week
+PASS rendered alarms
+PASS rendered alarm-editor
+PASS editor rejects over 24 hours without changing data
+PASS actual editor creates and saves relative alarm and last duration
+PASS rendered workdays
+PASS minimum width and singleton navigation
+PASS real persistent data roundtrip
+PASS offline lunar date
+PASS real scheduler fires and persists pending reminder
+PASS unknown foreground, fullscreen and protected game suppress presentation
+PASS locked session suppresses presentation
+PASS automatic reminder preserves foreground focus
+PASS due card shows title, full notes and actions
+PASS safety transition immediately hides card without losing pending data
+PASS dismiss persisted
+PASS rendered calendar-alarm-icon
+PASS thirty-minute calendar card and global switch persists and hides
+PASS rendered six-week-month
+PASS all six calendar weeks visible without scrolling
+PASS rendered calendar-dates-editor
+PASS expanded editor fits and per-event countdown switch persists
+PASS compact picker direct multi-selection without Ctrl
+PASS early hide preserves due time, undo works, skip and merged content survive restart
+PASS below-pet and below-original-music-island placement

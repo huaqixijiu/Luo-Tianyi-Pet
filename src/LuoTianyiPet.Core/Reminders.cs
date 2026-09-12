@@ -7,6 +7,9 @@ public sealed class ReminderItem
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Title { get; set; } = "";
     public string Notes { get; set; } = "";
+    public string? Content { get; set; }
+    public DateTime? SkippedAt { get; set; }
+    public DateTime? HiddenCountdownAt { get; set; }
     public bool Calendar { get; set; }
     public bool Enabled { get; set; } = true;
     public bool Sound { get; set; } = true;
@@ -41,12 +44,17 @@ public static class ReminderSchedule
     public static readonly DateTime MinimumDate = new(2026, 1, 1);
     public static readonly DateTime MaximumDate = new(2099, 12, 31);
 
+    public static string FullContent(ReminderItem item) => item.Content ?? (item.Title + (item.Notes.Length == 0 ? "" : "\n" + item.Notes));
+
+    public static void SkipOccurrence(ReminderItem item, DateTime at)
+    { item.SkippedAt = at; if (item.PendingAt == at) item.PendingAt = null; if (item.SnoozeUntil == at) item.SnoozeUntil = null; }
+
     public static DateTime? Upcoming(ReminderItem item, ReminderBook book, DateTime now)
     {
         if (!item.Enabled || item.PendingAt != null) return null;
         if (item.Calendar ? !book.ShowUpcoming || !item.ShowCountdown : !item.Relative || !book.ShowRemaining) return null;
         DateTime? at = Next(item, book, now);
-        return at != null && (!item.Calendar || at.Value - now <= TimeSpan.FromMinutes(30)) ? at : null;
+        return at != null && at != item.HiddenCountdownAt && (!item.Calendar || at.Value - now <= TimeSpan.FromMinutes(30)) ? at : null;
     }
 
     public static bool OccursOn(ReminderItem item, ReminderBook book, DateTime day)
@@ -65,6 +73,11 @@ public static class ReminderSchedule
     }
 
     public static DateTime? Next(ReminderItem item, ReminderBook book, DateTime after)
+    {
+        DateTime? at = NextUnfiltered(item, book, after);
+        return at != null && at == item.SkippedAt ? NextUnfiltered(item, book, at.Value) : at;
+    }
+    private static DateTime? NextUnfiltered(ReminderItem item, ReminderBook book, DateTime after)
     {
         if (!item.Enabled) return null;
         if (item.SnoozeUntil is DateTime snooze && snooze > after) return snooze;
@@ -156,7 +169,7 @@ public static class ReminderSchedule
         foreach (ReminderItem item in book.Items)
         {
             if (item.Id == Guid.Empty || string.IsNullOrWhiteSpace(item.Title) || item.Title.Length > 120 ||
-                item.Notes == null || item.Notes.Length > 10000 || item.Start.Date < MinimumDate || item.Start.Date > MaximumDate ||
+                (item.Content != null && item.Content.Length > 10122) || item.Notes == null || item.Notes.Length > 10000 || item.Start.Date < MinimumDate || item.Start.Date > MaximumDate ||
                 item.Weekdays == null || item.Dates == null || !Enum.IsDefined(typeof(ReminderRepeat), item.Repeat) ||
                 item.Weekdays.Any(d => (int)d < 0 || (int)d > 6) ||
                 item.Dates.Any(d => d.Date < MinimumDate || d.Date > MaximumDate) ||

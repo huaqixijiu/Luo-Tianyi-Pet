@@ -18,6 +18,10 @@ public partial class MainWindow
     private readonly DispatcherTimer _reminderDisplayTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly HashSet<string> _shownReminders = [];
     private DateTime _reminderExpandedUntil;
+    private ReminderBook? _presentedReminderBook;
+    private Guid? _reminderUndoId;
+    private DateTime? _reminderUndoSkipped, _reminderUndoHidden;
+    private DateTime _reminderUndoUntil;
     private string _reminderCardKey = "";
     private string? _reminderStorageNotice;
     private bool _plannerReady;
@@ -73,11 +77,13 @@ public partial class MainWindow
     {
         if (_reminders == null || _isClosing) return;
         var book = _reminders.Book;
+        if (!ReferenceEquals(book, _presentedReminderBook)) { _reminderCardKey = ""; _presentedReminderBook = book; }
         DateTime now = DateTime.Now;
         var pending = book.Items.Where(i => i.Enabled && i.PendingAt != null && i.SnoozeUntil == null).ToList();
         var future = book.Items.Select(i => (Item: i, At: ReminderSchedule.Upcoming(i, book, now)))
             .Where(x => x.At != null).OrderBy(x => x.At).FirstOrDefault();
-        bool hasContent = pending.Count > 0 || future.At != null;
+        bool undo = _reminderUndoId != null && now < _reminderUndoUntil;
+        bool hasContent = pending.Count > 0 || future.At != null || undo;
         _reminderDisplayTimer.Interval = TimeSpan.FromSeconds(hasContent ? 1 : book.Items.Count == 0 ? 60 : 10);
         _shownReminders.IntersectWith(pending.Select(i => i.Id + ":" + i.PendingAt!.Value.Ticks));
         if (!hasContent || !safe) { _reminderCard?.Hide(); return; }
@@ -85,13 +91,14 @@ public partial class MainWindow
         foreach (var item in pending)
             if (_shownReminders.Add(item.Id + ":" + item.PendingAt!.Value.Ticks)) { fresh = true; sound |= item.Sound; }
         if (fresh) _reminderExpandedUntil = now.AddSeconds(30);
-        bool expanded = pending.Count > 0 && (now < _reminderExpandedUntil || _reminderCard?.IsMouseOver == true);
-        string key = string.Join("|", pending.Select(i => i.Id + ":" + i.PendingAt + ":" + i.Title + ":" + i.Notes)) + expanded;
+        bool expanded = (pending.Count > 0 || future.At != null) && (now < _reminderExpandedUntil || _reminderCard?.IsMouseOver == true);
+        string key = string.Join("|", pending.Select(i => i.Id + ":" + i.PendingAt + ":" + i.Title + ":" + i.Notes)) + expanded + ":" + future.Item?.Id + ":" + future.At + ":" + undo;
         if (_reminderCard == null)
         {
             _reminderCard = new Window { Title = "天依提醒", Width = 300, SizeToContent = SizeToContent.Height, MaxHeight = 410,
                 WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, ShowActivated = false,
-                Topmost = true, Background = Brushes.Azure, FontFamily = new System.Windows.Media.FontFamily("Microsoft YaHei UI") };
+                Topmost = true, AllowsTransparency = true, Background = Brushes.Transparent, FontFamily = new System.Windows.Media.FontFamily("Microsoft YaHei UI") };
+            PlannerTheme.Apply(_reminderCard);
         }
         if (key != _reminderCardKey || _reminderSummary == null)
         {
@@ -100,16 +107,33 @@ public partial class MainWindow
             Button summary = new() { Padding = new Thickness(6), HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left };
             _reminderSummary = new TextBlock { TextWrapping = TextWrapping.Wrap };
             summary.Content = _reminderSummary;
-            summary.Click += (_, _) => { if (pending.Count > 0) { _reminderExpandedUntil = DateTime.Now.AddSeconds(30); _reminderCardKey = ""; RefreshReminderCard(); } else OpenPlanner(true); };
+            summary.Click += (_, _) => { _reminderExpandedUntil = DateTime.Now.AddSeconds(30); _reminderCardKey = ""; RefreshReminderCard(); };
             panel.Children.Add(summary);
-            if (expanded)
+            if (undo)
+            {
+                Button undoButton = new() { Content = "已处理本次提醒 · 撤销", Margin = new Thickness(3), Name = "UndoEarlyReminder" };
+                undoButton.Click += async (_, _) => { try { var id = _reminderUndoId; await _reminders.ChangeAsync(b => { var item = b.Items.FirstOrDefault(i => i.Id == id); if(item != null) { item.SkippedAt = _reminderUndoSkipped; item.HiddenCountdownAt = _reminderUndoHidden; } }); _reminderUndoId = null; _reminderCardKey = ""; RefreshReminderCard(); } catch { undoButton.Content = "保存失败，请重试"; } }; panel.Children.Add(undoButton);
+            }
+            if (expanded && pending.Count == 0 && future.Item != null && future.At is DateTime upcomingAt)
+            {
+                panel.Children.Add(new ScrollViewer { Content = new TextBlock { Text = ReminderSchedule.FullContent(future.Item), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6) }, MaxHeight = 130, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+                StackPanel actions = new() { Orientation = Orientation.Horizontal };
+                foreach (bool skip in new[] { true, false })
+                {
+                    Button button = new() { Name = skip ? "SkipThisReminder" : "HideThisCountdown", Content = skip ? "本次不再提醒" : "隐藏倒计时", Margin = new Thickness(3), Padding = new Thickness(8) };
+                    if(skip) { button.Background = PlannerTheme.Accent; button.Foreground = Brushes.White; }
+                    button.Click += async (_, _) => { try { await ActOnUpcoming(future.Item.Id, upcomingAt, skip); } catch { button.Content = "保存失败，请重试"; } }; actions.Children.Add(button);
+                }
+                panel.Children.Add(actions);
+            }
+            if (expanded && pending.Count > 0)
             {
                 StackPanel items = new();
                 foreach (var item in pending)
                 {
                     items.Children.Add(new TextBlock { Text = item.Title, FontWeight = FontWeights.Bold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(3, 8, 3, 3) });
                     items.Children.Add(new TextBlock { Text = $"{item.PendingAt:MM-dd HH:mm} · {(item.Calendar ? "来自日历" : "闹钟")}", Margin = new Thickness(3) });
-                    items.Children.Add(new TextBlock { Text = item.Notes, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(3) });
+                    items.Children.Add(new TextBlock { Text = ReminderSchedule.FullContent(item), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(3) });
                     StackPanel actions = new() { Orientation = Orientation.Horizontal };
                     foreach (bool snooze in new[] { false, true })
                     {
@@ -146,14 +170,35 @@ public partial class MainWindow
                 collapse.Click += (_, _) => { _reminderExpandedUntil = DateTime.MinValue; _reminderCardKey = ""; _reminderCard.Hide(); };
                 panel.Children.Add(collapse);
             }
-            _reminderCard.Content = panel;
+            _reminderCard.Content = new Border { Child = panel, Background = Brushes.White, CornerRadius = new CornerRadius(10), BorderBrush = PlannerTheme.Line, BorderThickness = new Thickness(1) };
         }
-        _reminderSummary!.Text = pending.Count > 0 ? $"🔔 {pending.Count} 项待处理提醒" : $"{future.Item.Title} · {PlannerWindow.Remaining(future.At!.Value)}";
+        _reminderSummary!.Text = pending.Count > 0 ? $"🔔 {pending.Count} 项待处理提醒" : future.Item != null && future.At != null ? $"⏰ {future.Item.Title} · {PlannerWindow.Remaining(future.At.Value)}" : "本次提醒已处理";
         DesktopRectangle work = GetQuickActionsWorkArea();
         _reminderCard.Show(); _reminderCard.UpdateLayout();
-        _reminderCard.Left = Numeric.Clamp(Left + Width + 5, work.Left, Math.Max(work.Left, work.Right - _reminderCard.ActualWidth));
-        _reminderCard.Top = Numeric.Clamp(Top, work.Top, Math.Max(work.Top, work.Bottom - _reminderCard.ActualHeight));
+        DesktopRectangle pet = GetPetImageAlphaBoundsInWindow();
+        double center = Left + pet.Left + pet.Width / 2, bottom = Top + pet.Bottom;
+        if (MediaControls.IsVisible && MediaControls.Opacity > 0.05)
+        {
+            Point island = MediaControls.TranslatePoint(new Point(MediaControls.ActualWidth / 2, MediaControls.ActualHeight), this);
+            center = Left + island.X; bottom = Math.Max(bottom, Top + island.Y);
+        }
+        _reminderCard.Left = Numeric.Clamp(center - _reminderCard.ActualWidth / 2, work.Left, Math.Max(work.Left, work.Right - _reminderCard.ActualWidth));
+        double y = bottom + 6;
+        if (y + _reminderCard.ActualHeight > work.Bottom) y = Top + pet.Top - _reminderCard.ActualHeight - 6;
+        _reminderCard.Top = Numeric.Clamp(y, work.Top, Math.Max(work.Top, work.Bottom - _reminderCard.ActualHeight));
         if (sound) { try { System.Media.SystemSounds.Asterisk.Play(); } catch { } }
+    }
+    private async Task ActOnUpcoming(Guid id, DateTime at, bool skip)
+    {
+        if (_reminders == null) return;
+        DateTime? oldSkip = null, oldHidden = null;
+        await _reminders.ChangeAsync(b => {
+            var item = b.Items.FirstOrDefault(i => i.Id == id); if (item == null) return;
+            oldSkip = item.SkippedAt; oldHidden = item.HiddenCountdownAt;
+            if (skip) ReminderSchedule.SkipOccurrence(item, at); else item.HiddenCountdownAt = at;
+        });
+        _reminderUndoId = id; _reminderUndoSkipped = oldSkip; _reminderUndoHidden = oldHidden; _reminderUndoUntil = DateTime.Now.AddSeconds(8);
+        _reminderExpandedUntil = DateTime.MinValue; _reminderCardKey = ""; RefreshReminderCard();
     }
     private void ClosePlanner()
     {

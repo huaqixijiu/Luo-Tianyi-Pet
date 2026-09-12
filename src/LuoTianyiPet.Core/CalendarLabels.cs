@@ -20,6 +20,21 @@ public static class CalendarLabels
         }
         return result;
     });
+    public static string LunarDay(DateTime day)
+    {
+        if (day.Date < ReminderSchedule.MinimumDate || day.Date > ReminderSchedule.MaximumDate) return "";
+        int d = Lunar.GetDayOfMonth(day);
+        if (d == 10) return "初十"; if (d == 20) return "二十"; if (d == 30) return "三十";
+        return (d < 10 ? "初" : d < 20 ? "十" : "廿") + "一二三四五六七八九"[(d - 1) % 10];
+    }
+    public static string FullLunar(DateTime day)
+    {
+        if (day.Date < ReminderSchedule.MinimumDate || day.Date > ReminderSchedule.MaximumDate) return "";
+        int m = Lunar.GetMonth(day), leap = Lunar.GetLeapMonth(Lunar.GetYear(day));
+        bool isLeap = m == leap;
+        if (leap > 0 && m >= leap) m--;
+        return "农历" + (isLeap ? "闰" : "") + new[] { "正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "冬", "腊" }[m - 1] + "月" + LunarDay(day);
+    }
     public static string Get(DateTime day)
     {
         if (day < ReminderSchedule.MinimumDate || day > ReminderSchedule.MaximumDate) return "";

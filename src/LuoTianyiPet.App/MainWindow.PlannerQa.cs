@@ -148,6 +148,41 @@ public partial class MainWindow
             ((System.Windows.Controls.Button)Named(window, "SaveReminder")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent)); await Task.Delay(250);
             if (service.Book.Items.Single().ShowCountdown) throw new InvalidOperationException("Per-event switch not saved");
             checks.Add("PASS expanded editor fits and per-event countdown switch persists");
+            void Snapshot(Window target, string name)
+            {
+                target.UpdateLayout(); RenderTargetBitmap bmp = new((int)target.ActualWidth, (int)target.ActualHeight, 96, 96, PixelFormats.Pbgra32); bmp.Render(target);
+                PngBitmapEncoder png = new(); png.Frames.Add(BitmapFrame.Create(bmp)); using var output = File.Create(Path.Combine(path, name + ".png")); png.Save(output);
+            }
+            DateSelectionWindow picker = new([new DateTime(2026,9,16)], new DateTime(2026,9,1)) { Owner = window };
+            picker.Show(); picker.UpdateLayout();
+            ((System.Windows.Controls.Button)Named(picker, "Date20260923")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            picker.UpdateLayout();
+            if(picker.Selection.Count != 2) throw new InvalidOperationException("Direct multi-date selection failed");
+            Snapshot(picker,"date-picker"); picker.Close(); checks.Add("PASS compact picker direct multi-selection without Ctrl");
+            await service.ChangeAsync(b => { b.ShowUpcoming=true; var x=b.Items.Single(); x.ShowCountdown=true; x.Content="项目会议\n准备资料并提前出发"; });
+            _reminderExpandedUntil=DateTime.Now.AddSeconds(30); RefreshReminderCardCore(true); _reminderCard!.UpdateLayout();
+            Snapshot(_reminderCard,"upcoming-expanded");
+            DateTime occurrence=service.Book.Items.Single().Start;
+            ((System.Windows.Controls.Button)Named(_reminderCard,"HideThisCountdown")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent)); await Task.Delay(300);
+            if(service.Book.Items.Single().HiddenCountdownAt != occurrence) throw new InvalidOperationException("Hide occurrence not persisted");
+            if(ReminderSchedule.Next(service.Book.Items.Single(),service.Book,DateTime.Now)!=occurrence) throw new InvalidOperationException("Hide cancelled due reminder");
+            RefreshReminderCardCore(true); _reminderCard.UpdateLayout();
+            ((System.Windows.Controls.Button)Named(_reminderCard,"UndoEarlyReminder")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent)); await Task.Delay(300);
+            _reminderExpandedUntil=DateTime.Now.AddSeconds(30); RefreshReminderCardCore(true); _reminderCard.UpdateLayout();
+            ((System.Windows.Controls.Button)Named(_reminderCard,"SkipThisReminder")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent)); await Task.Delay(300);
+            var savedBook=await new ReminderStore(new LocalAppPaths(Path.Combine(path,"UserData"))).LoadAsync();
+            if(savedBook.Items.Single().SkippedAt!=occurrence || savedBook.Items.Single().Content!="项目会议\n准备资料并提前出发") throw new InvalidOperationException("Early skip or content lost on restart");
+            checks.Add("PASS early hide preserves due time, undo works, skip and merged content survive restart");
+            _reminderUndoId=null;
+            await service.ChangeAsync(b=> { b.Items.Single().SkippedAt=null; b.Items.Single().HiddenCountdownAt=null; });
+            DesktopRectangle area=GetQuickActionsWorkArea(); Left=area.Left+area.Width/2; Top=area.Top+80;
+            MediaControls.Visibility=Visibility.Collapsed; UpdateLayout(); RefreshReminderCardCore(true);
+            DesktopRectangle petBounds=GetPetImageAlphaBoundsInWindow();
+            if(Math.Abs(_reminderCard.Top-(Top+petBounds.Bottom+6))>2) throw new InvalidOperationException("Reminder not below pet");
+            MediaControls.Visibility=Visibility.Visible; MediaControls.Opacity=1; UpdateLayout(); RefreshReminderCardCore(true);
+            Point islandBottom=MediaControls.TranslatePoint(new Point(MediaControls.ActualWidth/2,MediaControls.ActualHeight),this);
+            if(_reminderCard.Top+1<Top+islandBottom.Y) throw new InvalidOperationException("Reminder overlaps music island");
+            checks.Add("PASS below-pet and below-original-music-island placement");
             _reminderCard.Close(); _reminderCard = null; _reminders = null;
             window.Close();
             File.WriteAllLines(Path.Combine(path, "result.txt"), checks);
