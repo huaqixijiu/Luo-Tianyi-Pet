@@ -36,9 +36,7 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
                 SessionFound: true,
                 properties?.Title ?? string.Empty,
                 properties?.Artist ?? string.Empty));
-            return snapshot.HasTrack
-                ? snapshot
-                : ReadFromWindowTitle(targetProcessName);
+            return SupplementArtistFromWindow(snapshot, ReadFromWindowTitle(targetProcessName));
         }
         catch (Exception)
         {
@@ -46,6 +44,30 @@ public sealed class SystemMediaTrackInfoSource : IMediaTrackInfoSource
             MediaTrackSnapshot fallback = ReadFromWindowTitle(targetProcessName);
             return fallback.HasTrack ? fallback : MediaTrackSnapshot.Unavailable;
         }
+    }
+
+    internal static MediaTrackSnapshot SupplementArtistFromWindow(
+        MediaTrackSnapshot media,
+        MediaTrackSnapshot window)
+    {
+        if (!media.HasTrack)
+        {
+            return window;
+        }
+
+        // Some CloudMusic versions publish only the first collaborator to SMTC.
+        // Supplement only the same track and a compatible artist list; a stale
+        // window during a track switch must not replace the current metadata.
+        if (window.ProbeSucceeded && window.HasTrack &&
+            string.Equals(media.Title, window.Title, StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(window.Artist) &&
+            (string.IsNullOrWhiteSpace(media.Artist) ||
+                window.Artist.IndexOf(media.Artist, StringComparison.OrdinalIgnoreCase) >= 0))
+        {
+            return media with { Artist = window.Artist };
+        }
+
+        return media;
     }
 
     internal static MediaTrackSnapshot ReadFromWindowTitle(string targetProcessName)
