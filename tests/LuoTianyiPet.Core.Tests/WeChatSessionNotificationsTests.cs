@@ -81,4 +81,60 @@ public sealed class WeChatSessionNotificationsTests
         Assert.True(JsonSerializer.Deserialize<MessageNotificationPreferences>("{}")!.EnableWeChatDetailedReminders);
         Assert.False(JsonSerializer.Deserialize<MessageNotificationPreferences>(JsonSerializer.Serialize(new MessageNotificationPreferences {EnableWeChatDetailedReminders=false}))!.EnableWeChatDetailedReminders);
     }
+
+    [Theory]
+    [InlineData("read")]
+    [InlineData("decrease")]
+    [InlineData("muted")]
+    [InlineData("foreground")]
+    [InlineData("missing")]
+    [InlineData("reset")]
+    public void ReadOrUnavailableConversationInvalidatesQueuedAndVisibleDetails(string change)
+    {
+        var tracker = new WeChatSessionChangeTracker(); var now = DateTimeOffset.Now;
+        tracker.Observe(new[] { Row() }, false, now);
+        var message = Assert.Single(tracker.Observe(new[] { Row("新消息", 3) }, false, now));
+        Assert.True(tracker.IsCurrent(message));
+        if (change == "reset") tracker.Reset();
+        else tracker.Observe(change == "missing" ? Array.Empty<WeChatSessionRow>() : new[] {
+            Row("新消息", change == "decrease" ? 2 : 3, change == "muted") with {
+                HasUnreadMarker = change != "read"
+            }
+        }, change == "foreground", now);
+        Assert.False(tracker.IsCurrent(message));
+    }
+
+    [Fact] public void UnchangedUnreadStaysValidButNewPreviewSupersedesOldQueuedDetails()
+    {
+        var tracker = new WeChatSessionChangeTracker(); var now = DateTimeOffset.Now;
+        tracker.Observe(new[] { Row() }, false, now);
+        var old = Assert.Single(tracker.Observe(new[] { Row("第二条", 2) }, false, now));
+        tracker.Observe(new[] { Row("第二条", 2) }, false, now);
+        Assert.True(tracker.IsCurrent(old));
+        var current = Assert.Single(tracker.Observe(new[] { Row("第三条", 3) }, false, now));
+        Assert.False(tracker.IsCurrent(old)); Assert.True(tracker.IsCurrent(current));
+    }
+
+    [Fact] public void FirstUnreadAfterObservedReadStateProducesDetails()
+    {
+        var tracker = new WeChatSessionChangeTracker(); var now = DateTimeOffset.Now;
+        tracker.Observe(new[] { Row() with { HasUnreadMarker = false, UnreadCount = null } }, false, now);
+        var message = Assert.Single(tracker.Observe(new[] { Row("首条消息") }, false, now));
+        Assert.Equal("测试好友", message.ConversationDisplayName);
+        Assert.Equal("首条消息", message.MessagePreview);
+    }
+
+    [Fact] public void ExpiredOrAlreadyViewedWeChatIsDroppedWithoutChangingQqQueue()
+    {
+        var now = DateTimeOffset.Now;
+        var wx = new MessageNotificationSummary(MessageProvider.WeChat, now);
+        Assert.True(WeChatReminderFreshness.CanPresent(wx, now.AddSeconds(8), now.AddSeconds(-1)));
+        Assert.False(WeChatReminderFreshness.CanPresent(wx, now.AddSeconds(9), now.AddSeconds(-1)));
+        Assert.False(WeChatReminderFreshness.CanPresent(wx, now.AddSeconds(1), now));
+        var queue = new MessageNotificationCoordinator(TimeSpan.Zero);
+        queue.QueuePending(wx); queue.QueuePending(wx with { Provider = MessageProvider.Qq });
+        queue.DiscardPending(message => !WeChatReminderFreshness.CanPresent(message, now.AddSeconds(9), DateTimeOffset.MinValue));
+        Assert.True(queue.TryTakePending(_ => false, out MessageNotificationSummary remaining));
+        Assert.Equal(MessageProvider.Qq, remaining.Provider); Assert.False(queue.HasPending);
+    }
 }

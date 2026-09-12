@@ -20,8 +20,44 @@ public partial class MainWindow
         {
             _weChatSessionSource = new();
             _weChatSessionSource.NotificationReceived += OnMessageNotificationReceived;
+            _weChatSessionSource.SnapshotChanged += (_, _) => Dispatcher.BeginInvoke(DiscardReadWeChatReminders);
         }
         _weChatSessionSource.Start();
+    }
+    private DateTimeOffset _lastWeChatForegroundAt = DateTimeOffset.MinValue;
+    private long _weChatDetailRevision;
+
+    private bool IsWeChatReminderCurrent(MessageNotificationSummary notification) =>
+        notification.WeChatSessionKey is null
+            ? _weChatSessionSource?.HasUnreadConversations != false
+            : _weChatSessionSource?.IsCurrent(notification) == true;
+
+    private bool CanPresentWeChatReminder(MessageNotificationSummary notification) =>
+        notification.Provider != MessageProvider.WeChat ||
+        (WeChatReminderFreshness.CanPresent(notification, DateTimeOffset.Now, _lastWeChatForegroundAt) &&
+            IsWeChatReminderCurrent(notification));
+
+    private void DiscardReadWeChatReminders()
+    {
+        if (_isClosing) return;
+        _messageNotificationCoordinator.DiscardPending(notification => !CanPresentWeChatReminder(notification));
+        if (_displayedMessageSummary is { Provider: MessageProvider.WeChat } active &&
+            !IsWeChatReminderCurrent(active))
+            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
+    }
+
+    private async Task HandleWeChatAttentionAsync(DateTimeOffset occurredAt)
+    {
+        long revision = _weChatDetailRevision;
+        _weChatSessionSource?.RequestRefresh();
+        await Task.Delay(450);
+        _weChatSessionSource?.RequestRefresh();
+        await Task.Delay(450);
+        // Give the public session fields a short opportunity to catch up with the Shell signal.
+        // A detailed event owns this reminder once received; never follow it with another generic card.
+        var notification = new MessageNotificationSummary(MessageProvider.WeChat, occurredAt);
+        if (!_isClosing && revision == _weChatDetailRevision && CanPresentWeChatReminder(notification))
+            HandleMessageNotification(new(notification));
     }
     private SettingsWindow? _settingsWindow;
     private MessageNotificationWindow? _messageBubble;

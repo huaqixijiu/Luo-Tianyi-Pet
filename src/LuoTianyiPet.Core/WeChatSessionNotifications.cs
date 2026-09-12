@@ -50,6 +50,7 @@ public sealed class WeChatSessionChangeTracker
 {
     private sealed record State(bool Unread, int? Count, bool Muted, string Fingerprint);
     private Dictionary<string, State> _previous = [];
+    private readonly Dictionary<string, string> _currentNotifications = [];
     private string _epoch = Guid.NewGuid().ToString("N");
     private long _sequence;
     public IReadOnlyList<MessageNotificationSummary> Observe(IEnumerable<WeChatSessionRow> rows,
@@ -64,17 +65,38 @@ public sealed class WeChatSessionChangeTracker
             var state = new State(row.HasUnreadMarker, row.UnreadCount, row.Muted,
                 WeChatSessionParser.Hash(row.Preview ?? string.Empty));
             next[row.Key] = state;
+            if (sourceIsForeground || row.Muted || !row.HasUnreadMarker ||
+                (_previous.TryGetValue(row.Key, out var prior) && prior.Count is int priorCount &&
+                    row.UnreadCount is int currentCount && currentCount < priorCount))
+                _currentNotifications.Remove(row.Key);
             if (!_previous.TryGetValue(row.Key, out var previous) || sourceIsForeground || row.Muted || previous.Muted ||
                 !row.HasUnreadMarker) continue;
             bool decreased = state.Count is int current && previous.Count is int old && current < old;
             bool increased = state.Count is int count && previous.Count is int before && count > before;
             if (!decreased && (!previous.Unread || increased || state.Fingerprint != previous.Fingerprint))
+            {
+                string eventKey = $"wechat-session:{_epoch}:{++_sequence}";
+                _currentNotifications[row.Key] = eventKey;
                 events.Add(new MessageNotificationSummary(MessageProvider.WeChat, now, row.DisplayName,
-                    MessagePreview: row.Preview, NotificationKey: $"wechat-session:{_epoch}:{++_sequence}"));
+                    MessagePreview: row.Preview, NotificationKey: eventKey, WeChatSessionKey: row.Key));
+            }
         }
         // Keep only hashes/numbers for currently exposed rows; raw text lives only in emitted reminders.
         _previous = next;
+        foreach (string key in _currentNotifications.Keys.Where(key => !next.ContainsKey(key)).ToArray())
+            _currentNotifications.Remove(key);
         return events;
     }
-    public void Reset() { _previous.Clear(); _epoch=Guid.NewGuid().ToString("N"); _sequence=0; }
+    public bool IsCurrent(MessageNotificationSummary notification) =>
+        notification.WeChatSessionKey is string key &&
+        _currentNotifications.TryGetValue(key, out string? current) && current == notification.NotificationKey;
+    public void Reset() { _previous.Clear(); _currentNotifications.Clear(); _epoch=Guid.NewGuid().ToString("N"); _sequence=0; }
+}
+
+public static class WeChatReminderFreshness
+{
+    public static TimeSpan MaximumQueueAge { get; } = TimeSpan.FromSeconds(8);
+    public static bool CanPresent(MessageNotificationSummary notification, DateTimeOffset now,
+        DateTimeOffset lastForegroundAt) => notification.Provider != MessageProvider.WeChat ||
+        (notification.OccurredAt > lastForegroundAt && now - notification.OccurredAt <= MaximumQueueAge);
 }

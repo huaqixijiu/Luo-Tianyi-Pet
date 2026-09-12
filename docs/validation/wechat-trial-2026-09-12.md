@@ -7,7 +7,7 @@
 - 微信 4.1.13.12 后台普通窗口：正式 WeChatSessionReader 返回 Snapshot=True、Minimized=False、Foreground=False、ParsedRows=11、UnreadRows=5、MutedRows=2。
 - 随后直接观察到微信已最小化：同一正式读取器返回 Minimized=True、Foreground=False、ParsedRows=11、UnreadRows=5、MutedRows=2；无需激活、悬停托盘、切换聊天或运行 wxauto。旧的“最小化未验证”已由本次结果更新。
 - 两次各 120 秒正式来源探针观察完成；已有未读没有补报，重复快照没有产生事件。诊断只输出窗口状态、数量和文字长度；没有保存昵称／正文。
-- 尚未收到试用版中新发测试消息的界面确认。已请用户保持微信最小化，让列表里已有好友发送新消息；动态发现到实际卡片的端到端链路仍待此项验收，不能以静态字段可读代替。
+- 后续用户在 .68 已确认真实昵称／摘要可见，但反馈首条缺详情与已读后迟到；后续修复和验收转至 wechat-timing-2026-09-12.md。
 
 ## 行为与范围
 
@@ -23,4 +23,4 @@
 - 双目标各 37 项 WPF 检查，发布 EXE 同样 37 项通过；已查看微信试用卡和设置渲染图。共用侧边卡、右边缘换侧、三档大小、无抢焦点、全屏／未知前台降级及统一清空均通过既有 QA；未实开游戏或锁屏测试。
 - 0.1.0.67 已安装，包状态 Ok、正式 WindowsApps 进程 Responding=True，EXE／Core／Windows DLL 与发布目录哈希一致；安装前确认摸鱼图集与 .66 相同。
 - MSIX SHA-256：ae9e1cc9c2cd96d1737741b0ba3c13e7e3754b9b4e58c029b71e6e6d3edbce47。
-- 唯一下一步：用户新微信消息的昵称／摘要／次数实际界面验收，不重复做已通过的最小化测试。
+- 当前唯一下一步已转至 wechat-timing-2026-09-12.md 的 .69 实际时序反馈。
