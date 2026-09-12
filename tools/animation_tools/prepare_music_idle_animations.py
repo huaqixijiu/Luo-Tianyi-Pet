@@ -5,14 +5,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from collections import deque
 from pathlib import Path
 
 from PIL import Image, ImageSequence
 
 
-EXTERIOR_SEARCH_DISTANCE = 96
-TRANSPARENT_DISTANCE = 32
 SINGING_TEXT_BOUNDS = (0, 15, 33, 126)
 SINGING_FRAME_DURATION_MILLISECONDS = 160
 
@@ -57,73 +54,6 @@ def save_gif(
         optimize=False,
         **transparency_options,
     )
-
-
-def exterior_near_white_mask(frame: Image.Image) -> list[bool]:
-    """Find only near-white pixels connected to the canvas boundary.
-
-    The source has an opaque white canvas, but the character also contains
-    white clothing and highlights.  A global colour key destroys those inner
-    details, so traversal is constrained to the exterior component.
-    """
-
-    rgb = frame.convert("RGB")
-    width, height = rgb.size
-    pixels = rgb.load()
-    maximum_distance_squared = EXTERIOR_SEARCH_DISTANCE**2
-    exterior = [False] * (width * height)
-    pending: deque[tuple[int, int]] = deque()
-
-    for x in range(width):
-        pending.append((x, 0))
-        pending.append((x, height - 1))
-    for y in range(height):
-        pending.append((0, y))
-        pending.append((width - 1, y))
-
-    while pending:
-        x, y = pending.popleft()
-        if x < 0 or x >= width or y < 0 or y >= height:
-            continue
-        offset = y * width + x
-        if exterior[offset]:
-            continue
-        red, green, blue = pixels[x, y]
-        distance_squared = (
-            (255 - red) ** 2 +
-            (255 - green) ** 2 +
-            (255 - blue) ** 2
-        )
-        if distance_squared > maximum_distance_squared:
-            continue
-
-        exterior[offset] = True
-        pending.extend(((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)))
-
-    return exterior
-
-
-def remove_exterior_white_background(frame: Image.Image) -> tuple[Image.Image, list[bool]]:
-    rgba = frame.convert("RGBA")
-    width, height = rgba.size
-    exterior = exterior_near_white_mask(rgba)
-    pixels = rgba.load()
-    maximum_transparent_distance_squared = TRANSPARENT_DISTANCE**2
-
-    for y in range(height):
-        for x in range(width):
-            if not exterior[y * width + x]:
-                continue
-            red, green, blue, _ = pixels[x, y]
-            distance_squared = (
-                (255 - red) ** 2 +
-                (255 - green) ** 2 +
-                (255 - blue) ** 2
-            )
-            if distance_squared <= maximum_transparent_distance_squared:
-                pixels[x, y] = (red, green, blue, 0)
-
-    return rgba, exterior
 
 
 def remove_singing_text(frame: Image.Image) -> Image.Image:
@@ -173,24 +103,16 @@ def validate_singing_text_removal(
                     )
 
 
-def validate_fishing_transparency(
+def validate_fishing_original_pixels(
     source_frames: list[Image.Image],
     output_path: Path,
 ) -> None:
     output_frames, _ = read_gif(output_path)
     if len(output_frames) != len(source_frames):
         raise ValueError("Fishing output frame count changed during encoding.")
-
     for index, (source, output) in enumerate(zip(source_frames, output_frames, strict=True)):
-        exterior = exterior_near_white_mask(source)
-        alpha = output.getchannel("A").tobytes()
-        if alpha[0] != 0:
-            raise ValueError(f"Fishing frame {index} still has an opaque white canvas.")
-        if any(value == 0 and not exterior[offset] for offset, value in enumerate(alpha)):
-            raise ValueError(
-                f"Fishing frame {index} lost pixels inside the protected character region."
-            )
-
+        if source.convert("RGBA").tobytes() != output.convert("RGBA").tobytes():
+            raise ValueError(f"Fishing frame {index} changed original pixels or its white canvas.")
 
 def prepare(
     fishing_source: Path,
@@ -210,7 +132,9 @@ def prepare(
         raise ValueError("Fishing countdown must be exactly 60 seconds.")
     fishing_output = output_directory / "十周年生日_摸鱼一分钟_精确60秒.gif"
     fishing_output_frames = [
-        remove_exterior_white_background(fishing_frames[index])[0]
+        fishing_frames[index].convert("RGB").convert(
+            "P", palette=Image.Palette.ADAPTIVE, colors=256
+        )
         for index in fishing_indices
     ]
     save_gif(
@@ -218,7 +142,7 @@ def prepare(
         fishing_output_frames,
         countdown_durations,
     )
-    validate_fishing_transparency(
+    validate_fishing_original_pixels(
         [fishing_frames[index] for index in fishing_indices],
         fishing_output,
     )
@@ -272,13 +196,11 @@ def prepare(
             "totalDurationMilliseconds": sum(countdown_durations),
             "transformation": (
                 "remove-five-second-01:00-hold, normalize-00:00-to-one-second, "
-                "and-remove-only-border-connected-white-canvas"
+                "preserve-original-white-canvas-and-all-original-pixels"
             ),
             "backgroundRemoval": {
-                "method": "near-white flood fill seeded only from the canvas boundary",
-                "exteriorSearchDistance": EXTERIOR_SEARCH_DISTANCE,
-                "transparentDistance": TRANSPARENT_DISTANCE,
-                "protectedRegion": "every pixel not connected to the canvas boundary",
+                "enabled": False,
+                "method": "none; preserve original white canvas",
             },
         },
         "oneClickSinging": {

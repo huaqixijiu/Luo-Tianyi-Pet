@@ -160,6 +160,10 @@
       "full-body-classic-cat-ears": {
         "countdownAfterMinutes": 2,
         "countdownDurationSeconds": 60,
+        "countdownUsesIndependentClock": true,
+        "countdownExitOnPetClickOrDrag": true,
+        "countdownIgnoreMouseMovement": true,
+        "countdownPreserveOriginalWhiteBackground": true,
         "countdownAnimation": "tenth-birthday-fishing-countdown",
         "mediumIdleAfterMinutes": 3
       }
