@@ -24,7 +24,8 @@ public sealed record MessageNotificationSummary(
     int? UnreadCount = null,
     string? MessagePreview = null,
     int? NewNotificationCount = null,
-    string? NotificationKey = null)
+    string? NotificationKey = null,
+    string? WeChatSessionKey = null)
 {
     public MessageNotificationSummary ForDisplay(bool enableQqDetails, bool enableWeChatDetails = true) =>
         (Provider == MessageProvider.Qq ? !enableQqDetails : !enableWeChatDetails)
@@ -303,6 +304,12 @@ public sealed class MessageNotificationCoordinator
     public void ClearPending() => _pending.Clear();
 
     public void ClearPending(MessageProvider provider) => _pending.Remove(provider);
+
+    public void DiscardPending(Func<MessageNotificationSummary, bool> shouldDiscard)
+    {
+        foreach (var pair in _pending.Where(pair => shouldDiscard(pair.Value)).ToArray())
+            _pending.Remove(pair.Key);
+    }
 }
 
 public sealed class ShellAttentionSessionTracker

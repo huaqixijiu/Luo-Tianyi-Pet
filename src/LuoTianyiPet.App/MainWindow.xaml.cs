@@ -492,7 +492,7 @@ public partial class MainWindow : Window
         _genshinStatusTimer.Tick += OnGenshinStatusTimerTick;
         _messageNotificationStatusTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromSeconds(1),
+            Interval = TimeSpan.FromMilliseconds(500),
         };
         _messageNotificationStatusTimer.Tick += OnMessageNotificationStatusTimerTick;
         ShowInTaskbar = showQaTaskbar;
@@ -1343,6 +1343,11 @@ public partial class MainWindow : Window
         }
 
         _logger.Info("notification.shell_attention_detected", matched.ToString());
+        if (matched == MessageProvider.WeChat && _settings.Notifications.EnableWeChatDetailedReminders)
+        {
+            _ = HandleWeChatAttentionAsync(occurredAt);
+            return;
+        }
         HandleMessageNotification(
             new MessageNotificationReceivedEventArgs(
                 new MessageNotificationSummary(matched, occurredAt)));
@@ -1350,7 +1355,7 @@ public partial class MainWindow : Window
 
     private void HandleMessageNotification(MessageNotificationReceivedEventArgs e)
     {
-        if (_isClosing || !_settings.Notifications.EnableMessageReminders)
+        if (_isClosing || !_settings.Notifications.EnableMessageReminders || !CanPresentWeChatReminder(e.Notification))
         {
             return;
         }
@@ -1359,6 +1364,11 @@ public partial class MainWindow : Window
             new ForegroundApplicationSnapshot(false, null, false);
         bool sourceIsForeground = foreground.Succeeded &&
             _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
+        if (e.Provider == MessageProvider.WeChat)
+        {
+            if (sourceIsForeground) _lastWeChatForegroundAt = DateTimeOffset.Now;
+            if (e.Notification.ConversationDisplayName is not null) _weChatDetailRevision++;
+        }
         bool canShow = IsMessageNotificationDisplaySafe(foreground);
         if (!_messageNotificationCounter.TryObserve(e.Notification, sourceIsForeground,
             _settings.Notifications.EnableQqDetailedReminders, out MessageNotificationSummary displayNotification,
@@ -1392,9 +1402,11 @@ public partial class MainWindow : Window
         {
             _shellAttentionSessions.Reset();
             MessageProvider foregroundProvider = _messageProviderMatcher.IdentifyProcess(foreground.ProcessName)!.Value;
+            if (foregroundProvider == MessageProvider.WeChat) _lastWeChatForegroundAt = DateTimeOffset.Now;
             _messageNotificationCounter.Reset(foregroundProvider);
             _messageNotificationCoordinator.ClearPending(foregroundProvider);
         }
+        DiscardReadWeChatReminders();
         if (!IsMessageNotificationDisplaySafe(foreground))
         {
             CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
@@ -1444,6 +1456,7 @@ public partial class MainWindow : Window
 
     private async Task BeginMessageNotificationAsync(MessageNotificationSummary notification)
     {
+        if (!CanPresentWeChatReminder(notification)) return;
         if (_isClosing || _messageNotificationReactionToken is not null)
         {
             _messageNotificationCoordinator.QueuePending(notification);
@@ -1465,6 +1478,17 @@ public partial class MainWindow : Window
         _messageNotificationReactionToken = token;
         _messageNotificationTopmostToken = topmostToken;
         _activeMessageProvider = notification.Provider;
+        if (notification.Provider == MessageProvider.WeChat)
+        {
+            var foreground = _foregroundApplicationProbe?.Query() ?? new ForegroundApplicationSnapshot(false, null, false);
+            if (!CanPresentWeChatReminder(notification) ||
+                (_persistSettings && (!foreground.Succeeded || foreground.IsFullscreen ||
+                    _messageProviderMatcher.IsForegroundProcess(MessageProvider.WeChat, foreground.ProcessName))))
+            {
+                CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
+                return;
+            }
+        }
         ShowMessageNotification(notification);
         _ = RefreshQqDetailsAsync();
         _logger.Info(

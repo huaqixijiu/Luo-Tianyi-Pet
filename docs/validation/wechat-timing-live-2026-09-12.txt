@@ -1,0 +1,5 @@
+ReadMilliseconds=800
+ReusedReadMilliseconds=16; Snapshot=True
+Snapshot=True; Minimized=False; Foreground=False; ParsedRows=11; UnreadRows=4; MutedRows=2
+Event Provider=WeChat; TitleLength=2; PreviewLength=4; HasKey=True
+Finished; SnapshotUpdates=34; AvailableUpdates=34

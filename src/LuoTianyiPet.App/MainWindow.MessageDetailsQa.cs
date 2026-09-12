@@ -98,6 +98,28 @@ public partial class MainWindow
             Check(_displayedMessageSummary is null && _messageBubble.MessageConversationText.Text.Length == 0 &&
                 System.Windows.Automation.AutomationProperties.GetName(_messageBubble.MessageNotificationBubble) == "聊天消息提醒",
                 "Clearing a reminder releases text and accessibility metadata");
+            var expired = wechat with { OccurredAt = DateTimeOffset.Now.AddSeconds(-9) };
+            await BeginMessageNotificationAsync(expired);
+            Check(!_messageBubble.IsVisible && !_messageNotificationCoordinator.HasPending,
+                "Expired WeChat reminder cannot start an animation or requeue");
+            _messageNotificationCoordinator.QueuePending(expired);
+            _messageNotificationCoordinator.QueuePending(message);
+            DiscardReadWeChatReminders();
+            Check(_messageNotificationCoordinator.TryTakePending(_ => false, out MessageNotificationSummary kept) &&
+                kept.Provider == MessageProvider.Qq && !_messageNotificationCoordinator.HasPending,
+                "Pruning stale WeChat leaves queued QQ intact");
+            _lastWeChatForegroundAt = DateTimeOffset.Now;
+            await BeginMessageNotificationAsync(wechat);
+            Check(!_messageBubble.IsVisible, "Already viewed WeChat cannot appear after returning to the desktop");
+            _lastWeChatForegroundAt = DateTimeOffset.MinValue;
+            ApplyMessageNotificationPreferences(_settings.Notifications with {
+                EnableMessageReminders = true, EnableWeChatDetailedReminders = true });
+            await BeginMessageNotificationAsync(wechat with { OccurredAt = DateTimeOffset.Now });
+            Check(_messageBubble.IsVisible, "Fresh WeChat reminder can still show");
+            ShowMessageNotification(wechat with { WeChatSessionKey = "synthetic-read", NotificationKey = "retired" });
+            DiscardReadWeChatReminders();
+            Check(!_messageBubble.IsVisible && _displayedMessageSummary is null,
+                "Invalidated session removes the visible card and releases its details");
             _ = Dispatcher.BeginInvoke(new Action(() =>
             {
                 SettingsWindow? first = _settingsWindow;

@@ -1,0 +1,4 @@
+Version=0.1.0.69; Status=Ok; Signature=Valid
+HashMatch=LuoTianyiPet.exe
+HashMatch=LuoTianyiPet.Core.dll
+HashMatch=LuoTianyiPet.Platform.Windows.dll
