@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private const string FileDropPromptAnimation = "resonance-give-me";
     private const string FileDropSuccessAnimation = "resonance-big-success";
     private const string ClassicSpinDanceAnimation = "tenth-anniversary-spin-dance";
+    private const double ClassicSpinDancePlaybackRate = 0.8;
     private const string CloudMusicLaunchWaitingAnimation = "resonance-loading-sway";
     private const string BunRequestAnimation = "resonance-cute-bun-request";
     private const string CrystalLongIdleSleepAnimation = "crystal-long-idle-sleep";
@@ -3016,7 +3017,9 @@ public partial class MainWindow : Window
                 animationId,
                 completed,
                 reverse,
-                playbackRate);
+                animationId == ClassicSpinDanceAnimation
+                    ? playbackRate * ClassicSpinDancePlaybackRate
+                    : playbackRate);
             ApplyAnimationManifest(manifest);
         }
         catch (Exception exception) when (

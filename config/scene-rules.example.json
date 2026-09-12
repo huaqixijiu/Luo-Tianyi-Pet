@@ -474,6 +474,7 @@
           "holdLastFrameAfterOnePlay": true,
           "rapidBackAndForthEasterEgg": {
             "animation": "tenth-anniversary-spin-dance",
+            "playbackRate": 0.8,
             "minimumLegDistanceDips": 32,
             "minimumLegVelocityDipsPerSecond": 360,
             "requiredDirectionChanges": 4,
