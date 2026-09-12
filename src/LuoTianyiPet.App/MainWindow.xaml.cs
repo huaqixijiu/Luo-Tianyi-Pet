@@ -623,6 +623,10 @@ public partial class MainWindow : Window
         {
             _ = RunStableLayoutQaAsync();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-drag-edges"))
+        {
+            _ = RunDragEdgesQaAsync();
+        }
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
@@ -1804,7 +1808,7 @@ public partial class MainWindow : Window
         {
             if (_classicSpinDanceActive)
             {
-                SnapDragIntentPetInsideWorkArea();
+                ApplyDragReleasePlacement(GetPetImageDesktopBounds());
                 _classicDragExpansionStarted = false;
                 _dragIntentPetBoundsInWindow = null;
                 _dragEdgeCandidate = EdgeDockSide.None;
@@ -1824,84 +1828,29 @@ public partial class MainWindow : Window
                 return;
             }
 
-            // Capture contact before the taller idle bounds can move the expansion away
-            // from the top and make accessory layout reserve space above the pet again.
-            bool preserveTopEdge =
-                Math.Abs(GetPetImageDesktopBounds().Top - GetCurrentWorkArea().Top) <=
-                    EdgeAlignmentTolerance;
-            if (preserveTopEdge)
-            {
-                _classicDragExpansionStarted = false;
-                _dragIntentPetBoundsInWindow = null;
-                _dragEdgeCandidate = EdgeDockSide.None;
-                SetEdgeMirror(false);
-                if (_animationPlayer?.CurrentAnimationId != _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
-                {
-                    _ = TransitionToResolvedContinuousAnimationAsync(
-                        "animation.top_edge_drag_restored", preserveTopEdge: true);
-                }
-                else
-                {
-                    AlignVisiblePetToTopEdge();
-                    UpdateBodyHitDebugOverlay();
-                }
-                _logger.Info("interaction.drag_ended", "Top edge contact preserved across the animation swap.");
-                return;
-            }
-
-            SnapDragIntentPetInsideWorkArea();
+            // Keep the user's visible edge contact; transparent stage padding is
+            // allowed offscreen. Resolve placement only after the target art exists.
+            DesktopRectangle releaseBounds = GetPetImageDesktopBounds();
             _classicDragExpansionStarted = false;
             _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
-            UpdateAccessoryLayoutForCurrentPosition();
-
-            if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+            if (_animationPlayer?.CurrentAnimationId == _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
             {
-                RestoreAfterMusicDrag();
-                _logger.Info("interaction.drag_ended", "Music animation continued without landing feedback.");
-            }
-            else if (_stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.Compact)
-            {
-                RestoreAfterCompactDrag();
-                _logger.Info(
-                    "interaction.drag_ended",
-                    "Compact drag restored without landing feedback.");
+                ApplyDragReleasePlacement(releaseBounds);
+                UpdateBodyHitDebugOverlay();
             }
             else
             {
-                RestoreAfterFullBodyDrag();
-                _logger.Info("interaction.drag_ended", "Full-body mode restored without landing feedback.");
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "animation.drag_restored", dragReleaseBounds: releaseBounds);
             }
+            _logger.Info("interaction.drag_ended", "Visible artwork placement retained without landing feedback.");
         }
         else
         {
             _classicDragExpansionStarted = false;
         }
-    }
-
-    private void RestoreAfterMusicDrag()
-    {
-        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
-        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
-        {
-            UpdateBodyHitDebugOverlay();
-            return;
-        }
-
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.music_drag_restored");
-    }
-
-    private void RestoreAfterFullBodyDrag()
-    {
-        PetPlaybackPlan plan = _stateMachine.Resolve(DateTimeOffset.Now);
-        if (_animationPlayer?.CurrentAnimationId == plan.AnimationId)
-        {
-            UpdateBodyHitDebugOverlay();
-            return;
-        }
-
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.full_body_drag_restored");
     }
 
     private void StartClassicSpinDance()
@@ -2574,9 +2523,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RestoreAfterCompactDrag() =>
-        _ = TransitionToResolvedContinuousAnimationAsync("animation.compact_drag_restored");
-
     private void UpdateDragEdgePreview()
     {
         EdgeDockSide candidate = ResolveCurrentEdgeDockSide();
@@ -3017,7 +2963,7 @@ public partial class MainWindow : Window
     private async Task TransitionToResolvedContinuousAnimationAsync(
         string completionEvent,
         Action? afterTransition = null,
-        bool preserveTopEdge = false)
+        DesktopRectangle? dragReleaseBounds = null)
     {
         if (_animationPlayer is null || _animationCatalog is null || _isClosing)
         {
@@ -3029,23 +2975,22 @@ public partial class MainWindow : Window
         void SwapAnimation()
         {
             PlayResolvedContinuousAnimation(preserveVisualTransition: true);
-            if (preserveTopEdge)
+            if (dragReleaseBounds is DesktopRectangle releaseBounds)
             {
                 // At the invisible midpoint the restored art defines the geometry.
-                // A fade keeps that geometry unscaled while we align its alpha top.
-                ApplyAccessoryLayout(AccessoryLayout.BelowPet, preservePetPosition: false);
-                AlignVisiblePetToTopEdge();
+                // A fade keeps that geometry unscaled while preserving edge contact.
+                ApplyDragReleasePlacement(releaseBounds);
             }
         }
 
-        bool completed = preserveTopEdge
+        bool completed = dragReleaseBounds.HasValue
             ? await _visualSwapTransition.PlayFadeAsync(SwapAnimation)
             : await _visualSwapTransition.PlayAsync(SwapAnimation);
         if (completed && !_isClosing)
         {
             StartResolvedContinuousMotion();
             afterTransition?.Invoke();
-            _logger.Info(completionEvent, preserveTopEdge ? "Top-aligned fade completed." : "Pulse swap completed.");
+            _logger.Info(completionEvent, dragReleaseBounds.HasValue ? "Drag placement fade completed." : "Pulse swap completed.");
         }
         else if (!_isClosing)
         {
@@ -3053,12 +2998,14 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AlignVisiblePetToTopEdge()
+    private void ApplyDragReleasePlacement(DesktopRectangle releaseBounds)
     {
-        DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle pet = GetPetImageAlphaBoundsInWindow();
-        Top = workArea.Top - pet.Top;
-        Left = Clamp(Left, workArea.Left - pet.Left, workArea.Right - pet.Right);
+        PointerPoint position = DragReleasePlacement.Resolve(
+            new PointerPoint(Left, Top), releaseBounds, GetPetImageAlphaBoundsInWindow(),
+            GetCurrentWorkArea(), EdgeAlignmentTolerance);
+        Left = position.X;
+        Top = position.Y;
+        UpdateAccessoryLayoutForCurrentPosition();
     }
 
     private void StartResolvedContinuousMotion()
@@ -3789,29 +3736,6 @@ public partial class MainWindow : Window
         }
 
         pet = GetStableStageDesktopBounds();
-        if (pet.Top < workArea.Top)
-        {
-            Top += workArea.Top - pet.Top;
-        }
-        else if (pet.Bottom > workArea.Bottom)
-        {
-            Top -= pet.Bottom - workArea.Bottom;
-        }
-    }
-
-    private void SnapDragIntentPetInsideWorkArea()
-    {
-        DesktopRectangle workArea = GetCurrentWorkArea();
-        DesktopRectangle pet = GetStableStageDesktopBounds();
-        if (pet.Left < workArea.Left)
-        {
-            Left += workArea.Left - pet.Left;
-        }
-        else if (pet.Right > workArea.Right)
-        {
-            Left -= pet.Right - workArea.Right;
-        }
-
         if (pet.Top < workArea.Top)
         {
             Top += workArea.Top - pet.Top;

@@ -1,0 +1,68 @@
+PASS 50% right: contact does not trigger hiding
+FAIL 50% right: restored artwork touches edge; gap=33.52
+PASS 50% right: idle remains visible
+PASS 50% right: accessory refresh preserves position
+PASS 50% left: contact does not trigger hiding
+FAIL 50% left: restored artwork touches edge; gap=33.29
+PASS 50% left: idle remains visible
+PASS 50% left: accessory refresh preserves position
+PASS 50% bottom: contact does not trigger hiding
+FAIL 50% bottom: restored artwork touches edge; gap=2.52
+PASS 50% bottom: idle remains visible
+PASS 50% bottom: accessory refresh preserves position
+PASS 50% top-right: contact does not trigger hiding
+FAIL 50% top-right: restored artwork touches edge; gap=10.52
+PASS 50% top-right: top contact also preserved
+PASS 50% top-right: idle remains visible
+PASS 50% top-right: accessory refresh preserves position
+PASS 100% right: contact does not trigger hiding
+FAIL 100% right: restored artwork touches edge; gap=67.04
+PASS 100% right: idle remains visible
+PASS 100% right: accessory refresh preserves position
+PASS 100% left: contact does not trigger hiding
+FAIL 100% left: restored artwork touches edge; gap=66.58
+PASS 100% left: idle remains visible
+PASS 100% left: accessory refresh preserves position
+PASS 100% bottom: contact does not trigger hiding
+FAIL 100% bottom: restored artwork touches edge; gap=5.03
+PASS 100% bottom: idle remains visible
+PASS 100% bottom: accessory refresh preserves position
+PASS 100% top-right: contact does not trigger hiding
+FAIL 100% top-right: restored artwork touches edge; gap=20.04
+PASS 100% top-right: top contact also preserved
+PASS 100% top-right: idle remains visible
+PASS 100% top-right: accessory refresh preserves position
+PASS 150% right: contact does not trigger hiding
+FAIL 150% right: restored artwork touches edge; gap=100.56
+PASS 150% right: idle remains visible
+PASS 150% right: accessory refresh preserves position
+PASS 150% left: contact does not trigger hiding
+FAIL 150% left: restored artwork touches edge; gap=99.88
+PASS 150% left: idle remains visible
+PASS 150% left: accessory refresh preserves position
+PASS 150% bottom: contact does not trigger hiding
+FAIL 150% bottom: restored artwork touches edge; gap=7.55
+PASS 150% bottom: idle remains visible
+PASS 150% bottom: accessory refresh preserves position
+PASS 150% top-right: contact does not trigger hiding
+FAIL 150% top-right: restored artwork touches edge; gap=30.56
+PASS 150% top-right: top contact also preserved
+PASS 150% top-right: idle remains visible
+PASS 150% top-right: accessory refresh preserves position
+PASS 200% right: contact does not trigger hiding
+FAIL 200% right: restored artwork touches edge; gap=134.08
+PASS 200% right: idle remains visible
+PASS 200% right: accessory refresh preserves position
+PASS 200% left: contact does not trigger hiding
+FAIL 200% left: restored artwork touches edge; gap=133.17
+PASS 200% left: idle remains visible
+PASS 200% left: accessory refresh preserves position
+PASS 200% bottom: contact does not trigger hiding
+FAIL 200% bottom: restored artwork touches edge; gap=10.07
+PASS 200% bottom: idle remains visible
+PASS 200% bottom: accessory refresh preserves position
+PASS 200% top-right: contact does not trigger hiding
+FAIL 200% top-right: restored artwork touches edge; gap=41.08
+PASS 200% top-right: top contact also preserved
+PASS 200% top-right: idle remains visible
+PASS 200% top-right: accessory refresh preserves position

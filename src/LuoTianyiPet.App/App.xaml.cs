@@ -23,6 +23,10 @@ public partial class App : Application
             argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
         string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
+        if (e.Args.Contains("--qa-drag-edges", StringComparer.OrdinalIgnoreCase))
+        {
+            instanceId = $"{ApplicationId}.QA.DragEdges";
+        }
         if (e.Args.Contains("--qa-top-drag", StringComparer.OrdinalIgnoreCase))
         {
             instanceId = $"{ApplicationId}.QA.TopDrag";

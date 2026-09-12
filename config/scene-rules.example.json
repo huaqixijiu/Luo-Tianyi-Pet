@@ -12,7 +12,7 @@
       "artworkAlignment": "bottom-center-preserve-native-display-size",
       "islandReferenceArtworkWidthDips": 220,
       "normalEdgePlacement": "keep-stable-stage-visible",
-      "topDragRelease": "preserve-visible-alpha-top-at-invisible-swap",
+      "dragReleasePlacement": "preserve-visible-alpha-edges-at-invisible-swap",
       "edgeDockHitTesting": "actual-alpha-and-clipped-handle"
     },
     "petRightClick": ["lockPosition", "alwaysOnTop", "showMusicIslands", "displayScale"],
