@@ -29,6 +29,9 @@ class Action:
     preview_name: str
     runtime: bool = True
     long_idle_hold_frame: int | None = None
+    runtime_frame_size: tuple[int, int] | None = None
+    display_size: tuple[int, int] | None = None
+    source_offset_x: int = 0
 
 
 ACTIONS = (
@@ -121,7 +124,10 @@ ACTIONS = (
         "睡觉",
         361,
         "12_睡觉.webp",
-        long_idle_hold_frame=250,
+        long_idle_hold_frame=220,
+        runtime_frame_size=(488, 476),
+        display_size=(244, 238),
+        source_offset_x=4,
     ),
 )
 
@@ -189,7 +195,7 @@ def resize_premultiplied_to(
 
 
 def make_idle_reference(root: Path, frame_size: tuple[int, int]) -> Image.Image:
-    """Resize the actual idle artwork into the identical runtime frame slot."""
+    """Place the actual idle artwork into the runtime frame without stretching it."""
     idle_path = (
         root
         / "assets"
@@ -197,25 +203,32 @@ def make_idle_reference(root: Path, frame_size: tuple[int, int]) -> Image.Image:
         / "processed"
         / "用户提供_Q版小人全身_透明.png"
     )
+    target_height = frame_size[1]
+    target_width = round(target_height * IDLE_DISPLAY_WIDTH / IDLE_DISPLAY_HEIGHT)
     with Image.open(idle_path) as idle:
-        return resize_premultiplied_to(idle, frame_size)
+        resized = resize_premultiplied_to(idle, (target_width, target_height))
+    canvas = Image.new("RGBA", frame_size, (0, 0, 0, 0))
+    canvas.alpha_composite(resized, ((frame_size[0] - target_width) // 2, 0))
+    return canvas
 
 
 def normalize_action_frame(
     image: Image.Image,
     frame_size: tuple[int, int],
+    source_offset_x: int = 0,
 ) -> Image.Image:
     """Reframe a square source into the idle slot without changing DIP scale."""
     frame_width, frame_height = frame_size
-    render_width = frame_width * SOURCE_ACTION_DISPLAY_SIZE / IDLE_DISPLAY_WIDTH
-    render_height = frame_height * SOURCE_ACTION_DISPLAY_SIZE / IDLE_DISPLAY_HEIGHT
-    render_size = round((render_width + render_height) / 2)
+    # All source actions were authored for a 244 DIP square. Use the vertical
+    # pixel density as the scale authority; selected wide poses can opt into a
+    # wider canvas without becoming larger or being clipped horizontally.
+    render_size = round(frame_height * SOURCE_ACTION_DISPLAY_SIZE / IDLE_DISPLAY_HEIGHT)
     resized = resize_premultiplied_to(image, (render_size, render_size))
 
     canvas = Image.new("RGBA", frame_size, (0, 0, 0, 0))
     canvas.alpha_composite(
         resized,
-        ((frame_width - render_size) // 2, 1),
+        ((frame_width - render_size) // 2 + source_offset_x, 1),
     )
     return canvas
 
@@ -483,8 +496,6 @@ def prepare(
     runtime_root = root / "assets" / "animations" / "runtime"
     metadata_path = root / "assets" / "animations" / "processed" / "晶蓝礼服_互动动作.meta.json"
     frame_size = (frame_width, frame_height)
-    idle_reference = make_idle_reference(root, frame_size)
-    preview_idle_reference = make_idle_reference(root, PREVIEW_FRAME_SIZE)
 
     existing_payload = (
         json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -520,8 +531,12 @@ def prepare(
                 f"found {len(source_frames)}"
             )
 
-        action_frame_size = frame_size if action.runtime else PREVIEW_FRAME_SIZE
-        action_idle_reference = idle_reference if action.runtime else preview_idle_reference
+        if action.runtime:
+            action_frame_size = action.runtime_frame_size or frame_size
+        else:
+            action_frame_size = PREVIEW_FRAME_SIZE
+        action_display_size = action.display_size or (IDLE_DISPLAY_WIDTH, IDLE_DISPLAY_HEIGHT)
+        action_idle_reference = make_idle_reference(root, action_frame_size)
         normalized_frames: list[Image.Image] = []
         for frame_index, path in enumerate(source_frames):
             with Image.open(path) as image:
@@ -532,7 +547,13 @@ def prepare(
                     if action.animation_id == "crystal-long-idle-sleep"
                     else image.convert("RGBA")
                 )
-                normalized_frames.append(normalize_action_frame(source_image, action_frame_size))
+                normalized_frames.append(
+                    normalize_action_frame(
+                        source_image,
+                        action_frame_size,
+                        action.source_offset_x,
+                    )
+                )
         luminance_lut = build_luminance_lut(normalized_frames[0], action_idle_reference)
         normalized_frames = [
             apply_luminance_lut(frame, luminance_lut)
@@ -603,10 +624,8 @@ def prepare(
                 "rows": atlas_rows,
                 "frameDurationMilliseconds": frame_duration_ms,
                 "loopCount": 1,
-                # Using the exact idle display slot prevents any WPF window
-                # resize or desktop-coordinate rounding during the reaction.
-                "displayWidth": IDLE_DISPLAY_WIDTH,
-                "displayHeight": IDLE_DISPLAY_HEIGHT,
+                "displayWidth": action_display_size[0],
+                "displayHeight": action_display_size[1],
             }
         )
 
@@ -715,12 +734,16 @@ def prepare(
             ),
             "runtimeEncoding": (
                 f"animated WebP quality {RUNTIME_WEBP_QUALITY}; exact alpha; "
-                "full frame count and full 440x476 resolution"
+                "full frame count; standard actions use 440x476 and the wide "
+                "lying sleep pose uses 488x476"
             ),
             "runtimeCanvasPolicy": (
-                f"reframe square source into {frame_width}x{frame_height} "
-                "high-resolution idle-aspect canvas; display at fixed "
-                "220x238 DIP without runtime offset; retain 240x260 picker previews"
+                f"reframe square source into a {frame_width}x{frame_height} standard "
+                "high-resolution canvas; the lying sleep sequence uses a 488x476 "
+                "canvas displayed at 244x238 DIP so both hair ends remain visible; "
+                "the source square is shifted 4 px right inside that canvas to "
+                "retain a transparent left safety margin; "
+                "retain 240x260 picker previews"
             ),
             "retouch": (
                 "match action luminance to idle, then replace six neutral frames "
@@ -728,7 +751,7 @@ def prepare(
                 "source frame count and duration"
             ),
             "longIdlePolicy": (
-                "duck sit holds source frame 120; sleep holds source frame 250; "
+                "duck sit holds source frame 120; sleep holds closed-eye source frame 220; "
                 "sleep Z glyphs are cleared only inside the audited detached-glyph ROI"
             ),
             "decorationPolicy": (

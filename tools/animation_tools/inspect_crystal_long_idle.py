@@ -63,7 +63,7 @@ def main() -> None:
 
     runtime_root = root / "assets" / "animations" / "runtime"
     runtime_jobs = (
-        ("crystal-long-idle-sleep.frames.webp", (0, 160, 200, 250, 300, 360), "sleep"),
+        ("crystal-long-idle-sleep.frames.webp", (0, 160, 200, 220, 300, 360), "sleep"),
         ("crystal-long-idle-duck-sit.frames.webp", (0, 48, 120, 160, 192, 216), "duck"),
         ("crystal-sleep-decoration-zzz.frames.webp", (0, 30, 60, 90, 120), "zzz"),
         ("crystal-sleep-decoration-bun.frames.webp", (0, 18, 36, 54, 72), "bun"),

@@ -39,7 +39,7 @@ public partial class MainWindow : Window
     private const string CrystalSleepBunDecoration = "crystal-sleep-decoration-bun";
     private const string CrystalSleepYuezhengLingDecoration = "crystal-sleep-decoration-yuezhengling";
     private const string CrystalSleepCloudDissolveDecoration = "crystal-sleep-decoration-cloud-dissolve";
-    private const int CrystalSleepHoldFrame = 250;
+    private const int CrystalSleepHoldFrame = 220;
     private const int CrystalSleepLastFrame = 360;
     private const int CrystalDuckSitHoldFrame = 120;
     private const int CrystalDuckSitLastFrame = 216;

@@ -15,10 +15,10 @@
     "sourceFps": 24,
     "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
     "colorPolicy": "per-action YCbCr luminance CDF matching from the first source frame to the actual idle artwork; preserve chroma and alpha",
-    "runtimeEncoding": "animated WebP quality 95; exact alpha; full frame count and full 440x476 resolution",
-    "runtimeCanvasPolicy": "reframe square source into 440x476 high-resolution idle-aspect canvas; display at fixed 220x238 DIP without runtime offset; retain 240x260 picker previews",
+    "runtimeEncoding": "animated WebP quality 95; exact alpha; full frame count; standard actions use 440x476 and the wide lying sleep pose uses 488x476",
+    "runtimeCanvasPolicy": "reframe square source into a 440x476 standard high-resolution canvas; the lying sleep sequence uses a 488x476 canvas displayed at 244x238 DIP so both hair ends remain visible; the source square is shifted 4 px right inside that canvas to retain a transparent left safety margin; retain 240x260 picker previews",
     "retouch": "match action luminance to idle, then replace six neutral frames at each end with premultiplied idle-to-action blends; keep source frame count and duration",
-    "longIdlePolicy": "duck sit holds source frame 120; sleep holds source frame 250; sleep Z glyphs are cleared only inside the audited detached-glyph ROI",
+    "longIdlePolicy": "duck sit holds source frame 120; sleep holds closed-eye source frame 220; sleep Z glyphs are cleared only inside the audited detached-glyph ROI",
     "decorationPolicy": "remove only key-colour pixels connected to the source canvas edge, then crop the visible union and resize in premultiplied RGBA; small overlays are temporally sampled at their original apparent speed",
     "idleReference": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
     "inPlaceTransitionFramesPerEnd": 6
@@ -196,13 +196,13 @@
       "sourceFrameCount": 361,
       "sourceSequenceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/12_睡觉.webp",
-      "previewSha256": "0b2dcb501cb555855cc7e86aea16fc08e8f5895be656903d41cd881a5edc6283",
+      "previewSha256": "f51730693447a043fc22f346497e23a28c1a8019b9bccf2be00da39a3ee6d849",
       "luminanceLutSha256": "195f9fd44606c6c652715818247b262a1df8b6e9e322b134c54f857ad693f3af",
       "inPlaceTransitionFramesPerEnd": 6,
       "longIdle": {
         "enterStartFrame": 0,
-        "holdFrame": 250,
-        "wakeStartFrame": 251,
+        "holdFrame": 220,
+        "wakeStartFrame": 221,
         "wakeEndFrame": 360
       },
       "removedBakedSleepLetters": {
@@ -218,7 +218,7 @@
         ]
       },
       "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
-      "atlasSha256": "f86f299cfc0f9a254c191c961e007aead51e453581ab1933858e01d5bab0de10"
+      "atlasSha256": "78cc54d7e3e58bd8dd32fcdc5f8bde8e159226be36df4cb4cb53cafc42f3609a"
     },
     {
       "id": "crystal-sleep-decoration-zzz",
@@ -447,11 +447,13 @@
       "sourceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
       "frameCount": 361,
+      "frameWidth": 488,
+      "frameHeight": 476,
       "columns": 1,
       "rows": 361,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 220,
+      "displayWidth": 244,
       "displayHeight": 238
     },
     {

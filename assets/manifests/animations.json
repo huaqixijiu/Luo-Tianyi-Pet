@@ -4250,8 +4250,8 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/睡觉",
       "sourceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "atlasPath": "animations/runtime/crystal-long-idle-sleep.frames.webp",
-      "atlasSha256": "f86f299cfc0f9a254c191c961e007aead51e453581ab1933858e01d5bab0de10",
-      "frameWidth": 440,
+      "atlasSha256": "78cc54d7e3e58bd8dd32fcdc5f8bde8e159226be36df4cb4cb53cafc42f3609a",
+      "frameWidth": 488,
       "frameHeight": 476,
       "columns": 1,
       "rows": 361,
@@ -4619,14 +4619,14 @@
         42
       ],
       "loopCount": 1,
-      "displayWidth": 220,
+      "displayWidth": 244,
       "displayHeight": 238,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
         0,
         0,
-        440,
+        488,
         476
       ]
     },
