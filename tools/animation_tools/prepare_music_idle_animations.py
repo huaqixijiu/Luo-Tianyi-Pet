@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from PIL import Image, ImageSequence
+from fishing_transparency import BACKGROUND_SEEDS, TEXT_BOTTOM, prepare_fishing_frame, prepare_fishing_rgba, validate_fishing_pixels
 
 
 SINGING_TEXT_BOUNDS = (0, 15, 33, 126)
@@ -111,8 +112,10 @@ def validate_fishing_original_pixels(
     if len(output_frames) != len(source_frames):
         raise ValueError("Fishing output frame count changed during encoding.")
     for index, (source, output) in enumerate(zip(source_frames, output_frames, strict=True)):
-        if source.convert("RGBA").tobytes() != output.convert("RGBA").tobytes():
-            raise ValueError(f"Fishing frame {index} changed original pixels or its white canvas.")
+        try:
+            validate_fishing_pixels(source, output)
+        except ValueError as error:
+            raise ValueError(f"Fishing frame {index}: {error}") from error
 
 def prepare(
     fishing_source: Path,
@@ -132,20 +135,29 @@ def prepare(
         raise ValueError("Fishing countdown must be exactly 60 seconds.")
     fishing_output = output_directory / "十周年生日_摸鱼一分钟_精确60秒.gif"
     fishing_output_frames = [
-        fishing_frames[index].convert("RGB").convert(
-            "P", palette=Image.Palette.ADAPTIVE, colors=256
-        )
+        prepare_fishing_frame(fishing_frames[index])
         for index in fishing_indices
     ]
     save_gif(
         fishing_output,
         fishing_output_frames,
         countdown_durations,
+        transparency_index=0,
     )
     validate_fishing_original_pixels(
         [fishing_frames[index] for index in fishing_indices],
         fishing_output,
     )
+    rgba_frames = [prepare_fishing_rgba(fishing_frames[index]) for index in fishing_indices]
+    fishing_rgba_output = output_directory / "十周年生日_摸鱼一分钟_透明无损.webp"
+    rgba_frames[0].save(fishing_rgba_output, save_all=True, append_images=rgba_frames[1:],
+                        duration=countdown_durations, loop=0, lossless=True, exact=True)
+    decoded_rgba, _ = read_gif(fishing_rgba_output)
+    if len(decoded_rgba) != len(rgba_frames) or any(
+        original.tobytes() != decoded.tobytes()
+        for original, decoded in zip(rgba_frames, decoded_rgba, strict=True)
+    ):
+        raise ValueError("Lossless fishing RGBA output changed during encoding.")
 
     singing_frames, singing_durations = read_gif(singing_source)
     if len(singing_frames) != 16:
@@ -191,16 +203,24 @@ def prepare(
             "sourceSha256": sha256(fishing_source),
             "output": fishing_output.as_posix(),
             "outputSha256": sha256(fishing_output),
+            "runtimeSource": fishing_rgba_output.as_posix(),
+            "runtimeSourceSha256": sha256(fishing_rgba_output),
             "sourceFrameIndices": fishing_indices,
             "frameDurationsMilliseconds": countdown_durations,
             "totalDurationMilliseconds": sum(countdown_durations),
             "transformation": (
                 "remove-five-second-01:00-hold, normalize-00:00-to-one-second, "
-                "preserve-original-white-canvas-and-all-original-pixels"
+                "audited-pure-white-background-matte-with-lossless-foreground-palette"
             ),
             "backgroundRemoval": {
-                "enabled": False,
-                "method": "none; preserve original white canvas",
+                "enabled": True,
+                "method": "exact-white flood fill from audited background seeds; no near-white tolerance",
+                "backgroundSeeds": BACKGROUND_SEEDS,
+                "textRegionBottomExclusive": TEXT_BOTTOM,
+                "transparentPaletteIndex": 0,
+                "foregroundEncoding": "exact RGB lookup; opaque white uses a separate nonzero index; no quantization",
+                "protectedRegion": "all pixels outside the audited background components, including bottom-border clothing",
+                "runtimeEdgeMatte": "only light boundary antialias pixels; recover nearby ink and alpha with white-recomposition channel error <= 3; lossless RGBA WebP",
             },
         },
         "oneClickSinging": {

@@ -19,7 +19,7 @@
     },
     {
       "id": "tenth-birthday-fishing-countdown",
-      "source": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
+      "source": "assets/animations/processed/十周年生日_摸鱼一分钟_透明无损.webp",
       "atlas": "assets/animations/runtime/tenth-birthday-fishing-countdown.atlas.png",
       "displayWidth": 180,
       "displayHeight": 180,

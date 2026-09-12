@@ -46,7 +46,9 @@ def read_frames(source: Path, default_duration: int) -> tuple[list[Image.Image],
             for frame in ImageSequence.Iterator(image)
         ]
 
-    if source.suffix.lower() == ".webp" and not all(durations):
+    # Pillow can retain the final decoded frame's duration in image.info while
+    # a second iterator seeks without loading. ANMF stores each actual duration.
+    if source.suffix.lower() == ".webp":
         parsed = webp_frame_durations(source)
         if len(parsed) == len(frames):
             durations = parsed
