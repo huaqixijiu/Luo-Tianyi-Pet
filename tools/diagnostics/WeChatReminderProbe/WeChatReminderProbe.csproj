@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net48</TargetFramework></PropertyGroup><ItemGroup><ProjectReference Include="../../../src/LuoTianyiPet.Platform.Windows/LuoTianyiPet.Platform.Windows.csproj" /></ItemGroup></Project>

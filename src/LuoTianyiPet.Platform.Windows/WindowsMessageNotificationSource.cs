@@ -18,6 +18,14 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
     private bool _started;
     private bool _disposed;
     private volatile bool _qqDetailsEnabled = true;
+    private volatile bool _weChatDetailsEnabled = true;
+    public void SetWeChatDetailsEnabled(bool enabled)
+    {
+        _weChatDetailsEnabled = enabled;
+        Interlocked.Increment(ref _detailGeneration);
+    }
+    private bool DetailsEnabled(MessageProvider provider) =>
+        provider == MessageProvider.Qq ? _qqDetailsEnabled : _weChatDetailsEnabled;
     private int _detailGeneration;
 
     public void SetQqDetailsEnabled(bool enabled)
@@ -173,15 +181,15 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         }
 
         int generation = Volatile.Read(ref _detailGeneration);
-        bool readDetails = matched != MessageProvider.Qq || _qqDetailsEnabled;
-        var details = readDetails ? TryReadDetails(notification, matched == MessageProvider.Qq) : (Title: (string?)null, Preview: (string?)null);
+        bool readDetails = DetailsEnabled(matched);
+        var details = readDetails ? TryReadDetails(notification, true) : (Title: (string?)null, Preview: (string?)null);
         byte[]? applicationIcon = await TryReadApplicationIconAsync(notification);
         if (_disposed || !_started)
         {
             return;
         }
 
-        if (matched == MessageProvider.Qq && (!_qqDetailsEnabled || generation != Volatile.Read(ref _detailGeneration)))
+        if (!DetailsEnabled(matched) || generation != Volatile.Read(ref _detailGeneration))
             details = (null, null);
 
         NotificationReceived?.Invoke(

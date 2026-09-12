@@ -145,6 +145,8 @@ public sealed record MessageNotificationPreferences
 
     public bool EnableQqDetailedReminders { get; init; } = true;
 
+    public bool EnableWeChatDetailedReminders { get; init; } = true;
+
     public bool WindowsNotificationAccessGranted { get; init; }
 
     public int DuplicateWindowMilliseconds { get; init; } =

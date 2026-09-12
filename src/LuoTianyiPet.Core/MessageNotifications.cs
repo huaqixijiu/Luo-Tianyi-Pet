@@ -26,8 +26,8 @@ public sealed record MessageNotificationSummary(
     int? NewNotificationCount = null,
     string? NotificationKey = null)
 {
-    public MessageNotificationSummary ForDisplay(bool enableQqDetails) =>
-        Provider == MessageProvider.Qq && !enableQqDetails
+    public MessageNotificationSummary ForDisplay(bool enableQqDetails, bool enableWeChatDetails = true) =>
+        (Provider == MessageProvider.Qq ? !enableQqDetails : !enableWeChatDetails)
             ? this with { ConversationDisplayName = null, ContactAvatar = null, UnreadCount = null,
                 MessagePreview = null, NewNotificationCount = null }
             : this;
@@ -36,6 +36,7 @@ public sealed record MessageNotificationSummary(
 public interface IMessageNotificationDetailSettings
 {
     void SetQqDetailsEnabled(bool enabled);
+    void SetWeChatDetailsEnabled(bool enabled);
 }
 
 public sealed class MessageNotificationReceivedEventArgs(

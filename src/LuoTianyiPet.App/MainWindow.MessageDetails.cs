@@ -9,6 +9,20 @@ namespace LuoTianyiPet.App;
 public partial class MainWindow
 {
     private readonly MessageNotificationCounter _messageNotificationCounter = new();
+    private WindowsWeChatSessionNotificationSource? _weChatSessionSource;
+    private void UpdateWeChatMonitoring()
+    {
+        var foreground = _foregroundApplicationProbe?.Query();
+        bool enabled = foreground?.Succeeded == true && foreground?.IsFullscreen == false && _persistSettings && !_isClosing && !_systemSessionUnavailable &&
+            _settings.Notifications.EnableMessageReminders && _settings.Notifications.EnableWeChatDetailedReminders;
+        if (!enabled) { _weChatSessionSource?.Stop(); return; }
+        if (_weChatSessionSource is null)
+        {
+            _weChatSessionSource = new();
+            _weChatSessionSource.NotificationReceived += OnMessageNotificationReceived;
+        }
+        _weChatSessionSource.Start();
+    }
     private SettingsWindow? _settingsWindow;
     private MessageNotificationWindow? _messageBubble;
     private MessageNotificationSummary? _displayedMessageSummary;
@@ -17,7 +31,7 @@ public partial class MainWindow
 
     private bool TryEnrichActiveMessage(MessageNotificationSummary notification, bool sourceIsForeground, bool canShow)
     {
-        notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
+        notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders, _settings.Notifications.EnableWeChatDetailedReminders);
         if (sourceIsForeground || !canShow || _activeMessageProvider != notification.Provider ||
             _displayedMessageSummary is null || (notification.ConversationDisplayName is null && notification.NewNotificationCount is null)) return false;
         // A richer Toast following a Shell signal updates the existing card without restarting its animation or timer.
