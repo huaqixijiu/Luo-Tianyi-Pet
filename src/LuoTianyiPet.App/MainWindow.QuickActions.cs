@@ -42,6 +42,7 @@ public partial class MainWindow
             enabled => SetPermanentTopmost(enabled, save: true),
             SetMusicIslandsVisible,
             percent => SetDisplayScalePercent(percent, save: true));
+        _petQuickPanel.OpenPlanner = OpenPlanner;
         DesktopRectangle bounds = GetPetImageAlphaBoundsInWindow();
         _petQuickPanel.ShowNearPet(
             new DesktopRectangle(Left + bounds.Left, Top + bounds.Top, bounds.Width, bounds.Height),

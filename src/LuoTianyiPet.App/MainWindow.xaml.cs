@@ -521,6 +521,7 @@ public partial class MainWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        InitializePlanner();
         if (!_showQaTaskbar)
         {
             _logger.Info(
@@ -6389,6 +6390,7 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        ClosePlanner();
         _inboxWindow?.Close();
         _messageBubble?.Close();
         if (_desktopToolWindowBehavior is not null)

@@ -1,4 +1,23 @@
 {
+  "planner": {
+    "offline": true,
+    "minimumYear": 2026,
+    "maximumYear": 2099,
+    "views": ["week", "month"],
+    "defaultView": "month",
+    "weekStartsOn": "monday",
+    "defaultRestDays": ["saturday", "sunday"],
+    "dateOverridesWin": true,
+    "maxRelativeSeconds": 86400,
+    "defaultRelativeSeconds": 1500,
+    "upcomingMinutes": 10,
+    "cardSeconds": 30,
+    "snoozeMinutes": 5,
+    "soundDefault": true,
+    "calendarReminderDefault": false,
+    "storage": "reminders.json",
+    "backup": "reminders.backup.json"
+  },
   "schemaVersion": 1,
   "window": {
     "userTopmostDefault": false,
@@ -15,7 +34,7 @@
       "dragReleasePlacement": "preserve-visible-alpha-edges-at-invisible-swap",
       "edgeDockHitTesting": "actual-alpha-and-clipped-handle"
     },
-    "petRightClick": ["lockPosition", "alwaysOnTop", "showMusicIslands", "displayScale"],
+    "petRightClick": ["calendar", "alarms", "lockPosition", "alwaysOnTop", "showMusicIslands", "displayScale"],
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true
   },

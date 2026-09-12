@@ -6,6 +6,9 @@ namespace LuoTianyiPet.App;
 
 public partial class PetQuickPanel : Window
 {
+    public Action<bool>? OpenPlanner { get; set; }
+    private void OnCalendarClick(object sender, RoutedEventArgs e) { Hide(); OpenPlanner?.Invoke(false); }
+    private void OnAlarmClick(object sender, RoutedEventArgs e) { Hide(); OpenPlanner?.Invoke(true); }
     private readonly Func<AppSettings> _getSettings;
     private readonly Action<bool> _setLocked;
     private readonly Action<bool> _setTopmost;

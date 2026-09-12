@@ -10,6 +10,9 @@
     <Border Style="{StaticResource PanelSurface}">
         <StackPanel>
             <TextBlock Margin="10,2,0,8" FontSize="13" FontWeight="SemiBold" Text="天依 · 常用功能" />
+            <Button Content="日历" Click="OnCalendarClick" />
+            <Button Content="闹钟" Click="OnAlarmClick" />
+            <Border Height="1" Background="#D8E8EF" Margin="10,8" />
             <CheckBox x:Name="LockPositionCheckBox" Content="锁定位置" Click="OnLockClick" ToolTip="防止误拖，仍可摸头、点击和双击换装" />
             <CheckBox x:Name="TopmostCheckBox" Content="始终置顶" Click="OnTopmostClick" />
             <CheckBox x:Name="MusicIslandsCheckBox" Content="显示音乐悬浮岛" Click="OnMusicClick" ToolTip="开启后悬停显示歌名和音乐控制；关闭后全部隐藏" />

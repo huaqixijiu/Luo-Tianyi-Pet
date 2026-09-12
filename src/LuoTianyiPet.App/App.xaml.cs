@@ -11,6 +11,7 @@ namespace LuoTianyiPet.App;
 public partial class App : Application
 {
     private const string ApplicationId = "LuoTianyiPet.App";
+    internal LocalAppPaths ReminderPaths { get; private set; } = new();
 
     private SingleInstanceGuard? _singleInstance;
     private IAppLogger? _logger;
@@ -85,6 +86,7 @@ public partial class App : Application
             : new LocalAppPaths();
         if (e.Args.Contains("--qa-music-settings-feedback", StringComparer.OrdinalIgnoreCase))
             paths = new LocalAppPaths(Path.Combine(AppContext.BaseDirectory, "MusicSettingsFeedbackQa", "UserData"));
+        ReminderPaths = paths;
         _logger = new FileAppLogger(paths);
         JsonSettingsStore settingsStore = new(paths);
 
