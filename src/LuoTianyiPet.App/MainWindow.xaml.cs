@@ -609,6 +609,10 @@ public partial class MainWindow : Window
         {
             _ = RunQuickActionsQaAsync();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-top-drag"))
+        {
+            _ = RunTopDragQaAsync();
+        }
         if (_previewExit)
         {
             _ = BeginPreviewExitAsync();
@@ -1810,6 +1814,23 @@ public partial class MainWindow : Window
                 return;
             }
 
+            // Capture contact before the taller idle bounds can move the expansion away
+            // from the top and make accessory layout reserve space above the pet again.
+            bool preserveTopEdge = _classicDragExpansionStarted &&
+                Math.Abs(GetPetImageDesktopBounds().Top - GetCurrentWorkArea().Top) <=
+                    EdgeAlignmentTolerance;
+            if (preserveTopEdge)
+            {
+                _classicDragExpansionStarted = false;
+                _dragIntentPetBoundsInWindow = null;
+                _dragEdgeCandidate = EdgeDockSide.None;
+                SetEdgeMirror(false);
+                _ = TransitionToResolvedContinuousAnimationAsync(
+                    "animation.top_edge_drag_restored", preserveTopEdge: true);
+                _logger.Info("interaction.drag_ended", "Top edge contact preserved across the animation swap.");
+                return;
+            }
+
             SnapDragIntentPetInsideWorkArea();
             _classicDragExpansionStarted = false;
             _dragIntentPetBoundsInWindow = null;
@@ -2953,7 +2974,8 @@ public partial class MainWindow : Window
 
     private async Task TransitionToResolvedContinuousAnimationAsync(
         string completionEvent,
-        Action? afterTransition = null)
+        Action? afterTransition = null,
+        bool preserveTopEdge = false)
     {
         (bool alignLeft, bool alignRight, bool alignBottom, DesktopRectangle workArea) =
             CaptureAlphaEdgeAlignment();
@@ -2965,14 +2987,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        bool completed = await _visualSwapTransition.PlayAsync(
-            () => PlayResolvedContinuousAnimation(preserveVisualTransition: true));
+        void SwapAnimation()
+        {
+            PlayResolvedContinuousAnimation(preserveVisualTransition: true);
+            if (preserveTopEdge)
+            {
+                // At the invisible midpoint the restored art defines the geometry.
+                // A fade keeps that geometry unscaled while we align its alpha top.
+                ApplyAccessoryLayout(AccessoryLayout.BelowPet, preservePetPosition: false);
+                Top = GetCurrentWorkArea().Top - GetPetImageAlphaBoundsInWindow().Top;
+                SnapVisiblePetInsideWorkArea();
+            }
+        }
+
+        bool completed = preserveTopEdge
+            ? await _visualSwapTransition.PlayFadeAsync(SwapAnimation)
+            : await _visualSwapTransition.PlayAsync(SwapAnimation);
         if (completed && !_isClosing)
         {
             RestoreAlphaEdgeAlignment(alignLeft, alignRight, alignBottom, workArea);
             StartResolvedContinuousMotion();
             afterTransition?.Invoke();
-            _logger.Info(completionEvent, "Pulse swap completed.");
+            _logger.Info(completionEvent, preserveTopEdge ? "Top-aligned fade completed." : "Pulse swap completed.");
         }
         else if (!_isClosing)
         {
