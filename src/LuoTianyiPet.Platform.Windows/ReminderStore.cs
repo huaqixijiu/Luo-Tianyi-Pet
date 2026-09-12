@@ -41,6 +41,8 @@ public sealed class ReminderStore
     {
         ReminderSchedule.Validate(book);
         string json = Encode(book);
+        if (System.Text.Encoding.UTF8.GetByteCount(json) > 16 * 1024 * 1024)
+            throw new ArgumentException("提醒数据超过 16 MB，请先导出并整理旧记录。");
         await Task.Run(() =>
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_file)!);

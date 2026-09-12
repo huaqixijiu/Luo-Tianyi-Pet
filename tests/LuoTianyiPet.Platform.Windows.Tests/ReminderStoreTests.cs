@@ -33,6 +33,9 @@ public class ReminderStoreTests
             await Assert.ThrowsAsync<ArgumentException>(() => store.SaveAsync(new ReminderBook { Version = 999 }));
             Assert.Equal(1, (await store.LoadAsync()).Version);
             Assert.Throws<ArgumentException>(() => ReminderStore.Decode("{\"Version\":1,\"Items\":[null]}"));
+            var huge = new ReminderBook { Items = Enumerable.Range(0, 1800).Select(_ => new ReminderItem { Title = "测试", Notes = new string('a', 10000), Start = new DateTime(2026, 9, 14) }).ToList() };
+            await Assert.ThrowsAsync<ArgumentException>(() => store.SaveAsync(huge));
+            Assert.Empty((await store.LoadAsync()).Items);
         }
         finally { if (Directory.Exists(dir)) Directory.Delete(dir, true); }
     }
