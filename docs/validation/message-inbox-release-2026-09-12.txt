@@ -1,0 +1,262 @@
+PASS full-body-long-hair: correct selected idle artwork
+PASS full-body-long-hair/left/1: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/1: incoming reminders preserve current animation
+PASS full-body-long-hair/left/1: zero reminders hide whole group
+PASS full-body-long-hair/left/1: rail faces available side
+PASS full-body-long-hair/left/1: badge totals equal row totals
+PASS full-body-long-hair/left/2: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/2: incoming reminders preserve current animation
+PASS full-body-long-hair/left/2: zero reminders hide whole group
+PASS full-body-long-hair/left/2: rail faces available side
+PASS full-body-long-hair/left/2: badge totals equal row totals
+PASS full-body-long-hair/left/3: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/3: incoming reminders preserve current animation
+PASS full-body-long-hair/left/3: zero reminders hide whole group
+PASS full-body-long-hair/left/3: rail faces available side
+PASS full-body-long-hair/left/3: badge totals equal row totals
+PASS full-body-long-hair/left/4: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/4: incoming reminders preserve current animation
+PASS full-body-long-hair/left/4: zero reminders hide whole group
+PASS full-body-long-hair/left/4: rail faces available side
+PASS full-body-long-hair/left/4: badge totals equal row totals
+PASS full-body-long-hair/left/5: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/5: incoming reminders preserve current animation
+PASS full-body-long-hair/left/5: zero reminders hide whole group
+PASS full-body-long-hair/left/5: rail faces available side
+PASS full-body-long-hair/left/5: badge totals equal row totals
+PASS full-body-long-hair/left/6: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/6: incoming reminders preserve current animation
+PASS full-body-long-hair/left/6: zero reminders hide whole group
+PASS full-body-long-hair/left/6: rail faces available side
+PASS full-body-long-hair/left/6: badge totals equal row totals
+PASS full-body-long-hair/left/7: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/7: incoming reminders preserve current animation
+PASS full-body-long-hair/left/7: zero reminders hide whole group
+PASS full-body-long-hair/left/7: rail faces available side
+PASS full-body-long-hair/left/7: badge totals equal row totals
+PASS full-body-long-hair/left/8: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/left/8: incoming reminders preserve current animation
+PASS full-body-long-hair/left/8: zero reminders hide whole group
+PASS full-body-long-hair/left/8: badge totals equal row totals
+PASS full-body-long-hair/right/1: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/1: incoming reminders preserve current animation
+PASS full-body-long-hair/right/1: zero reminders hide whole group
+PASS full-body-long-hair/right/1: rail faces available side
+PASS full-body-long-hair/right/1: badge totals equal row totals
+PASS full-body-long-hair/right/2: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/2: incoming reminders preserve current animation
+PASS full-body-long-hair/right/2: zero reminders hide whole group
+PASS full-body-long-hair/right/2: rail faces available side
+PASS full-body-long-hair/right/2: badge totals equal row totals
+PASS full-body-long-hair/right/3: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/3: incoming reminders preserve current animation
+PASS full-body-long-hair/right/3: zero reminders hide whole group
+PASS full-body-long-hair/right/3: rail faces available side
+PASS full-body-long-hair/right/3: badge totals equal row totals
+PASS full-body-long-hair/right/4: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/4: incoming reminders preserve current animation
+PASS full-body-long-hair/right/4: zero reminders hide whole group
+PASS full-body-long-hair/right/4: rail faces available side
+PASS full-body-long-hair/right/4: badge totals equal row totals
+PASS full-body-long-hair/right/5: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/5: incoming reminders preserve current animation
+PASS full-body-long-hair/right/5: zero reminders hide whole group
+PASS full-body-long-hair/right/5: rail faces available side
+PASS full-body-long-hair/right/5: badge totals equal row totals
+PASS full-body-long-hair/right/6: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/6: incoming reminders preserve current animation
+PASS full-body-long-hair/right/6: zero reminders hide whole group
+PASS full-body-long-hair/right/6: rail faces available side
+PASS full-body-long-hair/right/6: badge totals equal row totals
+PASS full-body-long-hair/right/7: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/7: incoming reminders preserve current animation
+PASS full-body-long-hair/right/7: zero reminders hide whole group
+PASS full-body-long-hair/right/7: rail faces available side
+PASS full-body-long-hair/right/7: badge totals equal row totals
+PASS full-body-long-hair/right/8: passive rail refresh preserves foreground focus
+PASS full-body-long-hair/right/8: incoming reminders preserve current animation
+PASS full-body-long-hair/right/8: zero reminders hide whole group
+PASS full-body-long-hair/right/8: badge totals equal row totals
+PASS full-body-crystal-dress: correct selected idle artwork
+PASS full-body-crystal-dress/left/1: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/1: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/1: zero reminders hide whole group
+PASS full-body-crystal-dress/left/1: rail faces available side
+PASS full-body-crystal-dress/left/1: badge totals equal row totals
+PASS full-body-crystal-dress/left/2: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/2: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/2: zero reminders hide whole group
+PASS full-body-crystal-dress/left/2: rail faces available side
+PASS full-body-crystal-dress/left/2: badge totals equal row totals
+PASS full-body-crystal-dress/left/3: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/3: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/3: zero reminders hide whole group
+PASS full-body-crystal-dress/left/3: rail faces available side
+PASS full-body-crystal-dress/left/3: badge totals equal row totals
+PASS full-body-crystal-dress/left/4: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/4: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/4: zero reminders hide whole group
+PASS full-body-crystal-dress/left/4: rail faces available side
+PASS full-body-crystal-dress/left/4: badge totals equal row totals
+PASS full-body-crystal-dress/left/5: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/5: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/5: zero reminders hide whole group
+PASS full-body-crystal-dress/left/5: rail faces available side
+PASS full-body-crystal-dress/left/5: badge totals equal row totals
+PASS full-body-crystal-dress/left/6: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/6: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/6: zero reminders hide whole group
+PASS full-body-crystal-dress/left/6: rail faces available side
+PASS full-body-crystal-dress/left/6: badge totals equal row totals
+PASS full-body-crystal-dress/left/7: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/7: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/7: zero reminders hide whole group
+PASS full-body-crystal-dress/left/7: rail faces available side
+PASS full-body-crystal-dress/left/7: badge totals equal row totals
+PASS full-body-crystal-dress/left/8: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/left/8: incoming reminders preserve current animation
+PASS full-body-crystal-dress/left/8: zero reminders hide whole group
+PASS full-body-crystal-dress/left/8: badge totals equal row totals
+PASS full-body-crystal-dress/right/1: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/1: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/1: zero reminders hide whole group
+PASS full-body-crystal-dress/right/1: rail faces available side
+PASS full-body-crystal-dress/right/1: badge totals equal row totals
+PASS full-body-crystal-dress/right/2: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/2: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/2: zero reminders hide whole group
+PASS full-body-crystal-dress/right/2: rail faces available side
+PASS full-body-crystal-dress/right/2: badge totals equal row totals
+PASS full-body-crystal-dress/right/3: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/3: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/3: zero reminders hide whole group
+PASS full-body-crystal-dress/right/3: rail faces available side
+PASS full-body-crystal-dress/right/3: badge totals equal row totals
+PASS full-body-crystal-dress/right/4: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/4: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/4: zero reminders hide whole group
+PASS full-body-crystal-dress/right/4: rail faces available side
+PASS full-body-crystal-dress/right/4: badge totals equal row totals
+PASS full-body-crystal-dress/right/5: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/5: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/5: zero reminders hide whole group
+PASS full-body-crystal-dress/right/5: rail faces available side
+PASS full-body-crystal-dress/right/5: badge totals equal row totals
+PASS full-body-crystal-dress/right/6: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/6: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/6: zero reminders hide whole group
+PASS full-body-crystal-dress/right/6: rail faces available side
+PASS full-body-crystal-dress/right/6: badge totals equal row totals
+PASS full-body-crystal-dress/right/7: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/7: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/7: zero reminders hide whole group
+PASS full-body-crystal-dress/right/7: rail faces available side
+PASS full-body-crystal-dress/right/7: badge totals equal row totals
+PASS full-body-crystal-dress/right/8: passive rail refresh preserves foreground focus
+PASS full-body-crystal-dress/right/8: incoming reminders preserve current animation
+PASS full-body-crystal-dress/right/8: zero reminders hide whole group
+PASS full-body-crystal-dress/right/8: badge totals equal row totals
+PASS full-body-classic-cat-ears: correct selected idle artwork
+PASS full-body-classic-cat-ears/left/1: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/1: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/1: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/1: rail faces available side
+PASS full-body-classic-cat-ears/left/1: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/2: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/2: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/2: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/2: rail faces available side
+PASS full-body-classic-cat-ears/left/2: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/3: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/3: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/3: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/3: rail faces available side
+PASS full-body-classic-cat-ears/left/3: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/4: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/4: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/4: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/4: rail faces available side
+PASS full-body-classic-cat-ears/left/4: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/5: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/5: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/5: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/5: rail faces available side
+PASS full-body-classic-cat-ears/left/5: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/6: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/6: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/6: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/6: rail faces available side
+PASS full-body-classic-cat-ears/left/6: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/7: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/7: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/7: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/7: rail faces available side
+PASS full-body-classic-cat-ears/left/7: badge totals equal row totals
+PASS full-body-classic-cat-ears/left/8: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/left/8: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/left/8: zero reminders hide whole group
+PASS full-body-classic-cat-ears/left/8: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/1: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/1: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/1: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/1: rail faces available side
+PASS full-body-classic-cat-ears/right/1: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/2: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/2: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/2: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/2: rail faces available side
+PASS full-body-classic-cat-ears/right/2: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/3: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/3: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/3: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/3: rail faces available side
+PASS full-body-classic-cat-ears/right/3: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/4: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/4: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/4: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/4: rail faces available side
+PASS full-body-classic-cat-ears/right/4: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/5: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/5: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/5: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/5: rail faces available side
+PASS full-body-classic-cat-ears/right/5: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/6: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/6: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/6: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/6: rail faces available side
+PASS full-body-classic-cat-ears/right/6: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/7: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/7: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/7: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/7: rail faces available side
+PASS full-body-classic-cat-ears/right/7: badge totals equal row totals
+PASS full-body-classic-cat-ears/right/8: passive rail refresh preserves foreground focus
+PASS full-body-classic-cat-ears/right/8: incoming reminders preserve current animation
+PASS full-body-classic-cat-ears/right/8: zero reminders hide whole group
+PASS full-body-classic-cat-ears/right/8: badge totals equal row totals
+PASS Hover waits 300 ms
+PASS Hover opens WeChat
+PASS Icon to bridge to list stays continuously open
+PASS Native HWND hit testing accepts icons and bridge and passes empty space through
+PASS Reading freezes row order and scroll position while content updates
+PASS App badge supports 99+
+PASS Leave grace period is 500 ms
+PASS Leaving closes without clearing reminders
+PASS Outside click closes pinned list
+PASS Collapsing preserves pending counts
+PASS Actual icon mouse route pins the list
+PASS Attached conversation menu ignores locally and rejects replay
+PASS Second icon click closes pinned list
+PASS Attached app menu clears only its own pending reminders
+PASS Dragging freezes rail side
+PASS Drag end selects new side
+PASS Scale 50, edge False: full panel stays inside physical work area
+PASS Scale 50, edge True: full panel stays inside physical work area
+PASS Scale 150, edge False: full panel stays inside physical work area
+PASS Scale 150, edge True: full panel stays inside physical work area
+PASS Scale 200, edge False: full panel stays inside physical work area
+PASS Scale 200, edge True: full panel stays inside physical work area
+PASS Unknown foreground and fullscreen suppress interactive rail
+PASS Safety suspension hides rail and panel
+PASS Message arrival preserves music animation and media settings without media input

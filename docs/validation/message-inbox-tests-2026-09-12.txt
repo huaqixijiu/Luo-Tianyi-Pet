@@ -1,0 +1,40 @@
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  LuoTianyiPet.Core -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Core\bin\Release\net48\LuoTianyiPet.Core.dll
+  LuoTianyiPet.Core -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Core\bin\Release\net10.0\LuoTianyiPet.Core.dll
+  LuoTianyiPet.Animation -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Animation\bin\Release\net10.0\LuoTianyiPet.Animation.dll
+  LuoTianyiPet.Platform.Windows -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Platform.Windows\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.Platform.Windows.dll
+  LuoTianyiPet.Animation.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Animation.Tests\bin\Release\net10.0\LuoTianyiPet.Animation.Tests.dll
+  LuoTianyiPet.Core.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Core.Tests\bin\Release\net10.0\LuoTianyiPet.Core.Tests.dll
+  LuoTianyiPet.Animation -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Animation\bin\Release\net48\LuoTianyiPet.Animation.dll
+  LuoTianyiPet.Core.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Core.Tests\bin\Release\net48\LuoTianyiPet.Core.Tests.dll
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Core.Tests\bin\Release\net48\LuoTianyiPet.Core.Tests.dll (.NETFramework,Version=v4.8)的测试运行
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Core.Tests\bin\Release\net10.0\LuoTianyiPet.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+  LuoTianyiPet.Platform.Windows -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.Platform.Windows\bin\Release\net48\LuoTianyiPet.Platform.Windows.dll
+  LuoTianyiPet.Animation.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Animation.Tests\bin\Release\net48\LuoTianyiPet.Animation.Tests.dll
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Animation.Tests\bin\Release\net48\LuoTianyiPet.Animation.Tests.dll (.NETFramework,Version=v4.8)的测试运行
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Animation.Tests\bin\Release\net10.0\LuoTianyiPet.Animation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    37，已跳过:     0，总计:    37，持续时间: 254 ms - LuoTianyiPet.Animation.Tests.dll (net10.0)
+
+已通过! - 失败:     0，通过:   557，已跳过:     0，总计:   557，持续时间: 506 ms - LuoTianyiPet.Core.Tests.dll (net10.0)
+  LuoTianyiPet.Platform.Windows.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Platform.Windows.Tests\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.Platform.Windows.Tests.dll
+  LuoTianyiPet.App -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.App\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.dll
+  LuoTianyiPet.Platform.Windows.Tests -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Platform.Windows.Tests\bin\Release\net48\LuoTianyiPet.Platform.Windows.Tests.dll
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Platform.Windows.Tests\bin\Release\net48\LuoTianyiPet.Platform.Windows.Tests.dll (.NETFramework,Version=v4.8)的测试运行
+C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\tests\LuoTianyiPet.Platform.Windows.Tests\bin\Release\net10.0-windows10.0.17763.0\LuoTianyiPet.Platform.Windows.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    37，已跳过:     0，总计:    37，持续时间: 1 s - LuoTianyiPet.Animation.Tests.dll (net48)
+  LuoTianyiPet.App -> C:\Users\Admin\Desktop\洛天依桌宠\artifacts\notification-worktree\src\LuoTianyiPet.App\bin\Release\net48\LuoTianyiPet.exe
+
+已通过! - 失败:     0，通过:   137，已跳过:     0，总计:   137，持续时间: 1 s - LuoTianyiPet.Platform.Windows.Tests.dll (net10.0)
+
+已通过! - 失败:     0，通过:   557，已跳过:     0，总计:   557，持续时间: 7 s - LuoTianyiPet.Core.Tests.dll (net48)
+
+已通过! - 失败:     0，通过:   137，已跳过:     0，总计:   137，持续时间: 2 s - LuoTianyiPet.Platform.Windows.Tests.dll (net48)
