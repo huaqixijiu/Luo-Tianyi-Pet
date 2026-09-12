@@ -8,6 +8,7 @@ public sealed class WindowsMessageNotificationSourceTests
     [InlineData(unchecked((int)0x800706BA))]
     [InlineData(unchecked((int)0x800706BE))]
     [InlineData(unchecked((int)0x80010108))]
+    [InlineData(unchecked((int)0x8001010E))]
     [InlineData(unchecked((int)0x803E0105))]
     public void RecoverableRpcFailuresAreRecognizedEvenWhenProjectionUsesBaseException(int hresult)
     {
