@@ -1826,7 +1826,7 @@ public partial class MainWindow : Window
 
             // Capture contact before the taller idle bounds can move the expansion away
             // from the top and make accessory layout reserve space above the pet again.
-            bool preserveTopEdge = _classicDragExpansionStarted &&
+            bool preserveTopEdge =
                 Math.Abs(GetPetImageDesktopBounds().Top - GetCurrentWorkArea().Top) <=
                     EdgeAlignmentTolerance;
             if (preserveTopEdge)
@@ -1835,8 +1835,16 @@ public partial class MainWindow : Window
                 _dragIntentPetBoundsInWindow = null;
                 _dragEdgeCandidate = EdgeDockSide.None;
                 SetEdgeMirror(false);
-                _ = TransitionToResolvedContinuousAnimationAsync(
-                    "animation.top_edge_drag_restored", preserveTopEdge: true);
+                if (_animationPlayer?.CurrentAnimationId != _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
+                {
+                    _ = TransitionToResolvedContinuousAnimationAsync(
+                        "animation.top_edge_drag_restored", preserveTopEdge: true);
+                }
+                else
+                {
+                    AlignVisiblePetToTopEdge();
+                    UpdateBodyHitDebugOverlay();
+                }
                 _logger.Info("interaction.drag_ended", "Top edge contact preserved across the animation swap.");
                 return;
             }
@@ -3026,7 +3034,7 @@ public partial class MainWindow : Window
                 // At the invisible midpoint the restored art defines the geometry.
                 // A fade keeps that geometry unscaled while we align its alpha top.
                 ApplyAccessoryLayout(AccessoryLayout.BelowPet, preservePetPosition: false);
-                Top = GetCurrentWorkArea().Top - GetPetImageAlphaBoundsInWindow().Top;
+                AlignVisiblePetToTopEdge();
             }
         }
 
@@ -3043,6 +3051,14 @@ public partial class MainWindow : Window
         {
             afterTransition?.Invoke();
         }
+    }
+
+    private void AlignVisiblePetToTopEdge()
+    {
+        DesktopRectangle workArea = GetCurrentWorkArea();
+        DesktopRectangle pet = GetPetImageAlphaBoundsInWindow();
+        Top = workArea.Top - pet.Top;
+        Left = Clamp(Left, workArea.Left - pet.Left, workArea.Right - pet.Right);
     }
 
     private void StartResolvedContinuousMotion()

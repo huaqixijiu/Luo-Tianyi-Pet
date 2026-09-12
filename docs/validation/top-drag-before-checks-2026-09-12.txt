@@ -1,0 +1,80 @@
+PASS 50% islands=False repeat=0: dragging reaches top (0.25)
+PASS 50% islands=False repeat=0: idle restored
+PASS 50% islands=False repeat=0: release stays at top (0.00)
+PASS 50% islands=False repeat=0: islands stay below pet
+PASS 50% islands=False repeat=0: layout refresh has no drift
+PASS 50% islands=False repeat=1: dragging reaches top (0.25)
+PASS 50% islands=False repeat=1: idle restored
+PASS 50% islands=False repeat=1: release stays at top (0.00)
+PASS 50% islands=False repeat=1: islands stay below pet
+PASS 50% islands=False repeat=1: layout refresh has no drift
+PASS 50% islands=True repeat=0: dragging reaches top (0.25)
+PASS 50% islands=True repeat=0: idle restored
+PASS 50% islands=True repeat=0: release stays at top (0.00)
+PASS 50% islands=True repeat=0: islands stay below pet
+PASS 50% islands=True repeat=0: layout refresh has no drift
+PASS 50% islands=True repeat=1: dragging reaches top (0.25)
+PASS 50% islands=True repeat=1: idle restored
+PASS 50% islands=True repeat=1: release stays at top (0.00)
+PASS 50% islands=True repeat=1: islands stay below pet
+PASS 50% islands=True repeat=1: layout refresh has no drift
+PASS 100% islands=False repeat=0: dragging reaches top (-0.50)
+PASS 100% islands=False repeat=0: idle restored
+PASS 100% islands=False repeat=0: release stays at top (0.03)
+PASS 100% islands=False repeat=0: islands stay below pet
+PASS 100% islands=False repeat=0: layout refresh has no drift
+PASS 100% islands=False repeat=1: dragging reaches top (-0.50)
+PASS 100% islands=False repeat=1: idle restored
+PASS 100% islands=False repeat=1: release stays at top (0.03)
+PASS 100% islands=False repeat=1: islands stay below pet
+PASS 100% islands=False repeat=1: layout refresh has no drift
+PASS 100% islands=True repeat=0: dragging reaches top (-0.50)
+PASS 100% islands=True repeat=0: idle restored
+PASS 100% islands=True repeat=0: release stays at top (0.03)
+PASS 100% islands=True repeat=0: islands stay below pet
+PASS 100% islands=True repeat=0: layout refresh has no drift
+PASS 100% islands=True repeat=1: dragging reaches top (-0.50)
+PASS 100% islands=True repeat=1: idle restored
+PASS 100% islands=True repeat=1: release stays at top (0.03)
+PASS 100% islands=True repeat=1: islands stay below pet
+PASS 100% islands=True repeat=1: layout refresh has no drift
+PASS 150% islands=False repeat=0: dragging reaches top (-0.25)
+PASS 150% islands=False repeat=0: idle restored
+PASS 150% islands=False repeat=0: release stays at top (0.00)
+PASS 150% islands=False repeat=0: islands stay below pet
+PASS 150% islands=False repeat=0: layout refresh has no drift
+PASS 150% islands=False repeat=1: dragging reaches top (-0.25)
+PASS 150% islands=False repeat=1: idle restored
+PASS 150% islands=False repeat=1: release stays at top (0.00)
+PASS 150% islands=False repeat=1: islands stay below pet
+PASS 150% islands=False repeat=1: layout refresh has no drift
+PASS 150% islands=True repeat=0: dragging reaches top (-0.25)
+PASS 150% islands=True repeat=0: idle restored
+PASS 150% islands=True repeat=0: release stays at top (0.00)
+PASS 150% islands=True repeat=0: islands stay below pet
+PASS 150% islands=True repeat=0: layout refresh has no drift
+PASS 150% islands=True repeat=1: dragging reaches top (-0.25)
+PASS 150% islands=True repeat=1: idle restored
+PASS 150% islands=True repeat=1: release stays at top (0.00)
+PASS 150% islands=True repeat=1: islands stay below pet
+PASS 150% islands=True repeat=1: layout refresh has no drift
+PASS 200% islands=False repeat=0: dragging reaches top (0.00)
+PASS 200% islands=False repeat=0: idle restored
+FAIL 200% islands=False repeat=0: release stays at top (70.07)
+FAIL 200% islands=False repeat=0: islands stay below pet
+PASS 200% islands=False repeat=0: layout refresh has no drift
+PASS 200% islands=False repeat=1: dragging reaches top (0.00)
+PASS 200% islands=False repeat=1: idle restored
+FAIL 200% islands=False repeat=1: release stays at top (70.07)
+FAIL 200% islands=False repeat=1: islands stay below pet
+PASS 200% islands=False repeat=1: layout refresh has no drift
+PASS 200% islands=True repeat=0: dragging reaches top (0.00)
+PASS 200% islands=True repeat=0: idle restored
+FAIL 200% islands=True repeat=0: release stays at top (70.07)
+FAIL 200% islands=True repeat=0: islands stay below pet
+PASS 200% islands=True repeat=0: layout refresh has no drift
+PASS 200% islands=True repeat=1: dragging reaches top (0.00)
+PASS 200% islands=True repeat=1: idle restored
+FAIL 200% islands=True repeat=1: release stays at top (70.07)
+FAIL 200% islands=True repeat=1: islands stay below pet
+PASS 200% islands=True repeat=1: layout refresh has no drift
