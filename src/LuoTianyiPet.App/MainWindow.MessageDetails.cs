@@ -8,6 +8,7 @@ namespace LuoTianyiPet.App;
 
 public partial class MainWindow
 {
+    private readonly MessageNotificationCounter _messageNotificationCounter = new();
     private SettingsWindow? _settingsWindow;
     private MessageNotificationWindow? _messageBubble;
     private MessageNotificationSummary? _displayedMessageSummary;
@@ -18,7 +19,7 @@ public partial class MainWindow
     {
         notification = notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
         if (sourceIsForeground || !canShow || _activeMessageProvider != notification.Provider ||
-            _displayedMessageSummary is null || notification.ConversationDisplayName is null) return false;
+            _displayedMessageSummary is null || (notification.ConversationDisplayName is null && notification.NewNotificationCount is null)) return false;
         // A richer Toast following a Shell signal updates the existing card without restarting its animation or timer.
         ShowMessageNotification(notification with
         {
@@ -61,7 +62,7 @@ public partial class MainWindow
         {
             QqTrayDetails? details = await Task.Run(QqTrayDetailsReader.TryRead);
             // A late response cannot leak details after disable, replace a newer notification or reopen a hidden card.
-            if (details is null || _isClosing || !_settings.Notifications.EnableQqDetailedReminders ||
+            if (details is null || _displayedMessageSummary?.MessagePreview is not null || _displayedMessageSummary?.NotificationKey is not null || _isClosing || !_settings.Notifications.EnableQqDetailedReminders ||
                 _activeMessageProvider != MessageProvider.Qq || _messageNotificationReactionToken != token ||
                 _displayedMessageSummary is null) return;
             ShowMessageNotification(_displayedMessageSummary with

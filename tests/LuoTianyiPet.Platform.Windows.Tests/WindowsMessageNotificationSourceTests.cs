@@ -123,6 +123,44 @@ public sealed class WindowsMessageNotificationSourceTests
         Assert.Equal(IntPtr.Zero, actualWindow);
     }
 
+    [Fact]
+    public void DisabledOrAmbiguousDetailsNeverReadTextValues()
+    {
+        string? FailRead(int _) => throw new InvalidOperationException("must not read");
+        Assert.Equal((null, null), NotificationTextSelector.Read(2, FailRead, false, true));
+        Assert.Equal((null, null), NotificationTextSelector.Read(1, FailRead, true, true));
+    }
+
+    [Fact]
+    public void PreviewUsesBodySlotsAndNormalizesMultilineText()
+    {
+        var fields = new[]{"昵称", "第一行\r\n第二行", "补充"};
+        var result = NotificationTextSelector.Read(3, i => fields[i], true, true);
+        Assert.Equal("昵称",result.Title);
+        Assert.Equal("第一行 第二行 补充",result.Preview);
+        Assert.Null(NotificationTextSelector.Read(3, i=>fields[i],true,false).Preview);
+        Assert.Null(NotificationTextSelector.Read(2, i=>i==0?" ":"正文",true,true).Preview);
+    }
+
+    [Fact]
+    public void PreviewIsBoundedAndDoesNotSplitEmojiSurrogatePair()
+    {
+        string body = new string('字',118)+"😀"+new string('字',100);
+        var result = NotificationTextSelector.Read(2,i=>i==0?"昵称":body,true,true);
+        Assert.True(result.Preview!.Length<=120);
+        Assert.EndsWith("…",result.Preview);
+        Assert.False(char.IsHighSurrogate(result.Preview[result.Preview.Length-2]));
+    }
+
+    [Fact]
+    public void ReplacedToastWithSameIdAndNewCreationTimeIsANewEvent()
+    {
+        var tracker=new NotificationIdSnapshotTracker();
+        Assert.Empty(tracker.Observe(new[]{new NotificationIdentity(1,100)}));
+        Assert.Empty(tracker.Observe(new[]{new NotificationIdentity(1,100)}));
+        Assert.Single(tracker.Observe(new[]{new NotificationIdentity(1,200)}));
+    }
+
     private sealed class HResultException : Exception
     {
         public HResultException(int hresult)
