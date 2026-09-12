@@ -19,6 +19,13 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (e.Args.Contains("--qa-notification-settings", StringComparer.OrdinalIgnoreCase))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            Shutdown(await SettingsWindow.RunNotificationSettingsQaAsync());
+            return;
+        }
+
         bool isPreviewOrQaRun = e.Args.Any(argument =>
             argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));

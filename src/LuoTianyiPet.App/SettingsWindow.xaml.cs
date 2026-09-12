@@ -244,28 +244,39 @@ public partial class SettingsWindow : Window
     private void UpdateNotificationAccessDisplay(MessageNotificationAccessStatus? knownStatus = null)
     {
         MessageNotificationAccessStatus status = knownStatus ??
-            (SelectedNotificationPreferences.WindowsNotificationAccessGranted
-                ? _messageNotificationSource?.GetAccessStatus() ??
-                    MessageNotificationAccessStatus.Unavailable
-                : MessageNotificationAccessStatus.Unspecified);
+            _messageNotificationSource?.GetAccessStatus() ?? MessageNotificationAccessStatus.Unavailable;
+        if (status == MessageNotificationAccessStatus.Allowed)
+        {
+            // An existing system grant can outlive the locally saved preference.
+            SelectedNotificationPreferences = SelectedNotificationPreferences with { WindowsNotificationAccessGranted = true };
+        }
         NotificationAccessStatusText.Text = status switch
         {
-            MessageNotificationAccessStatus.Allowed =>
-                "Windows 通知已授权；桌宠也会尝试任务栏闪烁回退，且不读取正文。",
-            MessageNotificationAccessStatus.Unspecified =>
-                "尚未授权通知标题与图标。任务栏闪烁回退仍可识别 QQ / 微信来源。",
-            MessageNotificationAccessStatus.Denied =>
-                "Windows 已拒绝通知访问；仍会尝试任务栏闪烁回退，但只显示 QQ / 微信来源。",
-            MessageNotificationAccessStatus.PackageIdentityRequired =>
-                "当前是便携/普通 EXE，无法读取通知标题；任务栏闪烁回退仍可识别 QQ / 微信来源。",
-            _ => "系统通知访问暂不可用；任务栏闪烁回退仍会尝试识别来源，其它功能不受影响。",
+            MessageNotificationAccessStatus.Allowed => "已授权",
+            MessageNotificationAccessStatus.Unspecified => "未授权",
+            MessageNotificationAccessStatus.Denied => "已拒绝",
+            MessageNotificationAccessStatus.PackageIdentityRequired => "需安装版",
+            _ => "暂不可用",
         };
-        NotificationAccessButton.IsEnabled =
-            status is MessageNotificationAccessStatus.Unspecified or
-                MessageNotificationAccessStatus.Unavailable;
+        NotificationAccessStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+            status == MessageNotificationAccessStatus.Allowed
+                ? System.Windows.Media.Color.FromRgb(0x35, 0x7A, 0x62)
+                : System.Windows.Media.Color.FromRgb(0x96, 0x6C, 0x35));
+        NotificationAccessHintText.Text = status switch
+        {
+            MessageNotificationAccessStatus.Allowed => "已允许获取系统通知中的昵称和摘要。",
+            MessageNotificationAccessStatus.Unspecified => "授权后，可获取系统通知中的昵称和摘要。",
+            MessageNotificationAccessStatus.Denied => "可在 Windows 设置中调整通知访问；仍会尝试来源提醒。",
+            MessageNotificationAccessStatus.PackageIdentityRequired => "安装版支持系统通知访问；当前仍会尝试来源提醒。",
+            _ => "系统通知暂不可用；仍会尝试来源提醒。",
+        };
+        NotificationAccessButton.IsEnabled = _messageNotificationSource is not null &&
+            status is MessageNotificationAccessStatus.Unspecified or MessageNotificationAccessStatus.Unavailable;
         NotificationAccessButton.Content = status == MessageNotificationAccessStatus.Allowed
             ? "已授权"
-            : "授权访问";
+            : "授权";
+        NotificationAccessButton.Visibility = status == MessageNotificationAccessStatus.Allowed
+            ? Visibility.Collapsed : Visibility.Visible;
     }
 
 }
