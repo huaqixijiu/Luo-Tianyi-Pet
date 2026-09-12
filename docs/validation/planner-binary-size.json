@@ -1,0 +1,20 @@
+[
+  {
+    "File": "LuoTianyiPet.exe",
+    "OldBytes": 2596864,
+    "NewBytes": 2651648,
+    "Delta": 54784
+  },
+  {
+    "File": "LuoTianyiPet.Core.dll",
+    "OldBytes": 190976,
+    "NewBytes": 235520,
+    "Delta": 44544
+  },
+  {
+    "File": "LuoTianyiPet.Platform.Windows.dll",
+    "OldBytes": 93184,
+    "NewBytes": 95232,
+    "Delta": 2048
+  }
+]

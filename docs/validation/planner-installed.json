@@ -1,0 +1,10 @@
+{
+  "Version": "0.1.0.78",
+  "MatchedFiles": 102,
+  "Responding": true,
+  "WorkingSetBytes": 380661760,
+  "PrivateBytes": 526008320,
+  "CpuSecondsOverSample": 4.46875,
+  "SampleSeconds": 10.0258324,
+  "Note": "Whole pet process; short observation, not isolated feature overhead"
+}

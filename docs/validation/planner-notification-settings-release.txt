@@ -1,0 +1,81 @@
+PASS PackageIdentityRequired: Opening settings never requests system permission
+PASS PackageIdentityRequired: Rules start collapsed
+PASS PackageIdentityRequired: Collapsed page fits without vertical scroll
+PASS PackageIdentityRequired: Page never scrolls horizontally
+PASS PackageIdentityRequired: Actual source status has a compact label
+PASS PackageIdentityRequired: Only actionable permission states enable the button
+PASS PackageIdentityRequired: Both icons use the existing user-derived PNG assets
+PASS PackageIdentityRequired: Tab reaches QQ
+PASS PackageIdentityRequired: Tab reaches WeChat
+PASS PackageIdentityRequired: QQ and WeChat detail choices remain independent
+PASS PackageIdentityRequired: Master off preserves detail preference
+PASS PackageIdentityRequired: Changes are marked unsaved
+PASS PackageIdentityRequired: Disclosure opens into a scrollable explanation
+PASS PackageIdentityRequired: Footer remains visible while reading rules
+PASS PackageIdentityRequired: Closing rules restores the compact page
+PASS Unspecified: Opening settings never requests system permission
+PASS Unspecified: Rules start collapsed
+PASS Unspecified: Collapsed page fits without vertical scroll
+PASS Unspecified: Page never scrolls horizontally
+PASS Unspecified: Actual source status has a compact label
+PASS Unspecified: Only actionable permission states enable the button
+PASS Unspecified: Both icons use the existing user-derived PNG assets
+PASS Unspecified: Tab reaches QQ
+PASS Unspecified: Tab reaches WeChat
+PASS Unspecified: QQ and WeChat detail choices remain independent
+PASS Unspecified: Master off preserves detail preference
+PASS Unspecified: Changes are marked unsaved
+PASS Unspecified: Disclosure opens into a scrollable explanation
+PASS Unspecified: Footer remains visible while reading rules
+PASS Unspecified: Closing rules restores the compact page
+PASS Grant button updates the pending preference exactly once
+PASS Granted state removes the redundant authorization button
+PASS Denied: Opening settings never requests system permission
+PASS Denied: Rules start collapsed
+PASS Denied: Collapsed page fits without vertical scroll
+PASS Denied: Page never scrolls horizontally
+PASS Denied: Actual source status has a compact label
+PASS Denied: Only actionable permission states enable the button
+PASS Denied: Both icons use the existing user-derived PNG assets
+PASS Denied: Tab reaches QQ
+PASS Denied: Tab reaches WeChat
+PASS Denied: QQ and WeChat detail choices remain independent
+PASS Denied: Master off preserves detail preference
+PASS Denied: Changes are marked unsaved
+PASS Denied: Disclosure opens into a scrollable explanation
+PASS Denied: Footer remains visible while reading rules
+PASS Denied: Closing rules restores the compact page
+PASS Allowed: Opening settings never requests system permission
+PASS Allowed: Rules start collapsed
+PASS Allowed: Collapsed page fits without vertical scroll
+PASS Allowed: Page never scrolls horizontally
+PASS Allowed: Actual source status has a compact label
+PASS Allowed: Only actionable permission states enable the button
+PASS Allowed: Both icons use the existing user-derived PNG assets
+PASS Allowed: Tab reaches QQ
+PASS Allowed: Tab reaches WeChat
+PASS Allowed: QQ and WeChat detail choices remain independent
+PASS Allowed: Master off preserves detail preference
+PASS Allowed: Changes are marked unsaved
+PASS Allowed: Disclosure opens into a scrollable explanation
+PASS Allowed: Footer remains visible while reading rules
+PASS Allowed: Closing rules restores the compact page
+PASS Existing system grant is preserved when saving stale local preferences
+PASS Unavailable: Opening settings never requests system permission
+PASS Unavailable: Rules start collapsed
+PASS Unavailable: Collapsed page fits without vertical scroll
+PASS Unavailable: Page never scrolls horizontally
+PASS Unavailable: Actual source status has a compact label
+PASS Unavailable: Only actionable permission states enable the button
+PASS Unavailable: Both icons use the existing user-derived PNG assets
+PASS Unavailable: Tab reaches QQ
+PASS Unavailable: Tab reaches WeChat
+PASS Unavailable: QQ and WeChat detail choices remain independent
+PASS Unavailable: Master off preserves detail preference
+PASS Unavailable: Changes are marked unsaved
+PASS Unavailable: Disclosure opens into a scrollable explanation
+PASS Unavailable: Footer remains visible while reading rules
+PASS Unavailable: Closing rules restores the compact page
+PASS Absent platform source has no dead authorization action
+PASS Save accepts the settings dialog
+PASS Save commits all notification choices and the current grant
