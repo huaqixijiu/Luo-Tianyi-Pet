@@ -1785,7 +1785,7 @@ public partial class MainWindow : Window
         }
 
         _isWindowDragging = true;
-        if (IsClassicCatEarsFullBodyMode())
+        if (IsClassicCatEarsFullBodyMode() && !_stateMachine.IsDraggingHehe)
         {
             _rapidDragTracker.Begin(ToPointerPoint(_dragPressScreenPoint), DateTimeOffset.Now);
         }
@@ -2530,13 +2530,13 @@ public partial class MainWindow : Window
     private void PlayCurrentDragVisual()
     {
         string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
-        bool preservesMusicAnimation =
+        bool preservesContinuousAnimation =
             !string.Equals(
                 dragAnimation,
                 _stateMachine.VisualState.FullBodyAnimationId,
                 StringComparison.Ordinal);
         bool usesExpansion =
-            !preservesMusicAnimation &&
+            !preservesContinuousAnimation &&
             AppearanceOptionIds.UsesExpansionDragAnimation(
                 _settings.Appearance.FullBodyStyle);
         if (usesExpansion && _animationCatalog is not null)
@@ -2578,7 +2578,7 @@ public partial class MainWindow : Window
         }
 
         _dragEdgeCandidate = candidate;
-        if (candidate == EdgeDockSide.None)
+        if (candidate == EdgeDockSide.None || _stateMachine.IsDraggingHehe)
         {
             SetEdgeMirror(false);
             PlayCurrentDragVisual();

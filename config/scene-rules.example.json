@@ -469,6 +469,7 @@
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
+      "preserveMediumIdleHeheDuringDrag": true,
       "preserveMediumIdleHeheAfterDrop": true,
       "singleClickStillExitsMediumIdleHehe": true,
       "whileMusicPlaying": {

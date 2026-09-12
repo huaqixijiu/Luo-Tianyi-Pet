@@ -62,6 +62,9 @@ public sealed class PetStateMachine
 
     public PetVisualState VisualState { get; private set; }
 
+    public bool IsDraggingHehe => VisualState.ContinuousState == PetContinuousState.Dragging &&
+        _stateBeforeDrag == PetContinuousState.MediumIdle;
+
     public Guid? ActiveReactionToken => _activeReaction?.Token;
 
     public bool IsDisplayModeToggleBlocked(DateTimeOffset now)
@@ -228,6 +231,11 @@ public sealed class PetStateMachine
 
         if (VisualState.ContinuousState == PetContinuousState.Dragging)
         {
+            if (IsDraggingHehe)
+            {
+                return new PetPlaybackPlan(true, PetVisualState.MediumIdleAnimation,
+                    PlaybackPlanSource.Continuous, false);
+            }
             if (_stateBeforeDrag == PetContinuousState.MusicPlaying)
             {
                 return new PetPlaybackPlan(

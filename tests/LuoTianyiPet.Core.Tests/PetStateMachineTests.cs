@@ -137,18 +137,36 @@ public sealed class PetStateMachineTests
         Assert.False(plan.BodyRegionInteractionsEnabled);
     }
 
-    [Fact]
-    public void DragFromHeheRestoresHeheAfterDrop()
+    [Theory]
+    [InlineData(PetDisplayMode.Compact)]
+    [InlineData(PetDisplayMode.FullBodyInteractive)]
+    public void DragFromHeheKeepsHeheThroughoutDragAndAfterDrop(PetDisplayMode mode)
     {
         PetStateMachine machine = new(new PetVisualState(
-            PetDisplayMode.FullBodyInteractive,
+            mode,
             PetContinuousState.MediumIdle));
 
         Assert.True(machine.BeginDrag());
+        Assert.Equal(PetVisualState.MediumIdleAnimation, machine.Resolve(Now).AnimationId);
+        Assert.False(machine.Resolve(Now).BodyRegionInteractionsEnabled);
+        Assert.True(machine.IsDraggingHehe);
         Assert.True(machine.EndDrag());
 
+        Assert.False(machine.IsDraggingHehe);
         Assert.Equal(PetContinuousState.MediumIdle, machine.VisualState.ContinuousState);
         Assert.Equal(PetVisualState.MediumIdleAnimation, machine.Resolve(Now).AnimationId);
+    }
+
+    [Fact]
+    public void MusicStartingDuringHeheDragRetainsPriority()
+    {
+        PetStateMachine machine = new(new PetVisualState(ContinuousState: PetContinuousState.MediumIdle));
+        Assert.True(machine.BeginDrag());
+        machine.SetContinuousState(PetContinuousState.MusicPlaying);
+        Assert.False(machine.IsDraggingHehe);
+        Assert.Equal(PetVisualState.MusicSwayAnimation, machine.Resolve(Now).AnimationId);
+        Assert.True(machine.EndDrag());
+        Assert.Equal(PetContinuousState.MusicPlaying, machine.VisualState.ContinuousState);
     }
 
     [Theory]

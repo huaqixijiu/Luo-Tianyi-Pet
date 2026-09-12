@@ -72,6 +72,7 @@ public partial class MainWindow
             ApplyIdleScene(TimeSpan.Zero);
             Check(_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdle,
                 "Hehe is not immediately cancelled by the next input poll");
+            await RunHeheDragChecksAsync(directory, Check);
 
             await StartFishing();
             OnMouseLeftButtonDown(this, new MouseButtonEventArgs(Mouse.PrimaryDevice,
@@ -89,6 +90,7 @@ public partial class MainWindow
             _dragPressScreenPoint = new Point(600, 500);
             BeginWindowDrag();
             Check(_isWindowDragging, "Direct drag enters dragging");
+            Check(_classicDragExpansionStarted, "Fishing exit still uses the ordinary classic expansion drag");
             EndWindowDrag();
             await Task.Delay(600);
             Check(_stateMachine.VisualState.ContinuousState == PetContinuousState.Idle,
