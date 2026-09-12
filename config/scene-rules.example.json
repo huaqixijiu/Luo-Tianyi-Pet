@@ -163,7 +163,7 @@
         "countdownUsesIndependentClock": true,
         "countdownExitOnPetClickOrDrag": true,
         "countdownIgnoreMouseMovement": true,
-        "countdownPreserveOriginalWhiteBackground": true,
+        "countdownPreserveOriginalWhiteBackground": false,
         "countdownAnimation": "tenth-birthday-fishing-countdown",
         "mediumIdleAfterMinutes": 3
       }
