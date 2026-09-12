@@ -82,6 +82,9 @@
                                FontWeight="SemiBold"
                                Text="有新消息"
                                TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="MessagePreviewText" Margin="0,4,0,0" Foreground="#FF456574"
+                               FontSize="12" LineHeight="17" MaxHeight="36" TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis" Visibility="Collapsed" />
                 </StackPanel>
             </Grid>
         </Border>

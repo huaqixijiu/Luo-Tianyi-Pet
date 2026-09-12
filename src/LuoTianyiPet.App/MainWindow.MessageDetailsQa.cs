@@ -26,7 +26,7 @@ public partial class MainWindow
             _stateMachine.CancelActiveReaction();
             SetMusicIslandsVisible(true);
             var message = new MessageNotificationSummary(MessageProvider.Qq, DateTimeOffset.Now,
-                "测试好友、测试群", UnreadCount: 6);
+                "测试好友、测试群", UnreadCount: 6, MessagePreview: "这是一条测试消息预览，较长的文字自动换行并在两行内收起，不影响人物和侧边定位。", NewNotificationCount: 3);
             await BeginMessageNotificationAsync(message);
             Check(_messageBubble?.IsVisible == true, "Message card is shown in its own surface");
             _messageBubble!.Hide();
@@ -36,6 +36,8 @@ public partial class MainWindow
             Check(!IsMessageNotificationDisplaySafe(new(false, null, false)) &&
                 !IsMessageNotificationDisplaySafe(new(true, "other", true)),
                 "Unknown foreground and fullscreen fail closed for notifications");
+            Check(_messageBubble.MessagePreviewText.Visibility == Visibility.Visible &&
+                _messageBubble.MessageSourceText.Text == "QQ · 新增 3 条通知", "Preview and new-notification count are visible together");
             Guid? originalToken = _messageNotificationReactionToken;
             Check(TryEnrichActiveMessage(message with { UnreadCount = 7 }, false, true) &&
                 _messageNotificationReactionToken == originalToken && _displayedMessageSummary!.UnreadCount == 7,
@@ -73,8 +75,10 @@ public partial class MainWindow
                 "Second source queues without creating a second card or replacing active token");
             ApplyMessageNotificationPreferences(_settings.Notifications with { EnableQqDetailedReminders = false });
             Check(_messageBubble!.MessageConversationText.Text == "有新消息" &&
-                _displayedMessageSummary!.UnreadCount is null,
-                "Disabling QQ details immediately removes the active title and count");
+                _displayedMessageSummary!.UnreadCount is null && _displayedMessageSummary.MessagePreview is null &&
+                _displayedMessageSummary.NewNotificationCount is null && _messageBubble.MessagePreviewText.Text.Length == 0 &&
+                _messageBubble.Width == 212,
+                "Disabling QQ details removes nickname, preview, both counts and restores compact layout");
             Check(!TryEnrichActiveMessage(message, false, true),
                 "Late detailed event cannot restore QQ details after disable");
             ApplyMessageNotificationPreferences(_settings.Notifications with { EnableMessageReminders = false });

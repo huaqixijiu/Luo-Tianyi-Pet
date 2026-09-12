@@ -1294,6 +1294,8 @@ public partial class MainWindow : Window
             _messageNotificationSource.NotificationReceived += OnMessageNotificationReceived;
             _messageNotificationSubscribed = true;
         }
+        (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetQqDetailsEnabled(
+            _settings.Notifications.EnableQqDetailedReminders);
         _messageNotificationSource.Start();
         _messageNotificationStatusTimer.Start();
         _logger.Info(
@@ -1349,8 +1351,8 @@ public partial class MainWindow : Window
         bool sourceIsForeground = foreground.Succeeded &&
             _messageProviderMatcher.IsForegroundProcess(e.Provider, foreground.ProcessName);
         bool canShow = IsMessageNotificationDisplaySafe(foreground);
-        MessageNotificationSummary displayNotification =
-            e.Notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders);
+        if (!_messageNotificationCounter.TryObserve(e.Notification, sourceIsForeground,
+            _settings.Notifications.EnableQqDetailedReminders, out MessageNotificationSummary displayNotification)) return;
         if (TryEnrichActiveMessage(displayNotification, sourceIsForeground, canShow)) return;
         MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
             displayNotification,
@@ -1359,7 +1361,7 @@ public partial class MainWindow : Window
         _logger.Info("notification.signal_processed", decision.ToString());
         if (decision == MessageNotificationDecision.Show)
         {
-            _ = BeginMessageNotificationAsync(e.Notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders));
+            _ = BeginMessageNotificationAsync(displayNotification);
         }
     }
 
@@ -1376,6 +1378,9 @@ public partial class MainWindow : Window
         if (_messageProviderMatcher.IdentifyProcess(foreground.ProcessName) is not null)
         {
             _shellAttentionSessions.Reset();
+            MessageProvider foregroundProvider = _messageProviderMatcher.IdentifyProcess(foreground.ProcessName)!.Value;
+            _messageNotificationCounter.Reset(foregroundProvider);
+            _messageNotificationCoordinator.ClearPending(foregroundProvider);
         }
         if (!IsMessageNotificationDisplaySafe(foreground))
         {
@@ -4318,6 +4323,8 @@ public partial class MainWindow : Window
     {
         bool wasEnabled = _settings.Notifications.EnableMessageReminders;
         _settings = _settings with { Notifications = preferences };
+        (_messageNotificationSource as IMessageNotificationDetailSettings)?.SetQqDetailsEnabled(preferences.EnableQqDetailedReminders);
+        if (!preferences.EnableQqDetailedReminders || !preferences.EnableMessageReminders) _messageNotificationCounter.Clear();
         _messageNotificationCoordinator.ClearPending();
         if (_displayedMessageSummary is not null) ShowMessageNotification(_displayedMessageSummary);
         if (preferences.EnableMessageReminders)
@@ -5918,7 +5925,16 @@ public partial class MainWindow : Window
         ImageSource? contactAvatar = DecodeNotificationImage(notification.ContactAvatar);
         ImageSource? primaryIcon = contactAvatar ?? applicationIcon;
 
-        _messageBubble.MessageSourceText.Text = notification.UnreadCount is int count ? $"{providerName} · {count} 条未读" : $"{providerName} · 新消息";
+        _messageBubble.MessageSourceText.Text = notification.NewNotificationCount is int newCount
+            ? $"{providerName} · 新增 {newCount} 条通知"
+            : notification.UnreadCount is int count ? $"{providerName} · {count} 条未读" : $"{providerName} · 新消息";
+        bool hasPreview = !string.IsNullOrWhiteSpace(notification.MessagePreview);
+        _messageBubble.Width = hasPreview ? 272 : 212;
+        _messageBubble.Height = hasPreview ? 126 : 82;
+        _messageBubble.MessageNotificationBubble.Width = hasPreview ? 248 : 188;
+        _messageBubble.MessageNotificationBubble.Height = hasPreview ? 102 : 58;
+        _messageBubble.MessagePreviewText.Text = notification.MessagePreview ?? string.Empty;
+        _messageBubble.MessagePreviewText.Visibility = hasPreview ? Visibility.Visible : Visibility.Collapsed;
         _messageBubble.MessageConversationText.Text = string.IsNullOrWhiteSpace(notification.ConversationDisplayName)
             ? "有新消息"
             : notification.ConversationDisplayName;
@@ -5953,6 +5969,8 @@ public partial class MainWindow : Window
             _messageBubble.MessagePrimaryIcon.Source = null;
             _messageBubble.MessageAppBadgeIcon.Source = null;
             _messageBubble.MessageConversationText.Text = string.Empty;
+            _messageBubble.MessagePreviewText.Text = string.Empty;
+            _messageBubble.MessagePreviewText.Visibility = Visibility.Collapsed;
             _messageBubble.MessageSourceText.Text = string.Empty;
             AutomationProperties.SetName(_messageBubble.MessageNotificationBubble, "聊天消息提醒");
         }

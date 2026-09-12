@@ -1,0 +1,6 @@
+Production QQ preview probe; field lengths and booleans only.
+Access=Allowed
+QqSnapshotAvailable=True
+Stage=disabled; TitleLength=0; PreviewLength=0; HasIdentity=True
+Stage=enabled; TitleLength=4; PreviewLength=2; HasIdentity=True
+Finished

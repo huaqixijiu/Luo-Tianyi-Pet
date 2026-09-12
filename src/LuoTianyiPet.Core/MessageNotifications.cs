@@ -21,12 +21,21 @@ public sealed record MessageNotificationSummary(
     string? ConversationDisplayName = null,
     ReadOnlyMemory<byte>? ApplicationIcon = null,
     ReadOnlyMemory<byte>? ContactAvatar = null,
-    int? UnreadCount = null)
+    int? UnreadCount = null,
+    string? MessagePreview = null,
+    int? NewNotificationCount = null,
+    string? NotificationKey = null)
 {
     public MessageNotificationSummary ForDisplay(bool enableQqDetails) =>
         Provider == MessageProvider.Qq && !enableQqDetails
-            ? this with { ConversationDisplayName = null, ContactAvatar = null, UnreadCount = null }
+            ? this with { ConversationDisplayName = null, ContactAvatar = null, UnreadCount = null,
+                MessagePreview = null, NewNotificationCount = null }
             : this;
+}
+
+public interface IMessageNotificationDetailSettings
+{
+    void SetQqDetailsEnabled(bool enabled);
 }
 
 public sealed class MessageNotificationReceivedEventArgs(
@@ -223,7 +232,8 @@ public sealed class MessageNotificationCoordinator
         Guard.NotNull(notification, nameof(notification));
         MessageProvider provider = notification.Provider;
         DateTimeOffset occurredAt = notification.OccurredAt;
-        if (_lastObserved.TryGetValue(provider, out DateTimeOffset lastObserved) &&
+        if (notification.NotificationKey is null &&
+            _lastObserved.TryGetValue(provider, out DateTimeOffset lastObserved) &&
             (occurredAt <= lastObserved || occurredAt - lastObserved < _duplicateWindow))
         {
             return MessageNotificationDecision.IgnoredDuplicate;
@@ -290,6 +300,8 @@ public sealed class MessageNotificationCoordinator
         QueuePending(new MessageNotificationSummary(provider, occurredAt));
 
     public void ClearPending() => _pending.Clear();
+
+    public void ClearPending(MessageProvider provider) => _pending.Remove(provider);
 }
 
 public sealed class ShellAttentionSessionTracker
