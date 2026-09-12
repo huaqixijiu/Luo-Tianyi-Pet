@@ -28,14 +28,15 @@ public partial class TrayQuickPanel : Window
 
     public void RefreshState() => HidePetButton.IsEnabled = _isPetVisible();
 
-    public void ShowNearTray()
+    public void ShowNearTray() => ShowNearTray(Forms.Cursor.Position);
+
+    internal void ShowNearTray(System.Drawing.Point anchor)
     {
         RefreshState();
-        ResetExitConfirmation();
         Opacity = 0;
         Show();
         UpdateLayout();
-        PositionNearCursor();
+        PositionNearAnchor(anchor);
         Opacity = 1;
         Activate();
         ShowPetButton.Focus();
@@ -43,9 +44,8 @@ public partial class TrayQuickPanel : Window
 
     public void HidePanel() => Hide();
 
-    private void PositionNearCursor()
+    private void PositionNearAnchor(System.Drawing.Point cursor)
     {
-        System.Drawing.Point cursor = Forms.Cursor.Position;
         System.Drawing.Rectangle work = Forms.Screen.FromPoint(cursor).WorkingArea;
         nint monitor = MonitorFromPoint(new NativePoint(cursor.X, cursor.Y), 2);
         double scale = monitor != 0 && GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 && dpi > 0
@@ -62,25 +62,7 @@ public partial class TrayQuickPanel : Window
     private void OnShowPetClick(object sender, RoutedEventArgs e) { HidePanel(); _showPet(); }
     private void OnHidePetClick(object sender, RoutedEventArgs e) { HidePanel(); _hidePet(); }
     private void OnOpenSettingsClick(object sender, RoutedEventArgs e) { HidePanel(); _openSettings(); }
-    private void OnExitClick(object sender, RoutedEventArgs e)
-    {
-        ExitButton.Visibility = Visibility.Collapsed;
-        ExitConfirmationPanel.Visibility = Visibility.Visible;
-        UpdateLayout();
-        PositionNearCursor();
-    }
-    private void OnCancelExitClick(object sender, RoutedEventArgs e)
-    {
-        ResetExitConfirmation();
-        UpdateLayout();
-        PositionNearCursor();
-    }
-    private void OnConfirmExitClick(object sender, RoutedEventArgs e) { HidePanel(); _exit(); }
-    private void ResetExitConfirmation()
-    {
-        ExitButton.Visibility = Visibility.Visible;
-        ExitConfirmationPanel.Visibility = Visibility.Collapsed;
-    }
+    private void OnExitClick(object sender, RoutedEventArgs e) { HidePanel(); _exit(); }
     private void OnDeactivated(object? sender, EventArgs e) => HidePanel();
     private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {

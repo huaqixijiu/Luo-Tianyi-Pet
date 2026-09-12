@@ -78,9 +78,35 @@ public partial class MainWindow
             _petQuickPanel.ShowNearPet(new DesktopRectangle(Left, Top, ActualWidth, ActualHeight), GetQuickActionsWorkArea());
             CaptureQuickActionsQa(_petQuickPanel, Path.Combine(directory, "03-pet-menu.png"));
             _petQuickPanel.Hide();
-            TrayQuickPanel tray = new(ShowPetFromTray, HidePetFromTray, () => IsVisible, ShowSettingsDialog, () => { });
-            tray.ShowNearTray();
+            int exitRequests = 0;
+            TrayQuickPanel tray = new(ShowPetFromTray, HidePetFromTray, () => IsVisible, ShowSettingsDialog,
+                () => exitRequests++);
+            System.Drawing.Rectangle work = System.Windows.Forms.Screen.PrimaryScreen!.WorkingArea;
+            System.Drawing.Point trayAnchor = new(work.Right - 40, work.Bottom - 20);
+            tray.ShowNearTray(trayAnchor);
+            await Task.Delay(120);
+            double trayLeft = tray.Left, trayTop = tray.Top;
+            double trayHeight = tray.ActualHeight;
             CaptureQuickActionsQa(tray, Path.Combine(directory, "04-tray-menu.png"));
+            for (int reopen = 0; reopen < 8; reopen++)
+            {
+                tray.HidePanel();
+                tray.ShowNearTray(trayAnchor);
+                await Task.Delay(30);
+                Check(Math.Abs(tray.Left - trayLeft) < 1 && Math.Abs(tray.Top - trayTop) < 1 &&
+                    Math.Abs(tray.ActualHeight - trayHeight) < 1,
+                    $"Tray reopen {reopen + 1} keeps the original anchor and size");
+            }
+            CaptureQuickActionsQa(tray, Path.Combine(directory, "06-tray-reopened.png"));
+            tray.ExitButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Check(exitRequests == 1 && !tray.IsVisible,
+                "One exit click closes the menu and dispatches exit without confirmation");
+            Check(Math.Abs(tray.Left - trayLeft) < 1 && Math.Abs(tray.Top - trayTop) < 1,
+                "Exit does not reposition the panel toward the button");
+            tray.ShowNearTray(trayAnchor);
+            tray.RaiseEvent(new System.Windows.Input.KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(tray),
+                0, Key.Escape) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            Check(!tray.IsVisible && exitRequests == 1, "Escape dismisses the menu without requesting exit");
             tray.Close();
             SettingsWindow settings = new(_settings.Notifications, _settings.Window,
                 _settings.FileTreats, _settings.Appearance, _settings.Media, false, null);

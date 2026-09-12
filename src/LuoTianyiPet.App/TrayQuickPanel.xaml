@@ -18,13 +18,6 @@
             <Border Height="1" Background="#D8E8EF" Margin="10,6" />
             <Button x:Name="OpenSettingsButton" Content="完整设置…" Click="OnOpenSettingsClick" />
             <Button x:Name="ExitButton" Content="让天依休息（退出）" Foreground="#9B4452" Click="OnExitClick" />
-            <StackPanel x:Name="ExitConfirmationPanel" Visibility="Collapsed">
-                <TextBlock Text="确定退出桌宠？" FontSize="12" Margin="10,5" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="取消" Click="OnCancelExitClick" />
-                    <Button Content="退出" Foreground="#9B4452" Click="OnConfirmExitClick" />
-                </StackPanel>
-            </StackPanel>
         </StackPanel>
     </Border>
 </Window>
