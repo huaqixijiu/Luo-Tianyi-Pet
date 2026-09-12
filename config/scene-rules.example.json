@@ -7,6 +7,13 @@
     "trayLeftClick": "show-and-recall-pet-never-toggle-hidden",
     "trayRightClick": "show-hide-settings-exit-menu",
     "lockPositionDefault": false,
+    "animationLayout": {
+      "stageSizing": "catalog-max-display-size-at-user-scale",
+      "artworkAlignment": "bottom-center-preserve-native-display-size",
+      "islandReferenceArtworkWidthDips": 220,
+      "normalEdgePlacement": "keep-stable-stage-visible",
+      "edgeDockHitTesting": "actual-alpha-and-clipped-handle"
+    },
     "petRightClick": ["lockPosition", "alwaysOnTop", "showMusicIslands", "displayScale"],
     "neverActivateForTransientEvents": true,
     "suppressTransientTopmostInFullscreen": true

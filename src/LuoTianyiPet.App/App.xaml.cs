@@ -31,6 +31,11 @@ public partial class App : Application
         {
             instanceId = $"{ApplicationId}.QA.QuickActions";
         }
+        if (e.Args.Contains("--qa-stable-layout", StringComparer.OrdinalIgnoreCase))
+        {
+            instanceId = $"{ApplicationId}.QA.StableLayout";
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+        }
         _singleInstance = SingleInstanceGuard.Acquire(instanceId);
         if (!_singleInstance.IsPrimaryInstance)
         {
