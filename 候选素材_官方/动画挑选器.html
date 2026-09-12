@@ -530,7 +530,7 @@
 
     const modeProfiles = [
       { id:"mode1", title:"模式一 · 华裳长发版", short:"华裳长发版", rules:"待机使用华裳长发全身图，不开放身体部位点击。保留拖拽、边缘收纳、音乐覆盖、桌面包子追逐与公共时间问候；没有“嘿嘿”和眠了呼吸。" },
-      { id:"mode2", title:"模式二 · 晶蓝礼服版", short:"晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，30 分钟后随机进入睡觉或鸭子坐。点击唤醒并重置无操作时间；没有“嘿嘿”、一分钟倒计时和眠了呼吸。" },
+      { id:"mode2", title:"模式二 · 晶蓝礼服版", short:"晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，30 分钟后随机进入睡觉或鸭子坐。最小 Z/云朵从头侧出发，屏幕右侧放不下时自动换到左侧；点击完整起身后重置无操作时间。没有“嘿嘿”、一分钟倒计时和眠了呼吸。" },
       { id:"mode3", title:"模式三 · 经典猫耳版", short:"经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。拖拽时至少完成两次完整左右往返才触发旋转舞，并循环到下一次点击。" },
       { id:"shared", title:"三个模式通用", short:"公共动画", rules:"集中显示三个模式都会使用的音乐识别、QQ/微信提醒、文件回收、时间问候、屏幕边缘与应用联动动画。它们也会出现在每个对应模式的清单中。" }
     ];
@@ -587,8 +587,8 @@
       { id:"crystal_touch_chest", title:"晶蓝礼服互动 · 摸胸", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击 Chest 胸部区域时完整播放一次。", src:baseCrystalInteractions+"08_摸胸.webp", source:"模式二新添加动作/摸胸", tags:["新添加","已使用","晶蓝礼服版","胸部","连贯动作"], desc:"沿用用户已经标注的 Chest 多边形，在本体固定显示槽中播放。" },
       { id:"crystal_touch_skirt", title:"晶蓝礼服互动 · 摸裙边", category:"body", kind:"145 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：点击 LowerBodySensitiveArea 下体区域时完整播放一次。", src:baseCrystalInteractions+"09_摸裙边.webp", source:"模式二新添加动作/摸裙边", tags:["新添加","已使用","晶蓝礼服版","下体","裙边","连贯动作"], desc:"按用户指定把原有下体标注区改为摸裙边，不改变区域轮廓。" },
       { id:"crystal_yawn", title:"晶蓝礼服待机 · 打哈欠", category:"body", kind:"169 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：连续无操作 1～5 分钟之间随机播放一次；不进入嘿嘿。", src:baseCrystalInteractions+"10_打哈欠.webp", source:"模式二新添加动作/打哈欠", tags:["新添加","已使用","晶蓝礼服版","随机待机","打哈欠"], desc:"不使用一分钟倒计时；每轮无操作最多随机触发一次，任何输入后重新安排。" },
-      { id:"crystal_duck_sit", title:"晶蓝礼服长待机 · 鸭子坐", category:"body", kind:"217 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与睡觉各 50% 随机；第 120 帧闭眼坐姿定格，点击后继续站起。", src:baseCrystalInteractions+"11_鸭子坐.webp", source:"模式二新添加动作/鸭子坐", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画"], desc:"第一段坐下闭眼，第二段由点击唤醒并站起；定格期间每 5 分钟按 60:35:5 重抽睡眠小装饰。" },
-      { id:"crystal_sleep", title:"晶蓝礼服长待机 · 睡觉", category:"body", kind:"361 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与鸭子坐各 50% 随机；第 220 帧闭眼卧姿定格，点击后继续睁眼起身。", src:baseCrystalInteractions+"12_睡觉.webp", source:"模式二新添加动作/睡觉", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画","已去Z字"], desc:"运行画布已为横向卧姿加宽，左右头发完整保留；人物上方原素材自带的 Z 字只从派生帧清除，原始 PNG 不覆盖。梦境云朵点击唤醒时会快速消散，zzz 直接隐藏。" },
+      { id:"crystal_duck_sit", title:"晶蓝礼服长待机 · 鸭子坐", category:"body", kind:"217 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与睡觉各 50% 随机；第 120 帧闭眼坐姿定格，点击后完整播放 121～216 帧站起。", src:baseCrystalInteractions+"11_鸭子坐.webp", source:"模式二新添加动作/鸭子坐", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画"], desc:"第一段坐下闭眼，第二段由点击唤醒并完整站起；定格期间每 5 分钟按 60:35:5 重抽睡眠小装饰。最小 Z/云朵从头侧统一锚点出发，靠屏幕右边会镜像到左侧。" },
+      { id:"crystal_sleep", title:"晶蓝礼服长待机 · 睡觉", category:"body", kind:"361 帧透明动作", priority:true, newlyAdded:true, activeUsage:"仅第二模型：无操作 30 分钟后与鸭子坐各 50% 随机；第 220 帧闭眼卧姿定格，点击后完整播放 221～360 帧睁眼起身。", src:baseCrystalInteractions+"12_睡觉.webp", source:"模式二新添加动作/睡觉", tags:["新添加","已使用","晶蓝礼服版","30分钟长待机","两段动画","已去Z字"], desc:"透明宽画布保持人物大小并完整保留左右头发；人物上方原素材自带的 Z 字只从派生帧清除，原始 PNG 不覆盖。梦境云朵点击唤醒时会快速消散，zzz 直接隐藏。" },
       { id:"requested_birthday_fishing", title:"十周年生日 · 摸鱼一分钟", category:"expression", kind:"69 帧动态 GIF · 精确 60 秒", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", source:baseUserRequestedEmotes+"洛天依十周年生日_摸鱼.gif", tags:["新添加","用户指定","已使用","摸鱼","一分钟","嘿嘿前倒计时"], desc:"经典猫耳版无操作 2 分钟后开始，画面从 00:59 倒数到 00:00；移除原素材开头额外停留的 5 秒并把末帧规范为 1 秒，使 3 分钟时恰好切到“嘿嘿”。" },
       { id:"requested_newyear_oneclick_sing", title:"元旦祝福 · 一键唱歌", category:"expression", kind:"16 帧动态 GIF · 相邻帧往返循环", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", source:baseUserRequestedEmotes+"洛天依元旦祝福_一键唱歌.gif", tags:["新添加","用户指定","已使用","洛天依歌曲","合唱","唱歌","循环"], desc:"用于洛天依本人或参与合唱歌曲的随机彩蛋。正式运行版移除前 7 帧按键入场，以源第 7→15→8 帧往返闭环，末帧回到首帧仍只跨相邻动作；可在设置中固定选择、关闭唱歌彩蛋或关闭全部听歌动画。" },
       { id:"requested_tiger_goodnight", title:"虎年贺新春 · 晚安", category:"expression", kind:"静态 PNG", priority:true, newlyAdded:true, src:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", source:baseUserRequestedEmotes+"洛天依虎年贺新春_晚安.png", tags:["新添加","用户指定","候选","晚安","睡眠"], desc:"来自“洛天依虎年贺新春”官方表情包的晚安静态图；当前不替换既有夜间问候或 30 分钟长睡眠。" },
@@ -675,7 +675,7 @@
       crystal_touch_skirt:"仅第二模型：点击 LowerBodySensitiveArea 下体区域时播放摸裙边。",
       crystal_yawn:"仅第二模型：无操作 1～5 分钟期间随机播放一次打哈欠；不进入嘿嘿。",
       crystal_duck_sit:"仅第二模型：30 分钟无操作后与睡觉 50:50 随机；闭眼坐姿定格，点击后站起并恢复待机。",
-      crystal_sleep:"仅第二模型：30 分钟无操作后与鸭子坐 50:50 随机；睁眼卧姿定格，点击后起身并恢复待机。",
+      crystal_sleep:"仅第二模型：30 分钟无操作后与鸭子坐 50:50 随机；闭眼卧姿定格，点击后完整睁眼起身并恢复待机。",
       requested_birthday_fishing:"仅经典猫耳版：无操作达到 2 分钟后播放 00:59→00:00 的精确一分钟倒计时，3 分钟时切到“嘿嘿”。",
       requested_newyear_oneclick_sing:"歌手包含洛天依（含合唱）时，与“音乐摇摆”随机作为唱歌彩蛋；可在设置固定或关闭。",
       dance9:"歌手包含洛天依（含合唱）时，与“一键唱歌”随机作为彩蛋；可在设置固定选择。",

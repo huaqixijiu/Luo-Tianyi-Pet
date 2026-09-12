@@ -164,6 +164,8 @@ public partial class MainWindow : Window
     private readonly bool _previewTray;
     private readonly bool _previewSystemResume;
     private readonly CrystalLongIdlePreviewMode _previewLongIdle;
+    private readonly CrystalSleepDecoration? _previewLongIdleDecoration;
+    private readonly bool _previewLongIdleRightEdge;
     private readonly bool _previewGenshinLaunch;
     private readonly bool _previewGenshinCameo;
     private readonly bool _previewBunChase;
@@ -300,6 +302,8 @@ public partial class MainWindow : Window
         bool previewTray,
         bool previewSystemResume,
         CrystalLongIdlePreviewMode previewLongIdle,
+        CrystalSleepDecoration? previewLongIdleDecoration,
+        bool previewLongIdleRightEdge,
         bool previewGenshinLaunch,
         bool previewGenshinCameo,
         bool previewBunChase,
@@ -392,6 +396,8 @@ public partial class MainWindow : Window
         _previewTray = previewTray;
         _previewSystemResume = previewSystemResume;
         _previewLongIdle = previewLongIdle;
+        _previewLongIdleDecoration = previewLongIdleDecoration;
+        _previewLongIdleRightEdge = previewLongIdleRightEdge;
         _previewGenshinLaunch = previewGenshinLaunch;
         _previewGenshinCameo = previewGenshinCameo;
         _previewBunChase = previewBunChase;
@@ -1459,8 +1465,9 @@ public partial class MainWindow : Window
         }
 
         PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
-        if (continuousState is PetContinuousState.MediumIdleCountdown or
-            PetContinuousState.Sleeping)
+        if (!IsCrystalLongIdleActive &&
+            continuousState is (PetContinuousState.MediumIdleCountdown or
+                PetContinuousState.Sleeping))
         {
             _stateMachine.SetContinuousState(PetContinuousState.Idle);
             PlayResolvedContinuousAnimation();
@@ -2743,6 +2750,13 @@ public partial class MainWindow : Window
             ? CrystalSleepHoldFrame
             : CrystalDuckSitHoldFrame;
         ShowAnimationFrame(animationId, holdFrame);
+        if (_previewLongIdleRightEdge)
+        {
+            DesktopRectangle frame = GetPetImageBoundsInWindow();
+            DesktopRectangle workArea = GetCurrentWorkArea();
+            double scale = _settings.Appearance.DisplayScalePercent / 100.0;
+            Left += workArea.Right - (Left + frame.Right) + 32 * scale;
+        }
         _crystalLongIdleHolding = true;
         _nextCrystalDecorationSelectionAt = DateTimeOffset.Now;
         UpdateCrystalLongIdleDecoration(DateTimeOffset.Now);
@@ -2763,7 +2777,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        _crystalSleepDecoration = _crystalLongIdleSelector.ChooseDecoration();
+        _crystalSleepDecoration = _previewLongIdleDecoration ??
+            _crystalLongIdleSelector.ChooseDecoration();
         _nextCrystalDecorationSelectionAt = now + CrystalDecorationSelectionInterval;
         string animationId = _crystalSleepDecoration switch
         {
@@ -2813,17 +2828,38 @@ public partial class MainWindow : Window
             return;
         }
 
-        double petWidth = PetImage.ActualWidth > 0 ? PetImage.ActualWidth : PetImage.Width;
-        double petHeight = PetImage.ActualHeight > 0 ? PetImage.ActualHeight : PetImage.Height;
+        DesktopRectangle frameInWindow = GetPetImageBoundsInWindow();
+        double petWidth = frameInWindow.Width;
+        double petHeight = frameInWindow.Height;
         double decorationWidth = CrystalLongIdleDecorationImage.Width;
-        double left = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
-            ? petWidth * 0.30
-            : Math.Max(0, petWidth - decorationWidth - petWidth * 0.02);
-        double top = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
-            ? petHeight * 0.29
-            : petHeight * 0.015;
-        Canvas.SetLeft(CrystalLongIdleDecorationImage, left);
-        Canvas.SetTop(CrystalLongIdleDecorationImage, top);
+        double decorationHeight = CrystalLongIdleDecorationImage.Height;
+        double scale = _settings.Appearance.DisplayScalePercent / 100.0;
+        PointerPoint rightTarget = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? new PointerPoint(110 * scale, 132 * scale)
+            : new PointerPoint(petWidth / 2 + 50 * scale, 76 * scale);
+        PointerPoint leftTarget = _crystalLongIdleVariant == CrystalLongIdleVariant.Sleep
+            ? new PointerPoint(58 * scale, 132 * scale)
+            : new PointerPoint(petWidth / 2 - 50 * scale, 76 * scale);
+        PointerPoint contentOrigin = _crystalSleepDecoration == CrystalSleepDecoration.Zzz
+            ? new PointerPoint(49.0 / 180.0, 121.0 / 180.0)
+            : new PointerPoint(19.0 / 240.0, 152.5 / 180.0);
+        LongIdleDecorationPlacement placement = LongIdleDecorationPlacementResolver.Resolve(
+            new DesktopRectangle(
+                Left + frameInWindow.Left,
+                Top + frameInWindow.Top,
+                frameInWindow.Width,
+                frameInWindow.Height),
+            GetCurrentWorkArea(),
+            decorationWidth,
+            decorationHeight,
+            rightTarget,
+            leftTarget,
+            contentOrigin);
+        CrystalLongIdleDecorationImage.RenderTransform = new ScaleTransform(
+            placement.MirrorHorizontally ? -1 : 1,
+            1);
+        Canvas.SetLeft(CrystalLongIdleDecorationImage, placement.Left);
+        Canvas.SetTop(CrystalLongIdleDecorationImage, placement.Top);
     }
 
     private void WakeCrystalLongIdle()
@@ -2892,6 +2928,7 @@ public partial class MainWindow : Window
         _crystalLongIdleDecorationPlayer?.Stop();
         CrystalLongIdleDecorationLayer.Visibility = Visibility.Collapsed;
         CrystalLongIdleDecorationImage.Source = null;
+        CrystalLongIdleDecorationImage.RenderTransform = Transform.Identity;
     }
 
     private void CancelCrystalLongIdle()

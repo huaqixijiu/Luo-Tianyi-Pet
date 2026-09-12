@@ -92,6 +92,23 @@ def main() -> None:
         runtime_draw.text((x, y + 256), label, fill="white")
     runtime_sheet.save(root / "docs" / "validation" / "crystal-long-idle-runtime-2026-09-12.png")
 
+    with Image.open(runtime_root / "crystal-sleep-decoration-zzz.frames.webp") as animation:
+        zzz_frames = [frame.convert("RGBA") for frame in ImageSequence.Iterator(animation)]
+    zzz_indices = (0, 15, 30, 45, 60, 75, 90, 105, 120)
+    zzz_sheet = Image.new("RGB", (3 * 200, 3 * 220), "#dce8ec")
+    zzz_draw = ImageDraw.Draw(zzz_sheet)
+    for slot, index in enumerate(zzz_indices):
+        board = checker((180, 180), cell=12)
+        frame = zzz_frames[min(index, len(zzz_frames) - 1)]
+        board.paste(frame, (0, 0), frame)
+        x = slot % 3 * 200 + 10
+        y = slot // 3 * 220 + 10
+        zzz_sheet.paste(board, (x, y))
+        zzz_draw.text((x, y + 186), f"zzz {index:03d}", fill="#102740")
+    zzz_sheet.save(
+        root / "docs" / "validation" / "crystal-zzz-pale-blue-2026-09-12.png"
+    )
+
 
 if __name__ == "__main__":
     main()

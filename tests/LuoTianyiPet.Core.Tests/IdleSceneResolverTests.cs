@@ -139,6 +139,26 @@ public sealed class IdleSceneResolverTests
     }
 
     [Theory]
+    [InlineData("--qa-long-idle-decoration=zzz", CrystalSleepDecoration.Zzz)]
+    [InlineData("--QA-LONG-IDLE-DECORATION=DREAM-BUN", CrystalSleepDecoration.DreamBun)]
+    [InlineData("--qa-long-idle-decoration=ling", CrystalSleepDecoration.DreamYuezhengLing)]
+    public void CrystalDecorationPreviewParsesSupportedQaArguments(
+        string argument,
+        CrystalSleepDecoration expected)
+    {
+        Assert.Equal(
+            expected,
+            CrystalSleepDecorationPreviewParser.Parse(new[] { argument }));
+    }
+
+    [Fact]
+    public void CrystalDecorationPreviewIgnoresUnknownArguments()
+    {
+        Assert.Null(CrystalSleepDecorationPreviewParser.Parse(
+            new[] { "--qa-long-idle-decoration=unknown" }));
+    }
+
+    [Theory]
     [InlineData(0, CrystalSleepDecoration.Zzz)]
     [InlineData(59, CrystalSleepDecoration.Zzz)]
     [InlineData(60, CrystalSleepDecoration.DreamBun)]

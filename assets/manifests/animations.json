@@ -4009,8 +4009,8 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/鸭子坐",
       "sourceSha256": "40201539b03ab11dca788a2db9aee5a708a022bfb05fb548be5439c3d24ab152",
       "atlasPath": "animations/runtime/crystal-long-idle-duck-sit.frames.webp",
-      "atlasSha256": "3398c810ff475df984fab27b37fe6ba0f424ea851e3c16141f308a6170823819",
-      "frameWidth": 440,
+      "atlasSha256": "3a165afbfad28a0ce3fb5b435fe26973dc410931d7028916976ccfb69f02f7d3",
+      "frameWidth": 600,
       "frameHeight": 476,
       "columns": 1,
       "rows": 217,
@@ -4234,14 +4234,14 @@
         42
       ],
       "loopCount": 1,
-      "displayWidth": 220,
+      "displayWidth": 300,
       "displayHeight": 238,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
         0,
         0,
-        440,
+        600,
         476
       ]
     },
@@ -4250,8 +4250,8 @@
       "sourcePath": "候选素材_官方/模式二新添加动作/睡觉",
       "sourceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "atlasPath": "animations/runtime/crystal-long-idle-sleep.frames.webp",
-      "atlasSha256": "78cc54d7e3e58bd8dd32fcdc5f8bde8e159226be36df4cb4cb53cafc42f3609a",
-      "frameWidth": 488,
+      "atlasSha256": "0ea2b777c1f84901c26f451aab0763d0ad0e2f53dbe2d14ecd9e74e486d39edc",
+      "frameWidth": 600,
       "frameHeight": 476,
       "columns": 1,
       "rows": 361,
@@ -4619,14 +4619,14 @@
         42
       ],
       "loopCount": 1,
-      "displayWidth": 244,
+      "displayWidth": 300,
       "displayHeight": 238,
       "anchorX": 0.5,
       "anchorY": 1.0,
       "alphaBounds": [
         0,
         0,
-        488,
+        600,
         476
       ]
     },
@@ -4635,7 +4635,7 @@
       "sourcePath": "候选素材_官方/睡觉小装饰/zzz",
       "sourceSha256": "593c4f8f039ad09868f0091c20c04fa9516c9d800f84c2c9f4b160ab6f15107d",
       "atlasPath": "animations/runtime/crystal-sleep-decoration-zzz.frames.webp",
-      "atlasSha256": "336e10de3d224c763f1c853de539b9fec2bcec91097281c6fb1703f04b148cc6",
+      "atlasSha256": "bf8e4dd107c8d959f55ce0dc91a64514688b0ec047906c1ff1a6222b712b505b",
       "frameWidth": 180,
       "frameHeight": 180,
       "columns": 1,

@@ -116,6 +116,8 @@ ACTIONS = (
         217,
         "11_鸭子坐.webp",
         long_idle_hold_frame=120,
+        runtime_frame_size=(600, 476),
+        display_size=(300, 238),
     ),
     Action(
         12,
@@ -125,8 +127,8 @@ ACTIONS = (
         361,
         "12_睡觉.webp",
         long_idle_hold_frame=220,
-        runtime_frame_size=(488, 476),
-        display_size=(244, 238),
+        runtime_frame_size=(600, 476),
+        display_size=(300, 238),
         source_offset_x=4,
     ),
 )
@@ -284,6 +286,60 @@ def clear_connected_key_background(image: Image.Image, source_name: str) -> Imag
         pixels[:, :, 3] = np.clip(recovered_alpha * 255.0, 0, 255)
         rgba = Image.fromarray(pixels.astype(np.uint8), "RGBA")
     return rgba
+
+
+def build_zzz_chroma_lut(reference: Image.Image) -> tuple[list[int], list[int]]:
+    """Capture the approved pale-blue Z palette as a function of luminance."""
+    rgba = np.asarray(reference.convert("RGBA"))
+    ycbcr = np.asarray(reference.convert("RGB").convert("YCbCr"))
+    visible = rgba[:, :, 3] >= 16
+    reference_y = ycbcr[:, :, 0][visible].astype(np.int16)
+    reference_cb = ycbcr[:, :, 1][visible]
+    reference_cr = ycbcr[:, :, 2][visible]
+    if reference_y.size == 0:
+        raise ValueError("zzz reference frame contains no visible pixels")
+
+    cb_lut: list[int] = []
+    cr_lut: list[int] = []
+    for luminance in range(256):
+        nearby = np.abs(reference_y - luminance) <= 4
+        if not nearby.any():
+            nearest_distance = np.abs(reference_y - luminance).min()
+            nearby = np.abs(reference_y - luminance) == nearest_distance
+        cb_lut.append(int(np.median(reference_cb[nearby])))
+        cr_lut.append(int(np.median(reference_cr[nearby])))
+    return cb_lut, cr_lut
+
+
+def apply_zzz_chroma_lut(
+    image: Image.Image,
+    cb_lut: list[int],
+    cr_lut: list[int],
+) -> Image.Image:
+    """Remove grey-brown drift while retaining highlights, outline and alpha."""
+    rgba = image.convert("RGBA")
+    pixels = np.asarray(rgba)
+    ycbcr = np.asarray(rgba.convert("RGB").convert("YCbCr")).copy()
+    visible = pixels[:, :, 3] > 0
+    luminance = ycbcr[:, :, 0]
+    # The source encodes its upward fade by darkening the largest glyph to a
+    # grey midtone instead of reducing alpha. Keep its dark blue outline and
+    # white glints, but lift the affected fill back into the approved pale-blue
+    # range so the travelling Z never turns grey.
+    midtone = visible & (pixels[:, :, 3] >= 32) & (luminance >= 80) & (luminance <= 180)
+    lifted = np.clip(145 + (luminance.astype(np.float32) - 80) * 0.25, 0, 255)
+    ycbcr[:, :, 0][midtone] = np.maximum(
+        luminance[midtone],
+        lifted[midtone].astype(np.uint8),
+    )
+    luminance = ycbcr[:, :, 0]
+    cb_values = np.asarray(cb_lut, dtype=np.uint8)
+    cr_values = np.asarray(cr_lut, dtype=np.uint8)
+    ycbcr[:, :, 1][visible] = cb_values[luminance[visible]]
+    ycbcr[:, :, 2][visible] = cr_values[luminance[visible]]
+    corrected = Image.fromarray(ycbcr, "YCbCr").convert("RGB")
+    corrected.putalpha(rgba.getchannel("A"))
+    return corrected
 
 
 def remove_tiny_alpha_islands(image: Image.Image, minimum_pixels: int = 8) -> Image.Image:
@@ -640,11 +696,18 @@ def prepare(
             )
         last_index = decoration.end_frame if decoration.end_frame is not None else len(all_paths) - 1
         selected_paths = all_paths[: last_index + 1 : decoration.sample_step]
+        zzz_chroma_lut: tuple[list[int], list[int]] | None = None
+        if decoration.source_name == "zzz":
+            with Image.open(all_paths[0]) as reference:
+                cleaned_reference = clear_connected_key_background(reference, decoration.source_name)
+            zzz_chroma_lut = build_zzz_chroma_lut(cleaned_reference)
         cleaned_frames: list[Image.Image] = []
         union_bounds: tuple[int, int, int, int] | None = None
         for path in selected_paths:
             with Image.open(path) as image:
                 cleaned = clear_connected_key_background(image, decoration.source_name)
+            if zzz_chroma_lut is not None:
+                cleaned = apply_zzz_chroma_lut(cleaned, *zzz_chroma_lut)
             bounds = cleaned.getchannel("A").getbbox()
             if bounds is None:
                 cleaned_frames.append(cleaned)
@@ -691,6 +754,11 @@ def prepare(
                     "none; zero hidden RGB" if decoration.source_name == "zzz" else
                     "edge-connected near-white PR block" if decoration.source_name == "梦见包子" else
                     "edge-connected near-black PR block"
+                ),
+                "colorNormalization": (
+                    "YCbCr pale-blue palette from source frame 0; preserve alpha, highlights "
+                    "and dark outline while lifting grey midtones"
+                    if decoration.source_name == "zzz" else "none"
                 ),
                 "sourceAlphaUnionBounds": list(union_bounds),
                 "atlas": atlas_relative,
@@ -740,9 +808,9 @@ def prepare(
             "runtimeCanvasPolicy": (
                 f"reframe square source into a {frame_width}x{frame_height} standard "
                 "high-resolution canvas; the lying sleep sequence uses a 488x476 "
-                "canvas displayed at 244x238 DIP so both hair ends remain visible; "
-                "the source square is shifted 4 px right inside that canvas to "
-                "retain a transparent left safety margin; "
+                "long-idle scenes use a 600x476 / 300x238 DIP transparent canvas "
+                "that preserves the character scale while reserving symmetric room "
+                "for head-side decorations; the sleep source is shifted 4 px right; "
                 "retain 240x260 picker previews"
             ),
             "retouch": (
@@ -755,7 +823,9 @@ def prepare(
                 "sleep Z glyphs are cleared only inside the audited detached-glyph ROI"
             ),
             "decorationPolicy": (
-                "remove only key-colour pixels connected to the source canvas edge, "
+                "remove only key-colour pixels connected to the source canvas edge; "
+                "normalize zzz to the pale-blue first-frame palette while preserving "
+                "alpha, highlights and the dark outline; "
                 "then crop the visible union and resize in premultiplied RGBA; small "
                 "overlays are temporally sampled at their original apparent speed"
             ),

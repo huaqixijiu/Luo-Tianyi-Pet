@@ -16,10 +16,10 @@
     "alphaPolicy": "preserve source alpha; resize in premultiplied RGBA",
     "colorPolicy": "per-action YCbCr luminance CDF matching from the first source frame to the actual idle artwork; preserve chroma and alpha",
     "runtimeEncoding": "animated WebP quality 95; exact alpha; full frame count; standard actions use 440x476 and the wide lying sleep pose uses 488x476",
-    "runtimeCanvasPolicy": "reframe square source into a 440x476 standard high-resolution canvas; the lying sleep sequence uses a 488x476 canvas displayed at 244x238 DIP so both hair ends remain visible; the source square is shifted 4 px right inside that canvas to retain a transparent left safety margin; retain 240x260 picker previews",
+    "runtimeCanvasPolicy": "reframe square source into a 440x476 standard high-resolution canvas; the lying sleep sequence uses a 488x476 long-idle scenes use a 600x476 / 300x238 DIP transparent canvas that preserves the character scale while reserving symmetric room for head-side decorations; the sleep source is shifted 4 px right; retain 240x260 picker previews",
     "retouch": "match action luminance to idle, then replace six neutral frames at each end with premultiplied idle-to-action blends; keep source frame count and duration",
     "longIdlePolicy": "duck sit holds source frame 120; sleep holds closed-eye source frame 220; sleep Z glyphs are cleared only inside the audited detached-glyph ROI",
-    "decorationPolicy": "remove only key-colour pixels connected to the source canvas edge, then crop the visible union and resize in premultiplied RGBA; small overlays are temporally sampled at their original apparent speed",
+    "decorationPolicy": "remove only key-colour pixels connected to the source canvas edge; normalize zzz to the pale-blue first-frame palette while preserving alpha, highlights and the dark outline; then crop the visible union and resize in premultiplied RGBA; small overlays are temporally sampled at their original apparent speed",
     "idleReference": "assets/animations/processed/用户提供_Q版小人全身_透明.png",
     "inPlaceTransitionFramesPerEnd": 6
   },
@@ -176,7 +176,7 @@
       "sourceFrameCount": 217,
       "sourceSequenceSha256": "40201539b03ab11dca788a2db9aee5a708a022bfb05fb548be5439c3d24ab152",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/11_鸭子坐.webp",
-      "previewSha256": "a799639393f65aa0f9bbac2a84604d2625fa5cd55620a3bdf7fe9de3c64622fa",
+      "previewSha256": "ab50ab29fbc3ac0ba52e8c4c6828b9783cc06889134ad890f2f634ac0a4af351",
       "luminanceLutSha256": "2c57b7bb7db11b2813c828ed47a10bf7eaae9251e4916cbda17c20d4221657c2",
       "inPlaceTransitionFramesPerEnd": 6,
       "longIdle": {
@@ -186,7 +186,7 @@
         "wakeEndFrame": 216
       },
       "atlas": "animations/runtime/crystal-long-idle-duck-sit.frames.webp",
-      "atlasSha256": "3398c810ff475df984fab27b37fe6ba0f424ea851e3c16141f308a6170823819"
+      "atlasSha256": "3a165afbfad28a0ce3fb5b435fe26973dc410931d7028916976ccfb69f02f7d3"
     },
     {
       "id": "crystal-long-idle-sleep",
@@ -196,7 +196,7 @@
       "sourceFrameCount": 361,
       "sourceSequenceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "preview": "候选素材_官方/区域标注/第二模型/动作动画归档/12_睡觉.webp",
-      "previewSha256": "f51730693447a043fc22f346497e23a28c1a8019b9bccf2be00da39a3ee6d849",
+      "previewSha256": "d13153c1262a268bb581e801e4e91e6ec59650534a847790f20b21e476dc2d51",
       "luminanceLutSha256": "195f9fd44606c6c652715818247b262a1df8b6e9e322b134c54f857ad693f3af",
       "inPlaceTransitionFramesPerEnd": 6,
       "longIdle": {
@@ -218,7 +218,7 @@
         ]
       },
       "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
-      "atlasSha256": "78cc54d7e3e58bd8dd32fcdc5f8bde8e159226be36df4cb4cb53cafc42f3609a"
+      "atlasSha256": "0ea2b777c1f84901c26f451aab0763d0ad0e2f53dbe2d14ecd9e74e486d39edc"
     },
     {
       "id": "crystal-sleep-decoration-zzz",
@@ -230,6 +230,7 @@
       "selectedFrameCount": 121,
       "sampleStep": 2,
       "connectedBackgroundCleanup": "none; zero hidden RGB",
+      "colorNormalization": "YCbCr pale-blue palette from source frame 0; preserve alpha, highlights and dark outline while lifting grey midtones",
       "sourceAlphaUnionBounds": [
         0,
         72,
@@ -237,7 +238,7 @@
         648
       ],
       "atlas": "animations/runtime/crystal-sleep-decoration-zzz.frames.webp",
-      "atlasSha256": "336e10de3d224c763f1c853de539b9fec2bcec91097281c6fb1703f04b148cc6"
+      "atlasSha256": "bf8e4dd107c8d959f55ce0dc91a64514688b0ec047906c1ff1a6222b712b505b"
     },
     {
       "id": "crystal-sleep-decoration-bun",
@@ -249,6 +250,7 @@
       "selectedFrameCount": 73,
       "sampleStep": 2,
       "connectedBackgroundCleanup": "edge-connected near-white PR block",
+      "colorNormalization": "none",
       "sourceAlphaUnionBounds": [
         67,
         79,
@@ -268,6 +270,7 @@
       "selectedFrameCount": 73,
       "sampleStep": 2,
       "connectedBackgroundCleanup": "edge-connected near-black PR block",
+      "colorNormalization": "none",
       "sourceAlphaUnionBounds": [
         0,
         86,
@@ -287,6 +290,7 @@
       "selectedFrameCount": 31,
       "sampleStep": 6,
       "connectedBackgroundCleanup": "edge-connected near-black PR block",
+      "colorNormalization": "none",
       "sourceAlphaUnionBounds": [
         0,
         86,
@@ -434,11 +438,13 @@
       "sourceSha256": "40201539b03ab11dca788a2db9aee5a708a022bfb05fb548be5439c3d24ab152",
       "atlas": "animations/runtime/crystal-long-idle-duck-sit.frames.webp",
       "frameCount": 217,
+      "frameWidth": 600,
+      "frameHeight": 476,
       "columns": 1,
       "rows": 217,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 220,
+      "displayWidth": 300,
       "displayHeight": 238
     },
     {
@@ -447,13 +453,13 @@
       "sourceSha256": "4f5f6fa374f5261150698a22a7bfe01600b148a44fb2b8731d45726b506e792f",
       "atlas": "animations/runtime/crystal-long-idle-sleep.frames.webp",
       "frameCount": 361,
-      "frameWidth": 488,
+      "frameWidth": 600,
       "frameHeight": 476,
       "columns": 1,
       "rows": 361,
       "frameDurationMilliseconds": 42,
       "loopCount": 1,
-      "displayWidth": 244,
+      "displayWidth": 300,
       "displayHeight": 238
     },
     {

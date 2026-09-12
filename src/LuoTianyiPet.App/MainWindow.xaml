@@ -199,6 +199,7 @@
                     Visibility="Collapsed">
                 <Image x:Name="CrystalLongIdleDecorationImage"
                        RenderOptions.BitmapScalingMode="HighQuality"
+                       RenderTransformOrigin="0.5,0.5"
                        SnapsToDevicePixels="True"
                        Stretch="Fill" />
             </Canvas>
