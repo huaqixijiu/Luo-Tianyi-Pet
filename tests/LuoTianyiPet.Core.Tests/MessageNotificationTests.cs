@@ -84,6 +84,29 @@ public sealed class MessageNotificationTests
     }
 
     [Fact]
+    public void PresentationPolicyUsesThirtySecondDefaultDuration()
+    {
+        Assert.Equal(
+            TimeSpan.FromSeconds(30),
+            MessageNotificationPresentationPolicy.DefaultDuration);
+    }
+
+    [Fact]
+    public void PresentationPolicyKeepsTheCurrentMessageReactionSlotAvailable()
+    {
+        Guid messageToken = Guid.NewGuid();
+
+        Assert.True(MessageNotificationPresentationPolicy.HasAvailablePresentationSlot(
+            PlaybackPlanSource.Reaction,
+            messageToken,
+            messageToken));
+        Assert.False(MessageNotificationPresentationPolicy.HasAvailablePresentationSlot(
+            PlaybackPlanSource.Reaction,
+            Guid.NewGuid(),
+            messageToken));
+    }
+
+    [Fact]
     public void CoordinatorSuppressesSameSourceInsideDuplicateWindow()
     {
         MessageNotificationCoordinator coordinator = new(TimeSpan.FromSeconds(3));

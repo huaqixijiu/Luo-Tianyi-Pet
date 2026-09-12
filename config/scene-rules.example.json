@@ -788,11 +788,13 @@
     "contactAvatar": "not-exposed-by-user-notification-api-fallback-to-application-logo",
     "animation": "codename-curious-sway",
     "loopCount": 1,
+    "presentationMilliseconds": 30000,
+    "proceduralSway": "repeat-until-presentation-ends",
     "bubbleContent": "application-logo-and-conversation-title-with-source-only-fallback",
     "deduplicateWithinMilliseconds": 3000,
     "suppressWhenSourceIsForeground": true,
     "requestTransientTopmostOnDesktop": true,
-    "transientTopmostMilliseconds": 2000,
+    "transientTopmostMilliseconds": 30000,
     "suppressTransientTopmostInFullscreen": true,
     "providers": [
       {

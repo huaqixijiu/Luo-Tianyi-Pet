@@ -169,6 +169,18 @@ public enum MessageNotificationDecision
     IgnoredSourceForeground,
 }
 
+public static class MessageNotificationPresentationPolicy
+{
+    public static TimeSpan DefaultDuration { get; } = TimeSpan.FromSeconds(30);
+
+    public static bool HasAvailablePresentationSlot(
+        PlaybackPlanSource currentSource,
+        Guid? activeReactionToken,
+        Guid? messageReactionToken) =>
+        currentSource == PlaybackPlanSource.Continuous ||
+        (messageReactionToken is Guid messageToken && activeReactionToken == messageToken);
+}
+
 public sealed class MessageNotificationCoordinator
 {
     private readonly TimeSpan _duplicateWindow;

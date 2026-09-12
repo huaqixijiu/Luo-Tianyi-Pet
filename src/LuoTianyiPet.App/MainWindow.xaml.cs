@@ -26,6 +26,8 @@ public partial class MainWindow : Window
     private const string GenshinLaunchAnimation = "resonance-no-playing";
     private const string GenshinCameoAnimation = "resonance-please";
     private const string MessageNotificationAnimation = "codename-curious-sway";
+    private static readonly TimeSpan MessageNotificationPresentationDuration =
+        MessageNotificationPresentationPolicy.DefaultDuration;
     private const string FileDropPromptAnimation = "resonance-give-me";
     private const string FileDropSuccessAnimation = "resonance-big-success";
     private const string ClassicSpinDanceAnimation = "tenth-anniversary-spin-dance";
@@ -1328,15 +1330,22 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool IsMessageNotificationDisplaySafe(ForegroundApplicationSnapshot foreground) =>
-        foreground.Succeeded &&
-        !foreground.IsFullscreen &&
-        !_systemSessionUnavailable &&
-        _edgeDockSide == EdgeDockSide.None &&
-        !_isWindowDragging &&
-        _stateMachine.VisualState.ContinuousState is not
-            (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety) &&
-        _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous;
+    private bool IsMessageNotificationDisplaySafe(ForegroundApplicationSnapshot foreground)
+    {
+        bool hasAvailablePresentationSlot =
+            MessageNotificationPresentationPolicy.HasAvailablePresentationSlot(
+                _stateMachine.Resolve(DateTimeOffset.Now).Source,
+                _stateMachine.ActiveReactionToken,
+                _messageNotificationReactionToken);
+        return foreground.Succeeded &&
+            !foreground.IsFullscreen &&
+            !_systemSessionUnavailable &&
+            _edgeDockSide == EdgeDockSide.None &&
+            !_isWindowDragging &&
+            _stateMachine.VisualState.ContinuousState is not
+                (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety) &&
+            hasAvailablePresentationSlot;
+    }
 
     private async Task BeginMessageNotificationAsync(MessageNotificationSummary notification)
     {
@@ -1349,7 +1358,8 @@ public partial class MainWindow : Window
         Guid topmostToken = AcquireTransientTopmost();
         Guid? reactionToken = await PlayReactionAsync(
             MessageNotificationAnimation,
-            ReactionPriority.Notification);
+            ReactionPriority.Notification,
+            minimumDisplayDuration: MessageNotificationPresentationDuration);
         if (reactionToken is not Guid token)
         {
             ReleaseTransientTopmost(topmostToken);
@@ -1363,9 +1373,10 @@ public partial class MainWindow : Window
         ShowMessageNotification(notification);
         _logger.Info(
             "notification.reaction_started",
-            notification.ConversationDisplayName is null
+            $"DurationSeconds={MessageNotificationPresentationDuration.TotalSeconds:0}; " +
+            (notification.ConversationDisplayName is null
                 ? "Source category and application icon were shown without message content."
-                : "Source category, application icon, and conversation title were shown without message content.");
+                : "Source category, application icon, and conversation title were shown without message content."));
     }
 
     private async Task BeginMessageNotificationPreviewAsync(MessageProvider provider)
@@ -1938,15 +1949,19 @@ public partial class MainWindow : Window
         ReactionPriority priority,
         bool suppressBodyAfter = false,
         bool blocksDisplayModeToggle = false,
-        bool mirrorHorizontally = false)
+        bool mirrorHorizontally = false,
+        TimeSpan? minimumDisplayDuration = null)
     {
         double playbackRate = BodyInteractionResolver.ResolvePlaybackRate(animationId);
         DateTimeOffset now = DateTimeOffset.Now;
+        TimeSpan reactionLifetime = minimumDisplayDuration is TimeSpan minimumDuration
+            ? TimeSpan.FromSeconds(Math.Max(20, minimumDuration.TotalSeconds + 5))
+            : TimeSpan.FromSeconds(20);
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
                 animationId,
                 priority,
-                now.AddSeconds(20),
+                now.Add(reactionLifetime),
                 BlocksDisplayModeToggle: blocksDisplayModeToggle),
             now);
         if (outcome.Token is not Guid token)
@@ -1964,12 +1979,20 @@ public partial class MainWindow : Window
         UpdateBodyHitDebugOverlay();
         bool playInPlace = CrystalBodyInteractionResolver.IsInPlaceAnimation(animationId);
         bool transitioned;
+        Action completeReaction = minimumDisplayDuration is TimeSpan holdDuration
+            ? () => _ = CompleteReactionAfterMinimumDurationAsync(
+                token,
+                now,
+                holdDuration,
+                suppressBodyAfter,
+                playInPlace)
+            : () => CompleteReaction(token, suppressBodyAfter, playInPlace);
         if (playInPlace)
         {
             ApplyBodyReactionMirror(mirrorHorizontally);
             PlayAnimation(
                 animationId,
-                () => CompleteReaction(token, suppressBodyAfter, restoreInPlace: true),
+                completeReaction,
                 playbackRate: playbackRate);
             transitioned = _animationPlayer?.CurrentAnimationId == animationId;
         }
@@ -1981,7 +2004,7 @@ public partial class MainWindow : Window
                     ApplyBodyReactionMirror(mirrorHorizontally);
                     PlayAnimation(
                         animationId,
-                        () => CompleteReaction(token, suppressBodyAfter),
+                        completeReaction,
                         preserveVisualTransition: true,
                         playbackRate: playbackRate);
                 });
@@ -2004,6 +2027,25 @@ public partial class MainWindow : Window
         }
         ResetBodyReactionMirror();
         return null;
+    }
+
+    private async Task CompleteReactionAfterMinimumDurationAsync(
+        Guid token,
+        DateTimeOffset startedAt,
+        TimeSpan minimumDuration,
+        bool suppressBodyAfter,
+        bool restoreInPlace)
+    {
+        TimeSpan remaining = minimumDuration - (DateTimeOffset.Now - startedAt);
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining);
+        }
+
+        if (!_isClosing)
+        {
+            CompleteReaction(token, suppressBodyAfter, restoreInPlace);
+        }
     }
 
     private void ApplyBodyReactionMirror(bool mirrorHorizontally)

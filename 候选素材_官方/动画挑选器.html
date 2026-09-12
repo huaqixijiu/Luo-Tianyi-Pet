@@ -248,10 +248,26 @@
     .mode-overview { margin: 0 0 18px; padding: 18px; border: 1px solid rgba(99,225,220,.28); border-radius: 20px; background: linear-gradient(135deg,rgba(8,35,40,.94),rgba(10,24,36,.88)); box-shadow: var(--shadow); }
     .mode-overview h2 { margin: 0 0 6px; font-size: 18px; }
     .mode-overview > p { margin: 0 0 14px; color: var(--muted); font-size: 13px; line-height: 1.6; }
-    .mode-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
-    .mode-card { padding: 14px; border: 1px solid rgba(99,225,220,.14); border-radius: 14px; background: rgba(99,225,220,.055); }
+    .mode-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+    .mode-card {
+      min-height: 94px; padding: 14px; border: 1px solid rgba(99,225,220,.14); border-radius: 14px;
+      color: var(--text); text-align: left; background: rgba(99,225,220,.055); cursor: pointer;
+    }
+    .mode-card:hover { border-color: rgba(99,225,220,.46); background: rgba(99,225,220,.10); }
+    .mode-card.active { border-color: var(--cyan); background: linear-gradient(145deg,rgba(99,225,220,.20),rgba(135,185,255,.10)); box-shadow: inset 0 0 0 1px rgba(99,225,220,.24); }
     .mode-card strong { display: block; margin-bottom: 7px; color: var(--cyan); font-size: 14px; }
     .mode-card span { display: block; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .mode-card.active span { color: #d7f4f2; }
+    .mode-detail { margin-top: 13px; padding: 12px 14px; border-radius: 13px; color: #d7f4f2; background: rgba(99,225,220,.07); font-size: 13px; line-height: 1.65; }
+
+    .used-overview-list { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .used-overview-item { display: grid; grid-template-columns: 86px 1fr; gap: 11px; align-items: center; min-height: 106px; }
+    .used-overview-preview { display: grid; place-items: center; width: 86px; height: 86px; padding: 5px; overflow: hidden; border: 0; border-radius: 11px; background-color: #d9f3f0; cursor: pointer; }
+    .used-overview-preview img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+    .usage-scope { display: inline-block; margin-top: 6px; padding: 3px 6px; border-radius: 6px; color: var(--cyan); background: rgba(99,225,220,.09); font-size: 10px; font-style: normal; font-weight: 900; }
+    .catalog-heading { margin: 26px 0 2px; }
+    .catalog-heading h2 { margin: 0 0 6px; font-size: 21px; }
+    .catalog-heading p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
     .assign-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 800; }
     .role-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -339,6 +355,7 @@
 
     @media (max-width: 1120px) {
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .used-overview-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .slots { grid-template-columns: repeat(3, 1fr); }
       .scenario-groups { grid-template-columns: 1fr 1fr; }
       .project-status { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
@@ -352,6 +369,7 @@
       .slots { grid-template-columns: repeat(2, minmax(150px,1fr)); }
       .selection-board { position: relative; top: auto; }
       .scenario-groups { grid-template-columns: 1fr; }
+      .used-overview-list { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       .shell { width: min(100% - 20px, 1500px); padding-top: 22px; }
@@ -362,7 +380,7 @@
       .board-head { align-items: flex-start; flex-direction: column; }
       .project-status { grid-template-columns: 1fr 1fr; }
       .used-overview-list { grid-template-columns: 1fr; }
-      .mode-grid { grid-template-columns: 1fr; }
+      .mode-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -399,21 +417,27 @@
     </section>
 
     <section class="mode-overview" aria-labelledby="modeOverviewTitle">
-      <h2 id="modeOverviewTitle">三个待机模式与触发规则</h2>
-      <p>先按模式看清楚正式行为，再到下方查看每个素材。时间问候均播放 10 秒、可被输入打断；音乐播放时不抢占，停歌 10 秒后若仍在当前时段才补播。</p>
+      <h2 id="modeOverviewTitle">按模式查看正式动画</h2>
+      <p>选择模式一、二或三，只查看该模式实际会使用的动画及触发规则；“三个模式通用”单独汇总音乐、消息、时间和文件等公共动画。</p>
       <div class="mode-grid" id="modeOverviewList"></div>
+      <div class="mode-detail" id="modeDetail"></div>
     </section>
 
     <section class="used-overview" aria-labelledby="usedOverviewTitle">
       <div class="used-overview-head">
         <div>
-          <h2 id="usedOverviewTitle">目前已经使用的动画与位置</h2>
-          <p>这里是正式桌宠当前会触发的动画，不包含仅保留在运行时或挑选器中的未分配候选。</p>
+          <h2 id="usedOverviewTitle">模式一 · 华裳长发版</h2>
+          <p id="usedOverviewDescription">以下是这个模式会实际触发的专属与公共动画，点击缩略图可以放大预览。</p>
         </div>
         <span class="used-overview-count"><strong id="usedOverviewCount">0</strong> 项已接入</span>
       </div>
       <div class="used-overview-list" id="usedOverviewList"></div>
     </section>
+
+    <div class="catalog-heading">
+      <h2>全部素材与候选</h2>
+      <p>这里保留完整素材库，用搜索与筛选做候选比较；上方模式视图才是正式运行规则。</p>
+    </div>
 
     <div class="toolbar">
       <input class="search" id="search" type="search" placeholder="搜索动作，例如：音乐、点赞、可爱……" aria-label="搜索动作" />
@@ -505,9 +529,10 @@
     const roleGroupNames = { daily:"日常状态", mouse:"鼠标互动", music:"音乐状态", system:"系统与提醒" };
 
     const modeProfiles = [
-      { title:"模式一 · 华裳长发版", rules:"待机使用华裳长发全身图，不开放身体部位点击。保留拖拽、边缘收纳、音乐覆盖、桌面包子追逐与公共时间问候；没有“嘿嘿”和眠了呼吸。" },
-      { title:"模式二 · 晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，5 分钟进入“嘿嘿”；单击等操作恢复待机，只拖拽移动并松手仍保持“嘿嘿”；没有一分钟倒计时和眠了呼吸。" },
-      { title:"模式三 · 经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。拖拽时至少完成两次完整左右往返才触发旋转舞，并循环到下一次点击。" }
+      { id:"mode1", title:"模式一 · 华裳长发版", short:"华裳长发版", rules:"待机使用华裳长发全身图，不开放身体部位点击。保留拖拽、边缘收纳、音乐覆盖、桌面包子追逐与公共时间问候；没有“嘿嘿”和眠了呼吸。" },
+      { id:"mode2", title:"模式二 · 晶蓝礼服版", short:"晶蓝礼服版", rules:"九个区域使用同模型动作；无操作 1～5 分钟随机打一次哈欠，30 分钟后随机进入睡觉或鸭子坐。点击唤醒并重置无操作时间；没有“嘿嘿”、一分钟倒计时和眠了呼吸。" },
+      { id:"mode3", title:"模式三 · 经典猫耳版", short:"经典猫耳版", rules:"眼、脸、手、脚和身体使用表情包互动；无操作 2 分钟开始一分钟摸鱼倒计时，3 分钟进入“嘿嘿”，30 分钟进入眠了呼吸。拖拽时至少完成两次完整左右往返才触发旋转舞，并循环到下一次点击。" },
+      { id:"shared", title:"三个模式通用", short:"公共动画", rules:"集中显示三个模式都会使用的音乐识别、QQ/微信提醒、文件回收、时间问候、屏幕边缘与应用联动动画。它们也会出现在每个对应模式的清单中。" }
     ];
 
     const scenarios = [
@@ -582,7 +607,7 @@
       { id:"e_voice", title:"心律共鸣 · 共鸣之声", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", source:baseEmoji+"心律共鸣动态表情包_共鸣之声.gif", tags:["候选","音量反馈","当前未分配"], desc:"曾用于系统主音量提高/降低反馈；系统主音量功能现已撤销，本素材保留为将来网易云独立音量反馈候选。" },
       { id:"e_great", title:"心律共鸣 · 好厉害", category:"feedback", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_好厉害.gif", source:baseEmoji+"心律共鸣动态表情包_好厉害.gif", tags:["夸奖","操作反馈"], desc:"正向反馈感明显，适合操作成功、恢复播放或用户连续互动之后播放。" },
       { id:"e_dark", title:"心律共鸣 · 黑化", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_黑化.gif", source:baseEmoji+"心律共鸣动态表情包_黑化.gif", tags:["胸部","下体","重复点击","0.5倍速"], desc:"胸部或下体敏感区域在 4 秒内被再次点击时播放；运行时使用 0.5 倍速，双脚不触发黑化。" },
-      { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["模式二5分钟","模式三3分钟","中等待机","已采用"], desc:"晶蓝礼服版无输入 5 分钟、经典猫耳版倒计时结束且达到 3 分钟后进入；单击等操作会恢复待机，但只拖拽移动并松手仍保持嘿嘿。" },
+      { id:"e_hehe", title:"心律共鸣 · 嘿嘿", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", source:baseEmoji+"心律共鸣动态表情包_嘿嘿.gif", tags:["模式三3分钟","中等待机","已采用"], desc:"仅经典猫耳版在摸鱼一分钟倒计时结束且达到 3 分钟后进入；单击等操作会恢复待机，但只拖拽移动并松手仍保持嘿嘿。" },
       { id:"e_join", title:"心律共鸣 · 加入我们", category:"expression", kind:"动态 GIF", priority:false, src:baseEmoji+"心律共鸣动态表情包_加入我们.gif", source:baseEmoji+"心律共鸣动态表情包_加入我们.gif", tags:["招手","随机待机"], desc:"适合首次启动或桌宠主动招手，不太适合频繁的按键反馈。" },
       { id:"e_kiss", title:"心律共鸣 · 啾啾", category:"expression", kind:"动态 GIF", priority:true, src:baseEmoji+"心律共鸣动态表情包_啾啾.gif", source:baseEmoji+"心律共鸣动态表情包_啾啾.gif", tags:["嘴部","点击互动"], desc:"已确定为短按嘴部时的一次性反馈；脸部现在单独使用十二周年“贴贴”。" },
       { id:"e_cute", title:"心律共鸣 · 可爱", category:"expression", kind:"动态 GIF", priority:true, activeUsage:"唯一包子达到追逐上限后仍被连续拖住 3 秒时，每轮播放一次并定格末帧，等待用户投喂。", src:baseEmoji+"心律共鸣动态表情包_可爱.gif", source:baseEmoji+"心律共鸣动态表情包_可爱.gif", tags:["已使用","卖萌","小笼包","投喂彩蛋"], desc:"保留原图“我很可爱，请给我小笼包”文字；不循环刷字，新包子出现或投喂成功后退出等待。" },
@@ -623,7 +648,7 @@
       { id:"p_morning", title:"收藏集 · 早安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", source:baseStatic+"5283-洛天依·收藏集表情包/洛天依·收藏集表情包_早安.png", tags:["早安","启动问候","持续10秒","跨时段"], desc:"06:00～12:00 启动（包括 Windows 开机自启动）或跨到 06:00 时播放 10 秒；输入可打断，音乐优先。" },
       { id:"p_sleep", title:"代号洛天依 · 眠了呼吸", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", source:baseStatic+"1842-代号洛天依/代号洛天依_眠了.png", tags:["长时间睡眠","30分钟","已采用"], desc:"保留为长时间睡眠：无操作约 30 分钟且没有播放音乐时持续低幅度呼吸。" },
       { id:"p_goodnight", title:"十周年 · 晚安浮动", category:"procedural", kind:"程序动效预演", priority:true, motion:"sleep", src:baseStatic+"340-洛天依十周年/洛天依_晚安.png", source:baseStatic+"340-洛天依十周年/洛天依_晚安.png", tags:["夜间启动","20:00至06:00","持续10秒","跨时段","已采用"], desc:"20:00～次日 06:00 启动或跨到 20:00 时播放 10 秒；输入可打断，音乐优先。" },
-      { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["QQ","微信","消息提醒"], desc:"已用于 QQ 或微信的新消息来源提醒，只显示应用来源，不读取发送者、会话名或正文。" },
+      { id:"p_curious", title:"代号洛天依 · 好奇摇摆", category:"procedural", kind:"程序动效预演 · 30 秒", priority:true, motion:"sway", src:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", source:baseStatic+"1842-代号洛天依/代号洛天依_好奇.png", tags:["QQ","微信","消息提醒","持续30秒","三个模式通用"], desc:"QQ 或微信出现新消息时持续显示 30 秒并循环好奇摇摆；切到来源应用、进入全屏/锁屏或被更高优先级动作打断时提前结束。" },
       { id:"p_idle", title:"十周年 · 摸鱼漂浮", category:"procedural", kind:"程序动效预演", priority:true, motion:"float", src:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", source:baseStatic+"340-洛天依十周年/洛天依_摸鱼.png", tags:["下午问候","13:30至18:00","持续10秒","跨时段"], desc:"13:30～18:00 启动或跨到 13:30 时播放 10 秒；输入可打断，音乐优先。" },
       { id:"p_loading", title:"心律共鸣 · 加载中摇摆", category:"procedural", kind:"程序动效预演", priority:false, motion:"sway", src:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", source:baseStatic+"5361-洛天依心律共鸣表情包/洛天依心律共鸣表情包_加载中.png", tags:["候选","暂未分配"], desc:"已取消切歌和文件处理等待触发；因为当前程序摇摆不够明显，先保留素材供以后改进后重新使用。" },
       { id:"p_pause", title:"九周年 · 没睡醒呼吸", category:"procedural", kind:"程序动效预演", priority:false, motion:"sleep", src:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", source:baseStatic+"255-洛天依9th生日纪念/洛天依9th_没睡醒.png", tags:["候选","已取消使用"], desc:"已取消音乐暂停触发；原始图片保留在候选素材库，当前正式桌宠不使用。" },
@@ -682,7 +707,7 @@
       p_morning:"06:00～12:00 启动或跨到 06:00 时播放 10 秒；可被输入打断，音乐优先。",
       p_sleep:"仅经典猫耳版无输入约 30 分钟且没有播放音乐时循环；晶蓝礼服版改用睡觉/鸭子坐两段式长待机。",
       p_goodnight:"20:00～次日 06:00 启动或跨到 20:00 时播放 10 秒，包括 Windows 开机自启动。",
-      p_curious:"QQ 或微信有系统通知且来源应用不在前台时播放。",
+      p_curious:"QQ 或微信有系统通知且来源应用不在前台时持续显示 30 秒并循环摇摆；打开对应应用、全屏/锁屏或更高优先级动作会提前结束。",
       p_idle:"13:30～18:00 启动或跨到 13:30 时播放 10 秒。",
       new12_hungry:"18:00～20:00 启动或跨到 18:00 时播放 10 秒。",
       p_loading:"网易云未运行时点击播放/暂停后静止显示，并配合“正在打开网易云音乐”文字；检测到开始出声后结束。",
@@ -692,6 +717,31 @@
       p_highfive:"仅经典猫耳版点击手部时播放；右手原方向，左手水平镜像。"
     };
     items.forEach(item => item.activeUsage = activeUsage[item.id] || "");
+
+    const modeSpecificUsage = {
+      mode1:new Set(["official_fullbody_idle"]),
+      mode2:new Set([
+        "user_compact_idle","crystal_cover_eyes","crystal_cover_mouth","crystal_pinch_cheeks",
+        "crystal_hand_heart","crystal_touch_leg","crystal_headpat","crystal_hold_belly",
+        "crystal_touch_chest","crystal_touch_skirt","crystal_yawn","crystal_duck_sit","crystal_sleep"
+      ]),
+      mode3:new Set([
+        "user_classic_fullbody_idle","requested_birthday_fishing","ai_file_eating_approved",
+        "e_dark","e_hehe","e_kiss","e_expand","e_soft","e_guilty","new12_hug",
+        "new12_stop","new12_charge","new12_cry","new12_close","new_headpat_guoyue",
+        "dance10","p_sleep","p_warning","p_highfive"
+      ])
+    };
+    const partialSharedUsage = new Map([
+      ["ai_file_eating_v2", ["mode1","mode2"]]
+    ]);
+    const allModeIds = ["mode1","mode2","mode3"];
+    function usageModes(itemId) {
+      const partial = partialSharedUsage.get(itemId);
+      if (partial) return partial;
+      const specific = allModeIds.filter(modeId => modeSpecificUsage[modeId].has(itemId));
+      return specific.length ? specific : allModeIds;
+    }
 
     const categoryNames = { body:"全身动作", feedback:"操作反馈", expression:"表情互动", procedural:"程序动效" };
     const stateVersion = 4;
@@ -726,6 +776,9 @@
     let usedOnly = false;
     let deletionOnly = false;
     let newOnly = false;
+    const modeStorageKey = "luotianyi-pet-animation-picker-mode-v1";
+    let selectedMode = localStorage.getItem(modeStorageKey);
+    if (![...allModeIds, "shared"].includes(selectedMode)) selectedMode = "mode1";
 
     function sanitizeState(candidate) {
       const safeChoices = {};
@@ -785,6 +838,9 @@
     const deletionCount = document.getElementById("deletionCount");
     const usedOverviewList = document.getElementById("usedOverviewList");
     const modeOverviewList = document.getElementById("modeOverviewList");
+    const modeDetail = document.getElementById("modeDetail");
+    const usedOverviewTitle = document.getElementById("usedOverviewTitle");
+    const usedOverviewDescription = document.getElementById("usedOverviewDescription");
     const undoAction = document.getElementById("undoAction");
     const backupFile = document.getElementById("backupFile");
 
@@ -930,19 +986,51 @@
     }
 
     function renderUsedOverview() {
-      const usedAnimations = items.filter(item => item.activeUsage);
-      usedOverviewList.innerHTML = usedAnimations.map(item => `<div class="used-overview-item">
-        <strong>${esc(item.title)}</strong>
-        <span>${esc(item.activeUsage)}</span>
-      </div>`).join("");
+      const profile = modeProfiles.find(mode => mode.id === selectedMode);
+      const usedAnimations = items.filter(item => {
+        if (!item.activeUsage) return false;
+        const modes = usageModes(item.id);
+        return selectedMode === "shared" ? modes.length === allModeIds.length : modes.includes(selectedMode);
+      });
+      usedOverviewTitle.textContent = profile.title;
+      usedOverviewDescription.textContent = selectedMode === "shared"
+        ? "以下动画由三个模式共同使用；点击缩略图可以放大预览。"
+        : "以下是这个模式会实际触发的专属与公共动画；点击缩略图可以放大预览。";
+      usedOverviewList.innerHTML = usedAnimations.map(item => {
+        const modes = usageModes(item.id);
+        const scope = modes.length === allModeIds.length
+          ? "三个模式通用"
+          : modes.map(modeId => modeProfiles.find(mode => mode.id === modeId).short).join("、");
+        return `<article class="used-overview-item">
+          <button class="used-overview-preview" type="button" data-usage-preview="${item.id}" aria-label="放大预览 ${esc(item.title)}">
+            <img class="${item.motion ? `motion-${item.motion}` : ""}" src="${esc(item.src)}" alt="" loading="lazy" />
+          </button>
+          <div><strong>${esc(item.title)}</strong><span>${esc(item.activeUsage)}</span><em class="usage-scope">${esc(scope)}</em></div>
+        </article>`;
+      }).join("");
       document.getElementById("usedOverviewCount").textContent = usedAnimations.length;
+      usedOverviewList.querySelectorAll("[data-usage-preview]").forEach(preview => preview.addEventListener("click", () => {
+        const item = itemById(preview.dataset.usagePreview);
+        largePreviewTitle.textContent = item.title;
+        largePreviewImage.className = item.motion ? `motion-${item.motion}` : "";
+        largePreviewImage.src = item.src;
+        previewDialog.showModal();
+      }));
     }
 
     function renderModeOverview() {
-      modeOverviewList.innerHTML = modeProfiles.map(mode => `<article class="mode-card">
+      modeOverviewList.innerHTML = modeProfiles.map(mode => `<button class="mode-card ${mode.id === selectedMode ? "active" : ""}" type="button" data-mode="${mode.id}" aria-pressed="${mode.id === selectedMode}">
         <strong>${esc(mode.title)}</strong>
-        <span>${esc(mode.rules)}</span>
-      </article>`).join("");
+        <span>${mode.id === "shared" ? "音乐、消息、文件、时间与边缘等" : "点击查看本模式全部正式动画"}</span>
+      </button>`).join("");
+      const selectedProfile = modeProfiles.find(mode => mode.id === selectedMode);
+      modeDetail.innerHTML = `<strong>${esc(selectedProfile.title)}：</strong>${esc(selectedProfile.rules)}`;
+      modeOverviewList.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => {
+        selectedMode = button.dataset.mode;
+        localStorage.setItem(modeStorageKey, selectedMode);
+        renderModeOverview();
+        renderUsedOverview();
+      }));
     }
 
     function renderAll() {
@@ -961,8 +1049,13 @@
 
     function buildSummary() {
       const lines = ["洛天依桌宠 · 动画使用与待删除结果", ""];
-      const usedAnimations = items.filter(item => item.activeUsage);
-      lines.push(`项目当前已接入（${usedAnimations.length} 个）`, "");
+      const selectedProfile = modeProfiles.find(mode => mode.id === selectedMode);
+      const usedAnimations = items.filter(item => {
+        if (!item.activeUsage) return false;
+        const modes = usageModes(item.id);
+        return selectedMode === "shared" ? modes.length === allModeIds.length : modes.includes(selectedMode);
+      });
+      lines.push(`${selectedProfile.title}（${usedAnimations.length} 个正式动画）`, selectedProfile.rules, "");
       usedAnimations.forEach(item => {
         lines.push(`- ${item.title}`);
         lines.push(`  用途：${item.activeUsage}`);

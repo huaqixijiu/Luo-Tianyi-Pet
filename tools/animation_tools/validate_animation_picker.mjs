@@ -18,8 +18,9 @@ assert(usedIds.every(id => itemIds.includes(id)), "every active usage must refer
 for (const expected of [
   "删掉这个动画",
   "只看待删除",
-  "目前已经使用的动画与位置",
-  "三个待机模式与触发规则",
+  "按模式查看正式动画",
+  "三个模式通用",
+  "全部素材与候选",
   "尚未删除任何素材",
 ]) {
   assert(html.includes(expected), `missing required text: ${expected}`);
@@ -31,14 +32,13 @@ for (const stale of ["保留这个动画", "只看已保留", "勾选保留的�
 const current = executePicker();
 assert(current.elements.get("deletionCount").textContent === 0, "new deletion list must start empty");
 assert(
-  Number(current.elements.get("usedOverviewCount").textContent) === usedIds.length,
-  "used overview count must match active usage map",
+  current.elements.get("usedOverviewTitle").textContent.includes("模式一"),
+  "picker must default to mode one",
 );
 assert(
-  current.elements.get("usedOverviewList").innerHTML.includes("当前用途") === false &&
-    current.elements.get("usedOverviewList").innerHTML.includes("第二模型") &&
-    current.elements.get("usedOverviewList").innerHTML.includes("经典猫耳版"),
-  "used overview must render real trigger descriptions",
+  current.elements.get("usedOverviewList").innerHTML.includes("华裳长发") &&
+    !current.elements.get("usedOverviewList").innerHTML.includes("晶蓝礼服互动 · 遮眼睛"),
+  "mode one must show its own idle animation and hide mode-two interactions",
 );
 assert(current.elements.get("grid").innerHTML.includes("data-delete="), "cards must render delete checkboxes");
 assert(!current.elements.get("grid").innerHTML.includes("data-keep="), "legacy keep checkboxes must not render");
@@ -46,6 +46,33 @@ assert(
   ["华裳长发版", "晶蓝礼服版", "经典猫耳版"].every(name =>
     current.elements.get("modeOverviewList").innerHTML.includes(name)),
   "mode overview must render all three appearance profiles",
+);
+assert(
+  current.elements.get("modeOverviewList").innerHTML.includes("三个模式通用") &&
+    current.elements.get("modeOverviewList").innerHTML.includes('aria-pressed="true"'),
+  "mode selector must expose the shared view and active selection",
+);
+
+const modeTwo = executePicker(null, "mode2");
+assert(
+  modeTwo.elements.get("usedOverviewList").innerHTML.includes("晶蓝礼服互动 · 遮眼睛") &&
+    modeTwo.elements.get("usedOverviewList").innerHTML.includes("晶蓝礼服长待机 · 睡觉") &&
+    !modeTwo.elements.get("usedOverviewList").innerHTML.includes("经典猫耳版拖拽"),
+  "mode two must show crystal interactions and hide mode-three-only rules",
+);
+const modeThree = executePicker(null, "mode3");
+assert(
+  modeThree.elements.get("usedOverviewList").innerHTML.includes("十周年 · 旋转舞") &&
+    modeThree.elements.get("usedOverviewList").innerHTML.includes("心律共鸣 · 嘿嘿") &&
+    !modeThree.elements.get("usedOverviewList").innerHTML.includes("晶蓝礼服互动 · 遮眼睛"),
+  "mode three must show classic interactions and hide mode-two-only rules",
+);
+const shared = executePicker(null, "shared");
+assert(
+  shared.elements.get("usedOverviewList").innerHTML.includes("代号洛天依 · 好奇摇摆") &&
+    shared.elements.get("usedOverviewList").innerHTML.includes("持续显示 30 秒") &&
+    !shared.elements.get("usedOverviewList").innerHTML.includes("Q版小人全身待机"),
+  "shared view must contain the long message reminder but no mode-specific idle",
 );
 for (const removedId of [
   "thumb10", "thumbCode", "file_run_preview", "file_eat_preview",
@@ -74,6 +101,12 @@ console.log(
       pickerPath,
       itemCount: itemIds.length,
       usedCount: usedIds.length,
+      modeCounts: {
+        mode1: Number(current.elements.get("usedOverviewCount").textContent),
+        mode2: Number(modeTwo.elements.get("usedOverviewCount").textContent),
+        mode3: Number(modeThree.elements.get("usedOverviewCount").textContent),
+        shared: Number(shared.elements.get("usedOverviewCount").textContent),
+      },
       deletionDefaultCount: 0,
       legacyMigration: "keeps choices/scenarios and clears deletion list",
     },
@@ -82,11 +115,14 @@ console.log(
   ),
 );
 
-function executePicker(legacyState = null) {
+function executePicker(legacyState = null, selectedMode = null) {
   const elements = new Map();
   const storage = new Map();
   if (legacyState) {
     storage.set("luotianyi-pet-animation-picker-state-v3", JSON.stringify(legacyState));
+  }
+  if (selectedMode) {
+    storage.set("luotianyi-pet-animation-picker-mode-v1", selectedMode);
   }
 
   class FakeElement {

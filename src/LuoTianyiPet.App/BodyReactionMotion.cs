@@ -233,6 +233,7 @@ internal sealed class BodyReactionMotion
         {
             Duration = TimeSpan.FromMilliseconds(1800),
             FillBehavior = FillBehavior.Stop,
+            RepeatBehavior = RepeatBehavior.Forever,
         };
         double[] offsets = [0, -5, 5, -4, 4, -2, 2, 0];
         for (int index = 0; index < offsets.Length; index++)
