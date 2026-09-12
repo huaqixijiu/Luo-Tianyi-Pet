@@ -95,7 +95,7 @@ public partial class MainWindow
         string key = string.Join("|", pending.Select(i => i.Id + ":" + i.PendingAt + ":" + i.Title + ":" + i.Notes)) + expanded + ":" + future.Item?.Id + ":" + future.At + ":" + undo;
         if (_reminderCard == null)
         {
-            _reminderCard = new Window { Title = "天依提醒", Width = 300, SizeToContent = SizeToContent.Height, MaxHeight = 410,
+            _reminderCard = new Window { Title = "天依提醒", Width = 340, FontSize = 14, SizeToContent = SizeToContent.Height, MaxHeight = 410,
                 WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, ShowActivated = false,
                 Topmost = true, AllowsTransparency = true, Background = Brushes.Transparent, FontFamily = new System.Windows.Media.FontFamily("Microsoft YaHei UI") };
             PlannerTheme.Apply(_reminderCard);
@@ -103,9 +103,9 @@ public partial class MainWindow
         if (key != _reminderCardKey || _reminderSummary == null)
         {
             _reminderCardKey = key;
-            StackPanel panel = new() { Margin = new Thickness(10) };
+            StackPanel panel = new() { Margin = new Thickness(16) };
             Button summary = new() { Padding = new Thickness(6), HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left };
-            _reminderSummary = new TextBlock { TextWrapping = TextWrapping.Wrap };
+            _reminderSummary = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 15, Foreground = PlannerTheme.Accent };
             summary.Content = _reminderSummary;
             summary.Click += (_, _) => { _reminderExpandedUntil = DateTime.Now.AddSeconds(30); _reminderCardKey = ""; RefreshReminderCard(); };
             panel.Children.Add(summary);
@@ -120,7 +120,7 @@ public partial class MainWindow
                 StackPanel actions = new() { Orientation = Orientation.Horizontal };
                 foreach (bool skip in new[] { true, false })
                 {
-                    Button button = new() { Name = skip ? "SkipThisReminder" : "HideThisCountdown", Content = skip ? "本次不再提醒" : "隐藏倒计时", Margin = new Thickness(3), Padding = new Thickness(8) };
+                    Button button = new() { Name = skip ? "SkipThisReminder" : "HideThisCountdown", Content = skip ? "本次不再提醒" : "隐藏倒计时", Margin = new Thickness(3), Padding = new Thickness(10) };
                     if(skip) { button.Background = PlannerTheme.Accent; button.Foreground = Brushes.White; }
                     button.Click += async (_, _) => { try { await ActOnUpcoming(future.Item.Id, upcomingAt, skip); } catch { button.Content = "保存失败，请重试"; } }; actions.Children.Add(button);
                 }

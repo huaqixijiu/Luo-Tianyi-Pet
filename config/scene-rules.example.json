@@ -1,5 +1,8 @@
-{
+﻿{
   "planner": {
+    "groupManagement": true,
+    "deleteScopes": ["single-date", "whole-group", "selected-groups"],
+    "editorPresentation": "centered-overlay",
     "internationalObservances": {
       "02-14": "情人节",
       "04-01": "愚人节",

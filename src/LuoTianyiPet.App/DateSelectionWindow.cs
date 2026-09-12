@@ -13,12 +13,12 @@ internal sealed class DateSelectionWindow : Window
     public DateSelectionWindow(IEnumerable<DateTime> dates, DateTime month)
     {
         Selection = new(dates.Select(d => d.Date)); _month = new(month.Year, month.Month, 1);
-        Title = "选择日期"; Width = 370; SizeToContent = SizeToContent.Height; ResizeMode = ResizeMode.NoResize;
+        Title = "选择日期"; Width = 390; FontSize = 14; SizeToContent = SizeToContent.Height; ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner; ShowInTaskbar = false;
         FontFamily = new FontFamily("Microsoft YaHei UI"); Background = Brushes.White; Content = _panel;
         PlannerTheme.Apply(this); Render();
     }
-    private Button Make(string text, Action click) { Button b = new() { Content = text, Margin = new Thickness(2), Padding = new Thickness(6) }; b.Click += (_, _) => click(); return b; }
+    private Button Make(string text, Action click) { Button b = new() { Content = text, Margin = new Thickness(2), Padding = new Thickness(7) }; b.Click += (_, _) => click(); return b; }
     private void Render()
     {
         _panel.Children.Clear();

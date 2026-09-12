@@ -1,4 +1,4 @@
-namespace LuoTianyiPet.Core;
+﻿namespace LuoTianyiPet.Core;
 
 public enum ReminderRepeat { Once, Daily, Weekly, Dates, Workdays, RestDays }
 
@@ -20,6 +20,7 @@ public sealed class ReminderItem
     public ReminderRepeat Repeat { get; set; }
     public List<DayOfWeek> Weekdays { get; set; } = [];
     public List<DateTime> Dates { get; set; } = [];
+    public List<DateTime> ExcludedDates { get; set; } = [];
     public DateTime CheckedThrough { get; set; } = DateTime.Now;
     public DateTime? PendingAt { get; set; }
     public DateTime? SnoozeUntil { get; set; }
@@ -59,7 +60,7 @@ public static class ReminderSchedule
 
     public static bool OccursOn(ReminderItem item, ReminderBook book, DateTime day)
     {
-        if (day.Date < item.Start.Date || day.Date > MaximumDate) return false;
+        if (day.Date < item.Start.Date || day.Date > MaximumDate || item.ExcludedDates.Contains(day.Date)) return false;
         return item.Repeat switch
         {
             ReminderRepeat.Once => day.Date == item.Start.Date,
@@ -81,16 +82,16 @@ public static class ReminderSchedule
     {
         if (!item.Enabled) return null;
         if (item.SnoozeUntil is DateTime snooze && snooze > after) return snooze;
-        if (item.Repeat == ReminderRepeat.Once) return item.Start > after ? item.Start : null;
+        if (item.Repeat == ReminderRepeat.Once) return item.Start > after && !item.ExcludedDates.Contains(item.Start.Date) ? item.Start : null;
         if (item.Repeat == ReminderRepeat.Dates)
-            return item.Dates.Select(d => d.Date + item.Start.TimeOfDay).Where(d => d > after && d >= item.Start)
+            return item.Dates.Select(d => d.Date + item.Start.TimeOfDay).Where(d => d > after && d >= item.Start && !item.ExcludedDates.Contains(d.Date))
                 .Select(d => (DateTime?)d).OrderBy(d => d).FirstOrDefault();
         if (item.Repeat == ReminderRepeat.Weekly && item.Weekdays.Count == 0) return null;
         if ((item.Repeat == ReminderRepeat.Workdays && book.RestWeekdays.Distinct().Count() == 7) ||
             (item.Repeat == ReminderRepeat.RestDays && book.RestWeekdays.Count == 0))
             return book.RestOverrides.Where(p => p.Value == (item.Repeat == ReminderRepeat.RestDays))
                 .Select(p => DateTime.ParseExact(p.Key, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + item.Start.TimeOfDay)
-                .Where(d => d > after && d >= item.Start).Select(d => (DateTime?)d).OrderBy(d => d).FirstOrDefault();
+                .Where(d => d > after && d >= item.Start && !item.ExcludedDates.Contains(d.Date)).Select(d => (DateTime?)d).OrderBy(d => d).FirstOrDefault();
         DateTime first = after.Date > item.Start.Date ? after.Date : item.Start.Date;
         // A week finds ordinary repeats; overrides can extend the search but never past the supported calendar.
         for (DateTime day = first; day <= MaximumDate; day = day.AddDays(1))
@@ -136,6 +137,26 @@ public static class ReminderSchedule
         if (item.Repeat == ReminderRepeat.Once) item.Enabled = false;
     }
 
+    public static int DeleteGroups(ReminderBook book, IEnumerable<Guid> ids)
+    {
+        HashSet<Guid> selected = new(ids);
+        return book.Items.RemoveAll(i => selected.Contains(i.Id));
+    }
+    public static void DeleteDate(ReminderBook book, Guid id, DateTime day)
+    {
+        ReminderItem? item = book.Items.FirstOrDefault(i => i.Id == id);
+        if (item == null || !OccursOn(item, book, day)) return;
+        if (item.Repeat == ReminderRepeat.Once) { book.Items.Remove(item); return; }
+        if (item.Repeat == ReminderRepeat.Dates)
+        {
+            item.Dates.RemoveAll(d => d.Date == day.Date);
+            if (item.Dates.Count == 0) { book.Items.Remove(item); return; }
+            item.Start = item.Dates.Min().Date + item.Start.TimeOfDay;
+        }
+        else if (!item.ExcludedDates.Contains(day.Date)) item.ExcludedDates.Add(day.Date);
+        if (item.PendingAt?.Date == day.Date || item.SnoozeUntil?.Date == day.Date) { item.PendingAt = null; item.SnoozeUntil = null; }
+    }
+
     public static void SetRestOverride(ReminderBook book, DateTime day, bool? rest, DateTime now)
     {
         string key = day.ToString("yyyy-MM-dd");
@@ -170,9 +191,10 @@ public static class ReminderSchedule
         {
             if (item.Id == Guid.Empty || string.IsNullOrWhiteSpace(item.Title) || item.Title.Length > 120 ||
                 (item.Content != null && item.Content.Length > 10122) || item.Notes == null || item.Notes.Length > 10000 || item.Start.Date < MinimumDate || item.Start.Date > MaximumDate ||
-                item.Weekdays == null || item.Dates == null || !Enum.IsDefined(typeof(ReminderRepeat), item.Repeat) ||
+                item.Weekdays == null || item.Dates == null || item.ExcludedDates == null || !Enum.IsDefined(typeof(ReminderRepeat), item.Repeat) ||
                 item.Weekdays.Any(d => (int)d < 0 || (int)d > 6) ||
                 item.Dates.Any(d => d.Date < MinimumDate || d.Date > MaximumDate) ||
+                item.ExcludedDates.Any(d => d != d.Date || d < MinimumDate || d > MaximumDate) ||
                 (item.Repeat == ReminderRepeat.Weekly && item.Weekdays.Count == 0) ||
                 (item.Repeat == ReminderRepeat.Dates && item.Dates.Count == 0) ||
                 (item.Relative && (item.DurationSeconds < 1 || item.DurationSeconds > 86400 || item.Repeat != ReminderRepeat.Once)))

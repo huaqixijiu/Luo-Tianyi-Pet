@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
@@ -31,6 +31,7 @@ public partial class App : Application
             argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
         string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
+        if (e.Args.Contains("--qa-planner", StringComparer.OrdinalIgnoreCase)) instanceId += ".Planner";
         if (e.Args.Contains("--qa-recycle-direction", StringComparer.OrdinalIgnoreCase))
         {
             instanceId += ".RecycleDirection";
