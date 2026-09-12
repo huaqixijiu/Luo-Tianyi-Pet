@@ -23,6 +23,11 @@ public partial class App : Application
             argument.StartsWith("--preview-", StringComparison.OrdinalIgnoreCase) ||
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
         string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
+        if (e.Args.Contains("--qa-recycle-direction", StringComparer.OrdinalIgnoreCase))
+        {
+            instanceId += ".RecycleDirection";
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+        }
         if (e.Args.Contains("--qa-animation-edges", StringComparer.OrdinalIgnoreCase))
         {
             instanceId += ".AnimationEdges";

@@ -643,6 +643,10 @@ public partial class MainWindow : Window
         {
             _ = RunFishingQaAsync();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-recycle-direction"))
+        {
+            _ = RunRecycleDirectionQaAsync();
+        }
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-animation-edges"))
         {
             _ = RunAnimationEdgesQaAsync();
@@ -3050,6 +3054,13 @@ public partial class MainWindow : Window
 
         try
         {
+            // Recycling stickers contain text. Clear both the body/chase and
+            // edge-preview transforms before publishing their first frame.
+            if (animationId is FileDropPromptAnimation or FileDropSuccessAnimation)
+            {
+                ApplyBodyReactionMirror(false);
+                SetEdgeMirror(false);
+            }
             AnimationAssetManifest manifest = _animationPlayer.Play(
                 animationId,
                 completed,

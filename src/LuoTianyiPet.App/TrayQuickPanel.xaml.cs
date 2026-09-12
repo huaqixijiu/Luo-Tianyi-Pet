@@ -40,7 +40,9 @@ public partial class TrayQuickPanel : Window
         PositionNearAnchor(anchor);
         Opacity = 1;
         Activate();
-        ShowPetButton.Focus();
+        // Mouse-opened menus start neutral; Tab/arrow navigation supplies keyboard focus.
+        FocusManager.SetFocusedElement(this, this);
+        Keyboard.Focus(this);
     }
 
     public void HidePanel() => Hide();

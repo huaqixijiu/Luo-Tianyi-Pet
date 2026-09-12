@@ -585,6 +585,7 @@
       "dropRegion": "current-visible-pet-image-bounds",
       "minimumHoverBeforeDropMilliseconds": 400,
       "dragEnterAnimation": "resonance-give-me",
+      "promptAndSuccessAlwaysFaceForward": true,
       "playPromptOnceAndHoldLastFrame": true,
       "showRecycleDropHighlight": false,
       "dropAction": "move-to-windows-recycle-bin",
