@@ -2,7 +2,7 @@
 
 ## 结论与边界
 
-本机 QQ 9.9.31.49738 的普通私聊会主动产生 Windows Toast，提供独立的昵称标题；无需悬停托盘。0.1.0.60 的安装版存在通知对象跨线程和空图标两个故障，导致自动详情没有到达显示层。0.1.0.61 已修复并安装，最终真实私聊显示仍在核对。
+本机 QQ 9.9.31.49738 的普通私聊会主动产生 Windows Toast，提供独立的昵称标题；无需悬停托盘。0.1.0.60 的安装版存在通知对象跨线程和空图标两个故障，导致自动详情没有到达显示层。0.1.0.61 已修复并安装，用户随后明确确认昵称已自动显示，并提供实际桌面截图，后台私聊显示验收通过。
 
 Windows Toast 的事件次数不等于真实未读总数。本轮只确认自动昵称来源；精确未读数仍只能在 QQ 原生托盘卡已展开且公开结构可靠时补充。没有读取消息正文、缓存、数据库或私有接口，没有自动移动鼠标。
 
@@ -21,7 +21,7 @@ Windows Toast 的事件次数不等于真实未读总数。本轮只确认自动
 2. 实测 QQ 的 `DisplayInfo.GetLogo` 返回 null，昵称标题仍有效。旧代码在 `OpenReadAsync` 空引用，连同详情一起丢掉；现把空图标视为可选字段缺失，保留昵称，界面使用已有来源字母图标。
 3. 单文本元素可能是正文，现先检查至少两个文本元素才读取首项，而不是先读后丢弃。
 
-修复后在 net48 实机直接检查：`TitleLength=4; LogoNull=True; MTA done count=10; Production event TitleLength=4; Production done; STA second count=10`。只记录长度和数量。正式解析器已经能在无图标条件下向消费方派发详情，最终仍需真实新消息端到端验收。
+修复后在 net48 实机直接检查：`TitleLength=4; LogoNull=True; MTA done count=10; Production event TitleLength=4; Production done; STA second count=10`。只记录长度和数量。正式解析器已经能在无图标条件下向消费方派发详情，用户随后已确认真实新消息自动显示昵称，端到端验收通过。
 
 ## 验证与发布
 
@@ -34,3 +34,7 @@ Windows Toast 的事件次数不等于真实未读总数。本轮只确认自动
 ## 官方接口依据
 
 微软的 [Notification listener 文档](https://learn.microsoft.com/en-us/windows/apps/develop/notifications/app-notifications/notification-listener) 说明 `GetNotificationsAsync(NotificationKinds.Toast)` 提供当前系统应用通知，可通过通知对象访问应用元数据和结构化文本。本机 QQ 是否产生该通知、标题是否可用，以本页实测为准。
+
+## 后续范围讨论
+
+用户询问正文或未读消息次数的可行性，尚未决定开启正文读取。系统通知的后续结构化文本元素可作为通知预览来源，但本轮未读取其值，不保证完整聊天正文。可统计桌宠捕获的新通知次数；该数值不是 QQ 真实未读总数，不能以“未读 N 条”呈现。真实未读总数仍只有已验证的展开托盘卡通道。
