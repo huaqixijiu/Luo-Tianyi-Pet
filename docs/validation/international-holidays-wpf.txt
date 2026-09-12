@@ -1,0 +1,20 @@
+PASS rendered month
+PASS rendered holidays-6
+PASS rendered holidays-11
+PASS rendered holidays-12
+PASS rendered week
+PASS rendered alarms
+PASS rendered alarm-editor
+PASS editor rejects over 24 hours without changing data
+PASS actual editor creates and saves relative alarm and last duration
+PASS rendered workdays
+PASS minimum width and singleton navigation
+PASS real persistent data roundtrip
+PASS offline lunar date
+PASS real scheduler fires and persists pending reminder
+PASS unknown foreground, fullscreen and protected game suppress presentation
+PASS locked session suppresses presentation
+PASS automatic reminder preserves foreground focus
+PASS due card shows title, full notes and actions
+PASS safety transition immediately hides card without losing pending data
+PASS dismiss persisted

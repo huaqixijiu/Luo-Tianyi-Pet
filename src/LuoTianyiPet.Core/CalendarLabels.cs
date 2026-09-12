@@ -25,8 +25,19 @@ public static class CalendarLabels
         if (day < ReminderSchedule.MinimumDate || day > ReminderSchedule.MaximumDate) return "";
         List<string> labels = [];
         string? fixedHoliday = day.ToString("MM-dd") switch
-        { "01-01" => "元旦", "05-01" => "劳动节", "06-01" => "儿童节", "10-01" => "国庆节", _ => null };
+        {
+            "01-01" => "元旦", "02-14" => "情人节", "04-01" => "愚人节",
+            "05-01" => "劳动节", "06-01" => "儿童节", "10-01" => "国庆节",
+            "10-31" => "万圣夜", "11-01" => "万圣节",
+            "12-24" => "平安夜", "12-25" => "圣诞节", _ => null
+        };
         if (fixedHoliday != null) labels.Add(fixedHoliday);
+        // Common May/June convention; Thanksgiving explicitly uses the US date.
+        // These labels do not participate in work/rest-day scheduling.
+        int weekOrdinal = (day.Day - 1) / 7 + 1;
+        if (day.Month == 5 && day.DayOfWeek == DayOfWeek.Sunday && weekOrdinal == 2) labels.Add("母亲节");
+        if (day.Month == 6 && day.DayOfWeek == DayOfWeek.Sunday && weekOrdinal == 3) labels.Add("父亲节");
+        if (day.Month == 11 && day.DayOfWeek == DayOfWeek.Thursday && weekOrdinal == 4) labels.Add("感恩节（美国）");
         int year = Lunar.GetYear(day), month = Lunar.GetMonth(day), date = Lunar.GetDayOfMonth(day);
         int leap = Lunar.GetLeapMonth(year);
         bool leapMonth = leap != 0 && month == leap;

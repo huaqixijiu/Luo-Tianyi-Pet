@@ -41,6 +41,19 @@ public partial class MainWindow
                 checks.Add("PASS rendered " + name);
             }
             Capture("month");
+            if (Environment.GetCommandLineArgs().Contains("--qa-calendar-holidays"))
+            {
+                var dateField = typeof(PlannerWindow).GetField("_date", BindingFlags.NonPublic | BindingFlags.Instance)!;
+                await service.ChangeAsync(b => b.WeekView = true);
+                foreach (var holidayDate in new[] { new DateTime(2026, 6, 21), new DateTime(2026, 11, 26), new DateTime(2026, 12, 25) })
+                {
+                    dateField.SetValue(window, holidayDate);
+                    window.Navigate(false);
+                    Capture("holidays-" + holidayDate.Month);
+                }
+                await service.ChangeAsync(b => b.WeekView = false);
+                dateField.SetValue(window, DateTime.Today); window.Navigate(false);
+            }
             await service.ChangeAsync(b => b.WeekView = true); Capture("week");
             window.Navigate(true); Capture("alarms");
             typeof(PlannerWindow).GetMethod("Edit", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(window, new object?[] { null, false });
