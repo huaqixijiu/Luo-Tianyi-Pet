@@ -110,6 +110,11 @@ public partial class App : Application
                 StringComparer.OrdinalIgnoreCase);
             CrystalLongIdlePreviewMode previewLongIdle =
                 CrystalLongIdlePreviewModeParser.Parse(e.Args);
+            CrystalSleepDecoration? previewLongIdleDecoration =
+                CrystalSleepDecorationPreviewParser.Parse(e.Args);
+            bool previewLongIdleRightEdge = e.Args.Contains(
+                "--qa-long-idle-right-edge",
+                StringComparer.OrdinalIgnoreCase);
             bool previewGenshinLaunch = e.Args.Contains(
                 "--qa-genshin-launch",
                 StringComparer.OrdinalIgnoreCase);
@@ -215,6 +220,8 @@ public partial class App : Application
                 previewTray,
                 previewSystemResume,
                 previewLongIdle,
+                previewLongIdleDecoration,
+                previewLongIdleRightEdge,
                 previewGenshinLaunch,
                 previewGenshinCameo,
                 previewBunChase,

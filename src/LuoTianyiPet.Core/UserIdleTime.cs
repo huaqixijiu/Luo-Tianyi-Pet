@@ -126,6 +126,33 @@ public enum CrystalSleepDecoration
     DreamYuezhengLing,
 }
 
+public static class CrystalSleepDecorationPreviewParser
+{
+    private const string ArgumentName = "--qa-long-idle-decoration";
+
+    public static CrystalSleepDecoration? Parse(IEnumerable<string> arguments)
+    {
+        if (arguments is null)
+        {
+            throw new ArgumentNullException(nameof(arguments));
+        }
+
+        string? value = arguments
+            .FirstOrDefault(argument => argument.StartsWith(
+                ArgumentName + "=",
+                StringComparison.OrdinalIgnoreCase))?
+            .Substring(ArgumentName.Length + 1);
+        return value?.ToLowerInvariant() switch
+        {
+            "zzz" => CrystalSleepDecoration.Zzz,
+            "bun" or "dream-bun" => CrystalSleepDecoration.DreamBun,
+            "yuezhengling" or "ling" or "dream-yuezhengling" =>
+                CrystalSleepDecoration.DreamYuezhengLing,
+            _ => null,
+        };
+    }
+}
+
 public sealed class CrystalLongIdleSelector
 {
     private readonly Func<int, int, int> _next;
