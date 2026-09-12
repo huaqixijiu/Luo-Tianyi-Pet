@@ -10,7 +10,6 @@ using System.Windows.Threading;
 using LuoTianyiPet.Core;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using MenuItem = System.Windows.Controls.MenuItem;
-using Pen = System.Windows.Media.Pen;
 using Cursors = System.Windows.Input.Cursors;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
@@ -242,36 +241,21 @@ public sealed class MessageInboxWindow : Window
         return 0;
     }
 
-    private static ImageSource ProviderDrawing(MessageProvider provider)
+    private static readonly ImageSource QqArtwork = LoadProviderArtwork("notification-qq.png");
+    private static readonly ImageSource WeChatArtwork = LoadProviderArtwork("notification-wechat.png");
+    private static ImageSource ProviderDrawing(MessageProvider provider) =>
+        provider == MessageProvider.WeChat ? WeChatArtwork : QqArtwork;
+
+    private static ImageSource LoadProviderArtwork(string filename)
     {
-        DrawingGroup group = new();
-        using (var d = group.Open())
-        {
-            if (provider == MessageProvider.WeChat)
-            {
-                var green = new SolidColorBrush(Color.FromRgb(0x12,0xC4,0x61));
-                d.DrawRoundedRectangle(green,null,new(0,0,24,24),5,5);
-                d.DrawEllipse(Brushes.White,null,new(9,10),6.3,5.1);
-                d.DrawGeometry(Brushes.White,null,Geometry.Parse("M 5,13 L 4,17 L 8,15 Z"));
-                d.DrawEllipse(green,null,new(6.8,9),.8,.8); d.DrawEllipse(green,null,new(11,9),.8,.8);
-                d.DrawEllipse(Brushes.White,new Pen(green,.8),new(16,15.2),5.5,4.4);
-                d.DrawGeometry(Brushes.White,null,Geometry.Parse("M 17,18 L 21,21 L 20,17 Z"));
-                d.DrawEllipse(green,null,new(14.3,14.4),.65,.65); d.DrawEllipse(green,null,new(18,14.4),.65,.65);
-            }
-            else
-            {
-                d.DrawEllipse(Brushes.Orange,null,new(7,22),4,1.7); d.DrawEllipse(Brushes.Orange,null,new(17,22),4,1.7);
-                d.DrawEllipse(Brushes.Black,null,new(12,13),8,10); d.DrawEllipse(Brushes.Black,null,new(12,6),6,6);
-                d.DrawEllipse(Brushes.Black,null,new(4,15),2,5); d.DrawEllipse(Brushes.Black,null,new(20,15),2,5);
-                d.DrawEllipse(Brushes.White,null,new(12,16),5.8,6);
-                d.DrawEllipse(Brushes.White,null,new(9.7,5.8),1.7,2.5); d.DrawEllipse(Brushes.White,null,new(14.3,5.8),1.7,2.5);
-                d.DrawEllipse(Brushes.Black,null,new(10,6),.6,1); d.DrawEllipse(Brushes.Black,null,new(14,6),.6,1);
-                d.DrawEllipse(Brushes.Orange,null,new(12,9),3.8,1.5);
-                d.DrawRoundedRectangle(Brushes.Red,null,new(5,10.5,14,2.8),1,1);
-                d.DrawRectangle(Brushes.Red,null,new(15,12,3,5));
-            }
-        }
-        group.Freeze(); var image = new DrawingImage(group); image.Freeze(); return image;
+        var image = new System.Windows.Media.Imaging.BitmapImage();
+        image.BeginInit();
+        image.UriSource = new Uri("pack://application:,,,/assets/ui/" + filename, UriKind.Absolute);
+        image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+        image.DecodePixelWidth = 128;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
     [StructLayout(LayoutKind.Sequential)] private struct NativePoint { public int X,Y; }
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out NativePoint point);

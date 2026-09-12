@@ -1,0 +1,36 @@
+{
+  "source": "候选素材_官方/微信QQ.png",
+  "method": "imagegen transparent background extraction; upper-left recommended flat variants; preserve generated alpha; no runtime vector redraw",
+  "display": "24 DIP, embedded PNG, decode 128px once, frozen shared bitmap",
+  "assets": {
+    "notification-qq.png": {
+      "sha256": "6764bb78221939d5bb05dcdb183ba6acfb28d46b54842a86baff10e8117d5c7d",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alphaBounds": [
+        47,
+        74,
+        1236,
+        1204
+      ],
+      "transparentPixels": 714209
+    },
+    "notification-wechat.png": {
+      "sha256": "2b4707da5f40be090f4a358a07114edc7e8d423769b244b1ade093bd8cc9aab9",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alphaBounds": [
+        0,
+        53,
+        1222,
+        1174
+      ],
+      "transparentPixels": 909629
+    }
+  },
+  "sourceSha256": "87f290e96a6d3a03320c3af83a24114ce638e311202cb5e99641e37f067afede"
+}
