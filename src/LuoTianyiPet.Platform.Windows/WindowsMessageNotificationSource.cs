@@ -14,7 +14,6 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
     private readonly MessageProviderMatcher _matcher;
     private readonly SemaphoreSlim _pollGate = new(1, 1);
     private readonly NotificationIdSnapshotTracker _snapshotTracker = new();
-    private UserNotificationListener? _listener;
     private Timer? _pollTimer;
     private bool _started;
     private bool _disposed;
@@ -36,8 +35,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
         try
         {
-            _listener ??= UserNotificationListener.Current;
-            return Map(_listener.GetAccessStatus());
+            return Map(UserNotificationListener.Current.GetAccessStatus());
         }
         catch (Exception exception) when (IsRecoverablePlatformException(exception))
         {
@@ -55,8 +53,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
         try
         {
-            _listener ??= UserNotificationListener.Current;
-            UserNotificationListenerAccessStatus status = await _listener.RequestAccessAsync();
+            UserNotificationListenerAccessStatus status = await UserNotificationListener.Current.RequestAccessAsync();
             return Map(status);
         }
         catch (Exception exception) when (IsRecoverablePlatformException(exception))
@@ -120,8 +117,10 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
 
         try
         {
-            _listener ??= UserNotificationListener.Current;
-            IReadOnlyList<UserNotification> notifications = await _listener.GetNotificationsAsync(
+            // The net48 WinRT listener is apartment-bound. Never reuse the UI thread's
+            // permission-check instance in this thread-pool poll (RPC_E_WRONG_THREAD).
+            UserNotificationListener listener = UserNotificationListener.Current;
+            IReadOnlyList<UserNotification> notifications = await listener.GetNotificationsAsync(
                 NotificationKinds.Toast);
             if (_disposed || !_started)
             {
@@ -142,7 +141,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         }
         catch (Exception exception) when (IsRecoverablePlatformException(exception))
         {
-            _listener = null;
+            // The next poll obtains a fresh listener in its own apartment.
         }
         catch (Exception)
         {
@@ -193,7 +192,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         }
 
         IReadOnlyList<AdaptiveNotificationText> elements = binding.GetTextElements();
-        string? firstText = elements.Count > 0 ? elements[0].Text : null;
+        string? firstText = elements.Count >= 2 ? elements[0].Text : null;
         return NotificationConversationTitleSelector.Select(elements.Count, firstText);
     }
 
@@ -201,8 +200,11 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
     {
         try
         {
-            RandomAccessStreamReference logoReference = notification.AppInfo.DisplayInfo.GetLogo(
+            RandomAccessStreamReference? logoReference = notification.AppInfo.DisplayInfo.GetLogo(
                 new Size(48, 48));
+            // QQ may provide a valid title with no logo. The optional image must not
+            // discard that notification's text metadata.
+            if (logoReference is null) return null;
             using IRandomAccessStreamWithContentType stream = await logoReference.OpenReadAsync();
             if (stream.Size is 0 or > MaximumIconBytes)
             {
@@ -243,6 +245,7 @@ public sealed class WindowsMessageNotificationSource : IMessageNotificationSourc
         exception.HResult is unchecked((int)0x800706BA) or
             unchecked((int)0x800706BE) or
             unchecked((int)0x80010108) or
+            unchecked((int)0x8001010E) or
             unchecked((int)0x803E0105);
 
     private void ThrowIfDisposed()
