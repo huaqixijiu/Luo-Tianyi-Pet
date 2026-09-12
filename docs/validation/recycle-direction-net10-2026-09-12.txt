@@ -1,0 +1,64 @@
+PASS 100% body: Give-me starts upright in both transform layers
+PASS 100% body: repeated DragOver does not restart prompt
+PASS 100% body: prompt holds upright after playback
+PASS 100% body: leaving releases prompt and cursor
+PASS 100% body: recycle success is also upright
+PASS 100% chase: Give-me starts upright in both transform layers
+PASS 100% chase: repeated DragOver does not restart prompt
+PASS 100% chase: prompt holds upright after playback
+PASS 100% chase: leaving releases prompt and cursor
+PASS 100% chase: recycle success is also upright
+PASS 100% edge: Give-me starts upright in both transform layers
+PASS 100% edge: repeated DragOver does not restart prompt
+PASS 100% edge: prompt holds upright after playback
+PASS 100% edge: leaving releases prompt and cursor
+PASS 100% edge: recycle success is also upright
+PASS 100% both: Give-me starts upright in both transform layers
+PASS 100% both: repeated DragOver does not restart prompt
+PASS 100% both: prompt holds upright after playback
+PASS 100% both: leaving releases prompt and cursor
+PASS 100% both: recycle success is also upright
+PASS 150% body: Give-me starts upright in both transform layers
+PASS 150% body: repeated DragOver does not restart prompt
+PASS 150% body: prompt holds upright after playback
+PASS 150% body: leaving releases prompt and cursor
+PASS 150% body: recycle success is also upright
+PASS 150% chase: Give-me starts upright in both transform layers
+PASS 150% chase: repeated DragOver does not restart prompt
+PASS 150% chase: prompt holds upright after playback
+PASS 150% chase: leaving releases prompt and cursor
+PASS 150% chase: recycle success is also upright
+PASS 150% edge: Give-me starts upright in both transform layers
+PASS 150% edge: repeated DragOver does not restart prompt
+PASS 150% edge: prompt holds upright after playback
+PASS 150% edge: leaving releases prompt and cursor
+PASS 150% edge: recycle success is also upright
+PASS 150% both: Give-me starts upright in both transform layers
+PASS 150% both: repeated DragOver does not restart prompt
+PASS 150% both: prompt holds upright after playback
+PASS 150% both: leaving releases prompt and cursor
+PASS 150% both: recycle success is also upright
+PASS 200% body: Give-me starts upright in both transform layers
+PASS 200% body: repeated DragOver does not restart prompt
+PASS 200% body: prompt holds upright after playback
+PASS 200% body: leaving releases prompt and cursor
+PASS 200% body: recycle success is also upright
+PASS 200% chase: Give-me starts upright in both transform layers
+PASS 200% chase: repeated DragOver does not restart prompt
+PASS 200% chase: prompt holds upright after playback
+PASS 200% chase: leaving releases prompt and cursor
+PASS 200% chase: recycle success is also upright
+PASS 200% edge: Give-me starts upright in both transform layers
+PASS 200% edge: repeated DragOver does not restart prompt
+PASS 200% edge: prompt holds upright after playback
+PASS 200% edge: leaving releases prompt and cursor
+PASS 200% edge: recycle success is also upright
+PASS 200% both: Give-me starts upright in both transform layers
+PASS 200% both: repeated DragOver does not restart prompt
+PASS 200% both: prompt holds upright after playback
+PASS 200% both: leaving releases prompt and cursor
+PASS 200% both: recycle success is also upright
+PASS Other intentional body mirrors remain available
+PASS Edge docking retains its own mirror
+PASS Locked/unavailable session still rejects file drop
+PASS Rejected prompt does not change higher-priority artwork direction
