@@ -68,6 +68,18 @@ assert(
   "mode three must show classic interactions and hide mode-two-only rules",
 );
 const shared = executePicker(null, "shared");
+for (const title of ["心律共鸣 · 给我", "心律共鸣 · 大成功"]) {
+  assert(!current.elements.get("usedOverviewList").innerHTML.includes(title),
+    `mode one must not expose disabled file-drop animation: ${title}`);
+  assert(!shared.elements.get("usedOverviewList").innerHTML.includes(title),
+    `file-drop animations are no longer shared by all three modes: ${title}`);
+  for (const mode of [modeTwo, modeThree]) {
+    assert(mode.elements.get("usedOverviewList").innerHTML.includes(title),
+      `modes two and three must retain file-drop animation: ${title}`);
+  }
+  assert(current.elements.get("grid").innerHTML.includes(title),
+    `shared source assets must remain in the full candidate library: ${title}`);
+}
 assert(
   shared.elements.get("usedOverviewList").innerHTML.includes("代号洛天依 · 好奇摇摆") &&
     shared.elements.get("usedOverviewList").innerHTML.includes("持续显示 30 秒") &&

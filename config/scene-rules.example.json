@@ -565,6 +565,8 @@
     },
     "desktopFileDrop": {
       "enabled": true,
+      "enabledAppearanceStyles": ["full-body-crystal-dress", "full-body-classic-cat-ears"],
+      "disabledAppearanceStyles": ["full-body-long-hair"],
       "enabledIndependentlyFromDesktopBunAnimation": true,
       "detectionMode": "window-ole-drop-target-only",
       "acceptedDataFormat": "CF_HDROP-real-filesystem-items-only",

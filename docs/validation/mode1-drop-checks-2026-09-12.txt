@@ -1,0 +1,22 @@
+PASS mode one rejects safe Explorer drag environment
+PASS mode one keeps independent bun environment
+PASS mode one cannot start give-me presentation
+PASS mode one Drop is handled with None and zero recycle calls
+PASS full-body-crystal-dress retains safe Explorer target
+PASS full-body-crystal-dress retains give-me
+PASS full-body-crystal-dress fails closed on foreground query failure
+PASS full-body-crystal-dress rejects protected game
+PASS full-body-classic-cat-ears retains safe Explorer target
+PASS full-body-classic-cat-ears retains give-me
+PASS full-body-classic-cat-ears fails closed on foreground query failure
+PASS full-body-classic-cat-ears rejects protected game
+PASS switch to mode one clears prompt and target
+PASS mode two synthetic drop point meets dwell and hit requirements
+PASS mode two dispatches to mock only
+PASS in-flight completion cannot show success after switching to mode one
+PASS full-body-crystal-dress retains big-success feedback
+PASS full-body-crystal-dress success is cleared when switching to mode one
+PASS full-body-classic-cat-ears retains big-success feedback
+PASS full-body-classic-cat-ears success is cleared when switching to mode one
+PASS no real file was touched
+PASS switch to mode one while music is active restores music instead of stale give-me

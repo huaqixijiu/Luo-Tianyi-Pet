@@ -90,6 +90,9 @@ public static class AppearanceOptionIds
 
     public static bool UsesExpansionDragAnimation(string? style) =>
         NormalizeFullBodyStyle(style) == FullBodyClassicCatEars;
+
+    public static bool AllowsFileDropRecycling(string? style) =>
+        NormalizeFullBodyStyle(style) is FullBodyCrystalDress or FullBodyClassicCatEars;
 }
 
 public enum FullBodyInteractionMode

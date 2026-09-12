@@ -4130,6 +4130,18 @@ public partial class MainWindow : Window
         _bodyHitMap = ResolveBodyHitMap(fullBodyAnimation);
         RestoreIdleWhenHeheIsNotEligible();
 
+        bool fileDropPresentationCancelled = false;
+        if (!AppearanceOptionIds.AllowsFileDropRecycling(normalized.FullBodyStyle))
+        {
+            fileDropPresentationCancelled = _fileDragPresentationActive;
+            FinishFileDragPresentation(restoreContinuousAnimation: false);
+            if (_stateMachine.Resolve(DateTimeOffset.Now).AnimationId == FileDropSuccessAnimation)
+            {
+                _stateMachine.CancelActiveReaction();
+                fileDropPresentationCancelled = true;
+            }
+        }
+
         bool appearanceChanged = !string.Equals(
             previousFullBodyAnimation,
             fullBodyAnimation,
@@ -4144,10 +4156,10 @@ public partial class MainWindow : Window
             _bodyInteractionResolver.ResetConsecutivePairs();
         }
         bool scaleChanged = previousScale != normalized.DisplayScalePercent;
-        if (appearanceChanged &&
+        if (fileDropPresentationCancelled || (appearanceChanged &&
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
             _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle &&
-            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
+            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous))
         {
             _ = TransitionToResolvedContinuousAnimationAsync("settings.appearance_changed");
         }
@@ -5674,7 +5686,15 @@ public partial class MainWindow : Window
             _logger.Info(
                 "file_drop.recycled",
                 $"Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
-            _ = PlayReactionAsync(FileDropSuccessAnimation, ReactionPriority.UserInteraction);
+            // A recycle operation started in another appearance may finish after switching.
+            if (AppearanceOptionIds.AllowsFileDropRecycling(_settings.Appearance.FullBodyStyle))
+            {
+                _ = PlayReactionAsync(FileDropSuccessAnimation, ReactionPriority.UserInteraction);
+            }
+            else
+            {
+                PlayResolvedContinuousAnimation();
+            }
             return;
         }
 
@@ -5735,7 +5755,8 @@ public partial class MainWindow : Window
 
     private bool IsFileDropEnvironmentSafe()
     {
-        if (_isClosing || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
+        if (!AppearanceOptionIds.AllowsFileDropRecycling(_settings.Appearance.FullBodyStyle) ||
+            _isClosing || _systemSessionUnavailable || _edgeDockSide != EdgeDockSide.None ||
             _isWindowDragging || _foregroundApplicationProbe is null)
         {
             return false;
@@ -5808,7 +5829,8 @@ public partial class MainWindow : Window
 
     private void StartFileDragPresentation()
     {
-        if (_isClosing)
+        if (_isClosing ||
+            !AppearanceOptionIds.AllowsFileDropRecycling(_settings.Appearance.FullBodyStyle))
         {
             return;
         }
