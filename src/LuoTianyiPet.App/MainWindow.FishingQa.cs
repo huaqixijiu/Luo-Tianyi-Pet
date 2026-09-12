@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using LuoTianyiPet.Core;
 
 namespace LuoTianyiPet.App;
@@ -50,6 +51,18 @@ public partial class MainWindow
             Check(start.HasValue && start == _fishingCountdownStartedTimestamp,
                 "Movement does not restart the countdown clock");
             CaptureQuickActionsQa(this, Path.Combine(directory, "white-background.png"));
+            foreach (int scale in new[] { 100, 150, 200 })
+            foreach (string color in new[] { "#0756B8", "#161A26" })
+            {
+                Root.Background = (System.Windows.Media.Brush)new BrushConverter().ConvertFromString(color)!;
+                SetDisplayScalePercent(scale, false);
+                await Task.Delay(100);
+                Check(_animationPlayer?.CurrentAnimationId == PetVisualState.MediumIdleCountdownAnimation,
+                    $"Fishing stays active at {scale}% on {color}");
+                CaptureQuickActionsQa(this, Path.Combine(directory, $"edge-{scale}-{color.Substring(1)}.png"));
+            }
+            Root.Background = Brushes.Transparent;
+            SetDisplayScalePercent(150, false);
 
             _fishingCountdownStartedTimestamp = Stopwatch.GetTimestamp() - 60 * Stopwatch.Frequency;
             ApplyIdleScene(TimeSpan.Zero);

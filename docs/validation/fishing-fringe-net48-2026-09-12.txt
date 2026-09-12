@@ -1,0 +1,20 @@
+PASS Fishing artwork starts at two minutes
+PASS Mouse movement and Windows idle reset do not cancel fishing
+PASS Movement does not restart the countdown clock
+PASS Fishing stays active at 100% on #0756B8
+PASS Fishing stays active at 100% on #161A26
+PASS Fishing stays active at 150% on #0756B8
+PASS Fishing stays active at 150% on #161A26
+PASS Fishing stays active at 200% on #0756B8
+PASS Fishing stays active at 200% on #161A26
+PASS Sixty seconds completes into Hehe despite mouse movement
+PASS Hehe is not immediately cancelled by the next input poll
+PASS Fishing artwork starts at two minutes
+PASS Actual pet left-button handler exits fishing
+PASS Next poll does not restore a cancelled countdown
+PASS Fishing artwork starts at two minutes
+PASS Direct drag enters dragging
+PASS Drag release restores idle instead of fishing
+PASS Fishing artwork starts at two minutes
+PASS New countdown receives a fresh monotonic start time
+PASS Music retains priority

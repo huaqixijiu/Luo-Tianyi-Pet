@@ -6,7 +6,7 @@
     "output": "assets/animations/processed/十周年生日_摸鱼一分钟_精确60秒.gif",
     "outputSha256": "35f619e889e1bf1891c8684c7e00b2729bf8d21816eb4e43ae3f57b18ab6dcc2",
     "runtimeSource": "assets/animations/processed/十周年生日_摸鱼一分钟_透明无损.webp",
-    "runtimeSourceSha256": "30b0fd828bc4b80ae75be4a492a161c7423ee31ba2287ce027779e60183fb609",
+    "runtimeSourceSha256": "530801f29d15578a87b09db124ad026a52cfe3f7c7cfb50b97c86b29d28794cf",
     "sourceFrameIndices": [
       1,
       2,
@@ -176,7 +176,7 @@
       "transparentPaletteIndex": 0,
       "foregroundEncoding": "exact RGB lookup; opaque white uses a separate nonzero index; no quantization",
       "protectedRegion": "all pixels outside the audited background components, including bottom-border clothing",
-      "runtimeEdgeMatte": "only light boundary antialias pixels; recover nearby ink and alpha with white-recomposition channel error <= 3; lossless RGBA WebP"
+      "runtimeEdgeMatte": "all boundary antialias shades; 3px ink neighborhood, fitting tolerance 8, source-RGB white unmatting with recomposition channel error <= 1; interior colors/white untouched; lossless RGBA WebP"
     }
   },
   "oneClickSinging": {

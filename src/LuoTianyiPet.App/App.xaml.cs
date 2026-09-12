@@ -26,6 +26,7 @@ public partial class App : Application
         if (e.Args.Contains("--qa-fishing", StringComparer.OrdinalIgnoreCase))
         {
             instanceId = $"{ApplicationId}.QA.Fishing";
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         }
         if (e.Args.Contains("--qa-drag-edges", StringComparer.OrdinalIgnoreCase))
         {

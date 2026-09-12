@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0.65',
+    [string]$Version = '0.1.0.66',
     [ValidateSet('Net10SelfContained', 'NetFramework48')]
     [string]$Framework = 'NetFramework48'
 )

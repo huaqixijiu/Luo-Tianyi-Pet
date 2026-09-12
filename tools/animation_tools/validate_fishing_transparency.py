@@ -7,7 +7,7 @@ from pathlib import Path
 from PIL import Image, ImageSequence
 
 from compile_animation_atlases import webp_frame_durations
-from fishing_transparency import BACKGROUND_SEEDS
+from fishing_transparency import BACKGROUND_SEEDS, fishing_background_mask
 
 
 def validate(root: Path) -> None:
@@ -27,6 +27,7 @@ def validate(root: Path) -> None:
     stats = {"frames": 69, "durationMilliseconds": 60000, "opaquePixelsPreserved": 0,
              "opaqueWhitePixelsPreserved": 0, "antialiasPixels": 0, "backgroundPixelsRemoved": 0}
     for index, (original, frame) in enumerate(zip(originals, frames, strict=True)):
+        background_mask = fishing_background_mask(original)
         assert frame.size == original.size == (240, 240)
         for point in BACKGROUND_SEEDS:
             assert frame.getpixel(point)[3] == 0, (index, "background seed", point)
@@ -43,9 +44,12 @@ def validate(root: Path) -> None:
                 stats["opaquePixelsPreserved"] += 1
                 stats["opaqueWhitePixelsPreserved"] += before[:3] == (255, 255, 255)
             else:
-                assert min(before[:3]) >= 190, (index, position, "modified solid ink")
+                x, y = position % 240, position // 240
+                assert any(background_mask[b * 240 + a]
+                           for b in range(max(0, y-1), min(240, y+2))
+                           for a in range(max(0, x-1), min(240, x+2))), (index, position, "modified interior artwork")
                 reconstructed = [round(c * after[3] / 255 + 255 - after[3]) for c in after[:3]]
-                assert max(abs(a-b) for a, b in zip(before[:3], reconstructed)) <= 4, (index, position, "edge color drift")
+                assert max(abs(a-b) for a, b in zip(before[:3], reconstructed)) <= 1, (index, position, "edge color drift")
                 stats["antialiasPixels"] += 1
         assert sum(1 for p in frame.crop((0, 0, 240, 78)).getdata() if p[3]) > 4500
         assert sum(1 for p in frame.crop((50, 185, 140, 240)).getdata() if p == (255, 255, 255, 255)) > 750
@@ -61,8 +65,8 @@ def validate(root: Path) -> None:
             background = Image.new("RGBA", (240, 240), color)
             background.alpha_composite(frames[index])
             review.paste(background.convert("RGB"), (column * 240, row * 240))
-    review.save(directory / "fishing-transparent-backgrounds-2026-09-12.png")
-    (directory / "fishing-transparency-pixels-2026-09-12.json").write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
+    review.save(directory / "fishing-fringe-backgrounds-2026-09-12.png")
+    (directory / "fishing-fringe-pixels-2026-09-12.json").write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(stats))
     print("PASS source hash, 69 frames, 60 seconds, foreground colors/white parts, antialias reconstruction, actual atlas")
 

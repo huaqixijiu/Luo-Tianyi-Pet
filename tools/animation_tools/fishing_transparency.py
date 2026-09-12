@@ -58,10 +58,10 @@ def prepare_fishing_frame(frame: Image.Image) -> Image.Image:
 
 
 def prepare_fishing_rgba(frame: Image.Image) -> Image.Image:
-    """Unmatte only the light antialias fringe next to audited empty canvas.
+    """Unmatte the complete antialias fringe next to audited empty canvas.
 
     Keep solid artwork byte-exact. For a fringe pixel, find a nearby ink color
-    that explains it as ink composited over white (maximum channel error 3).
+    that explains it as ink composited over white (maximum fitting error 8).
     Recover fractional coverage rather than deleting the pixel or retaining a
     white halo. This requires lossless RGBA output, not GIF's one-bit alpha.
     """
@@ -76,14 +76,14 @@ def prepare_fishing_rgba(frame: Image.Image) -> Image.Image:
                 output[x, y] = (0, 0, 0, 0)
                 continue
             color = pixels[x, y]
-            if min(color) < 190 or color == (255, 255, 255):
+            if color == (255, 255, 255):
                 continue
             if not any(mask[b * 240 + a] for b in range(max(0, y - 1), min(240, y + 2))
                        for a in range(max(0, x - 1), min(240, x + 2))):
                 continue
             candidates = []
-            for b in range(max(0, y - 2), min(240, y + 3)):
-                for a in range(max(0, x - 2), min(240, x + 3)):
+            for b in range(max(0, y - 3), min(240, y + 4)):
+                for a in range(max(0, x - 3), min(240, x + 4)):
                     ink = pixels[a, b]
                     if mask[b * 240 + a] or min(ink) >= min(color) - 15:
                         continue
@@ -92,14 +92,20 @@ def prepare_fishing_rgba(frame: Image.Image) -> Image.Image:
                     if not 0.01 < alpha < 0.95:
                         continue
                     error = max(abs(c - (255 - alpha*d)) for c, d in zip(color, ink_distance))
-                    if error > 3:
+                    if error > 8:
                         continue
                     # Prefer solid ink over another nearly-white fringe sample;
                     # using a fringe as ink would leave dotted white halos.
                     candidates.append((min(ink), (a-x)**2 + (b-y)**2 + error, ink, alpha))
             if candidates:
                 _, _, ink, alpha = min(candidates)
-                output[x, y] = (*ink, max(1, round(alpha * 255)))
+                # Undo the white matte per channel instead of copying the
+                # reference color. The local ink estimates coverage only;
+                # the source pixel determines its recovered foreground color.
+                alpha_byte = max(1, round(alpha * 255), 255 - min(color))
+                recovered = tuple(max(0, min(255, round(
+                    255 + (channel - 255) * 255 / alpha_byte))) for channel in color)
+                output[x, y] = (*recovered, alpha_byte)
     return result
 
 

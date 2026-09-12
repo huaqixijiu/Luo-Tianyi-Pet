@@ -220,7 +220,7 @@ def prepare(
                 "transparentPaletteIndex": 0,
                 "foregroundEncoding": "exact RGB lookup; opaque white uses a separate nonzero index; no quantization",
                 "protectedRegion": "all pixels outside the audited background components, including bottom-border clothing",
-                "runtimeEdgeMatte": "only light boundary antialias pixels; recover nearby ink and alpha with white-recomposition channel error <= 3; lossless RGBA WebP",
+                "runtimeEdgeMatte": "all boundary antialias shades; 3px ink neighborhood, fitting tolerance 8, source-RGB white unmatting with recomposition channel error <= 1; interior colors/white untouched; lossless RGBA WebP",
             },
         },
         "oneClickSinging": {
