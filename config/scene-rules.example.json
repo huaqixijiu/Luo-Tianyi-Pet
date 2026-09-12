@@ -588,16 +588,24 @@
       "style": "tianyi-blue-dialog-pill-with-yi-badge",
       "placement": "shared-track-info-slot-never-over-pet",
       "criticalFeedbackTemporarilyReplacesTrackInfo": true,
-      "routineSuccessUsesAnimationOrControlStateOnly": true
+      "routineSuccessUsesAnimationOrControlStateOnly": true,
+      "progressDelayMilliseconds": 1000,
+      "failureDurationMilliseconds": 4000,
+      "briefDurationMilliseconds": 2000,
+      "repeatCooldownMilliseconds": 8000,
+      "updateProgressInPlace": true,
+      "recycleResultsBypassCooldown": true,
+      "dropReadyPersistsUntilLeaveOrRelease": true,
+      "disableMediaButtonsDuringLaunch": true
     },
     "failureOrTimeout": {
       "animation": null,
       "bubbleOnly": true,
       "bubbleMessages": {
-        "operationFailure": "操作失败，请再试一次",
-        "timeout": "等太久了，再试一次吧",
-        "mediaNoResponse": "网易云没有响应",
-        "recycleFailure": "没有放进回收站，文件还在原处"
+        "operationFailure": "媒体控制未生效，请再试一次",
+        "timeout": "网易云暂时无法启动，请稍后重试",
+        "mediaNoResponse": "网易云已打开，但未检测到播放，请在网易云中检查",
+        "recycleFailure": "未能放入回收站，文件仍在原处"
       },
       "returnToResolvedContinuousState": true
     }

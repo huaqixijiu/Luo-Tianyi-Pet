@@ -116,6 +116,9 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _singleClickTimer;
     private readonly DispatcherTimer _musicDetectionTimer;
     private readonly DispatcherTimer _feedbackBubbleTimer;
+    private readonly FeedbackRepeatGate _feedbackRepeatGate = new();
+    private string? _cloudMusicLaunchFeedback;
+    private bool _criticalFeedbackActive;
     private readonly DispatcherTimer _mediaControlsHideTimer;
     private readonly DispatcherTimer _trackInfoRefreshTimer;
     private readonly DispatcherTimer _trackInfoHideTimer;
@@ -443,7 +446,7 @@ public partial class MainWindow : Window
         _musicDetectionTimer.Tick += OnMusicDetectionTimerTick;
         _feedbackBubbleTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromSeconds(2.4),
+            Interval = OperationFeedback.FailureDuration,
         };
         _feedbackBubbleTimer.Tick += OnFeedbackBubbleTimerTick;
         _mediaControlsHideTimer = new DispatcherTimer(DispatcherPriority.Input)
@@ -3477,7 +3480,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowFeedbackBubble("开机自启动设置没有成功，请稍后再试");
+            ShowFeedbackBubble(OperationFeedback.StartupSettingFailed);
             _logger.Info("startup.registration_rejected", result.Status.ToString());
         }
     }
@@ -4346,7 +4349,7 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             _logger.Error("settings.save_failed", exception);
-            ShowFeedbackBubble("设置暂时没有保存成功，请稍后再试");
+            ShowFeedbackBubble(OperationFeedback.SettingsSaveFailed);
         }
     }
 
@@ -4423,18 +4426,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        string message = result.Status switch
-        {
-            ApplicationVolumeAdjustmentStatus.TargetSessionMissing =>
-                "请先让网易云播放一首歌，再调节独立音量",
-            ApplicationVolumeAdjustmentStatus.ProtectedApplicationForeground =>
-                "游戏安全模式：这次没有调整网易云音量",
-            ApplicationVolumeAdjustmentStatus.ForegroundCheckUnavailable =>
-                "暂时无法确认前台程序，没有调整音量",
-            ApplicationVolumeAdjustmentStatus.SessionUnavailable =>
-                "Windows 音频服务暂时不可用",
-            _ => "Windows 没有接受这次音量调整",
-        };
+        string message = OperationFeedback.ForVolume(result.Status)!;
         ShowFeedbackBubble(message);
         RefreshCloudMusicVolumeControl(message);
     }
@@ -4544,8 +4536,8 @@ public partial class MainWindow : Window
             { IsAvailable: true, SessionCount: > 1 } =>
                 $"网易云独立音量 · {snapshot.Percentage}% · {snapshot.SessionCount} 个会话",
             { IsAvailable: true } => $"网易云独立音量 · {snapshot.Percentage}%",
-            { ProbeSucceeded: true } => "请先让网易云播放一首歌",
-            _ => "Windows 音频服务暂时不可用",
+            { ProbeSucceeded: true } => OperationFeedback.VolumeNeedsPlayback,
+            _ => OperationFeedback.VolumeFailed,
         });
     }
 
@@ -4642,7 +4634,6 @@ public partial class MainWindow : Window
     {
         if (_cloudMusicLaunchWaiting)
         {
-            ShowPersistentFeedbackBubble("网易云正在启动，等音乐响起后就会自动切换");
             return;
         }
 
@@ -4654,19 +4645,8 @@ public partial class MainWindow : Window
             "media.command_result",
             $"Command={command}; Status={result.Status}; Delivery={result.DeliveryMethod}.");
 
-        if (!result.WasSent)
+        if (OperationFeedback.ForMediaCommand(result.Status) is string message)
         {
-            string message = result.Status switch
-            {
-                MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
-                MediaCommandSendStatus.InvalidShortcut => "快捷键设置无效，请检查配置",
-                MediaCommandSendStatus.ProtectedApplicationForeground => "游戏安全模式：这次没有发送快捷键",
-                MediaCommandSendStatus.ForegroundCheckUnavailable => "暂时无法确认前台程序，请稍后再试",
-                MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
-                MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
-                MediaCommandSendStatus.SystemRejected => "系统没有接受快捷键，请再试一次",
-                _ => "没有发送快捷键",
-            };
             ShowFeedbackBubble(message);
         }
 
@@ -4761,7 +4741,6 @@ public partial class MainWindow : Window
     {
         if (_cloudMusicLaunchWaiting)
         {
-            ShowPersistentFeedbackBubble("网易云正在启动，等音乐响起后就会自动切换");
             return;
         }
 
@@ -4780,19 +4759,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        string message = launchResult.Status switch
-        {
-            MediaApplicationLaunchStatus.NotFound =>
-                "没有找到网易云音乐，请先确认已经安装",
-            MediaApplicationLaunchStatus.ProtectedApplicationForeground =>
-                "游戏安全模式：这次没有打开网易云",
-            MediaApplicationLaunchStatus.ForegroundCheckUnavailable =>
-                "暂时无法确认前台程序，没有打开网易云",
-            MediaApplicationLaunchStatus.SystemRejected =>
-                "Windows 没能打开网易云音乐，请稍后再试",
-            _ => "网易云音乐暂时无法启动",
-        };
-        ShowFeedbackBubble(message);
+        ShowFeedbackBubble(OperationFeedback.ForLaunch(launchResult.Status)!);
         _ = TransitionToResolvedContinuousAnimationAsync(
             "media.application_launch_failed_without_reaction");
     }
@@ -4803,6 +4770,8 @@ public partial class MainWindow : Window
         _cloudMusicLaunchCancellation?.Dispose();
         _cloudMusicLaunchCancellation = new CancellationTokenSource();
         _cloudMusicLaunchWaiting = true;
+        _cloudMusicLaunchFeedback = null;
+        SetMediaLaunchButtonsEnabled(false);
         DateTimeOffset now = DateTimeOffset.Now;
         ReactionStartOutcome outcome = _stateMachine.TryStartReaction(
             new ReactionRequest(
@@ -4830,7 +4799,6 @@ public partial class MainWindow : Window
             _logger.Info("media.application_launch_animation_skipped", outcome.Result.ToString());
         }
 
-        ShowPersistentFeedbackBubble("正在打开网易云音乐，请稍等…");
         _ = MonitorCloudMusicLaunchAsync(_cloudMusicLaunchCancellation.Token);
     }
 
@@ -4840,6 +4808,7 @@ public partial class MainWindow : Window
         DateTimeOffset lastLaunchAttemptAt = startedAt;
         int launchAttemptCount = 1;
         bool playCommandSent = false;
+        DateTimeOffset? playCommandSentAt = null;
         try
         {
             while (DateTimeOffset.Now - startedAt < CloudMusicLaunchTimeout)
@@ -4868,10 +4837,12 @@ public partial class MainWindow : Window
                         $"Attempt={launchAttemptCount}; Status={retryResult.Status}.");
                     playerRunning = retryResult.Status ==
                         MediaApplicationLaunchStatus.AlreadyRunning;
-                    ShowPersistentFeedbackBubble(retryResult.Status ==
-                        MediaApplicationLaunchStatus.Started
-                            ? "网易云第一次没有打开，正在自动重试…"
-                            : "正在等待网易云音乐窗口出现…");
+                    if (OperationFeedback.ForLaunch(retryResult.Status) is string failure)
+                    {
+                        FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
+                        ShowFeedbackBubble(failure);
+                        return;
+                    }
                 }
 
                 bool playerContentReady = _lastTrackSnapshot.HasTrack ||
@@ -4890,15 +4861,12 @@ public partial class MainWindow : Window
                     if (playResult.WasSent)
                     {
                         playCommandSent = true;
+                        playCommandSentAt = now;
                         if (_audioSessionProbe is null)
                         {
                             FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
-                            ShowFeedbackBubble(
-                                "网易云已打开并发送播放快捷键；音乐检测关闭，无法确认播放状态");
                             return;
                         }
-
-                        ShowPersistentFeedbackBubble("网易云已打开，正在等待音乐开始播放…");
                     }
                     else if (playResult.Status is
                         (MediaCommandSendStatus.RateLimited or MediaCommandSendStatus.KeyboardBusy))
@@ -4908,18 +4876,23 @@ public partial class MainWindow : Window
                     else
                     {
                         FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
-                        ShowFeedbackBubble(GetMediaCommandFailureMessage(playResult.Status));
+                        ShowFeedbackBubble(OperationFeedback.ForMediaCommand(playResult.Status)!);
                         return;
                     }
                 }
+
+                _cloudMusicLaunchFeedback = OperationFeedback.LaunchProgress(
+                    launchElapsed, launchAttemptCount,
+                    playCommandSentAt is DateTimeOffset sentAt ? now - sentAt : null);
+                RestorePendingFeedback();
             }
 
             if (_cloudMusicLaunchWaiting)
             {
                 FinishCloudMusicLaunchWait(restoreContinuousAnimation: true);
                 ShowFeedbackBubble(playCommandSent
-                    ? "等待网易云播放超时，请打开网易云检查歌曲"
-                    : "网易云启动超时，请稍后再试");
+                    ? OperationFeedback.PlaybackUnconfirmed
+                    : OperationFeedback.LaunchFailed);
             }
         }
         catch (OperationCanceledException)
@@ -4936,10 +4909,16 @@ public partial class MainWindow : Window
         }
 
         _cloudMusicLaunchWaiting = false;
+        _cloudMusicLaunchFeedback = null;
+        SetMediaLaunchButtonsEnabled(true);
         _cloudMusicLaunchCancellation?.Cancel();
         _cloudMusicLaunchCancellation?.Dispose();
         _cloudMusicLaunchCancellation = null;
-        HideFeedbackBubble(restoreTrackInfo: true);
+        if (OperationFeedback.IsLaunchProgress(FeedbackBubbleText.Text))
+        {
+            HideFeedbackBubble(restoreTrackInfo: true);
+            RestorePendingFeedback();
+        }
         Guid? token = _cloudMusicLaunchReactionToken;
         _cloudMusicLaunchReactionToken = null;
         bool completed = token is Guid reactionToken &&
@@ -4951,36 +4930,38 @@ public partial class MainWindow : Window
         }
     }
 
-    private static string GetMediaCommandFailureMessage(MediaCommandSendStatus status) => status switch
+    private void SetMediaLaunchButtonsEnabled(bool enabled)
     {
-        MediaCommandSendStatus.Disabled => "网易云快捷键控制尚未启用",
-        MediaCommandSendStatus.InvalidShortcut => "播放快捷键设置无效，请检查配置",
-        MediaCommandSendStatus.ProtectedApplicationForeground =>
-            "游戏安全模式：这次没有发送播放快捷键",
-        MediaCommandSendStatus.ForegroundCheckUnavailable =>
-            "暂时无法确认前台程序，没有发送播放快捷键",
-        MediaCommandSendStatus.KeyboardBusy => "键盘正在使用，请松开按键后再试",
-        MediaCommandSendStatus.RateLimited => "操作太快啦，请稍等一下",
-        MediaCommandSendStatus.SystemRejected => "系统没有接受播放快捷键，请再试一次",
-        _ => "没有发送播放快捷键",
-    };
+        PreviousTrackButton.IsEnabled = enabled;
+        TogglePlayPauseButton.IsEnabled = enabled;
+        NextTrackButton.IsEnabled = enabled;
+    }
 
-    private void ShowFeedbackBubble(string message)
+    private void ShowFeedbackBubble(string message, bool critical = false, bool brief = false)
     {
-        if (_bunChaseActive)
+        if (_bunChaseActive || _isClosing || (_criticalFeedbackActive && !critical) ||
+            (!critical && !_feedbackRepeatGate.TryShow(message, DateTimeOffset.Now)))
         {
             return;
         }
 
         PrepareFeedbackBubble(message);
+        _criticalFeedbackActive = critical;
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
+        _feedbackBubbleTimer.Interval = brief
+            ? OperationFeedback.BriefDuration : OperationFeedback.FailureDuration;
         _feedbackBubbleTimer.Start();
     }
 
     private void ShowPersistentFeedbackBubble(string message)
     {
-        if (_bunChaseActive)
+        if (_bunChaseActive || _isClosing || _feedbackBubbleTimer.IsEnabled)
+        {
+            return;
+        }
+
+        if (FeedbackBubble.Visibility == Visibility.Visible && FeedbackBubbleText.Text == message)
         {
             return;
         }
@@ -4988,6 +4969,27 @@ public partial class MainWindow : Window
         PrepareFeedbackBubble(message);
         FeedbackBubble.Visibility = Visibility.Visible;
         _feedbackBubbleTimer.Stop();
+    }
+
+    private void RestorePendingFeedback()
+    {
+        if (_fileDropTargetReady)
+        {
+            ShowPersistentFeedbackBubble(OperationFeedback.DropReady);
+        }
+        else if (_cloudMusicLaunchWaiting && _cloudMusicLaunchFeedback is string progress)
+        {
+            ShowPersistentFeedbackBubble(progress);
+        }
+    }
+
+    private void HideFileDropReadyFeedback()
+    {
+        if (FeedbackBubbleText.Text == OperationFeedback.DropReady)
+        {
+            HideFeedbackBubble(restoreTrackInfo: true);
+            RestorePendingFeedback();
+        }
     }
 
     private void PrepareFeedbackBubble(string message)
@@ -5002,6 +5004,7 @@ public partial class MainWindow : Window
     private void HideFeedbackBubble(bool restoreTrackInfo)
     {
         _feedbackBubbleTimer.Stop();
+        _criticalFeedbackActive = false;
         FeedbackBubble.Visibility = Visibility.Collapsed;
         bool shouldRestoreTrackInfo = restoreTrackInfo && _restoreTrackInfoAfterFeedback;
         _restoreTrackInfoAfterFeedback = false;
@@ -5053,7 +5056,7 @@ public partial class MainWindow : Window
         int maximum = Numeric.Clamp(_settings.FileTreats.MaximumQueuedBuns, 1, 12);
         if (_bunTargets.Count >= maximum)
         {
-            ShowFeedbackBubble("包子太多啦，先吃完这些吧");
+            ShowFeedbackBubble(OperationFeedback.BunQueueFull, brief: true);
             return;
         }
 
@@ -5617,6 +5620,8 @@ public partial class MainWindow : Window
         }
 
         e.Effects = WpfDragDropEffects.Move;
+        _fileDropTargetReady = false;
+        HideFileDropReadyFeedback();
         if ((paths.Length > 10 || paths.Any(Directory.Exists)) &&
             MessageBox.Show(
                 this,
@@ -5668,15 +5673,7 @@ public partial class MainWindow : Window
 
         _suppressDesktopTreatUntil = DateTimeOffset.Now;
 
-        string failureMessage = result.Status switch
-        {
-            RecycleBinOperationStatus.Cancelled => "已取消，文件仍在原处",
-            RecycleBinOperationStatus.PartialFailure =>
-                $"只有 {result.RecycledCount} 个项目进入回收站，请检查其余文件",
-            RecycleBinOperationStatus.Rejected => result.Message,
-            _ => "没有放进回收站，文件仍在原处",
-        };
-        ShowFeedbackBubble(failureMessage);
+        ShowFeedbackBubble(OperationFeedback.ForRecycle(result)!, critical: true);
         _logger.Info(
             "file_drop.failed",
             $"Status={result.Status}; Requested={result.RequestedCount}; Recycled={result.RecycledCount}.");
@@ -5703,11 +5700,12 @@ public partial class MainWindow : Window
         if (accepted && !_fileDropTargetReady)
         {
             _fileDropTargetReady = true;
-            ShowFeedbackBubble("松手即可放入回收站");
+            RestorePendingFeedback();
         }
         else if (supported && !accepted && _fileDropTargetReady)
         {
             _fileDropTargetReady = false;
+            HideFileDropReadyFeedback();
         }
         else if (!supported && !_fileDropInProgress)
         {
@@ -5842,6 +5840,7 @@ public partial class MainWindow : Window
         ReleaseFileDragCursorOverride();
         _fileDropTargetReady = false;
         _fileDropHoverStartedAt = null;
+        HideFileDropReadyFeedback();
         if (!_fileDragPresentationActive)
         {
             return;
@@ -5969,6 +5968,7 @@ public partial class MainWindow : Window
     private void OnFeedbackBubbleTimerTick(object? sender, EventArgs e)
     {
         HideFeedbackBubble(restoreTrackInfo: true);
+        RestorePendingFeedback();
     }
 
     private async void OnTrackInfoRefreshTimerTick(object? sender, EventArgs e)
@@ -6097,7 +6097,7 @@ public partial class MainWindow : Window
                 {
                     StopMusicPlayback("track-switch-timeout");
                 }
-                ShowFeedbackBubble("网易云没有响应，等太久了，再试一次吧");
+                ShowFeedbackBubble(OperationFeedback.MediaControlFailed);
                 await TransitionToResolvedContinuousAnimationAsync(
                     "media.track_switch_failed_without_reaction");
                 _logger.Info("media.track_switch_timeout", "No public playback change was observed.");
@@ -6194,8 +6194,9 @@ public partial class MainWindow : Window
 
     private void ShowTrackInfoSurface(bool holdAfterLeave)
     {
-        if (_bunChaseActive)
+        if (_bunChaseActive || FeedbackBubble.Visibility == Visibility.Visible)
         {
+            _restoreTrackInfoAfterFeedback |= !_bunChaseActive;
             _trackInfoMotion.Hide(animate: false);
             return;
         }
