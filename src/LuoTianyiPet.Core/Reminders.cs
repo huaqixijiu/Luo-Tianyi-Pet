@@ -10,6 +10,7 @@ public sealed class ReminderItem
     public bool Calendar { get; set; }
     public bool Enabled { get; set; } = true;
     public bool Sound { get; set; } = true;
+    public bool ShowCountdown { get; set; } = true;
     public bool Relative { get; set; }
     public DateTime Start { get; set; } = DateTime.Now;
     public int DurationSeconds { get; set; } = 1500;
@@ -39,6 +40,14 @@ public static class ReminderSchedule
 {
     public static readonly DateTime MinimumDate = new(2026, 1, 1);
     public static readonly DateTime MaximumDate = new(2099, 12, 31);
+
+    public static DateTime? Upcoming(ReminderItem item, ReminderBook book, DateTime now)
+    {
+        if (!item.Enabled || item.PendingAt != null) return null;
+        if (item.Calendar ? !book.ShowUpcoming || !item.ShowCountdown : !item.Relative || !book.ShowRemaining) return null;
+        DateTime? at = Next(item, book, now);
+        return at != null && (!item.Calendar || at.Value - now <= TimeSpan.FromMinutes(30)) ? at : null;
+    }
 
     public static bool OccursOn(ReminderItem item, ReminderBook book, DateTime day)
     {

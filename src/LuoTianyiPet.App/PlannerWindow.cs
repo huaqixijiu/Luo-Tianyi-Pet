@@ -35,7 +35,8 @@ internal sealed class PlannerWindow : Window
         _alarm = alarm;
         Title = "天依 · 日历与闹钟";
         Language = System.Windows.Markup.XmlLanguage.GetLanguage("zh-CN");
-        Width = 820; Height = 610; MinWidth = 680; MinHeight = 470;
+        Width = Math.Min(960, SystemParameters.WorkArea.Width - 24); Height = Math.Min(800, SystemParameters.WorkArea.Height - 24);
+        MinWidth = Math.Min(680, Width); MinHeight = Math.Min(470, Height);
         Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(247, 251, 251));
         Foreground = Brushes.DarkSlateGray;
         FontFamily = new System.Windows.Media.FontFamily("Microsoft YaHei UI"); FontSize = 13;
@@ -72,12 +73,17 @@ internal sealed class PlannerWindow : Window
     {
         _remaining.Clear(); _header.Children.Clear();
         StackPanel tabs = Row();
-        tabs.Children.Add(Action(_alarm ? "日历" : "● 日历", () => { _alarm = false; Render(); }));
-        tabs.Children.Add(Action(_alarm ? "● 闹钟" : "闹钟", () => { _alarm = true; Render(); }));
+        if (_alarm) tabs.Children.Add(Action("日历", () => { _alarm = false; Render(); }));
+        else tabs.Children.Add(Text("日历", 20));
         tabs.Children.Add(Action("＋ 新增" + (_alarm ? "闹钟" : "行程"), () => Edit(null, !_alarm)));
-        tabs.Children.Add(Action("作息", EditWorkdays));
-        tabs.Children.Add(AsyncAction("导入", Import));
-        tabs.Children.Add(AsyncAction("导出", Export));
+        if (!_alarm)
+        {
+            CheckBox upcoming = new() { Name = "CalendarUpcoming", Content = "提前 30 分钟倒计时", IsChecked = _service.Book.ShowUpcoming, Margin = new Thickness(12, 5, 5, 5), VerticalAlignment = VerticalAlignment.Center };
+            upcoming.Click += async (_, _) => { try { await Execute(b => b.ShowUpcoming = upcoming.IsChecked == true); } catch { } };
+            upcoming.ToolTip = "在桌宠旁显示即将开始的行程；关闭后仍会到点提醒。";
+            tabs.Children.Add(upcoming);
+        }
+        _body.VerticalScrollBarVisibility = _alarm ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
         _header.Children.Add(tabs);
         if (_alarm) RenderAlarms(); else RenderCalendar();
         UpdateRemaining();
@@ -100,18 +106,19 @@ internal sealed class PlannerWindow : Window
             batch.Children.Add(AsyncAction("工作日", () => SetRest(false)));
             batch.Children.Add(AsyncAction("休息日", () => SetRest(true)));
             batch.Children.Add(AsyncAction("恢复常规", () => SetRest(null)));
+            batch.Children.Add(Action("每周作息…", EditWorkdays));
             _header.Children.Add(batch);
         }
         Grid grid = new(); for (int i = 0; i < 7; i++) grid.ColumnDefinitions.Add(new());
         grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
         for (int i = 0; i < 7; i++) { var text = Text("周" + "一二三四五六日"[i]); Grid.SetColumn(text, i); grid.Children.Add(text); }
         DateTime start = week ? WeekStart(_date) : WeekStart(new DateTime(_date.Year, _date.Month, 1));
-        int count = week ? 7 : 42;
-        for (int row = 0; row < count / 7; row++) grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        int count = week ? 7 : ((int)(new DateTime(_date.Year, _date.Month, DateTime.DaysInMonth(_date.Year, _date.Month)) - start).TotalDays / 7 + 1) * 7;
+        for (int row = 0; row < count / 7; row++) grid.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
         for (int i = 0; i < count; i++)
         {
             DateTime day = start.AddDays(i);
-            StackPanel content = new();
+            DockPanel content = new();
             bool rest = _service.Book.IsRest(day);
             Button dateButton = Action($"{day.Day}  {(rest ? "休" : "班")}{(_selected.Contains(day) ? " ✓" : "")}", () =>
             {
@@ -128,20 +135,22 @@ internal sealed class PlannerWindow : Window
                 entry.Click += async (_, _) => { try { await Execute(b => ApplyRest(b, day, choice.Item2)); } catch { } };
                 menu.Items.Add(entry);
             }
-            dateButton.ContextMenu = menu; content.Children.Add(dateButton);
+            dateButton.ContextMenu = menu; DockPanel.SetDock(dateButton, Dock.Top); content.Children.Add(dateButton);
             string label = CalendarLabels.Get(day);
-            if (label.Length != 0) { TextBlock holiday = Text(label, 11); holiday.Foreground = Brushes.Teal; content.Children.Add(holiday); }
+            if (label.Length != 0) { TextBlock holiday = Text(label, 11); holiday.Foreground = Brushes.Teal; DockPanel.SetDock(holiday, Dock.Top); content.Children.Add(holiday); }
             StackPanel entries = new();
             foreach (ReminderItem item in _service.Book.Items.Where(item => item.Calendar && ReminderSchedule.OccursOn(item, _service.Book, day)).OrderBy(item => item.Start.TimeOfDay))
             {
                 Button button = Action("", () => Edit(item, true));
-                button.Content = Text($"{item.Start:HH:mm} {item.Title}", 11);
+                TextBlock eventText = Text($"{item.Start:HH:mm} {item.Title}", 12);
+                if (item.Enabled) eventText.Inlines.Add(new System.Windows.Documents.Run("  \u23F0") { FontFamily = new System.Windows.Media.FontFamily("Segoe UI Symbol"), Foreground = Brushes.Teal });
+                button.Content = eventText;
                 button.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Stretch;
                 button.Padding = new Thickness(0); button.Margin = new Thickness(1, 2, 1, 2);
-                button.ToolTip = item.Notes; entries.Children.Add(button);
+                button.ToolTip = (item.Enabled ? "已设置到点提醒\n" : "") + item.Notes; entries.Children.Add(button);
             }
-            content.Children.Add(new ScrollViewer { Content = entries, MaxHeight = week ? 330 : 105, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-            Border cell = new() { Child = content, MinHeight = week ? 380 : 115, BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(0.5), Padding = new Thickness(3),
+            content.Children.Add(new ScrollViewer { Content = entries, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+            Border cell = new() { Child = content, BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(0.5), Padding = new Thickness(3),
                 Background = _selected.Contains(day) ? Brushes.LightCyan : rest ? Brushes.WhiteSmoke : Brushes.White };
             if (day < ReminderSchedule.MinimumDate || day > ReminderSchedule.MaximumDate) cell.IsEnabled = false;
             Grid.SetColumn(cell, i % 7); Grid.SetRow(cell, i / 7 + 1); grid.Children.Add(cell);
@@ -164,10 +173,8 @@ internal sealed class PlannerWindow : Window
         StackPanel list = new();
         StackPanel prefs = Row();
         CheckBox remaining = new() { Content = "显示剩余时间", IsChecked = _service.Book.ShowRemaining, Margin = new Thickness(5) };
-        CheckBox upcoming = new() { Content = "日历提前 10 分钟显示", IsChecked = _service.Book.ShowUpcoming, Margin = new Thickness(5) };
         remaining.Click += async (_, _) => { try { await Execute(b => b.ShowRemaining = remaining.IsChecked == true); } catch { } };
-        upcoming.Click += async (_, _) => { try { await Execute(b => b.ShowUpcoming = upcoming.IsChecked == true); } catch { } };
-        prefs.Children.Add(remaining); prefs.Children.Add(upcoming); _header.Children.Add(prefs);
+        prefs.Children.Add(remaining); _header.Children.Add(prefs);
         foreach (ReminderItem item in _service.Book.Items.OrderBy(i => ReminderSchedule.Next(i, _service.Book, DateTime.Now) ?? DateTime.MaxValue))
         {
             DateTime? at = ReminderSchedule.Next(item, _service.Book, DateTime.Now);
@@ -203,7 +210,7 @@ internal sealed class PlannerWindow : Window
 
     private void EditWorkdays()
     {
-        _editing = true; _header.Children.Clear();
+        _editing = true; _body.VerticalScrollBarVisibility = ScrollBarVisibility.Auto; _header.Children.Clear();
         StackPanel panel = new(); panel.Children.Add(Text("常规作息：勾选每周休息日", 20));
         panel.Children.Add(Text("指定日期的手动调整会保留；此处不是官方放假安排。"));
         var checks = Days.Select(d => new CheckBox { Content = "周" + "日一二三四五六"[(int)d], IsChecked = _service.Book.RestWeekdays.Contains(d), Margin = new Thickness(8) }).ToArray();
@@ -217,14 +224,14 @@ internal sealed class PlannerWindow : Window
     }
     private void Edit(ReminderItem? original, bool calendar)
     {
-        _editing = true; _remaining.Clear(); _header.Children.Clear();
+        _editing = true; _body.VerticalScrollBarVisibility = ScrollBarVisibility.Auto; _remaining.Clear(); _header.Children.Clear();
         StackPanel panel = new() { MaxWidth = 640, HorizontalAlignment = System.Windows.HorizontalAlignment.Left };
         panel.Children.Add(Text((original == null ? "新增" : "编辑") + (calendar ? "行程" : "闹钟"), 22));
         TextBox title = new() { Name = "ReminderTitle", Text = original?.Title ?? "", MaxLength = 120, MinWidth = 530, Margin = new Thickness(4) };
-        TextBox notes = new() { Text = original?.Notes ?? "", MaxLength = 10000, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 90, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(4) };
+        TextBox notes = new() { Text = original?.Notes ?? "", MaxLength = 10000, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 65, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(4) };
         panel.Children.Add(Text("标题")); panel.Children.Add(title); panel.Children.Add(Text("详细内容")); panel.Children.Add(notes);
         ComboBox mode = new() { Name = "ReminderMode", ItemsSource = new[] { "指定时间", "多久以后（最多 24 小时）" }, SelectedIndex = original?.Relative == true ? 1 : 0, Margin = new Thickness(4), IsEnabled = !calendar };
-        panel.Children.Add(mode);
+        if (!calendar) panel.Children.Add(mode);
         DateTime start = original?.Start ?? (calendar ? _date.Date + DateTime.Now.AddHours(1).TimeOfDay : DateTime.Now.AddHours(1));
         DatePicker date = new() { SelectedDate = start.Date, DisplayDateStart = ReminderSchedule.MinimumDate, DisplayDateEnd = ReminderSchedule.MaximumDate, Margin = new Thickness(4) };
         TextBox time = new() { Text = start.ToString("HH:mm"), Margin = new Thickness(4), Width = 120 };
@@ -233,18 +240,19 @@ internal sealed class PlannerWindow : Window
         StackPanel when = Row(); when.Children.Add(date); when.Children.Add(Text("时间")); when.Children.Add(time);
         StackPanel after = Row(); after.Children.Add(Text("时:分:秒")); after.Children.Add(duration);
         panel.Children.Add(when); panel.Children.Add(after);
-        ComboBox repeat = new() { ItemsSource = Repeats, SelectedIndex = (int)(original?.Repeat ?? ReminderRepeat.Once), Margin = new Thickness(4) };
+        ComboBox repeat = new() { Name = "ReminderRepeat", ItemsSource = Repeats, SelectedIndex = (int)(original?.Repeat ?? ReminderRepeat.Once), Margin = new Thickness(4) };
         panel.Children.Add(Text("重复")); panel.Children.Add(repeat);
         var checks = Days.Select(d => new CheckBox { Content = "周" + "日一二三四五六"[(int)d], IsChecked = original?.Weekdays.Contains(d) == true, Margin = new Thickness(5) }).ToArray();
         StackPanel weekdays = Row(); foreach (var check in checks) weekdays.Children.Add(check); panel.Children.Add(weekdays);
         Calendar dates = new() { SelectionMode = CalendarSelectionMode.MultipleRange, DisplayDate = start, DisplayDateStart = ReminderSchedule.MinimumDate, DisplayDateEnd = ReminderSchedule.MaximumDate };
-        if (original != null) foreach (DateTime d in original.Dates.Distinct()) dates.SelectedDates.Add(d);
+        if (original?.Dates.Count > 0) foreach (DateTime d in original.Dates.Distinct()) dates.SelectedDates.Add(d);
         else dates.SelectedDates.Add(start.Date);
         panel.Children.Add(dates);
-        panel.Children.Add(Text("指定多个日期：按住 Ctrl 点选；Shift 可选择连续日期。"));
+        TextBlock dateHint = Text("按住 Ctrl 点选；Shift 可选择连续日期。"); panel.Children.Add(dateHint);
         CheckBox enabled = new() { Content = calendar ? "开启提醒（关联到闹钟）" : "开启闹钟", IsChecked = original?.Enabled ?? !calendar, Margin = new Thickness(6) };
         CheckBox sound = new() { Content = "到点播放短提示音", IsChecked = original?.Sound ?? true, Margin = new Thickness(6) };
-        panel.Children.Add(enabled); panel.Children.Add(sound);
+        CheckBox countdown = new() { Name = "CalendarCountdown", Content = "提前 30 分钟显示倒计时（关闭仍到点提醒）", IsChecked = original?.ShowCountdown ?? true, Margin = new Thickness(6), Visibility = calendar ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed };
+        panel.Children.Add(enabled); panel.Children.Add(countdown); panel.Children.Add(sound);
         void Visibility()
         {
             bool relative = mode.SelectedIndex == 1;
@@ -253,6 +261,7 @@ internal sealed class PlannerWindow : Window
             repeat.IsEnabled = !relative;
             weekdays.Visibility = !relative && repeat.SelectedIndex == 2 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             dates.Visibility = !relative && repeat.SelectedIndex == 3 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            dateHint.Visibility = dates.Visibility;
         }
         mode.SelectionChanged += (_, _) => Visibility(); repeat.SelectionChanged += (_, _) => Visibility(); Visibility();
         Button save = AsyncAction("保存", async () =>
@@ -277,27 +286,14 @@ internal sealed class PlannerWindow : Window
             if (enabled.IsChecked == true && rule == ReminderRepeat.Once && at <= now) throw new ArgumentException("开启的单次提醒需要选择未来时间；过去的行程可以关闭提醒后保存。");
             ReminderItem item = new() { Id = original?.Id ?? Guid.NewGuid(), Calendar = calendar, Title = title.Text.Trim(), Notes = notes.Text,
                 Start = at, Relative = relative, DurationSeconds = durationSeconds, Repeat = rule, Dates = selectedDates,
-                Weekdays = Days.Where((_, i) => checks[i].IsChecked == true).ToList(), Enabled = enabled.IsChecked == true, Sound = sound.IsChecked == true, CheckedThrough = now };
+                Weekdays = Days.Where((_, i) => checks[i].IsChecked == true).ToList(), Enabled = enabled.IsChecked == true, Sound = sound.IsChecked == true, ShowCountdown = countdown.IsChecked == true, CheckedThrough = now };
             await Execute(b => { b.Items.RemoveAll(i => i.Id == item.Id); b.Items.Add(item); if (relative && item.Enabled) b.LastDurationSeconds = durationSeconds; });
             _editing = false; Render();
         });
-        save.Name = "SaveReminder"; panel.Children.Add(save);
-        if (original != null) panel.Children.Add(AsyncAction("删除", async () => { await Execute(b => b.Items.RemoveAll(i => i.Id == original.Id)); _editing = false; Render(); }));
-        panel.Children.Add(Action("取消", () => { _editing = false; Render(); }));
+        StackPanel buttons = Row(); panel.Children.Add(buttons);
+        save.Name = "SaveReminder"; buttons.Children.Add(save);
+        if (original != null) buttons.Children.Add(AsyncAction("删除", async () => { await Execute(b => b.Items.RemoveAll(i => i.Id == original.Id)); _editing = false; Render(); }));
+        buttons.Children.Add(Action("取消", () => { _editing = false; Render(); }));
         _body.Content = panel; _body.ScrollToTop(); title.Focus();
-    }
-    private async Task Export()
-    {
-        Microsoft.Win32.SaveFileDialog dialog = new() { FileName = "天依日历与闹钟.json", Filter = "提醒数据|*.json" };
-        if (dialog.ShowDialog(this) == true)
-        { string snapshot = ReminderStore.Encode(_service.Book); await Task.Run(() => File.WriteAllText(dialog.FileName, snapshot)); _status.Text = "已导出"; }
-    }
-    private async Task Import()
-    {
-        Microsoft.Win32.OpenFileDialog dialog = new() { Filter = "提醒数据|*.json" };
-        if (dialog.ShowDialog(this) != true) return;
-        ReminderBook imported = await Task.Run(() => ReminderStore.Read(dialog.FileName));
-        if (System.Windows.MessageBox.Show(this, $"导入 {imported.Items.Count} 条记录并替换当前日历、闹钟和作息？现有数据会留作备份。", "导入提醒", MessageBoxButton.OKCancel) != MessageBoxResult.OK) return;
-        await Execute(b => { b.Items = imported.Items; b.RestWeekdays = imported.RestWeekdays; b.RestOverrides = imported.RestOverrides; b.LastDurationSeconds = imported.LastDurationSeconds; b.WeekView = imported.WeekView; b.ShowRemaining = imported.ShowRemaining; b.ShowUpcoming = imported.ShowUpcoming; });
     }
 }

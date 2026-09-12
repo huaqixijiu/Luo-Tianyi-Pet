@@ -75,10 +75,8 @@ public partial class MainWindow
         var book = _reminders.Book;
         DateTime now = DateTime.Now;
         var pending = book.Items.Where(i => i.Enabled && i.PendingAt != null && i.SnoozeUntil == null).ToList();
-        var future = book.Items.Where(i => i.Enabled && ((i.Relative && book.ShowRemaining) || (i.Calendar && book.ShowUpcoming)))
-            .Select(i => (Item: i, At: ReminderSchedule.Next(i, book, now)))
-            .Where(x => x.At != null && (x.Item.Relative || x.At.Value - now <= TimeSpan.FromMinutes(10)))
-            .OrderBy(x => x.At).FirstOrDefault();
+        var future = book.Items.Select(i => (Item: i, At: ReminderSchedule.Upcoming(i, book, now)))
+            .Where(x => x.At != null).OrderBy(x => x.At).FirstOrDefault();
         bool hasContent = pending.Count > 0 || future.At != null;
         _reminderDisplayTimer.Interval = TimeSpan.FromSeconds(hasContent ? 1 : book.Items.Count == 0 ? 60 : 10);
         _shownReminders.IntersectWith(pending.Select(i => i.Id + ":" + i.PendingAt!.Value.Ticks));
