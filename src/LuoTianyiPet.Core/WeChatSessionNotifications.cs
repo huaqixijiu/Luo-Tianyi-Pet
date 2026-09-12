@@ -90,6 +90,8 @@ public sealed class WeChatSessionChangeTracker
     public bool IsCurrent(MessageNotificationSummary notification) =>
         notification.WeChatSessionKey is string key &&
         _currentNotifications.TryGetValue(key, out string? current) && current == notification.NotificationKey;
+    public bool? IsConversationUnread(string key) => _previous.TryGetValue(key, out var state)
+        ? state.Unread && !state.Muted : null;
     public void Reset() { _previous.Clear(); _currentNotifications.Clear(); _epoch=Guid.NewGuid().ToString("N"); _sequence=0; }
 }
 

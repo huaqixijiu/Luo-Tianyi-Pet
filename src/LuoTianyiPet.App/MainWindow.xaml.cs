@@ -617,7 +617,7 @@ public partial class MainWindow : Window
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-afternoon-greeting"))
             _ = RunAfternoonGreetingQaAsync();
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-message-details"))
-            _ = RunMessageDetailsQaAsync();
+            _ = RunMessageInboxQaAsync();
 
         if (_persistSettings || _previewTray)
         {
@@ -1369,22 +1369,11 @@ public partial class MainWindow : Window
             if (sourceIsForeground) _lastWeChatForegroundAt = DateTimeOffset.Now;
             if (e.Notification.ConversationDisplayName is not null) _weChatDetailRevision++;
         }
-        bool canShow = IsMessageNotificationDisplaySafe(foreground);
-        if (!_messageNotificationCounter.TryObserve(e.Notification, sourceIsForeground,
-            _settings.Notifications.EnableQqDetailedReminders, out MessageNotificationSummary displayNotification,
-            _settings.Notifications.EnableWeChatDetailedReminders)) return;
-        if (!sourceIsForeground && _activeMessageProvider == e.Provider && _displayedMessageSummary is not null &&
-            displayNotification.NotificationKey is null) return;
-        if (TryEnrichActiveMessage(displayNotification, sourceIsForeground, canShow)) return;
-        MessageNotificationDecision decision = _messageNotificationCoordinator.Observe(
-            displayNotification,
-            sourceIsForeground,
-            canShow);
-        _logger.Info("notification.signal_processed", decision.ToString());
-        if (decision == MessageNotificationDecision.Show)
-        {
-            _ = BeginMessageNotificationAsync(displayNotification);
-        }
+        if (sourceIsForeground) return;
+        var notification = e.Notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders,
+            _settings.Notifications.EnableWeChatDetailedReminders);
+        _inboxSafe = IsInboxDisplaySafe(foreground);
+        if (_messageInbox.Add(notification)) RefreshMessageInbox();
     }
 
     private void OnMessageNotificationStatusTimerTick(object? sender, EventArgs e)
@@ -1398,43 +1387,13 @@ public partial class MainWindow : Window
         _messageNotificationSource?.Start();
 
         ForegroundApplicationSnapshot foreground = _foregroundApplicationProbe.Query();
-        if (_messageProviderMatcher.IdentifyProcess(foreground.ProcessName) is not null)
+        if (_messageProviderMatcher.IdentifyProcess(foreground.ProcessName) is MessageProvider foregroundProvider)
         {
             _shellAttentionSessions.Reset();
-            MessageProvider foregroundProvider = _messageProviderMatcher.IdentifyProcess(foreground.ProcessName)!.Value;
             if (foregroundProvider == MessageProvider.WeChat) _lastWeChatForegroundAt = DateTimeOffset.Now;
-            _messageNotificationCounter.Reset(foregroundProvider);
-            _messageNotificationCoordinator.ClearPending(foregroundProvider);
         }
-        DiscardReadWeChatReminders();
-        if (!IsMessageNotificationDisplaySafe(foreground))
-        {
-            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
-            return;
-        }
-
-        if (_messageNotificationReactionToken is not null)
-        {
-            PositionMessageNotification();
-            _ = RefreshQqDetailsAsync();
-        }
-
-        if (_activeMessageProvider is MessageProvider activeProvider &&
-            _messageProviderMatcher.IsForegroundProcess(activeProvider, foreground.ProcessName))
-        {
-            CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
-            return;
-        }
-
-        if (_messageNotificationReactionToken is null &&
-            _messageNotificationCoordinator.TryTakePending(
-                provider => _messageProviderMatcher.IsForegroundProcess(
-                    provider,
-                    foreground.ProcessName),
-                out MessageNotificationSummary pendingNotification))
-        {
-            _ = BeginMessageNotificationAsync(pendingNotification);
-        }
+        _inboxSafe = IsInboxDisplaySafe(foreground);
+        PruneMessageInbox();
     }
 
     private bool IsMessageNotificationDisplaySafe(ForegroundApplicationSnapshot foreground)
@@ -1454,49 +1413,14 @@ public partial class MainWindow : Window
             hasAvailablePresentationSlot;
     }
 
-    private async Task BeginMessageNotificationAsync(MessageNotificationSummary notification)
+    private Task BeginMessageNotificationAsync(MessageNotificationSummary notification)
     {
-        if (!CanPresentWeChatReminder(notification)) return;
-        if (_isClosing || _messageNotificationReactionToken is not null)
-        {
-            _messageNotificationCoordinator.QueuePending(notification);
-            return;
-        }
-
-        Guid topmostToken = AcquireTransientTopmost();
-        Guid? reactionToken = await PlayReactionAsync(
-            MessageNotificationAnimation,
-            ReactionPriority.Notification,
-            minimumDisplayDuration: MessageNotificationPresentationDuration);
-        if (reactionToken is not Guid token)
-        {
-            ReleaseTransientTopmost(topmostToken);
-            _messageNotificationCoordinator.QueuePending(notification);
-            return;
-        }
-
-        _messageNotificationReactionToken = token;
-        _messageNotificationTopmostToken = topmostToken;
-        _activeMessageProvider = notification.Provider;
-        if (notification.Provider == MessageProvider.WeChat)
-        {
-            var foreground = _foregroundApplicationProbe?.Query() ?? new ForegroundApplicationSnapshot(false, null, false);
-            if (!CanPresentWeChatReminder(notification) ||
-                (_persistSettings && (!foreground.Succeeded || foreground.IsFullscreen ||
-                    _messageProviderMatcher.IsForegroundProcess(MessageProvider.WeChat, foreground.ProcessName))))
-            {
-                CancelMessageNotificationPresentation(restoreContinuousAnimation: true);
-                return;
-            }
-        }
-        ShowMessageNotification(notification);
-        _ = RefreshQqDetailsAsync();
-        _logger.Info(
-            "notification.reaction_started",
-            $"DurationSeconds={MessageNotificationPresentationDuration.TotalSeconds:0}; " +
-            (notification.ConversationDisplayName is null
-                ? "Source category and application icon were shown without message content."
-                : "Source category, application icon, and conversation title were shown without message content."));
+        if (!CanPresentWeChatReminder(notification)) return Task.CompletedTask;
+        _messageInbox.Add(notification.ForDisplay(_settings.Notifications.EnableQqDetailedReminders,
+            _settings.Notifications.EnableWeChatDetailedReminders));
+        if (!_persistSettings) _inboxSafe = true;
+        RefreshMessageInbox();
+        return Task.CompletedTask;
     }
 
     private async Task BeginMessageNotificationPreviewAsync(MessageProvider provider)
@@ -4383,6 +4307,14 @@ public partial class MainWindow : Window
         if (!preferences.EnableQqDetailedReminders) _messageNotificationCounter.Reset(MessageProvider.Qq);
         if (!preferences.EnableWeChatDetailedReminders) _messageNotificationCounter.Reset(MessageProvider.WeChat);
         UpdateWeChatMonitoring();
+        if (!preferences.EnableQqDetailedReminders) _messageInbox.HideDetails(MessageProvider.Qq);
+        if (!preferences.EnableWeChatDetailedReminders) _messageInbox.HideDetails(MessageProvider.WeChat);
+        if (!preferences.EnableMessageReminders)
+        {
+            _messageInbox.Clear(MessageProvider.Qq,DateTimeOffset.Now);
+            _messageInbox.Clear(MessageProvider.WeChat,DateTimeOffset.Now);
+        }
+        RefreshMessageInbox();
         _messageNotificationCoordinator.ClearPending();
         if (_displayedMessageSummary is not null) ShowMessageNotification(_displayedMessageSummary);
         if (preferences.EnableMessageReminders)
@@ -6446,6 +6378,7 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _inboxWindow?.Close();
         _messageBubble?.Close();
         if (_desktopToolWindowBehavior is not null)
         {

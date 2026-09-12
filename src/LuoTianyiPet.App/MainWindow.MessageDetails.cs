@@ -20,7 +20,7 @@ public partial class MainWindow
         {
             _weChatSessionSource = new();
             _weChatSessionSource.NotificationReceived += OnMessageNotificationReceived;
-            _weChatSessionSource.SnapshotChanged += (_, _) => Dispatcher.BeginInvoke(DiscardReadWeChatReminders);
+            _weChatSessionSource.SnapshotChanged += (_, _) => Dispatcher.BeginInvoke(PruneMessageInbox);
         }
         _weChatSessionSource.Start();
     }
