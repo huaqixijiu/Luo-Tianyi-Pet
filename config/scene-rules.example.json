@@ -1,4 +1,4 @@
-﻿{
+{
   "planner": {
     "groupManagement": true,
     "deleteScopes": ["single-date", "whole-group", "selected-groups"],
@@ -200,7 +200,8 @@
         "countdownAfterMinutes": 2,
         "countdownDurationSeconds": 60,
         "countdownUsesIndependentClock": true,
-        "countdownExitOnPetClickOrDrag": true,
+        "countdownExitOnPetClick": true,
+        "countdownExitOnPetDrag": false,
         "countdownIgnoreMouseMovement": true,
         "countdownPreserveOriginalWhiteBackground": false,
         "countdownAnimation": "tenth-birthday-fishing-countdown",
@@ -508,6 +509,11 @@
     "drag": {
       "button": "left",
       "startAfterPixels": 6,
+      "preserveCurrentStateAndPlaybackDuringDrag": true,
+      "wakeOnDrag": false,
+      "naturalAnimationCompletionDuringDrag": true,
+      "automaticMotionBlocksPetDrag": true,
+      "edgeDockRemainsException": true,
       "preserveMediumIdleHeheDuringDrag": true,
       "preserveMediumIdleHeheAfterDrop": true,
       "singleClickStillExitsMediumIdleHehe": true,
@@ -519,6 +525,7 @@
       "behaviorByAppearanceStyle": {
         "full-body-classic-cat-ears": {
           "animation": "resonance-expand",
+          "onlyFromOrdinaryIdle": true,
           "replaceCurrentAnimation": true,
           "matchCurrentAppearanceDisplaySize": true,
           "preserveSourceAspectRatioWithTransparentPadding": true,
@@ -530,16 +537,17 @@
             "minimumLegVelocityDipsPerSecond": 360,
             "requiredDirectionChanges": 4,
             "maximumSequenceMilliseconds": 1400,
-            "loopUntilNextClick": true
+            "loopUntilNextClick": true,
+            "preserveDuringSubsequentDrag": true
           }
         },
         "full-body-long-hair": {
-          "animation": "keep-current-full-body-idle",
+          "animation": "keep-current-animation",
           "replaceCurrentAnimation": false,
           "loopWhileDragging": false
         },
         "full-body-crystal-dress": {
-          "animation": "keep-current-full-body-idle",
+          "animation": "keep-current-animation",
           "replaceCurrentAnimation": false,
           "loopWhileDragging": false
         }
@@ -791,6 +799,9 @@
     "startingSpeedDipsPerSecondAt1080p": 180,
     "maximumChaseSpeedDipsPerSecondAt1080p": 800,
     "reachMaximumSpeedAfterSeconds": 3.5,
+    "accelerationCurve": "smoothstep",
+    "accelerationUsesRenderedMotionTime": true,
+    "preserveSubpixelMotionRemainder": true,
     "returnSpeedDipsPerSecondAt1080p": 850,
     "returnUsesAcceleration": false,
     "speedScaleByLogicalDesktopDiagonal": true,

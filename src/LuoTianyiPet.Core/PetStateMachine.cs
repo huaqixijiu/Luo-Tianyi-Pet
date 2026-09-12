@@ -62,6 +62,9 @@ public sealed class PetStateMachine
 
     public PetVisualState VisualState { get; private set; }
 
+    public PetContinuousState CurrentContinuousState => VisualState.ContinuousState == PetContinuousState.Dragging
+        ? _stateBeforeDrag : VisualState.ContinuousState;
+
     public bool IsDraggingHehe => VisualState.ContinuousState == PetContinuousState.Dragging &&
         _stateBeforeDrag == PetContinuousState.MediumIdle;
 
@@ -199,7 +202,6 @@ public sealed class PetStateMachine
             return false;
         }
 
-        _activeReaction = null;
         if (VisualState.ContinuousState == PetContinuousState.Dragging)
         {
             return true;
@@ -229,27 +231,6 @@ public sealed class PetStateMachine
             return new PetPlaybackPlan(false, null, PlaybackPlanSource.Continuous, false);
         }
 
-        if (VisualState.ContinuousState == PetContinuousState.Dragging)
-        {
-            if (IsDraggingHehe)
-            {
-                return new PetPlaybackPlan(true, PetVisualState.MediumIdleAnimation,
-                    PlaybackPlanSource.Continuous, false);
-            }
-            if (_stateBeforeDrag == PetContinuousState.MusicPlaying)
-            {
-                return new PetPlaybackPlan(
-                    true,
-                    VisualState.MusicAnimationId == PetVisualState.NoMusicAnimation
-                        ? VisualState.ResolveIdleAnimation()
-                        : VisualState.MusicAnimationId,
-                    PlaybackPlanSource.Continuous,
-                    false);
-            }
-
-            return ContinuousPlan(bodyRegionsEnabled: false);
-        }
-
         if (_activeReaction is not null)
         {
             return new PetPlaybackPlan(
@@ -257,6 +238,12 @@ public sealed class PetStateMachine
                 _activeReaction.Request.AnimationId,
                 PlaybackPlanSource.Reaction,
                 false);
+        }
+
+        if (VisualState.ContinuousState == PetContinuousState.Dragging)
+        {
+            return new PetPlaybackPlan(true, (VisualState with { ContinuousState = _stateBeforeDrag }).ResolveContinuousAnimation(),
+                PlaybackPlanSource.Continuous, false);
         }
 
         bool bodyRegionsEnabled = VisualState.ContinuousState == PetContinuousState.Idle &&

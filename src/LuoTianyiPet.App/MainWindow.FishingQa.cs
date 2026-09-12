@@ -77,6 +77,7 @@ public partial class MainWindow
             await StartFishing();
             OnMouseLeftButtonDown(this, new MouseButtonEventArgs(Mouse.PrimaryDevice,
                 Environment.TickCount, MouseButton.Left) { RoutedEvent = MouseLeftButtonDownEvent });
+            HandleSingleClick(new PointerPoint(-10, -10));
             Mouse.Capture(null);
             _pointerGesture.Cancel();
             _singleClickTimer.Stop();
@@ -90,11 +91,11 @@ public partial class MainWindow
             _dragPressScreenPoint = new Point(600, 500);
             BeginWindowDrag();
             Check(_isWindowDragging, "Direct drag enters dragging");
-            Check(_classicDragExpansionStarted, "Fishing exit still uses the ordinary classic expansion drag");
+            Check(!_classicDragExpansionStarted, "Fishing drag preserves countdown without expansion");
             EndWindowDrag();
             await Task.Delay(600);
-            Check(_stateMachine.VisualState.ContinuousState == PetContinuousState.Idle,
-                "Drag release restores idle instead of fishing");
+            Check(_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdleCountdown,
+                "Drag release preserves fishing countdown");
             await StartFishing();
             Check(FishingCountdownElapsed < TimeSpan.FromSeconds(2),
                 "New countdown receives a fresh monotonic start time");

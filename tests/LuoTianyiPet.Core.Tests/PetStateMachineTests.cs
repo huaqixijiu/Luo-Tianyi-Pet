@@ -112,15 +112,17 @@ public sealed class PetStateMachineTests
     }
 
     [Fact]
-    public void CompactDragInterruptsReactionAndRestoresStateUpdatedDuringDrag()
+    public void DragPreservesReactionAndResolvesUpdatedStateAfterItsCompletion()
     {
         PetStateMachine machine = new();
-        machine.TryStartReaction(Request("ordinary"), Now);
+        var reaction = machine.TryStartReaction(Request("ordinary"), Now);
 
         Assert.True(machine.BeginDrag());
-        Assert.Equal(PetVisualState.CompactDraggingAnimation, machine.Resolve(Now).AnimationId);
+        Assert.Equal("ordinary", machine.Resolve(Now).AnimationId);
         machine.SetContinuousState(PetContinuousState.MusicPlaying);
         Assert.True(machine.EndDrag());
+        Assert.Equal("ordinary", machine.Resolve(Now).AnimationId);
+        Assert.True(machine.CompleteReaction(reaction.Token!.Value, Now));
         Assert.Equal(PetVisualState.MusicSwayAnimation, machine.Resolve(Now).AnimationId);
     }
 

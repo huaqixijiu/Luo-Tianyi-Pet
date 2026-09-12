@@ -32,6 +32,7 @@ public partial class App : Application
             argument.StartsWith("--qa-", StringComparison.OrdinalIgnoreCase));
         string instanceId = isPreviewOrQaRun ? $"{ApplicationId}.QA" : ApplicationId;
         if (e.Args.Contains("--qa-planner", StringComparer.OrdinalIgnoreCase)) instanceId += ".Planner";
+        if (e.Args.Contains("--qa-preserve-drag", StringComparer.OrdinalIgnoreCase)) instanceId += ".PreserveDrag";
         if (e.Args.Contains("--qa-recycle-direction", StringComparer.OrdinalIgnoreCase))
         {
             instanceId += ".RecycleDirection";

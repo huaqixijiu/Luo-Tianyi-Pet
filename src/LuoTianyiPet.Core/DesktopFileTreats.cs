@@ -101,7 +101,8 @@ public static class BunChasePlanner
                 accelerationDuration.TotalSeconds,
             0,
             1);
-        return start + (maximum - start) * progress;
+        double eased = progress * progress * (3 - 2 * progress);
+        return start + (maximum - start) * eased;
     }
 
     public static bool ShouldShowBunRequest(

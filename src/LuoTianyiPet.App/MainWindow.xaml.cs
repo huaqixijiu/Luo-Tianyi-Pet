@@ -186,6 +186,9 @@ public partial class MainWindow : Window
     private readonly PetStateMachine _stateMachine;
     private bool _isClosing;
     private bool _isWindowDragging;
+    private bool _sleepHeldAfterDrag;
+    private bool _dragPreservesAnimation;
+    private double _bunSubpixelX, _bunSubpixelY;
     private bool _pettingGestureConsumedPress;
     private bool _musicPreviewOverride;
     private bool _audioProbeFailureLogged;
@@ -624,6 +627,8 @@ public partial class MainWindow : Window
         {
             CreateTrayIcon();
         }
+        if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-preserve-drag"))
+            _ = RunPreserveDragQaAsync();
         if (!_persistSettings && Environment.GetCommandLineArgs().Contains("--qa-quick-actions"))
         {
             _ = RunQuickActionsQaAsync();
@@ -731,7 +736,7 @@ public partial class MainWindow : Window
     private bool IsMusicPlaybackActive =>
         _musicActivityDetector.IsPlaying ||
         _musicPlaybackIndicator.IsPlaying ||
-        _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying;
+        _stateMachine.CurrentContinuousState == PetContinuousState.MusicPlaying;
 
     private void QueueTimeGreeting(
         StartupTimeSceneDecision decision,
@@ -941,7 +946,7 @@ public partial class MainWindow : Window
         }
 
         _systemSessionUnavailable = false;
-        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
+        PetContinuousState continuousState = _stateMachine.CurrentContinuousState;
         if (continuousState is PetContinuousState.MediumIdleCountdown or
             PetContinuousState.MediumIdle or
             PetContinuousState.Sleeping)
@@ -1125,7 +1130,7 @@ public partial class MainWindow : Window
 
         bool windowAvailable = _edgeDockSide == EdgeDockSide.None &&
             !_isWindowDragging &&
-            _stateMachine.VisualState.ContinuousState is not
+            _stateMachine.CurrentContinuousState is not
                 (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety);
         if (_pendingGenshinLaunch && windowAvailable)
         {
@@ -1413,7 +1418,7 @@ public partial class MainWindow : Window
             !_systemSessionUnavailable &&
             _edgeDockSide == EdgeDockSide.None &&
             !_isWindowDragging &&
-            _stateMachine.VisualState.ContinuousState is not
+            _stateMachine.CurrentContinuousState is not
                 (PetContinuousState.Sleeping or PetContinuousState.HiddenForSafety) &&
             hasAvailablePresentationSlot;
     }
@@ -1447,32 +1452,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_classicSpinDanceActive)
-        {
-            StopClassicSpinDance(restoreContinuousAnimation: true, "interaction.click_stopped_spin_dance");
-            e.Handled = true;
-            return;
-        }
-
-        if (_timeGreetingPresentationInFlight)
-        {
-            _pendingTimeGreetingDecision = null;
-            _pendingTimeGreetingEligibleAt = null;
-            CancelTimeGreetingPresentation(
-                restoreContinuousAnimation: true,
-                "Interrupted by direct user input.");
-        }
-
-        PetContinuousState continuousState = _stateMachine.VisualState.ContinuousState;
-        if (!IsCrystalLongIdleActive &&
-            continuousState is (PetContinuousState.MediumIdleCountdown or
-                PetContinuousState.Sleeping))
-        {
-            _stateMachine.SetContinuousState(PetContinuousState.Idle);
-            PlayResolvedContinuousAnimation();
-            _logger.Info("idle.user_input_restored", continuousState.ToString());
-        }
-
+        // Windows input resets before the gesture has crossed the drag threshold.
+        // Keep sleep through that interval; only a confirmed click wakes it.
+        if (_stateMachine.CurrentContinuousState == PetContinuousState.Sleeping)
+            _sleepHeldAfterDrag = true;
         Point position = e.GetPosition(this);
         _dragPressScreenPoint = GetPointerScreenPositionInDips(e);
         _dragStartLeft = Left;
@@ -1710,13 +1693,10 @@ public partial class MainWindow : Window
             return;
         }
         _singleClickTimer.Stop();
-        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdleCountdown)
-        {
-            _stateMachine.SetContinuousState(PetContinuousState.Idle);
-        }
-        ResetBodyReactionMirror();
-        CancelGenshinPresentations(restoreContinuousAnimation: false);
-        CancelMessageNotificationPresentation(restoreContinuousAnimation: false);
+        if (!_stateMachine.BeginDrag()) { _rapidDragTracker.Cancel(); return; }
+        _sleepHeldAfterDrag = _stateMachine.CurrentContinuousState == PetContinuousState.Sleeping;
+        // A moved cameo must finish at its new position instead of jumping back.
+        _genshinCameoRestorePosition = null;
         if (_edgeDockSide != EdgeDockSide.None)
         {
             _edgeDockAnimationGeneration++;
@@ -1731,14 +1711,9 @@ public partial class MainWindow : Window
         _dragEdgeCandidate = EdgeDockSide.None;
         _classicDragExpansionStarted = false;
 
-        if (!_stateMachine.BeginDrag())
-        {
-            _rapidDragTracker.Cancel();
-            return;
-        }
-
         _isWindowDragging = true;
-        if (IsClassicCatEarsFullBodyMode() && !_stateMachine.IsDraggingHehe)
+        _dragPreservesAnimation = !CanUseOrdinaryDragVisual();
+        if (IsClassicCatEarsFullBodyMode() && CanUseOrdinaryDragVisual())
         {
             _rapidDragTracker.Begin(ToPointerPoint(_dragPressScreenPoint), DateTimeOffset.Now);
         }
@@ -1758,7 +1733,7 @@ public partial class MainWindow : Window
 
     private void MoveWindowWithPointer(Point currentScreenPoint, DateTimeOffset observedAt)
     {
-        if (!_classicSpinDanceActive && IsClassicCatEarsFullBodyMode() &&
+        if (!_classicSpinDanceActive && IsClassicCatEarsFullBodyMode() && CanUseOrdinaryDragVisual() &&
             _rapidDragTracker.Add(ToPointerPoint(currentScreenPoint), observedAt))
         {
             StartClassicSpinDance();
@@ -1805,6 +1780,14 @@ public partial class MainWindow : Window
         _isWindowDragging = false;
         if (_stateMachine.EndDrag())
         {
+            if (TryEnterEdgeDock())
+            {
+                _classicDragExpansionStarted = false;
+                _dragIntentPetBoundsInWindow = null;
+                _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
+                return;
+            }
+
             if (_classicSpinDanceActive)
             {
                 ApplyDragReleasePlacement(GetPetImageDesktopBounds());
@@ -1819,14 +1802,6 @@ public partial class MainWindow : Window
                 return;
             }
 
-            if (TryEnterEdgeDock())
-            {
-                _classicDragExpansionStarted = false;
-                _dragIntentPetBoundsInWindow = null;
-                _logger.Info("interaction.drag_ended", "Pet docked at a screen edge.");
-                return;
-            }
-
             // Keep the user's visible edge contact; transparent stage padding is
             // allowed offscreen. Resolve placement only after the target art exists.
             DesktopRectangle releaseBounds = GetPetImageDesktopBounds();
@@ -1834,7 +1809,7 @@ public partial class MainWindow : Window
             _dragIntentPetBoundsInWindow = null;
             _dragEdgeCandidate = EdgeDockSide.None;
             SetEdgeMirror(false);
-            if (_animationPlayer?.CurrentAnimationId == _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
+            if (_dragPreservesAnimation || !CanUseOrdinaryDragVisual() || _animationPlayer?.CurrentAnimationId == _stateMachine.Resolve(DateTimeOffset.Now).AnimationId)
             {
                 ApplyDragReleasePlacement(releaseBounds);
                 UpdateBodyHitDebugOverlay();
@@ -1859,8 +1834,7 @@ public partial class MainWindow : Window
             new ReactionRequest(
                 ClassicSpinDanceAnimation,
                 ReactionPriority.UserInteraction,
-                DateTimeOffset.MaxValue,
-                InterruptibleByDrag: false),
+                DateTimeOffset.MaxValue),
             now);
         if (outcome.Token is not Guid token)
         {
@@ -1907,13 +1881,32 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_classicSpinDanceActive)
+        {
+            StopClassicSpinDance(restoreContinuousAnimation: true, "interaction.click_stopped_spin_dance");
+            return;
+        }
+        if (_timeGreetingPresentationInFlight)
+        {
+            _pendingTimeGreetingDecision = null;
+            _pendingTimeGreetingEligibleAt = null;
+            CancelTimeGreetingPresentation(true, "Interrupted by confirmed click.");
+        }
+        if (!IsCrystalLongIdleActive && _stateMachine.CurrentContinuousState is
+            PetContinuousState.MediumIdleCountdown or PetContinuousState.Sleeping)
+        {
+            _sleepHeldAfterDrag = false;
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+            PlayResolvedContinuousAnimation();
+            return;
+        }
         if (IsCrystalLongIdleActive)
         {
             WakeCrystalLongIdle();
             return;
         }
 
-        if (_stateMachine.VisualState.ContinuousState == PetContinuousState.MediumIdle)
+        if (_stateMachine.CurrentContinuousState == PetContinuousState.MediumIdle)
         {
             _stateMachine.SetContinuousState(PetContinuousState.Idle);
             PlayResolvedContinuousAnimation();
@@ -2326,8 +2319,7 @@ public partial class MainWindow : Window
 
         UpdatePlayPauseGlyph();
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
-        if (plan.Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
+        if (plan.Source == PlaybackPlanSource.Continuous)
         {
             if (completedApplicationLaunchWait)
             {
@@ -2360,8 +2352,7 @@ public partial class MainWindow : Window
                 $"DelaySeconds={StartupTimeSceneResolver.MusicStopDeferral.TotalSeconds:0}.");
         }
         UpdatePlayPauseGlyph();
-        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
+        if (_stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
         {
             _ = TransitionToResolvedContinuousAnimationAsync("animation.music_stopped_transition_completed");
         }
@@ -2480,8 +2471,13 @@ public partial class MainWindow : Window
         }
     }
 
+    private bool CanUseOrdinaryDragVisual() =>
+        _stateMachine.CurrentContinuousState == PetContinuousState.Idle &&
+        _stateMachine.ActiveReactionToken is null && !IsCrystalLongIdleActive;
+
     private void PlayCurrentDragVisual()
     {
+        if (!CanUseOrdinaryDragVisual()) return;
         string? dragAnimation = _stateMachine.Resolve(DateTimeOffset.Now).AnimationId;
         bool preservesContinuousAnimation =
             !string.Equals(
@@ -2489,7 +2485,7 @@ public partial class MainWindow : Window
                 _stateMachine.VisualState.FullBodyAnimationId,
                 StringComparison.Ordinal);
         bool usesExpansion =
-            !preservesContinuousAnimation &&
+            CanUseOrdinaryDragVisual() && !preservesContinuousAnimation &&
             AppearanceOptionIds.UsesExpansionDragAnimation(
                 _settings.Appearance.FullBodyStyle);
         if (usesExpansion && _animationCatalog is not null)
@@ -2531,6 +2527,7 @@ public partial class MainWindow : Window
         }
 
         _dragEdgeCandidate = candidate;
+        if (!CanUseOrdinaryDragVisual()) return;
         if (candidate == EdgeDockSide.None || _stateMachine.IsDraggingHehe)
         {
             SetEdgeMirror(false);
@@ -2557,7 +2554,7 @@ public partial class MainWindow : Window
 
     private void OnIdleSceneTimerTick(object? sender, EventArgs e)
     {
-        if (_isClosing || _edgeDockSide != EdgeDockSide.None || _isWindowDragging)
+        if (_isClosing || _edgeDockSide != EdgeDockSide.None)
         {
             return;
         }
@@ -2575,7 +2572,7 @@ public partial class MainWindow : Window
         PetPlaybackPlan plan = _stateMachine.Resolve(now);
         bool crystalYawnEligible = IsCrystalDressFullBodyMode() &&
             plan.Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle;
+            _stateMachine.CurrentContinuousState == PetContinuousState.Idle;
         if (_crystalYawnScheduler.ShouldTrigger(idleDuration.Value, crystalYawnEligible))
         {
             _ = PlayReactionAsync(
@@ -2589,7 +2586,7 @@ public partial class MainWindow : Window
         }
 
         bool birthdayEligible = plan.Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState is
+            _stateMachine.CurrentContinuousState is
                 PetContinuousState.Idle or
                 PetContinuousState.MediumIdle;
         if (_birthdayEasterEggScheduler.ShouldTrigger(now, birthdayEligible))
@@ -2603,8 +2600,9 @@ public partial class MainWindow : Window
 
     private void ApplyIdleScene(TimeSpan idleDuration)
     {
-        PetContinuousState previousState = _stateMachine.VisualState.ContinuousState;
-        if (IsCrystalLongIdleActive && previousState == PetContinuousState.Sleeping)
+        PetContinuousState previousState = _stateMachine.CurrentContinuousState;
+        if (previousState != PetContinuousState.Sleeping) _sleepHeldAfterDrag = false;
+        if ((IsCrystalLongIdleActive || _sleepHeldAfterDrag) && previousState == PetContinuousState.Sleeping)
         {
             // A crystal long-idle scene remains posed until the user clicks the
             // character. Unrelated desktop input must not wake it implicitly.
@@ -2693,7 +2691,7 @@ public partial class MainWindow : Window
     private void HoldCrystalLongIdle(CrystalLongIdleVariant expectedVariant)
     {
         if (_isClosing || _crystalLongIdleVariant != expectedVariant ||
-            _stateMachine.VisualState.ContinuousState != PetContinuousState.Sleeping)
+            _stateMachine.CurrentContinuousState != PetContinuousState.Sleeping)
         {
             return;
         }
@@ -2926,7 +2924,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        PetContinuousState currentState = _stateMachine.VisualState.ContinuousState;
+        PetContinuousState currentState = _stateMachine.CurrentContinuousState;
         IdleSceneDecision decision = IdleSceneResolver.Resolve(
             idleDuration.Value,
             currentState,
@@ -2941,7 +2939,7 @@ public partial class MainWindow : Window
 
     private void PlayResolvedContinuousAnimation(bool preserveVisualTransition = false)
     {
-        if (_stateMachine.VisualState.ContinuousState != PetContinuousState.Sleeping &&
+        if (_stateMachine.CurrentContinuousState != PetContinuousState.Sleeping &&
             IsCrystalLongIdleActive)
         {
             CancelCrystalLongIdle();
@@ -3212,6 +3210,11 @@ public partial class MainWindow : Window
             return false;
         }
 
+        StopClassicSpinDance(false, "interaction.spin_docked");
+        if (IsCrystalLongIdleActive) CancelCrystalLongIdle();
+        if (_stateMachine.CurrentContinuousState == PetContinuousState.Sleeping)
+            _stateMachine.SetContinuousState(PetContinuousState.Idle);
+        _sleepHeldAfterDrag = false;
         _dragEdgeCandidate = EdgeDockSide.None;
         _edgeDockSide = side;
         _edgeDockRevealed = false;
@@ -4137,7 +4140,7 @@ public partial class MainWindow : Window
         bool scaleChanged = previousScale != normalized.DisplayScalePercent;
         if (appearanceChanged &&
             _stateMachine.VisualState.SelectedDisplayMode == PetDisplayMode.FullBodyInteractive &&
-            _stateMachine.VisualState.ContinuousState == PetContinuousState.Idle &&
+            _stateMachine.CurrentContinuousState == PetContinuousState.Idle &&
             _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
         {
             _ = TransitionToResolvedContinuousAnimationAsync("settings.appearance_changed");
@@ -4169,7 +4172,7 @@ public partial class MainWindow : Window
                 normalized.EnableLuoTianyiSingingEasterEgg;
         _settings = _settings with { Media = normalized };
         if (musicAnimationChanged &&
-            _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+            _stateMachine.CurrentContinuousState == PetContinuousState.MusicPlaying)
         {
             string selectedAnimation = _musicAnimationSelector.Select(
                 normalized.MusicAnimationSelection,
@@ -4865,7 +4868,7 @@ public partial class MainWindow : Window
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
                 if (!_cloudMusicLaunchWaiting ||
-                    _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+                    _stateMachine.CurrentContinuousState == PetContinuousState.MusicPlaying)
                 {
                     return;
                 }
@@ -5213,6 +5216,7 @@ public partial class MainWindow : Window
 
     private void StartBunMotionLoop()
     {
+        _bunSubpixelX = _bunSubpixelY = 0;
         _bunLastMotionTimestamp = Stopwatch.GetTimestamp();
         if (_bunMotionRenderingSubscribed)
         {
@@ -5265,10 +5269,10 @@ public partial class MainWindow : Window
         TimeSpan elapsed = TimeSpan.FromSeconds(
             (currentTimestamp - _bunLastMotionTimestamp) / (double)Stopwatch.Frequency);
         _bunLastMotionTimestamp = currentTimestamp;
-        _bunMotionStageElapsed += elapsed;
         TimeSpan renderedElapsed = elapsed <= BunMaximumRenderedStep
             ? elapsed
             : BunMaximumRenderedStep;
+        _bunMotionStageElapsed += renderedElapsed;
         if (_bunReturning)
         {
             if (_bunReturnPosition is not Point returnPosition)
@@ -5344,8 +5348,11 @@ public partial class MainWindow : Window
     private void SetBunWindowPosition(double left, double top)
     {
         DpiScale dpi = VisualTreeHelper.GetDpi(this);
-        Left = Math.Round(left * dpi.DpiScaleX) / dpi.DpiScaleX;
-        Top = Math.Round(top * dpi.DpiScaleY) / dpi.DpiScaleY;
+        double preciseLeft = left + _bunSubpixelX, preciseTop = top + _bunSubpixelY;
+        Left = Math.Round(preciseLeft * dpi.DpiScaleX) / dpi.DpiScaleX;
+        Top = Math.Round(preciseTop * dpi.DpiScaleY) / dpi.DpiScaleY;
+        _bunSubpixelX = preciseLeft - Left;
+        _bunSubpixelY = preciseTop - Top;
     }
 
     private void ShowBunRequestAndWait()
@@ -6137,7 +6144,7 @@ public partial class MainWindow : Window
                 _trackSwitchPlaybackHoldActive = false;
                 _showNextTrackChange = false;
                 if (!_musicActivityDetector.IsPlaying &&
-                    _stateMachine.VisualState.ContinuousState == PetContinuousState.MusicPlaying)
+                    _stateMachine.CurrentContinuousState == PetContinuousState.MusicPlaying)
                 {
                     StopMusicPlayback("track-switch-timeout");
                 }
@@ -6169,8 +6176,7 @@ public partial class MainWindow : Window
             $"Animation={selectedAnimation}; ArtistClass={GetArtistClass(snapshot.Artist)}.");
 
         if (animationChanged &&
-            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous &&
-            _stateMachine.VisualState.ContinuousState != PetContinuousState.Dragging)
+            _stateMachine.Resolve(DateTimeOffset.Now).Source == PlaybackPlanSource.Continuous)
         {
             _ = TransitionToResolvedContinuousAnimationAsync(
                 "animation.music_artist_transition_completed");
