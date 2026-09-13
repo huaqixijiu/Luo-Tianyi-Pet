@@ -26,6 +26,9 @@
                 <TextBlock x:Name="ScaleValueText" Grid.Column="2" FontSize="12" Foreground="#0878A9" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 <Button x:Name="IncreaseScaleButton" Grid.Column="3" Content="+" Padding="0" HorizontalContentAlignment="Center" FontSize="19" Click="OnIncreaseClick" AutomationProperties.Name="放大桌宠" />
             </Grid>
+            <Border Height="1" Background="#D8E8EF" Margin="10,8" />
+            <Button x:Name="SettingsButton" Content="设置" Click="OnSettingsClick" />
+            <Button x:Name="ExitPetButton" Content="退出桌宠" Click="OnExitPetClick" />
         </StackPanel>
     </Border>
 </Window>

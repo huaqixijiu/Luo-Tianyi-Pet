@@ -76,6 +76,14 @@ public partial class MainWindow
                 value => SetDisplayScalePercent(value, true));
             _petQuickPanel.ShowNearPet(new DesktopRectangle(Left, Top, ActualWidth, ActualHeight), GetQuickActionsWorkArea());
             CaptureQuickActionsQa(_petQuickPanel, Path.Combine(directory, "03-pet-menu.png"));
+            int petSettingsRequests=0,petExitRequests=0;
+            _petQuickPanel.OpenSettings=()=>petSettingsRequests++;
+            _petQuickPanel.ExitPet=()=>{petExitRequests++;return Task.CompletedTask;};
+            _petQuickPanel.SettingsButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Check(petSettingsRequests==1&&!_petQuickPanel.IsVisible,"Pet settings closes menu and opens existing settings action");
+            _petQuickPanel.ShowNearPet(new DesktopRectangle(Left,Top,ActualWidth,ActualHeight),GetQuickActionsWorkArea());
+            _petQuickPanel.ExitPetButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            Check(petExitRequests==1&&!_petQuickPanel.IsVisible,"Pet exit closes menu and dispatches normal exit once");
             _petQuickPanel.Hide();
             int exitRequests = 0;
             TrayQuickPanel tray = new(ShowPetFromTray, HidePetFromTray, () => IsVisible, ShowSettingsDialog,

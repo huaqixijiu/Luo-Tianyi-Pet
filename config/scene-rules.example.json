@@ -57,7 +57,7 @@
   "window": {
     "userTopmostDefault": false,
     "startWithWindowsDefault": false,
-    "settingsEntryPoint": "windows-system-tray",
+    "settingsEntryPoint": "tray-and-pet-context-menu",
     "trayLeftClick": "show-and-recall-pet-never-toggle-hidden",
     "trayRightClick": "show-hide-settings-exit-menu",
     "lockPositionDefault": false,

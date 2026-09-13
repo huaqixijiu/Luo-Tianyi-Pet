@@ -1,0 +1,28 @@
+PASS Disabled islands reject hover, track updates and track-switch feedback
+PASS Enabling islands exposes the complete four-button control surface
+PASS No track uses a quiet empty state
+PASS Late metadata and feedback restoration cannot reopen disabled islands
+PASS Locked position rejects dragging
+PASS Locked position still permits double-click appearance changes
+PASS Unlock restores dragging
+PASS Tray hide hides the pet
+PASS Tray recall restores visibility without changing permanent topmost preference
+PASS Repeated tray left action never hides the pet
+PASS Pet settings closes menu and opens existing settings action
+PASS Pet exit closes menu and dispatches normal exit once
+PASS Mouse opening does not preselect a menu action
+PASS Tab enters the first menu action
+PASS Keyboard navigation reaches hide
+PASS Keyboard navigation skips disabled hide
+PASS Mouse reopening clears the previous keyboard selection
+PASS Tray reopen 1 keeps the original anchor and size
+PASS Tray reopen 2 keeps the original anchor and size
+PASS Tray reopen 3 keeps the original anchor and size
+PASS Tray reopen 4 keeps the original anchor and size
+PASS Tray reopen 5 keeps the original anchor and size
+PASS Tray reopen 6 keeps the original anchor and size
+PASS Tray reopen 7 keeps the original anchor and size
+PASS Tray reopen 8 keeps the original anchor and size
+PASS One exit click closes the menu and dispatches exit without confirmation
+PASS Exit does not reposition the panel toward the button
+PASS Escape dismisses the menu without requesting exit

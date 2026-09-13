@@ -7,6 +7,10 @@ namespace LuoTianyiPet.App;
 public partial class PetQuickPanel : Window
 {
     public Action<bool>? OpenPlanner { get; set; }
+    public Action? OpenSettings { get; set; }
+    public Func<Task>? ExitPet { get; set; }
+    private void OnSettingsClick(object sender, RoutedEventArgs e) { Hide(); OpenSettings?.Invoke(); }
+    private async void OnExitPetClick(object sender, RoutedEventArgs e) { Hide(); if(ExitPet!=null)await ExitPet(); }
     private void OnCalendarClick(object sender, RoutedEventArgs e) { Hide(); OpenPlanner?.Invoke(false); }
     private void OnAlarmClick(object sender, RoutedEventArgs e) { Hide(); OpenPlanner?.Invoke(true); }
     private readonly Func<AppSettings> _getSettings;
