@@ -85,13 +85,13 @@
       60,
       0,
       420,
-      360
+      260
     ],
     "outputPng": "assets/app/luotianyi-pet.png",
-    "outputPngSha256": "d908d48ab888550fd9443478ac8c73b6066c554d1238c1ee60824659c9f23b43",
+    "outputPngSha256": "3ccc735cceddf1bb7fe3c5617e73bec396a35aad1baa6fe06e6debda0dc230dd",
     "outputIco": "assets/app/luotianyi-pet.ico",
-    "outputIcoSha256": "3aa3cb4fa0e53afef0c3cb3646bea4d867edded8cb8defeaac20656cb760a245",
-    "transformation": "portrait-crop-on-rounded-tianyi-blue-background"
+    "outputIcoSha256": "e76dfa3b138ac2e206c5267c89ccc5ce7b310784ea932cebf7f5b41b4f3c87b5",
+    "transformation": "head-above-neck-crop-on-transparent-canvas"
   },
   "musicAnimationPreviews": [
     {

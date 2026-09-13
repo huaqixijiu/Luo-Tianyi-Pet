@@ -7,7 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +24,7 @@ PORTRAIT_SOURCE = (
     / "runtime"
     / "user-chibi-crystal-full-body-idle.atlas.png"
 )
+ICON_CROP = (60, 0, 420, 260)
 ICON_PNG_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.png"
 ICON_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.ico"
 META_OUTPUT = ROOT / "assets" / "app" / "luotianyi-pet.meta.json"
@@ -151,52 +152,28 @@ def build_sidebar_artwork() -> list[dict[str, object]]:
 
 def build_icon() -> None:
     with Image.open(PORTRAIT_SOURCE) as source:
-        portrait = source.convert("RGBA")
+        portrait = source.convert("RGBA").crop(ICON_CROP)
+
+    alpha_bounds = portrait.getchannel("A").getbbox()
+    if alpha_bounds is None:
+        raise ValueError("Application icon crop contains no visible pixels")
+    portrait = portrait.crop(alpha_bounds)
 
     size = 512
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-
-    gradient = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    gradient_pixels = gradient.load()
-    top = (236, 250, 255)
-    bottom = (99, 204, 248)
-    for y in range(size):
-        t = y / (size - 1)
-        color = tuple(round(a + ((b - a) * t)) for a, b in zip(top, bottom))
-        for x in range(size):
-            gradient_pixels[x, y] = (*color, 255)
-
-    rounded_mask = Image.new("L", (size, size), 0)
-    mask_draw = ImageDraw.Draw(rounded_mask)
-    mask_draw.rounded_rectangle((5, 5, 506, 506), radius=104, fill=255)
-    gradient.putalpha(rounded_mask)
-    canvas.alpha_composite(gradient)
-
-    border = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    border_draw = ImageDraw.Draw(border)
-    border_draw.rounded_rectangle(
-        (7, 7, 504, 504),
-        radius=102,
-        outline=(255, 255, 255, 205),
-        width=10,
+    padding = 18
+    scale = min(
+        (size - (padding * 2)) / portrait.width,
+        (size - (padding * 2)) / portrait.height,
     )
-    canvas.alpha_composite(border)
-
-    # A square crop from the full-body source keeps both ears, the complete
-    # face, and just enough shoulders to read as a portrait at tray-icon size.
-    head_crop = portrait.crop((60, 0, 420, 360))
-    head_crop = head_crop.resize((476, 476), Image.Resampling.LANCZOS)
-
-    alpha = head_crop.getchannel("A")
-    halo_alpha = alpha.filter(ImageFilter.MaxFilter(11)).filter(
-        ImageFilter.GaussianBlur(2.2)
+    head_crop = portrait.resize(
+        (max(1, round(portrait.width * scale)), max(1, round(portrait.height * scale))),
+        Image.Resampling.LANCZOS,
     )
-    halo = Image.new("RGBA", head_crop.size, (255, 255, 255, 0))
-    halo.putalpha(halo_alpha.point(lambda value: round(value * 0.9)))
-    canvas.alpha_composite(halo, (18, 22))
-    canvas.alpha_composite(head_crop, (18, 22))
-
-    canvas.putalpha(Image.composite(canvas.getchannel("A"), Image.new("L", (size, size), 0), rounded_mask))
+    canvas.alpha_composite(
+        head_crop,
+        ((size - head_crop.width) // 2, (size - head_crop.height) // 2),
+    )
     canvas.save(ICON_PNG_OUTPUT, optimize=True)
     canvas.save(
         ICON_OUTPUT,
@@ -308,12 +285,12 @@ def main() -> None:
         "applicationIcon": {
             "source": str(PORTRAIT_SOURCE.relative_to(ROOT)).replace("\\", "/"),
             "sourceSha256": sha256(PORTRAIT_SOURCE),
-            "crop": [60, 0, 420, 360],
+            "crop": list(ICON_CROP),
             "outputPng": str(ICON_PNG_OUTPUT.relative_to(ROOT)).replace("\\", "/"),
             "outputPngSha256": sha256(ICON_PNG_OUTPUT),
             "outputIco": str(ICON_OUTPUT.relative_to(ROOT)).replace("\\", "/"),
             "outputIcoSha256": sha256(ICON_OUTPUT),
-            "transformation": "portrait-crop-on-rounded-tianyi-blue-background",
+            "transformation": "head-above-neck-crop-on-transparent-canvas",
         },
         "musicAnimationPreviews": music_previews,
     }

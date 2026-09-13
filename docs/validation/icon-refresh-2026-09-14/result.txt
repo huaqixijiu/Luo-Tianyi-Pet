@@ -1,0 +1,9 @@
+目标：验证模型二透明头部图标在设置页及发布资源中的清晰度与透明背景。
+
+PASS assets/app/luotianyi-pet.png 为 512x512 RGBA，Alpha 背景透明，可见范围不含身体。
+PASS assets/app/luotianyi-pet.ico 包含 16/20/24/32/40/48/64/128/256 多尺寸并保留透明 Alpha。
+PASS MSIX StoreLogo、Square44x44Logo、Square150x150Logo 均由同一透明头部生成，Alpha 背景透明。
+PASS QuickActions QA 28/28，设置页实际截图确认头像清晰。
+PASS .89 MSIX 签名 Valid，安装状态 Ok，正式进程 Responding=True。
+
+视觉证据：settings-qa.png

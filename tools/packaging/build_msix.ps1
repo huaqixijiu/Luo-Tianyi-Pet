@@ -74,11 +74,11 @@ New-Item -ItemType Directory -Path $layoutRoot -Force | Out-Null
 
 $packageAssets = Join-Path $repoRoot 'packaging\Assets'
 & $python (Join-Path $repoRoot 'tools\packaging\generate_package_assets.py') `
-    --source (Join-Path $repoRoot 'assets\animations\runtime\twelfth-anniversary-hug.frames.webp') `
+    --source (Join-Path $repoRoot 'assets\app\luotianyi-pet.png') `
     --output $packageAssets `
-    --frame-width 380 `
-    --frame-height 380 `
-    --frame-index 6
+    --frame-width 512 `
+    --frame-height 512 `
+    --frame-index 0
 if ($LASTEXITCODE -ne 0) { throw 'Package asset generation failed.' }
 
 $applicationProject = Join-Path $repoRoot 'src\LuoTianyiPet.App\LuoTianyiPet.App.csproj'
