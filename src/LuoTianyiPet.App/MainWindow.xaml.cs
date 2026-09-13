@@ -2362,17 +2362,21 @@ public partial class MainWindow : Window
             $"Source={source}; Restored selected idle appearance immediately.");
     }
 
-    private void OnMusicDetectionTimerTick(object? sender, EventArgs e)
+    private bool _audioProbeInFlight;
+    private async void OnMusicDetectionTimerTick(object? sender, EventArgs e)
     {
-        if (_audioSessionProbe is null || _musicPreviewOverride || _isClosing)
+        if (_audioSessionProbe is null || _musicPreviewOverride || _isClosing || _audioProbeInFlight)
         {
             return;
         }
 
         AudioSessionSnapshot snapshot;
+        _audioProbeInFlight=true;
         try
         {
-            snapshot = _audioSessionProbe.ReadForProcess(_musicTargetProcessName);
+            // Core Audio may wait on an unavailable audio service. A single worker
+            // isolates that wait; timer ticks never queue additional reads behind it.
+            snapshot = await Task.Run(()=>_audioSessionProbe.ReadForProcess(_musicTargetProcessName));
         }
         catch (Exception exception) when (
             exception is ArgumentException or
@@ -2388,6 +2392,8 @@ public partial class MainWindow : Window
 
             return;
         }
+        finally { _audioProbeInFlight=false; }
+        if(_isClosing)return;
 
         if (!snapshot.ProbeSucceeded)
         {
@@ -4023,11 +4029,13 @@ public partial class MainWindow : Window
             _settings.Appearance,
             _settings.Media,
             _startupRegistrationService?.IsEnabled ?? false,
-            _messageNotificationSource)
+            _messageNotificationSource,
+            _reminders?.Book.Preferences)
         {
             Owner = this,
         };
         _settingsWindow = settingsWindow;
+        if(_openPlannerNotificationSettings){settingsWindow.NavigateNotifications();_openPlannerNotificationSettings=false;}
         settingsWindow.Closed += (_, _) => _settingsWindow = null;
         if (settingsWindow.ShowDialog() == true)
         {
@@ -4040,6 +4048,7 @@ public partial class MainWindow : Window
                 settingsWindow.StartWithWindowsSelected, save: false);
             if (_persistSettings)
                 await SaveSettingsAsync("settings.dialog_saved", "All settings saved together.");
+            if(_reminders!=null) await _reminders.ChangeAsync(b=>b.Preferences=settingsWindow.SelectedReminderPreferences);
         }
     }
 

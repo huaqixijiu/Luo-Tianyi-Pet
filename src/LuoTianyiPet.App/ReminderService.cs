@@ -61,7 +61,9 @@ internal sealed class ReminderService : IDisposable
         DateTime? next = Book.Items.Where(ReminderEngine.Active).Select(i => {
             var at=ReminderSchedule.Next(i,Book,i.CheckedThrough);
             return at is DateTime due && i.EarlyEnabled==true && due.AddMinutes(-i.EarlyMinutes)>i.CheckedThrough ? due.AddMinutes(-i.EarlyMinutes) : at;
-        }).Concat(Book.Occurrences.Where(o=>o.Phase is ReminderPhase.Early or ReminderPhase.EarlySnoozed or ReminderPhase.AcknowledgedEarly or ReminderPhase.DueSnoozed).Select(o=>o.SnoozeAt ?? (DateTime?)o.At)).Where(t=>t!=null).OrderBy(t=>t).FirstOrDefault();
+        }).Concat(Book.Occurrences.Where(o=>o.Phase is ReminderPhase.Early or ReminderPhase.EarlySnoozed or ReminderPhase.AcknowledgedEarly or ReminderPhase.DueSnoozed).Select(o=>o.SnoozeAt ?? (DateTime?)o.At))
+        .Concat(Book.Occurrences.Where(o=>o.Phase is ReminderPhase.Early or ReminderPhase.Due && o.RoundStartedAt!=null && (Book.Preferences.Sound||Book.Preferences.Animation)).Select(o=>(DateTime?)o.RoundStartedAt!.Value.AddSeconds(ReminderEngine.MaximumRoundSeconds)))
+        .Where(t=>t!=null).OrderBy(t=>t).FirstOrDefault();
         // A bounded watchdog catches system clock changes/resume without high-frequency polling.
         _timer.Interval = TimeSpan.FromSeconds(next == null ? 60 : Math.Max(0.1, Math.Min(60, (next.Value - now).TotalSeconds)));
         _timer.Start();

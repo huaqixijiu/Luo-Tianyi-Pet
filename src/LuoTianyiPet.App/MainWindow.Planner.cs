@@ -88,7 +88,8 @@ public partial class MainWindow
         var book=_reminders.Book;DateTime now=DateTime.Now;
         var pending=book.Occurrences.Where(o=>o.Phase is ReminderPhase.Early or ReminderPhase.Due).OrderBy(o=>o.At).ToList();
         var capsules=book.Occurrences.Where(o=>o.Phase==ReminderPhase.AcknowledgedEarly&&o.At>now).OrderBy(o=>o.At).ToList();
-        if(!safe||pending.Count+capsules.Count==0){_reminderCard?.Hide();return;}
+        if(!safe||pending.Count+capsules.Count==0){_reminderCard?.Hide();StopPlannerPresentation();return;}
+        if(pending.Count==0)StopPlannerPresentation();
         bool expanded=pending.Count>0||now<_reminderExpandedUntil;
         // Collapsed capsules contain static time and count, so no per-second text churn.
         _reminderDisplayTimer.Interval=TimeSpan.FromSeconds(expanded?1:10);
@@ -140,26 +141,41 @@ public partial class MainWindow
             position=new DesktopRectangle(Numeric.Clamp(center-w/2,work.Left,Math.Max(work.Left,work.Right-w)),Numeric.Clamp(y,work.Top,Math.Max(work.Top,work.Bottom-h)),w,h);
         }
         _reminderCard.Left=position.Left;_reminderCard.Top=position.Top;
-        if(fresh){ReminderAudio.Play(book.Preferences);if(book.Preferences.Animation)PlayPlannerAnimation();}
+        if(pending.Count>0)
+        {
+            _plannerAlarmTopmost ??= AcquireTransientTopmost();
+            if(fresh)ReminderAudio.Play(book.Preferences);
+            if(!book.Preferences.Sound)ReminderAudio.Stop();
+            if(book.Preferences.Animation)PlayPlannerAnimation();else StopPlannerAnimation();
+        }
     }
     private void PlayPlannerAnimation()
     {
-        if(!PlannerPresentationSafe(_foregroundApplicationProbe?.Query()??new(false,null,false)))return;
-        if(_stateMachine.ActiveReactionToken!=null)return;
+        // Called only from the already safety-checked presentation branch.
+        if(_plannerAlarmReaction is Guid token && _stateMachine.ActiveReactionToken==token)return;
+        CancelBunChase(restorePosition:true,restoreContinuousAnimation:false);
+        CancelTimeGreetingPresentation(false,"Alarm is ringing.");
+        StopClassicSpinDance(false,"planner.alarm");
+        CancelCrystalLongIdle();_bodyReactionMotion.Cancel();ResetBodyReactionMirror();
         DateTimeOffset now=DateTimeOffset.Now;
-        var outcome=_stateMachine.TryStartReaction(new ReactionRequest("twelfth-anniversary-call",ReactionPriority.TimeGreeting,now.AddSeconds(4),"planner:reminder"),now);
-        if(outcome.Result==ReactionStartResult.Started)PlayAnimation("twelfth-anniversary-call");
+        var outcome=_stateMachine.TryStartReaction(new ReactionRequest("alarm-tenth-birthday-coming",ReactionPriority.Alarm,now.AddSeconds(ReminderEngine.MaximumRoundSeconds),"planner:reminder",BlocksDisplayModeToggle:true),now);
+        if(outcome.Result is ReactionStartResult.Started or ReactionStartResult.Replaced){_plannerAlarmReaction=outcome.Token;PlayAnimation("alarm-tenth-birthday-coming");}
     }
-    private ReminderSettingsWindow? _reminderSettingsWindow;
+    private Guid? _plannerAlarmReaction,_plannerAlarmTopmost;
+    private void StopPlannerAnimation()
+    {
+        if(_plannerAlarmReaction is Guid token){_plannerAlarmReaction=null;if(_stateMachine.CompleteReaction(token,DateTimeOffset.Now)&&!_isClosing)PlayResolvedContinuousAnimation();}
+    }
+    private void StopPlannerPresentation(){ReminderAudio.Stop();StopPlannerAnimation();ReleaseTransientTopmost(_plannerAlarmTopmost);_plannerAlarmTopmost=null;_shownReminders.Clear();}
+    private bool _openPlannerNotificationSettings;
     private void OpenReminderSettings()
     {
-        if(_reminders==null)return;
-        if(_reminderSettingsWindow!=null){_reminderSettingsWindow.Activate();return;}
-        _reminderSettingsWindow=new ReminderSettingsWindow(_reminders);_reminderSettingsWindow.TestRequested+=p=>{if(p.Animation)PlayPlannerAnimation();};_reminderSettingsWindow.Closed+=(_,_)=>_reminderSettingsWindow=null;_reminderSettingsWindow.Show();
+        if(_settingsWindow!=null){_settingsWindow.NavigateNotifications();_settingsWindow.Activate();return;}
+        _openPlannerNotificationSettings=true;ShowSettingsDialog();
     }
     private void ClosePlanner()
     {
         _reminderDisplayTimer.Stop(); _reminderDisplayTimer.Tick -= OnReminderDisplayTick;
-        _reminderSettingsWindow?.Close(); _plannerWindow?.Close(); _reminderCard?.Close(); _reminders?.Dispose();
+        StopPlannerPresentation(); _plannerWindow?.Close(); _reminderCard?.Close(); _reminders?.Dispose();
     }
 }

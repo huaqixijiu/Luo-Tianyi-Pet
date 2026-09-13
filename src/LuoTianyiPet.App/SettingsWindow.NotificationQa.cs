@@ -42,7 +42,8 @@ public partial class SettingsWindow
                 string prefix = status + ": ";
                 Check(source.RequestCount == 0, prefix + "Opening settings never requests system permission");
                 Check(!window.NotificationRulesExpander.IsExpanded, prefix + "Rules start collapsed");
-                Check(window.NotificationPage.ScrollableHeight < 1, prefix + "Collapsed page fits without vertical scroll");
+                double collapsedExtent=window.NotificationPage.ExtentHeight;
+                Check(window.NotificationPage.ScrollableHeight > 0 && window.AlarmSoundCheckBox.IsVisible, prefix + "Notification page includes scrollable alarm settings");
                 Check(window.NotificationPage.ScrollableWidth < 1, prefix + "Page never scrolls horizontally");
                 Check(window.NotificationAccessStatusText.Text == (status switch {
                     MessageNotificationAccessStatus.Allowed => "已授权", MessageNotificationAccessStatus.Denied => "已拒绝",
@@ -77,8 +78,8 @@ public partial class SettingsWindow
                     CaptureNotificationSettings(window, Path.Combine(directory, "rules-expanded.png"), 1);
                 ((IToggleProvider)new ToggleButtonAutomationPeer(disclosure)).Toggle();
                 window.UpdateLayout();
-                Check(!window.NotificationRulesExpander.IsExpanded && window.NotificationPage.ScrollableHeight < 1,
-                    prefix + "Closing rules restores the compact page");
+                Check(!window.NotificationRulesExpander.IsExpanded && Math.Abs(window.NotificationPage.ExtentHeight-collapsedExtent)<1,
+                    prefix + "Closing rules restores the original page extent");
                 if (status == MessageNotificationAccessStatus.Unspecified)
                 {
                     source.Status = MessageNotificationAccessStatus.Allowed;
@@ -109,9 +110,13 @@ public partial class SettingsWindow
                 modal.MessageReminderCheckBox.IsChecked = false;
                 modal.QqDetailedReminderCheckBox.IsChecked = false;
                 modal.WeChatDetailedReminderCheckBox.IsChecked = true;
+                modal.AlarmAnimationCheckBox.IsChecked=true;
+                modal.AlarmSoundCheckBox.IsChecked=false;
+                modal.AlarmVolumeSlider.Value=0.35;
                 modal.OnSaveClick(modal, new RoutedEventArgs());
             }));
             Check(modal.ShowDialog() == true, "Save accepts the settings dialog");
+            Check(modal.SelectedReminderPreferences.Animation&&!modal.SelectedReminderPreferences.Sound&&Math.Abs(modal.SelectedReminderPreferences.Volume-0.35)<0.001,"Save commits independent alarm animation sound and volume");
             Check(!modal.SelectedNotificationPreferences.EnableMessageReminders && !modal.SelectedNotificationPreferences.EnableQqDetailedReminders &&
                 modal.SelectedNotificationPreferences.EnableWeChatDetailedReminders && modal.SelectedNotificationPreferences.WindowsNotificationAccessGranted,
                 "Save commits all notification choices and the current grant");

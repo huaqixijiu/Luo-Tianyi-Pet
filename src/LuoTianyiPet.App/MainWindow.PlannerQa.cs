@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -39,6 +39,10 @@ public partial class MainWindow
             await service.ChangeAsync(b=>b.WeekView=true);Snapshot(window,"03-week");await service.ChangeAsync(b=>b.WeekView=false);
             Edit(null,true);Snapshot(window,"04-new-event");Check(((CheckBox)Named(window,"CreateAlarm")).IsChecked==false,"A06 new calendar reminder disabled");
             Check(!Tree(window).OfType<FrameworkElement>().Any(e=>e.Name=="EarlyReminder"),"A06 early row absent while disabled");
+            var dateControl=(DatePicker)Named(window,"ReminderDate");dateControl.ApplyTemplate();
+            ((Button)dateControl.Template.FindName("PART_Button",dateControl)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));await Task.Delay(100);
+            var datePopup=(System.Windows.Controls.Primitives.Popup)dateControl.Template.FindName("PART_Popup",dateControl);
+            Check(dateControl.IsDropDownOpen&&datePopup.IsOpen&&datePopup.Child!=null,"styled date picker opens a real calendar");dateControl.IsDropDownOpen=false;
             Tick(window,"CreateAlarm",true);Check(((CheckBox)Named(window,"EarlyReminder")).IsChecked==false,"A07 early starts disabled");Tick(window,"EarlyReminder",true);Check(((TextBox)Named(window,"EarlyMinutes")).Text=="30","A07 thirty minute initial value");
             Tick(window,"NoTime",true);Check(((CheckBox)Named(window,"CreateAlarm")).IsChecked==false&&!((CheckBox)Named(window,"CreateAlarm")).IsEnabled,"A29 unspecified time disables reminder");
             ((TextBox)Named(window,"ReminderTitle")).Text="不指定时间事项";Click(window,"SaveReminder");await Task.Delay(250);Check(service.Book.Items.Last().HasTime==false&&!service.Book.Items.Last().Enabled,"A29 unspecified time persists without midnight alarm");
@@ -68,7 +72,23 @@ public partial class MainWindow
             var chosen=(HashSet<Guid>)typeof(PlannerWindow).GetField("_selectedGroups",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)!;chosen.Add(service.Book.Items.Single().Id);typeof(PlannerWindow).GetMethod("Render",BindingFlags.NonPublic|BindingFlags.Instance,null,Type.EmptyTypes,null)!.Invoke(window,null);Click(window,"DeleteSelectedGroups");window.UpdateLayout();Click(window,"ConfirmGroupDelete");await Task.Delay(200);Check(service.Book.Items.Count==0,"bulk group deletion persists");
             DateSelectionWindow picker=new([day],day){Owner=window};picker.Show();picker.UpdateLayout();Click(picker,"Date"+day.AddDays(1).ToString("yyyyMMdd"));Check(picker.Selection.Count==2,"A13 direct date multiselect");Snapshot(picker,"14-date-picker");picker.Close();
             window.Navigate(false);window.Width=900;Set("_date",new DateTime(2026,8,1));Snapshot(window,"15-small-six-week-month");Check(body.ScrollableWidth==0&&body.ScrollableHeight==0,"small six week calendar fits");
-            ReminderSettingsWindow settings=new(service);settings.Show();Snapshot(settings,"13-reminder-settings");settings.Close();
+            SettingsWindow settings=new(new(),new(),new(),new(),new(),false,null,service.Book.Preferences);settings.NavigateNotifications();settings.Show();await Task.Delay(200);settings.NotificationPage.ScrollToEnd();settings.UpdateLayout();Snapshot(settings,"13-reminder-settings");Check(settings.AlarmAnimationCheckBox.IsVisible&&settings.AlarmSoundCheckBox.IsVisible,"alarm settings integrated below notifications");settings.Close();
+            await service.ChangeAsync(b=>{b.Items.Clear();b.Occurrences.Clear();b.Preferences=new(){Sound=false,Animation=true};var i=new ReminderItem{Title="来啦闹钟验证",Start=DateTime.Now,CheckedThrough=DateTime.Now.AddSeconds(-1)};b.Items.Add(i);ReminderEngine.Advance(b,DateTime.Now);});
+            bool originalTopmost=Topmost;RefreshReminderCardCore(true);await Task.Delay(180);
+            Check(Topmost&&_plannerAlarmTopmost!=null,"alarm temporarily forces pet topmost");
+            Check(_plannerAlarmReaction!=null&&_stateMachine.ActiveReactionToken==_plannerAlarmReaction,"original coming animation owns alarm reaction");
+            Snapshot(this,"16-original-alarm-animation");
+            await service.ChangeAsync(b=>{var o=b.Occurrences.Single();o.RoundStartedAt=DateTime.Now.AddSeconds(-223);ReminderEngine.Advance(b,DateTime.Now);});RefreshReminderCardCore(true);
+            Check(service.Book.Occurrences.Single().Phase==ReminderPhase.DueSnoozed,"song timeout enters ten minute retry");
+            Check(_plannerAlarmReaction==null&&_plannerAlarmTopmost==null&&Topmost==originalTopmost,"timeout restores prior topmost and animation");
+            Check(!ReminderAudio.IsPlaying,"timeout stops reminder audio");
+            await service.ChangeAsync(b=>{var o=b.Occurrences.Single();o.SnoozeAt=DateTime.Now;ReminderEngine.Advance(b,DateTime.Now);});RefreshReminderCardCore(true);
+            Check(_plannerAlarmReaction!=null&&Topmost,"retry resumes original animation and topmost");
+            Click(_reminderCard!,"AcknowledgeReminder");await Task.Delay(200);RefreshReminderCardCore(true);
+            Check(service.Book.Occurrences.Single().Phase==ReminderPhase.Done&&_plannerAlarmReaction==null&&Topmost==originalTopmost&&!ReminderAudio.IsPlaying,"closing due reminder immediately releases presentation and future retries");
+            Check(File.Exists(ReminderAudio.SongPath),"user supplied MP3 packaged locally");
+            MediaPlayer media=new(){Volume=0};TaskCompletionSource<bool> opened=new();media.MediaOpened+=(_,_)=>opened.TrySetResult(true);media.MediaFailed+=(_,_)=>opened.TrySetResult(false);media.Open(new Uri(ReminderAudio.SongPath));await Task.WhenAny(opened.Task,Task.Delay(5000));
+            Check(media.NaturalDuration.HasTimeSpan&&media.NaturalDuration.TimeSpan.TotalSeconds>220&&media.NaturalDuration.TimeSpan.TotalSeconds<225,"song duration matches three minutes forty two seconds");media.Close();
             window.Close();_reminderCard.Close();_reminderCard=null;_reminders=null;File.WriteAllLines(Path.Combine(path,"result.txt"),checks);
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(path,"FAILED.txt"),ex.ToString());}

@@ -1,0 +1,32 @@
+[
+  {
+    "Id": 6124,
+    "Responding": true,
+    "CPU": 24.328125,
+    "WorkingSet64": 132829184
+  },
+  {
+    "Id": 6124,
+    "Responding": true,
+    "CPU": 26.09375,
+    "WorkingSet64": 130494464
+  },
+  {
+    "Id": 6124,
+    "Responding": true,
+    "CPU": 27.453125,
+    "WorkingSet64": 131088384
+  },
+  {
+    "Id": 6124,
+    "Responding": true,
+    "CPU": 29.15625,
+    "WorkingSet64": 132587520
+  },
+  {
+    "Id": 6124,
+    "Responding": true,
+    "CPU": 30.953125,
+    "WorkingSet64": 133791744
+  }
+]

@@ -280,6 +280,17 @@
                             <TextBlock Style="{StaticResource NotificationHint}" Margin="0,10,0,0" Text="无法获取详情时会尝试来源提醒；未捕获到的消息不会补报。提醒显示在耳旁，不打断当前待机或音乐动画。" />
                         </StackPanel>
                     </Expander>
+                    <Border Style="{StaticResource NotificationDivider}" Margin="0,16,0,16" />
+                    <TextBlock Style="{StaticResource NotificationHeading}" Text="日历与闹钟提醒" Margin="0,0,0,8" />
+                    <CheckBox x:Name="AlarmAnimationCheckBox" Style="{StaticResource NotificationSwitch}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><TextBlock Text="播放「来啦」动画" FontSize="14" /></CheckBox>
+                    <CheckBox x:Name="AlarmSoundCheckBox" Style="{StaticResource NotificationSwitch}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"><TextBlock Text="播放提醒音乐" FontSize="14" /></CheckBox>
+                    <TextBlock Style="{StaticResource NotificationHint}" Text="再给我一天的时间吧QAQ · 洛天依Official、心华" Margin="0,2,0,10" />
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="50"/><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="音量" VerticalAlignment="Center" />
+                        <Slider x:Name="AlarmVolumeSlider" Grid.Column="1" Minimum="0" Maximum="1" Margin="8,0,16,0" VerticalAlignment="Center" ValueChanged="OnAlarmVolumeChanged" />
+                        <Button x:Name="TestAlarmSoundButton" Grid.Column="2" Content="试听音乐" Height="32" Click="OnTestAlarmSound" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource NotificationHint}" Margin="0,12,0,0" Text="响铃时临时置顶。每轮最长3分42秒，未处理则暂停10分钟后再次提醒；关闭本次提醒即停止。" />
                 </StackPanel>
             </ScrollViewer>
 

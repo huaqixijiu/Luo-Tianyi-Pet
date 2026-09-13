@@ -1,0 +1,32 @@
+[
+  {
+    "Id": 17500,
+    "Responding": true,
+    "CPU": 31.875,
+    "WorkingSet64": 158605312
+  },
+  {
+    "Id": 17500,
+    "Responding": true,
+    "CPU": 33.640625,
+    "WorkingSet64": 157200384
+  },
+  {
+    "Id": 17500,
+    "Responding": true,
+    "CPU": 35.1875,
+    "WorkingSet64": 156291072
+  },
+  {
+    "Id": 17500,
+    "Responding": true,
+    "CPU": 36.734375,
+    "WorkingSet64": 156753920
+  },
+  {
+    "Id": 17500,
+    "Responding": true,
+    "CPU": 38.453125,
+    "WorkingSet64": 156663808
+  }
+]

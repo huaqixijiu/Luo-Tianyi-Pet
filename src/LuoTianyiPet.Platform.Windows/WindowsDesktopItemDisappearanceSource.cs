@@ -20,10 +20,12 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
     private int _refreshing;
     private bool _disposed;
 
-    public WindowsDesktopItemDisappearanceSource()
+    public WindowsDesktopItemDisappearanceSource() : this(null) { }
+
+    internal WindowsDesktopItemDisappearanceSource(Action? readIcons)
     {
         _cacheTimer = new System.Threading.Timer(
-            _ => RefreshIconPositions(),
+            _ => { if (Volatile.Read(ref _started) != 0 && !_disposed) { if(readIcons != null) readIcons(); else RefreshIconPositions(); } },
             null,
             Timeout.InfiniteTimeSpan,
             Timeout.InfiniteTimeSpan);
@@ -60,8 +62,9 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
             _watchers.Add(watcher);
         }
 
-        RefreshIconPositions();
-        _cacheTimer.Change(TimeSpan.FromMilliseconds(700), TimeSpan.FromMilliseconds(700));
+        // UI Automation calls into Explorer and may block on another process. Even the
+        // initial cache fill must run on the timer worker, never the WPF startup thread.
+        _cacheTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(700));
     }
 
     private void OnDeleted(object sender, FileSystemEventArgs e)
@@ -139,6 +142,10 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
         {
             // UI Automation can be temporarily unavailable during shell restart.
         }
+        catch (COMException)
+        {
+            // An unavailable Explorer provider must not bring down the timer worker.
+        }
         finally
         {
             Volatile.Write(ref _refreshing, 0);
@@ -147,27 +154,17 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
 
     private static AutomationElement? FindDesktopList()
     {
-        Condition desktopListCondition = new OrCondition(
-            new PropertyCondition(AutomationElement.ClassNameProperty, "SysListView32"),
-            new AndCondition(
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.List),
-                new PropertyCondition(AutomationElement.AutomationIdProperty, "FolderView")));
-        AutomationElementCollection candidates = AutomationElement.RootElement.FindAll(
-            TreeScope.Descendants,
-            desktopListCondition);
-        return candidates.Cast<AutomationElement>().FirstOrDefault(candidate =>
+        // Locate Explorer's desktop host through window classes, then ask UIA only
+        // about that list. RootElement.Descendants also traverses every open app,
+        // including our own WPF window, and can wait indefinitely on unrelated apps.
+        nint list=0;
+        EnumWindows((window,_)=>
         {
-            try
-            {
-                return candidate.FindFirst(
-                    TreeScope.Children,
-                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem)) is not null;
-            }
-            catch (ElementNotAvailableException)
-            {
-                return false;
-            }
-        });
+            nint view=FindWindowEx(window,0,"SHELLDLL_DefView",null);
+            if(view!=0)list=FindWindowEx(view,0,"SysListView32",null);
+            return list==0;
+        },0);
+        return list==0?null:AutomationElement.FromHandle(list);
     }
 
     private static string NormalizeName(string value) =>
@@ -214,6 +211,13 @@ public sealed class WindowsDesktopItemDisappearanceSource : IDesktopItemDisappea
         _watchers.Clear();
         _positions.Clear();
     }
+
+    private delegate bool EnumWindowCallback(nint window,nint parameter);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EnumWindows(EnumWindowCallback callback,nint parameter);
+    [DllImport("user32.dll",CharSet=CharSet.Unicode)]
+    private static extern nint FindWindowEx(nint parent,nint after,string className,string? title);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

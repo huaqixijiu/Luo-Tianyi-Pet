@@ -18,7 +18,8 @@ public partial class SettingsWindow : Window
         AppearancePreferences appearancePreferences,
         MediaPreferences mediaPreferences,
         bool startupRegistrationEnabled,
-        IMessageNotificationSource? messageNotificationSource)
+        IMessageNotificationSource? messageNotificationSource,
+        ReminderPreferences? reminderPreferences = null)
     {
         Guard.NotNull(notificationPreferences, nameof(notificationPreferences));
         Guard.NotNull(windowPreferences, nameof(windowPreferences));
@@ -33,6 +34,11 @@ public partial class SettingsWindow : Window
         StartWithWindowsSelected = startupRegistrationEnabled;
         _messageNotificationSource = messageNotificationSource;
         InitializeComponent();
+        SelectedReminderPreferences=reminderPreferences??new();
+        AlarmAnimationCheckBox.IsChecked=SelectedReminderPreferences.Animation;
+        AlarmSoundCheckBox.IsChecked=SelectedReminderPreferences.Sound;
+        AlarmVolumeSlider.Value=SelectedReminderPreferences.Volume;
+        Closed+=(_,_)=>{if(_alarmPreview){ReminderAudio.Stop();_alarmPreview=false;}};
 
         MessageReminderCheckBox.IsChecked = notificationPreferences.EnableMessageReminders;
         QqDetailedReminderCheckBox.IsChecked = notificationPreferences.EnableQqDetailedReminders;
@@ -65,6 +71,15 @@ public partial class SettingsWindow : Window
     public MediaPreferences SelectedMediaPreferences { get; private set; }
 
     public bool StartWithWindowsSelected { get; private set; }
+    public ReminderPreferences SelectedReminderPreferences { get; private set; } = new();
+    private bool _alarmPreview;
+    internal void NavigateNotifications() { NotificationNavigationRadioButton.IsChecked=true; }
+    private void OnAlarmVolumeChanged(object sender,RoutedPropertyChangedEventArgs<double> e)=>OnSettingChanged(sender,e);
+    private void OnTestAlarmSound(object sender,RoutedEventArgs e)
+    {
+        if(_alarmPreview){ReminderAudio.Stop();_alarmPreview=false;TestAlarmSoundButton.Content="试听音乐";return;}
+        ReminderAudio.Play(new(){Sound=true,Volume=AlarmVolumeSlider.Value});_alarmPreview=true;TestAlarmSoundButton.Content="停止试听";
+    }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -188,6 +203,7 @@ public partial class SettingsWindow : Window
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
+        SelectedReminderPreferences=new(){Animation=AlarmAnimationCheckBox.IsChecked==true,Sound=AlarmSoundCheckBox.IsChecked==true,Volume=AlarmVolumeSlider.Value,Tone="再给我一天的时间吧QAQ"};
         SelectedNotificationPreferences = SelectedNotificationPreferences with
         {
             EnableMessageReminders = MessageReminderCheckBox.IsChecked == true,

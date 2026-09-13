@@ -8,6 +8,7 @@ public enum ReactionPriority
     Genshin = 400,
     System = 500,
     UserInteraction = 600,
+    Alarm = 650,
     Exit = 700,
 }
 

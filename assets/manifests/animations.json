@@ -5031,6 +5031,44 @@
         240,
         180
       ]
+    },
+    {
+      "id": "alarm-tenth-birthday-coming",
+      "sourcePath": "候选素材_官方/14_新添加_闹钟来啦/洛天依十周年生日_来啦.gif",
+      "sourceSha256": "d4f04a75da2a3425509c94c5b866fae87f98f308139740701aa1dec245d23d8e",
+      "atlasPath": "animations/runtime/alarm-tenth-birthday-coming.atlas.png",
+      "atlasSha256": "00209da4317a3cb1707764bfc7e760a66ba68601075be2e0b057e62cd0dcdd3d",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "columns": 8,
+      "rows": 2,
+      "frameDurationsMilliseconds": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "loopCount": 0,
+      "displayWidth": 220,
+      "displayHeight": 220,
+      "anchorX": 0.5,
+      "anchorY": 1.0,
+      "alphaBounds": [
+        29,
+        19,
+        213,
+        223
+      ]
     }
   ]
 }

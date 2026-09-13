@@ -26,7 +26,7 @@ public partial class TrayQuickPanel : Window
         _exit = exit;
         InitializeComponent();
         _reminderSettings=reminderSettings;
-        ReminderSettingsButton.Visibility=reminderSettings==null?Visibility.Collapsed:Visibility.Visible;
+        ReminderSettingsButton.Visibility=Visibility.Collapsed;
     }
 
     public void RefreshState() => HidePetButton.IsEnabled = _isPetVisible();

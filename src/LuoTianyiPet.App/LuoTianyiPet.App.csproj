@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Content Include="..\..\assets\audio\*.mp3" Link="assets\audio\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\LuoTianyiPet.Core\LuoTianyiPet.Core.csproj" />
     <ProjectReference Include="..\LuoTianyiPet.Animation\LuoTianyiPet.Animation.csproj" />
     <ProjectReference Include="..\LuoTianyiPet.Platform.Windows\LuoTianyiPet.Platform.Windows.csproj" />

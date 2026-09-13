@@ -1,0 +1,93 @@
+PASS Sleep entering: mouse press preserves frame
+PASS Sleep entering: drag begins without replay
+PASS Sleep entering: mirror and reaction token preserved
+PASS Sleep entering: drop preserves frame and state
+PASS Sleep: mouse press preserves frame
+PASS Sleep: drag begins without replay
+PASS Sleep: mirror and reaction token preserved
+PASS Sleep: drop preserves frame and state
+PASS Sleep: pose and dream decoration retained
+PASS Sleep: drag input cannot wake on idle tick
+PASS Sleep waking: mouse press preserves frame
+PASS Sleep waking: drag begins without replay
+PASS Sleep waking: mirror and reaction token preserved
+PASS Sleep waking: drop preserves frame and state
+PASS DuckSit entering: mouse press preserves frame
+PASS DuckSit entering: drag begins without replay
+PASS DuckSit entering: mirror and reaction token preserved
+PASS DuckSit entering: drop preserves frame and state
+PASS DuckSit: mouse press preserves frame
+PASS DuckSit: drag begins without replay
+PASS DuckSit: mirror and reaction token preserved
+PASS DuckSit: drop preserves frame and state
+PASS DuckSit: pose and dream decoration retained
+PASS DuckSit: drag input cannot wake on idle tick
+PASS DuckSit waking: mouse press preserves frame
+PASS DuckSit waking: drag begins without replay
+PASS DuckSit waking: mirror and reaction token preserved
+PASS DuckSit waking: drop preserves frame and state
+PASS Sleeping: mouse press preserves frame
+PASS Sleeping: drag begins without replay
+PASS Sleeping: mirror and reaction token preserved
+PASS Sleeping: drop preserves frame and state
+PASS Classic sleep survives idle reset
+PASS Confirmed click wakes classic sleep
+PASS MediumIdleCountdown: mouse press preserves frame
+PASS MediumIdleCountdown: drag begins without replay
+PASS MediumIdleCountdown: mirror and reaction token preserved
+PASS MediumIdleCountdown: drop preserves frame and state
+PASS MediumIdle: mouse press preserves frame
+PASS MediumIdle: drag begins without replay
+PASS MediumIdle: mirror and reaction token preserved
+PASS MediumIdle: drop preserves frame and state
+PASS MusicPlaying: mouse press preserves frame
+PASS MusicPlaying: drag begins without replay
+PASS MusicPlaying: mirror and reaction token preserved
+PASS MusicPlaying: drop preserves frame and state
+PASS resonance-soft-heart: mouse press preserves frame
+PASS resonance-soft-heart: drag begins without replay
+PASS resonance-soft-heart: mirror and reaction token preserved
+PASS resonance-soft-heart: drop preserves frame and state
+PASS resonance-kiss: mouse press preserves frame
+PASS resonance-kiss: drag begins without replay
+PASS resonance-kiss: mirror and reaction token preserved
+PASS resonance-kiss: drop preserves frame and state
+PASS twelfth-anniversary-hug: mouse press preserves frame
+PASS twelfth-anniversary-hug: drag begins without replay
+PASS twelfth-anniversary-hug: mirror and reaction token preserved
+PASS twelfth-anniversary-hug: drop preserves frame and state
+PASS crystal-yawn: mouse press preserves frame
+PASS crystal-yawn: drag begins without replay
+PASS crystal-yawn: mirror and reaction token preserved
+PASS crystal-yawn: drop preserves frame and state
+PASS startup-afternoon-hurry: mouse press preserves frame
+PASS startup-afternoon-hurry: drag begins without replay
+PASS startup-afternoon-hurry: mirror and reaction token preserved
+PASS startup-afternoon-hurry: drop preserves frame and state
+PASS Greeting survives press and movement
+PASS resonance-loading-sway: mouse press preserves frame
+PASS resonance-loading-sway: drag begins without replay
+PASS resonance-loading-sway: mirror and reaction token preserved
+PASS resonance-loading-sway: drop preserves frame and state
+PASS resonance-no-playing: mouse press preserves frame
+PASS resonance-no-playing: drag begins without replay
+PASS resonance-no-playing: mirror and reaction token preserved
+PASS resonance-no-playing: drop preserves frame and state
+PASS resonance-big-success: mouse press preserves frame
+PASS resonance-big-success: drag begins without replay
+PASS resonance-big-success: mirror and reaction token preserved
+PASS resonance-big-success: drop preserves frame and state
+PASS Classic idle still expands (state=Idle, animation=resonance-expand, drag=True)
+PASS Rapid idle drag still triggers spin
+PASS Existing spin: mouse press preserves frame
+PASS Existing spin: drag begins without replay
+PASS Existing spin: mirror and reaction token preserved
+PASS Existing spin: drop preserves frame and state
+PASS Spin remains active after drop
+PASS Confirmed click still stops spin
+PASS Natural animation completion runs during drag
+PASS resonance-cute-bun-request: automatic/drag-drop workflow still blocks pet movement
+PASS resonance-give-me: automatic/drag-drop workflow still blocks pet movement
+PASS Explicit overscan still docks a spinning pet
+PASS Subpixel displacement accumulates instead of vanishing each frame
+PASS One-second render stall cannot skip acceleration ahead of motion

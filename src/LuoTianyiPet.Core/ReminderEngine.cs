@@ -8,6 +8,7 @@ public sealed class ReminderOccurrence
     public ReminderPhase Phase { get; set; }
     public DateTime? SnoozeAt { get; set; }
     public int Revision { get; set; }
+    public DateTime? RoundStartedAt { get; set; }
 }
 public sealed class ReminderPreferences
 {
@@ -18,6 +19,8 @@ public sealed class ReminderPreferences
 }
 public static class ReminderEngine
 {
+    public const int MaximumRoundSeconds = 222;
+    public const int RetryMinutes = 10;
     public static string Label(ReminderItem item) => string.IsNullOrWhiteSpace(item.Title) ? item.Relative ? "倒计时" : item.Start.ToString("HH:mm") + " 提醒" : item.Title;
     public static bool Active(ReminderItem i) => i.Enabled && i.HasTime && i.PausedSeconds == null;
     public static void Initialize(ReminderBook book, DateTime now)
@@ -63,9 +66,15 @@ public static class ReminderEngine
         {
             if(o.Phase is ReminderPhase.Done or ReminderPhase.Cancelled) continue;
             if(o.Phase is ReminderPhase.Early or ReminderPhase.EarlySnoozed or ReminderPhase.AcknowledgedEarly && now>=o.At)
-            { o.Phase=ReminderPhase.Due;o.SnoozeAt=null;o.Revision++;changed=true; }
+            { o.Phase=ReminderPhase.Due;o.SnoozeAt=null;o.RoundStartedAt=now;o.Revision++;changed=true; }
             else if(o.SnoozeAt is DateTime snooze && snooze<=now)
-            { o.Phase=o.Phase==ReminderPhase.EarlySnoozed?ReminderPhase.Early:ReminderPhase.Due;o.SnoozeAt=null;o.Revision++;changed=true; }
+            { o.Phase=o.Phase==ReminderPhase.EarlySnoozed?ReminderPhase.Early:ReminderPhase.Due;o.SnoozeAt=null;o.RoundStartedAt=now;o.Revision++;changed=true; }
+            if(o.Phase is ReminderPhase.Early or ReminderPhase.Due)
+            {
+                if(o.RoundStartedAt==null){o.RoundStartedAt=now;changed=true;}
+                if((book.Preferences.Sound||book.Preferences.Animation) && now>=o.RoundStartedAt.Value.AddSeconds(MaximumRoundSeconds))
+                { Snooze(book,o.RuleId,o.At,o.Phase,now);changed=true; }
+            }
         }
         // Old terminal records are safe to prune only after the persisted schedule cursor has crossed them.
         changed |= book.Occurrences.RemoveAll(o => o.At<now.AddDays(-7) && o.Phase is ReminderPhase.Done or ReminderPhase.Cancelled && book.Items.Any(i=>i.Id==o.RuleId && i.CheckedThrough>=o.At))>0;
@@ -75,13 +84,14 @@ public static class ReminderEngine
     {
         var o=b.Occurrences.FirstOrDefault(x=>x.RuleId==id && x.At==at);
         if(o==null || o.Phase!=expected) return;
-        o.Phase=expected==ReminderPhase.Early?ReminderPhase.AcknowledgedEarly:ReminderPhase.Done;o.SnoozeAt=null;
+        o.Phase=expected==ReminderPhase.Early?ReminderPhase.AcknowledgedEarly:ReminderPhase.Done;o.SnoozeAt=null;o.RoundStartedAt=null;
     }
     public static void Snooze(ReminderBook b,Guid id,DateTime at,ReminderPhase expected,DateTime now)
     {
         var o=b.Occurrences.FirstOrDefault(x=>x.RuleId==id && x.At==at);
         if(o==null || o.Phase!=expected) return;
         o.Phase=expected==ReminderPhase.Early?ReminderPhase.EarlySnoozed:ReminderPhase.DueSnoozed;
+        o.RoundStartedAt=null;
         o.SnoozeAt=expected==ReminderPhase.Early && now.AddMinutes(10)>=at?at:now.AddMinutes(10);
     }
     public static void Cancel(ReminderBook b,Guid id,DateTime at)

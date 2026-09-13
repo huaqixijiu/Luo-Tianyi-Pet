@@ -10,14 +10,28 @@ internal static class PlannerTheme
     public static readonly Brush Soft = new SolidColorBrush(Color.FromRgb(234, 248, 255));
     public static readonly Brush Ink = new SolidColorBrush(Color.FromRgb(27, 43, 88));
     public static readonly Brush Muted = new SolidColorBrush(Color.FromRgb(118, 139, 167));
+    public static readonly Brush PrimaryFill = new LinearGradientBrush(Color.FromRgb(29,183,228),Color.FromRgb(0,145,204),90);
+    public static FrameworkElement Icon(string kind, double size=20, Brush? color=null) => new System.Windows.Shapes.Path{Width=size,Height=size,Margin=new Thickness(0,0,10,0),Stretch=Stretch.Uniform,Stroke=color??Ink,StrokeThickness=1.6,StrokeStartLineCap=PenLineCap.Round,StrokeEndLineCap=PenLineCap.Round,Data=Geometry.Parse(kind=="calendar"?"M3,5 L19,5 Q21,5 21,7 L21,20 Q21,22 19,22 L3,22 Q1,22 1,20 L1,7 Q1,5 3,5 Z M1,10 L21,10 M6,2 L6,7 M16,2 L16,7 M6,14 L8,14 M13,14 L15,14 M6,18 L8,18":kind=="clock"?"M12,1 A11,11 0 1 1 11.99,1 M12,5 L12,12 L17,15":"M4,1 L16,1 L21,6 L21,23 L3,23 L3,1 Z M15,1 L15,7 L21,7 M7,12 L17,12 M7,17 L17,17")};
     public static FrameworkElement Bell() => new System.Windows.Shapes.Path { Width=14,Height=14,Margin=new Thickness(0,0,4,0),Stretch=Stretch.Uniform,Stroke=Accent,StrokeThickness=1.5,Data=Geometry.Parse("M 3,11 L 4,9 L 4,6 C 4,2 10,2 10,6 L 10,9 L 11,11 Z M 6,13 Q 7,15 8,13 M 7,1 L 7,2") };
     public static void Apply(Window window)
     {
+        window.FontSize=15;
+        System.Windows.Media.TextOptions.SetTextFormattingMode(window,TextFormattingMode.Display);
+        System.Windows.Media.RenderOptions.SetBitmapScalingMode(window,BitmapScalingMode.HighQuality);
         window.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Parse("""
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
- <Style TargetType="Button">
+ <Style TargetType="DatePicker">
+  <Setter Property="Height" Value="42"/><Setter Property="FontSize" Value="15"/><Setter Property="Foreground" Value="#1B2B58"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DatePicker">
+   <Grid x:Name="PART_Root"><Border Background="White" BorderBrush="#CDDEE6" BorderThickness="1" CornerRadius="7"/>
+    <DatePickerTextBox x:Name="PART_TextBox" Margin="8,2,38,2" VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent" Padding="3" FontSize="15"/>
+    <Button x:Name="PART_Button" Width="34" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Padding="4" Focusable="False"><TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="#009DD3"/></Button>
+    <Popup x:Name="PART_Popup" Placement="Bottom" PlacementTarget="{Binding ElementName=PART_Root}" StaysOpen="False" AllowsTransparency="True"/>
+   </Grid></ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style TargetType="Button"><Setter Property="FontSize" Value="15"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
   <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="#1B2B58"/><Setter Property="BorderBrush" Value="#DEEDF8"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="10,7"/><Setter Property="Cursor" Value="Hand"/>
-  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Opacity" Value="0.78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.4"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#009DD3"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Opacity" Value="0.78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.4"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#009DD3"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
  </Style>
  <Style TargetType="TextBox">
   <Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="15"/><Setter Property="BorderBrush" Value="#CDDEE6"/><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="1"/>
