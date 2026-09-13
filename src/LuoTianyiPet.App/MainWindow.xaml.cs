@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -3432,7 +3432,8 @@ public partial class MainWindow : Window
                 () => Dispatcher.BeginInvoke(HidePetFromTray),
                 () => IsVisible,
                 () => Dispatcher.BeginInvoke(ShowSettingsDialog),
-                () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()));
+                () => Dispatcher.BeginInvoke(async () => await BeginUserRequestedExitAsync()),
+                () => Dispatcher.BeginInvoke(OpenReminderSettings));
             if (_previewTray)
             {
                 Dispatcher.BeginInvoke(

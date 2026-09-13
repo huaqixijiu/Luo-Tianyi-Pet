@@ -1,4 +1,4 @@
-using Drawing = System.Drawing;
+﻿using Drawing = System.Drawing;
 using Forms = System.Windows.Forms;
 using LuoTianyiPet.Core;
 
@@ -15,7 +15,7 @@ public sealed class TrayIconController : IDisposable
         Action hidePet,
         Func<bool> isPetVisible,
         Action openSettings,
-        Action exit)
+        Action exit, Action? reminderSettings=null)
     {
         Guard.NotNull(openSettings, nameof(openSettings));
         Guard.NotNull(showPet, nameof(showPet));
@@ -28,7 +28,7 @@ public sealed class TrayIconController : IDisposable
             hidePet,
             isPetVisible,
             openSettings,
-            exit);
+            exit, reminderSettings);
 
         Drawing.Icon icon = ExtractApplicationIcon();
         _notifyIcon = new Forms.NotifyIcon

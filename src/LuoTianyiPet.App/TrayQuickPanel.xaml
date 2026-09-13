@@ -1,4 +1,4 @@
-<Window x:Class="LuoTianyiPet.App.TrayQuickPanel"
+﻿<Window x:Class="LuoTianyiPet.App.TrayQuickPanel"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  Title="洛天依桌宠菜单" SizeToContent="WidthAndHeight"
@@ -45,6 +45,7 @@
    <Button x:Name="ShowPetButton" Content="召回天依" Tag="&#xE80F;" Click="OnShowPetClick" />
    <Button x:Name="HidePetButton" Content="暂时隐藏" Tag="&#xE921;" Click="OnHidePetClick" ToolTip="从托盘左键即可找回天依" />
    <Button x:Name="OpenSettingsButton" Content="设置" Tag="&#xE713;" Click="OnOpenSettingsClick" />
+   <Button x:Name="ReminderSettingsButton" Content="提醒设置" Tag="&#xE823;" Click="OnReminderSettingsClick" Visibility="Collapsed" />
    <Border Height="1" Background="#E5EBEE" Margin="8,5" />
    <Button x:Name="ExitButton" Content="退出桌宠" Tag="&#xE7E8;" Click="OnExitClick">
     <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

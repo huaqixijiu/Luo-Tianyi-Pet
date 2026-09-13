@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using LuoTianyiPet.Core;
@@ -30,14 +30,15 @@ internal sealed partial class PlannerWindow
         var items = _service.Book.Items.Where(i => selected.Contains(i.Id)).ToList();
         if (items.Count == 0) return;
         StackPanel panel = new() { Width = 440 };
-        panel.Children.Add(Text(day == null ? "删除整组行程？" : "仅删除这一天？", 23));
+        bool alarmOnly=items.All(i=>!i.Calendar);
+        panel.Children.Add(Text(alarmOnly?"删除提醒？":day == null ? "删除整组行程？" : "仅删除这一天？", 23));
         string impact = day is DateTime date ? $"仅移除 {date:M月d日} 的行程及提醒，其他日期保持不变。"
-            : $"将删除 {items.Count} 组行程，以及它们关联的全部日期和提醒。";
+            : alarmOnly ? "将删除提醒及其全部待处理提示。" : $"将删除 {items.Count} 组行程，以及它们关联的全部日期和提醒。";
         panel.Children.Add(Text(impact));
-        if (items.Count == 1) panel.Children.Add(Text(GroupLabel(items[0]), 13));
+        if (items.Count == 1 && !alarmOnly) panel.Children.Add(Text(GroupLabel(items[0]), 13));
         StackPanel actions = Row(); actions.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
         actions.Children.Add(Action("取消", CloseTopOverlay));
-        var confirm = AsyncAction(day == null ? "确认删除整组" : "确认删除这一天", async () =>
+        var confirm = AsyncAction(alarmOnly?"确认删除":day == null ? "确认删除整组" : "确认删除这一天", async () =>
         {
             await Execute(b => { if (day is DateTime d) ReminderSchedule.DeleteDate(b, selected[0], d); else ReminderSchedule.DeleteGroups(b, selected); });
             _selectedGroups.Clear(); _editing = false; Render();

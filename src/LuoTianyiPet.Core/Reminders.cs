@@ -5,6 +5,11 @@ public enum ReminderRepeat { Once, Daily, Weekly, Dates, Workdays, RestDays }
 public sealed class ReminderItem
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public bool HasTime { get; set; } = true;
+    public bool? ReminderCreated { get; set; }
+    public bool? EarlyEnabled { get; set; }
+    public int EarlyMinutes { get; set; } = 30;
+    public double? PausedSeconds { get; set; }
     public string Title { get; set; } = "";
     public string Notes { get; set; } = "";
     public string? Content { get; set; }
@@ -28,6 +33,9 @@ public sealed class ReminderItem
 
 public sealed class ReminderBook
 {
+    public int EngineVersion { get; set; }
+    public List<ReminderOccurrence> Occurrences { get; set; } = [];
+    public ReminderPreferences Preferences { get; set; } = new();
     public int Version { get; set; } = 1;
     public List<ReminderItem> Items { get; set; } = [];
     public List<DayOfWeek> RestWeekdays { get; set; } = [DayOfWeek.Saturday, DayOfWeek.Sunday];
@@ -80,7 +88,7 @@ public static class ReminderSchedule
     }
     private static DateTime? NextUnfiltered(ReminderItem item, ReminderBook book, DateTime after)
     {
-        if (!item.Enabled) return null;
+        if (!item.Enabled || !item.HasTime || item.PausedSeconds != null) return null;
         if (item.SnoozeUntil is DateTime snooze && snooze > after) return snooze;
         if (item.Repeat == ReminderRepeat.Once) return item.Start > after && !item.ExcludedDates.Contains(item.Start.Date) ? item.Start : null;
         if (item.Repeat == ReminderRepeat.Dates)
@@ -177,7 +185,7 @@ public static class ReminderSchedule
 
     public static void Validate(ReminderBook book)
     {
-        if (book.Version != 1 || book.Items == null || book.RestWeekdays == null || book.RestOverrides == null)
+        if (book.Version != 1 || book.Items == null || book.RestWeekdays == null || book.RestOverrides == null || book.Occurrences == null || book.Preferences == null)
             throw new ArgumentException("不支持的数据格式。");
         if (book.Items.Count > 10000 || book.Items.Any(i => i is null) || book.Items.Select(i => i.Id).Distinct().Count() != book.Items.Count)
             throw new ArgumentException("记录过多或编号重复。");
@@ -187,9 +195,12 @@ public static class ReminderSchedule
             if (!DateTime.TryParseExact(pair.Key, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.None, out DateTime day) || day < MinimumDate || day > MaximumDate)
                 throw new ArgumentException("调整日期超出范围。");
+        if (book.EngineVersion is < 0 or > 1 || book.Occurrences.Any(o=>o==null || !Enum.IsDefined(typeof(ReminderPhase),o.Phase) || o.RuleId==Guid.Empty || o.At.Date<MinimumDate || o.At.Date>MaximumDate) || book.Occurrences.Select(o=>(o.RuleId,o.At)).Distinct().Count()!=book.Occurrences.Count) throw new ArgumentException("提醒实例格式无效。");
+        if (book.Preferences.Volume < 0 || book.Preferences.Volume > 1 || book.Occurrences.Count > 50000) throw new ArgumentException("提醒设置无效。");
         foreach (ReminderItem item in book.Items)
         {
-            if (item.Id == Guid.Empty || string.IsNullOrWhiteSpace(item.Title) || item.Title.Length > 120 ||
+            if(item.EarlyMinutes < 1 || item.EarlyMinutes > 10080 || item.PausedSeconds is double paused && (paused < 0 || paused > 86400 || double.IsNaN(paused))) throw new ArgumentException("提前时间或倒计时无效。");
+            if (item.Id == Guid.Empty || (item.Calendar && string.IsNullOrWhiteSpace(item.Title)) || item.Title.Length > 120 ||
                 (item.Content != null && item.Content.Length > 10122) || item.Notes == null || item.Notes.Length > 10000 || item.Start.Date < MinimumDate || item.Start.Date > MaximumDate ||
                 item.Weekdays == null || item.Dates == null || item.ExcludedDates == null || !Enum.IsDefined(typeof(ReminderRepeat), item.Repeat) ||
                 item.Weekdays.Any(d => (int)d < 0 || (int)d > 6) ||

@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -14,9 +14,10 @@ public partial class TrayQuickPanel : Window
     private readonly Func<bool> _isPetVisible;
     private readonly Action _openSettings;
     private readonly Action _exit;
+    private readonly Action? _reminderSettings;
 
     public TrayQuickPanel(Action showPet, Action hidePet, Func<bool> isPetVisible,
-        Action openSettings, Action exit)
+        Action openSettings, Action exit, Action? reminderSettings = null)
     {
         _showPet = showPet;
         _hidePet = hidePet;
@@ -24,6 +25,8 @@ public partial class TrayQuickPanel : Window
         _openSettings = openSettings;
         _exit = exit;
         InitializeComponent();
+        _reminderSettings=reminderSettings;
+        ReminderSettingsButton.Visibility=reminderSettings==null?Visibility.Collapsed:Visibility.Visible;
     }
 
     public void RefreshState() => HidePetButton.IsEnabled = _isPetVisible();
@@ -65,6 +68,7 @@ public partial class TrayQuickPanel : Window
     private void OnShowPetClick(object sender, RoutedEventArgs e) { HidePanel(); _showPet(); }
     private void OnHidePetClick(object sender, RoutedEventArgs e) { HidePanel(); _hidePet(); }
     private void OnOpenSettingsClick(object sender, RoutedEventArgs e) { HidePanel(); _openSettings(); }
+    private void OnReminderSettingsClick(object sender,RoutedEventArgs e){HidePanel();_reminderSettings?.Invoke();}
     private void OnExitClick(object sender, RoutedEventArgs e) { HidePanel(); _exit(); }
     private void OnDeactivated(object? sender, EventArgs e) => HidePanel();
     private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
