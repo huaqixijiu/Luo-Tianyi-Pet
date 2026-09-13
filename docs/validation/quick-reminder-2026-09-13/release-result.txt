@@ -1,0 +1,76 @@
+PASS rendered 01-month
+PASS A02 side panel with undimmed month
+PASS A02 same date collapses panel
+PASS rendered 02-workdays
+PASS rendered 03-week
+PASS rendered 04-new-event
+PASS A06 new calendar reminder disabled
+PASS A06 early row absent while disabled
+PASS styled date picker opens a real calendar
+PASS A07 early starts disabled
+PASS A07 thirty minute initial value
+PASS A29 unspecified time disables reminder
+PASS A29 unspecified time persists without midnight alarm
+PASS rendered 05-edit-event
+PASS A09 single line note
+PASS A10 early duration persists
+PASS rendered 06-alarms
+PASS rendered 07-new-alarm
+PASS rendered 08-new-countdown
+PASS A16 preset 5分钟
+PASS A16 preset 15分钟
+PASS A16 preset 30分钟
+PASS A16 preset 1小时
+PASS A16 wheel CountdownHours
+PASS A16 wheel CountdownMinutes
+PASS A16 wheel CountdownSeconds
+PASS A17 rejects 24:00:01
+PASS A17 rejects zero
+PASS A17 accepts 24 hours with optional empty name
+PASS A18 pause freezes remaining
+PASS A18 resume
+PASS reminder does not steal focus
+PASS rendered 09-early-reminder
+PASS A19 acknowledge one early retains due
+PASS rendered 10-capsule
+PASS A22 both instances combined
+PASS quick card is compact owned pet surface without taskbar icon
+PASS rendered 11-capsule-expanded
+PASS expansion retains same host border and summary header
+PASS expansion grows downward with fixed top anchor
+PASS collapse does not cancel or acknowledge the occurrence
+PASS quick card follows pet during drag
+PASS A21 cancels only selected instance
+PASS rendered 12-due-reminder
+PASS A24 due only acknowledge and snooze
+PASS safety hides reminder without dropping data
+PASS unknown foreground game fullscreen suppress reminders
+PASS A27 cancellation survives reload
+PASS A27 service reload preserves cancellation
+PASS scope delete keeps other date
+PASS bulk group deletion persists
+PASS A13 direct date multiselect
+PASS rendered 14-date-picker
+PASS rendered 15-small-six-week-month
+PASS small six week calendar fits
+PASS rendered 13-reminder-settings
+PASS alarm settings integrated below notifications
+PASS alarm temporarily forces pet topmost
+PASS original coming animation owns alarm reaction
+PASS rendered 16-original-alarm-animation
+PASS song timeout enters ten minute retry
+PASS timeout restores prior topmost and animation
+PASS timeout stops reminder audio
+PASS retry resumes original animation and topmost
+PASS closing due reminder immediately releases presentation and future retries
+PASS user supplied MP3 packaged locally
+PASS song duration matches three minutes forty two seconds
+PASS rendered 17-early-single
+PASS snoozing early reminder creates no quick card
+PASS rendered 18-quick-single
+PASS rendered 19-quick-single-expanded
+PASS rendered pet and attached card in their actual relative positions
+PASS details target the occurrence date and original item
+PASS closing quick card preserves calendar item and enabled repeat rule
+PASS next weekly occurrence still rings after cancelling quick card
+PASS small available space scrolls content instead of clipping actions

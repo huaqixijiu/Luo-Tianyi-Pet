@@ -30,6 +30,12 @@ public partial class MainWindow
             void Tick(Window w,string name,bool value){var c=(CheckBox)Named(w,name);c.IsChecked=value;c.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent));w.UpdateLayout();}
             void Snapshot(Window w,string name){w.UpdateLayout();var bmp=new RenderTargetBitmap((int)w.ActualWidth,(int)w.ActualHeight,96,96,PixelFormats.Pbgra32);bmp.Render(w);PngBitmapEncoder png=new();png.Frames.Add(BitmapFrame.Create(bmp));using var f=File.Create(Path.Combine(path,name+".png"));png.Save(f);checks.Add("PASS rendered "+name);}
             void Set(string name,object value)=>typeof(PlannerWindow).GetField(name,BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,value);
+            void CaptureAttachment()
+            {
+                var card=_reminderCard!;var bounds=new Rect(Left,Top,ActualWidth,ActualHeight);bounds.Union(new Rect(card.Left,card.Top,card.ActualWidth,card.ActualHeight));bounds.Inflate(16,16);
+                DrawingVisual visual=new();using(var dc=visual.RenderOpen()){dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(234,245,255)),null,new Rect(0,0,bounds.Width,bounds.Height));dc.DrawRectangle(new VisualBrush(this),null,new Rect(Left-bounds.Left,Top-bounds.Top,ActualWidth,ActualHeight));dc.DrawRectangle(new VisualBrush(card),null,new Rect(card.Left-bounds.Left,card.Top-bounds.Top,card.ActualWidth,card.ActualHeight));}
+                var bmp=new RenderTargetBitmap((int)Math.Ceiling(bounds.Width),(int)Math.Ceiling(bounds.Height),96,96,PixelFormats.Pbgra32);bmp.Render(visual);PngBitmapEncoder png=new();png.Frames.Add(BitmapFrame.Create(bmp));using var file=File.Create(Path.Combine(path,"20-pet-attached.png"));png.Save(file);checks.Add("PASS rendered pet and attached card in their actual relative positions");
+            }
             void Edit(ReminderItem? i,bool calendar){typeof(PlannerWindow).GetMethod("Edit",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object?[]{i,calendar});window.UpdateLayout();}
             Set("_date",day);window.Navigate(false);Snapshot(window,"01-month");
             var body=(ScrollViewer)typeof(PlannerWindow).GetField("_body",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)!;
@@ -55,11 +61,23 @@ public partial class MainWindow
             foreach(string part in new[]{"CountdownHours","CountdownMinutes","CountdownSeconds"}){var input=(TextBox)Named(window,part);input.Text="01";input.RaiseEvent(new System.Windows.Input.MouseWheelEventArgs(System.Windows.Input.Mouse.PrimaryDevice,0,120){RoutedEvent=System.Windows.Input.Mouse.PreviewMouseWheelEvent});Check(input.Text=="02","A16 wheel "+part);}
             int count=service.Book.Items.Count;Digits("24","00","01");Click(window,"SaveReminder");await Task.Delay(100);Check(service.Book.Items.Count==count,"A17 rejects 24:00:01");Digits("0","0","0");Click(window,"SaveReminder");await Task.Delay(100);Check(service.Book.Items.Count==count,"A17 rejects zero");Digits("24","0","0");Click(window,"SaveReminder");await Task.Delay(250);Check(service.Book.Items.Count==count+1&&service.Book.Items.Last().DurationSeconds==86400,"A17 accepts 24 hours with optional empty name");
             var timer=service.Book.Items.Last();await service.ChangeAsync(b=>ReminderEngine.Pause(b,timer.Id,DateTime.Now));var frozen=service.Book.Items.Last().PausedSeconds;await Task.Delay(100);Check(frozen==service.Book.Items.Last().PausedSeconds,"A18 pause freezes remaining");await service.ChangeAsync(b=>ReminderEngine.Resume(b,timer.Id,DateTime.Now));Check(service.Book.Items.Last().PausedSeconds==null,"A18 resume");
-            DateTime at=DateTime.Now.AddMinutes(20);await service.ChangeAsync(b=>{b.Items.Clear();b.Occurrences.Clear();for(int n=0;n<2;n++){var i=new ReminderItem{Calendar=true,Title="测试事项"+n,Notes="准备演示资料",Start=at.AddMinutes(n),ReminderCreated=true,EarlyEnabled=true,CheckedThrough=DateTime.Now};b.Items.Add(i);b.Occurrences.Add(new(){RuleId=i.Id,At=i.Start,Phase=ReminderPhase.Early});}});
+            DateTime at=DateTime.Now.AddMinutes(20);await service.ChangeAsync(b=>{b.Items.Clear();b.Occurrences.Clear();for(int n=0;n<2;n++){var i=new ReminderItem{Calendar=true,Title="测试事项"+n,Notes="准备演示资料",Start=at.AddMinutes(n),ReminderCreated=true,EarlyEnabled=true,CheckedThrough=DateTime.Now};i.CheckedThrough=i.Start;b.Items.Add(i);b.Occurrences.Add(new(){RuleId=i.Id,At=i.Start,Phase=ReminderPhase.Early});}});
             _reminders=service;var foreground=PlannerQaForeground();RefreshReminderCardCore(true);Check(PlannerQaForeground()==foreground,"reminder does not steal focus");Snapshot(_reminderCard!,"09-early-reminder");
             Click(_reminderCard!,"AcknowledgeReminder");await Task.Delay(200);RefreshReminderCardCore(true);Check(service.Book.Occurrences.Count(o=>o.Phase==ReminderPhase.AcknowledgedEarly)==1,"A19 acknowledge one early retains due");
             Click(_reminderCard!,"AcknowledgeReminder");await Task.Delay(200);RefreshReminderCardCore(true);Snapshot(_reminderCard!,"10-capsule");Check(service.Book.Occurrences.All(o=>o.Phase==ReminderPhase.AcknowledgedEarly),"A22 both instances combined");
-            _reminderExpandedUntil=DateTime.Now.AddSeconds(30);_reminderCardKey="";RefreshReminderCardCore(true);Snapshot(_reminderCard!,"11-capsule-expanded");Click(_reminderCard!,"CancelOccurrence");await Task.Delay(200);Check(service.Book.Occurrences.Count(o=>o.Phase==ReminderPhase.Cancelled)==1,"A21 cancels only selected instance");
+            var sameCard=_reminderCard!;var sameSurface=sameCard.Surface;var sameHeader=sameCard.Header;
+            Check(sameCard.ActualHeight<=80&&!sameCard.ShowInTaskbar&&sameCard.Owner==this,"quick card is compact owned pet surface without taskbar icon");
+            var workArea=GetQuickActionsWorkArea();Left=workArea.Left+workArea.Width/2-Width/2;Top=workArea.Top+30;RefreshReminderCardCore(true);await Task.Delay(100);
+            double baseTop=sameCard.Top,baseLeft=sameCard.Left;
+            Click(_reminderCard!,"ToggleQuickReminder");await Task.Delay(230);Snapshot(_reminderCard!,"11-capsule-expanded");
+            Check(ReferenceEquals(sameCard,_reminderCard)&&ReferenceEquals(sameSurface,_reminderCard!.Surface)&&ReferenceEquals(sameHeader,_reminderCard.Header),"expansion retains same host border and summary header");
+            Check(sameCard.ActualHeight>100&&Math.Abs(sameCard.Top-baseTop)<1,"expansion grows downward with fixed top anchor");
+            Click(sameCard,"ToggleQuickReminder");await Task.Delay(230);
+            Check(sameCard.ActualHeight<=80&&service.Book.Occurrences.All(o=>o.Phase==ReminderPhase.AcknowledgedEarly),"collapse does not cancel or acknowledge the occurrence");
+            _isWindowDragging=true;Left+=35;Top+=15;RefreshReminderCardCore(true);await Task.Delay(100);
+            Check(sameCard.IsVisible&&Math.Abs(sameCard.Left-baseLeft-35)<2&&Math.Abs(sameCard.Top-baseTop-15)<2,"quick card follows pet during drag");_isWindowDragging=false;
+            Click(sameCard,"ToggleQuickReminder");await Task.Delay(230);
+            Click(_reminderCard!,"CancelOccurrence");await Task.Delay(200);Check(service.Book.Occurrences.Count(o=>o.Phase==ReminderPhase.Cancelled)==1,"A21 cancels only selected instance");
             await service.ChangeAsync(b=>ReminderEngine.Advance(b,at.AddMinutes(2)));RefreshReminderCardCore(true);Snapshot(_reminderCard!,"12-due-reminder");Check(!Tree(_reminderCard!).OfType<Button>().Any(b=>b.Name=="CancelOccurrence"),"A24 due only acknowledge and snooze");
             RefreshReminderCardCore(false);Check(!_reminderCard!.IsVisible,"safety hides reminder without dropping data");
             Check(!PlannerPresentationSafe(new(false,null,false))&&!PlannerPresentationSafe(new(true,"YuanShen",false))&&!PlannerPresentationSafe(new(true,"app",true)),"unknown foreground game fullscreen suppress reminders");
@@ -89,6 +107,18 @@ public partial class MainWindow
             Check(File.Exists(ReminderAudio.SongPath),"user supplied MP3 packaged locally");
             MediaPlayer media=new(){Volume=0};TaskCompletionSource<bool> opened=new();media.MediaOpened+=(_,_)=>opened.TrySetResult(true);media.MediaFailed+=(_,_)=>opened.TrySetResult(false);media.Open(new Uri(ReminderAudio.SongPath));await Task.WhenAny(opened.Task,Task.Delay(5000));
             Check(media.NaturalDuration.HasTimeSpan&&media.NaturalDuration.TimeSpan.TotalSeconds>220&&media.NaturalDuration.TimeSpan.TotalSeconds<225,"song duration matches three minutes forty two seconds");media.Close();
+            await service.ChangeAsync(b=>{b.Items.Clear();b.Occurrences.Clear();b.Preferences=new(){Sound=false,Animation=false};var i=new ReminderItem{Calendar=true,Title="项目讨论",Notes="准备演示资料，确认下一阶段安排。",Start=DateTime.Now.AddMinutes(30),Repeat=ReminderRepeat.Weekly,Weekdays=[DateTime.Today.DayOfWeek],CheckedThrough=DateTime.Now};i.CheckedThrough=i.Start;b.Items.Add(i);b.Occurrences.Add(new(){RuleId=i.Id,At=i.Start,Phase=ReminderPhase.Early});});
+            RefreshReminderCardCore(true);await Task.Delay(220);Snapshot(_reminderCard!,"17-early-single");Click(_reminderCard!,"SnoozeReminder");await Task.Delay(200);RefreshReminderCardCore(true);
+            Check(service.Book.Occurrences.Single().Phase==ReminderPhase.EarlySnoozed&&!_reminderCard!.IsVisible,"snoozing early reminder creates no quick card");
+            await service.ChangeAsync(b=>{var o=b.Occurrences.Single();o.SnoozeAt=DateTime.Now;ReminderEngine.Advance(b,DateTime.Now);});RefreshReminderCardCore(true);Click(_reminderCard!,"AcknowledgeReminder");await Task.Delay(200);RefreshReminderCardCore(true);Snapshot(_reminderCard!,"18-quick-single");
+            Click(_reminderCard!,"ToggleQuickReminder");await Task.Delay(230);Snapshot(_reminderCard!,"19-quick-single-expanded");CaptureAttachment();
+            var keptItem=service.Book.Items.Single();DateTime occurrenceDate=keptItem.Start.AddDays(7);window.OpenItem(keptItem.Id,occurrenceDate);
+            Check((DateTime)typeof(PlannerWindow).GetField("_date",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)! ==occurrenceDate.Date&&(DateTime?)typeof(PlannerWindow).GetField("_occurrenceDate",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)==occurrenceDate,"details target the occurrence date and original item");
+            Click(_reminderCard!,"CancelOccurrence");await Task.Delay(200);RefreshReminderCardCore(true);
+            Check(!_reminderCard!.IsVisible&&service.Book.Items.Single().Id==keptItem.Id&&service.Book.Items.Single().Enabled,"closing quick card preserves calendar item and enabled repeat rule");
+            await service.ChangeAsync(b=>ReminderEngine.Advance(b,keptItem.Start.AddDays(7)));Check(service.Book.Occurrences.Any(o=>o.At==keptItem.Start.AddDays(7)&&o.Phase==ReminderPhase.Due),"next weekly occurrence still rings after cancelling quick card");
+            PetReminderCard constrained=new(this);constrained.Present("空间限制验证",new Border{Height=400},true,true);constrained.LimitHeight(140);constrained.Show();constrained.UpdateLayout();
+            var constrainedScroll=Tree(constrained).OfType<ScrollViewer>().Single();Check(constrained.ActualHeight<=140&&constrainedScroll.ScrollableHeight>0,"small available space scrolls content instead of clipping actions");constrained.Close();
             window.Close();_reminderCard.Close();_reminderCard=null;_reminders=null;File.WriteAllLines(Path.Combine(path,"result.txt"),checks);
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(path,"FAILED.txt"),ex.ToString());}

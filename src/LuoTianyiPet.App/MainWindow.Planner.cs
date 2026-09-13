@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -13,12 +13,11 @@ public partial class MainWindow
 {
     private ReminderService? _reminders;
     private PlannerWindow? _plannerWindow;
-    private Window? _reminderCard;
-    private TextBlock? _reminderSummary;
+    private PetReminderCard? _reminderCard;
     private readonly List<(TextBlock Text,DateTime At)> _capsuleRemaining=[];
     private readonly DispatcherTimer _reminderDisplayTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly HashSet<string> _shownReminders = [];
-    private DateTime _reminderExpandedUntil;
+    private bool _quickReminderExpanded;
     private ReminderBook? _presentedReminderBook;
     private string _reminderCardKey = "";
     private string? _reminderStorageNotice;
@@ -42,6 +41,7 @@ public partial class MainWindow
             _reminderDisplayTimer.Start();
             LocationChanged += (_,_) => QueuePlannerPosition();
             SizeChanged += (_,_) => QueuePlannerPosition();
+            DpiChanged += (_,_) => QueuePlannerPosition();
             PreviewMouseUp += (_,_) => QueuePlannerPosition();
         }
         catch
@@ -75,7 +75,7 @@ public partial class MainWindow
     private void OnReminderDisplayTick(object? sender, EventArgs e) => RefreshReminderCard();
     private bool PlannerPresentationSafe(ForegroundApplicationSnapshot foreground)
     {
-        return !_isClosing && !_systemSessionUnavailable && !_hiddenByUser && !_isWindowDragging &&
+        return !_isClosing && !_systemSessionUnavailable && !_hiddenByUser &&
             _edgeDockSide == EdgeDockSide.None && foreground is { Succeeded: true, IsFullscreen: false } &&
             _stateMachine.VisualState.ContinuousState != PetContinuousState.HiddenForSafety &&
             foreground.ProcessName is not ("YuanShen" or "GenshinImpact" or "YuanShen.exe" or "GenshinImpact.exe");
@@ -88,66 +88,108 @@ public partial class MainWindow
         var book=_reminders.Book;DateTime now=DateTime.Now;
         var pending=book.Occurrences.Where(o=>o.Phase is ReminderPhase.Early or ReminderPhase.Due).OrderBy(o=>o.At).ToList();
         var capsules=book.Occurrences.Where(o=>o.Phase==ReminderPhase.AcknowledgedEarly&&o.At>now).OrderBy(o=>o.At).ToList();
-        if(!safe||pending.Count+capsules.Count==0){_reminderCard?.Hide();StopPlannerPresentation();return;}
-        if(pending.Count==0)StopPlannerPresentation();
-        bool expanded=pending.Count>0||now<_reminderExpandedUntil;
-        // Collapsed capsules contain static time and count, so no per-second text churn.
-        _reminderDisplayTimer.Interval=TimeSpan.FromSeconds(expanded?1:10);
-        string key=string.Join("|",pending.Concat(capsules).Select(o=>$"{o.RuleId}:{o.At.Ticks}:{o.Phase}:{o.Revision}"))+expanded;
+        if(!safe||pending.Count+capsules.Count==0||_isWindowDragging&&pending.Count>0)
+        { _reminderCard?.Hide();StopPlannerPresentation();if(pending.Count+capsules.Count==0)_quickReminderExpanded=false;return; }
+        bool quick=pending.Count==0;
+        if(quick)StopPlannerPresentation();else _quickReminderExpanded=false;
+        _reminderDisplayTimer.Interval=TimeSpan.FromSeconds(quick&&!_quickReminderExpanded?10:1);
+        string key=string.Join("|",pending.Concat(capsules).Select(o=>$"{o.RuleId}:{o.At.Ticks}:{o.Phase}:{o.Revision}"));
         if(!ReferenceEquals(book,_presentedReminderBook)){_reminderCardKey="";_presentedReminderBook=book;}
-        if(_reminderCard==null){_reminderCard=new Window{Title="天依提醒",Width=expanded?360:230,FontSize=14,SizeToContent=SizeToContent.Height,MaxHeight=440,WindowStyle=WindowStyle.None,ResizeMode=ResizeMode.NoResize,ShowInTaskbar=false,ShowActivated=false,Topmost=true,AllowsTransparency=true,Background=Brushes.Transparent,FontFamily=new System.Windows.Media.FontFamily("Microsoft YaHei UI")};PlannerTheme.Apply(_reminderCard);}
+        if(_reminderCard==null)
+        {
+            _reminderCard=new PetReminderCard(this);
+            _reminderCard.ToggleRequested+=()=>
+            {
+                _quickReminderExpanded=!_quickReminderExpanded;
+                _reminderCard.SetExpanded(_quickReminderExpanded);
+                _reminderDisplayTimer.Interval=TimeSpan.FromSeconds(_quickReminderExpanded?1:10);
+                UpdateQuickReminderTimes();PositionReminderCard();
+            };
+            _reminderCard.GeometryChanged+=PositionReminderCard;
+        }
+        var work=GetQuickActionsWorkArea();var alpha=GetPetImageAlphaBoundsInWindow();
+        double width=Math.Min(work.Width,quick?Numeric.Clamp(alpha.Width*1.35+16,316,376):440);
+        if(Math.Abs(_reminderCard.Width-width)>1){_reminderCard.Width=width;_reminderCardKey="";}
         bool fresh=false;
         var validKeys=new HashSet<string>(pending.Select(o=>$"{o.RuleId}:{o.At.Ticks}:{o.Phase}:{o.Revision}"));_shownReminders.IntersectWith(validKeys);
         foreach(var k in validKeys)fresh|=_shownReminders.Add(k);
         if(key!=_reminderCardKey)
         {
-            _reminderCardKey=key;_capsuleRemaining.Clear();_reminderCard.Width=expanded?360:230;StackPanel panel=new(){Margin=new Thickness(12)};
-            _reminderSummary=new TextBlock{TextWrapping=TextWrapping.Wrap,Foreground=PlannerTheme.Accent,FontSize=14};
-            var first=capsules.FirstOrDefault();var firstItem=book.Items.FirstOrDefault(i=>i.Id==first?.RuleId);
-            _reminderSummary.Text=pending.Count>0?$"{pending.Count} 项提醒":firstItem!=null?$"{ReminderEngine.Label(firstItem)} · {first!.At:HH:mm}"+(capsules.Count>1?$"  {capsules.Count}":""):"提醒";
-            _reminderSummary.Inlines.InsertBefore(_reminderSummary.Inlines.FirstInline,new System.Windows.Documents.InlineUIContainer(PlannerTheme.Bell()));
-            Button summary=new(){Content=_reminderSummary,BorderThickness=new Thickness(0),Padding=new Thickness(3)};summary.Click+=(_,_)=>{_reminderExpandedUntil=DateTime.Now.AddSeconds(30);_reminderCardKey="";RefreshReminderCard();};panel.Children.Add(summary);
-            if(expanded)
+            _reminderCardKey=key;_capsuleRemaining.Clear();StackPanel list=new(){Margin=new Thickness(18,quick?12:20,18,16)};
+            foreach(var o in quick?capsules:pending)
             {
-                StackPanel list=new();
-                foreach(var o in pending.Concat(capsules))
+                var item=book.Items.FirstOrDefault(i=>i.Id==o.RuleId);if(item==null)continue;
+                bool early=o.Phase==ReminderPhase.Early;
+                list.Children.Add(new TextBlock{Text=ReminderEngine.Label(item),FontSize=quick?17:24,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,6)});
+                if(!quick)list.Children.Add(new TextBlock{Text=o.At.ToString("HH:mm"),FontSize=15,Foreground=PlannerTheme.Muted,Margin=new Thickness(0,0,0,12)});
+                TextBlock time=new(){Text=early||quick?"":"时间到了",Tag=quick,FontSize=quick?14:30,FontWeight=quick?FontWeights.Normal:FontWeights.SemiBold,Foreground=quick?PlannerTheme.Muted:new SolidColorBrush(Color.FromRgb(62,137,231)),Margin=new Thickness(0,0,0,14)};
+                list.Children.Add(time);if(early||quick)_capsuleRemaining.Add((time,o.At));
+                if(!quick&&!string.IsNullOrWhiteSpace(item.Notes))list.Children.Add(new TextBlock{Text=item.Notes,TextWrapping=TextWrapping.Wrap,MaxHeight=64,Foreground=PlannerTheme.Muted,Margin=new Thickness(0,0,0,16)});
+                Grid actions=new();var labels=quick?new[]{"关闭本次提醒","查看详情"}:early?new[]{"知道了","稍后10分钟","本次不再提醒"}:new[]{"知道了","稍后10分钟"};
+                for(int n=0;n<labels.Length;n++)
                 {
-                    var item=book.Items.FirstOrDefault(i=>i.Id==o.RuleId);if(item==null)continue;
-                    bool early=o.Phase==ReminderPhase.Early, capsule=o.Phase==ReminderPhase.AcknowledgedEarly;
-                    list.Children.Add(new TextBlock{Text=ReminderEngine.Label(item),FontWeight=FontWeights.SemiBold,Margin=new Thickness(3,12,3,4),TextWrapping=TextWrapping.Wrap});
-                    var timeText=new TextBlock{Text=capsule||early?$"{o.At:HH:mm} · {PlannerWindow.Remaining(o.At)}":"时间到了",Foreground=PlannerTheme.Accent,Margin=new Thickness(3)};list.Children.Add(timeText);if(capsule||early)_capsuleRemaining.Add((timeText,o.At));
-                    if(!string.IsNullOrWhiteSpace(item.Notes))list.Children.Add(new TextBlock{Text=item.Notes,TextWrapping=TextWrapping.Wrap,MaxHeight=90,Margin=new Thickness(3)});
-                    WrapPanel actions=new();
-                    foreach(var label in capsule?new[]{"关闭本次提醒","查看详情"}:early?new[]{"知道了","稍后10分钟","本次不再提醒"}:new[]{"知道了","稍后10分钟"})
+                    string label=labels[n];actions.ColumnDefinitions.Add(new());
+                    Button button=new(){Content=label,MinHeight=42,FontSize=13,Margin=new Thickness(n==0?0:6,0,0,0),Padding=new Thickness(5),Name=label=="知道了"?"AcknowledgeReminder":label=="稍后10分钟"?"SnoozeReminder":label=="查看详情"?"ViewReminder":"CancelOccurrence"};
+                    bool primary=quick?label=="查看详情":label=="知道了";
+                    if(primary){button.Background=new SolidColorBrush(Color.FromRgb(64,150,250));button.Foreground=Brushes.White;button.BorderThickness=new Thickness(0);}
+                    button.Click+=async(_,_)=>
                     {
-                        Button b=new(){Content=label,Margin=new Thickness(3),Padding=new Thickness(7),Name=label=="知道了"?"AcknowledgeReminder":label=="稍后10分钟"?"SnoozeReminder":label=="查看详情"?"ViewReminder":"CancelOccurrence"};
-                        b.Click+=async(_,_)=>{try{if(label=="查看详情"){OpenPlanner(!item.Calendar);_plannerWindow?.OpenItem(item.Id);return;}await _reminders.ChangeAsync(book=>{if(label=="知道了")ReminderEngine.Acknowledge(book,o.RuleId,o.At,o.Phase);else if(label=="稍后10分钟")ReminderEngine.Snooze(book,o.RuleId,o.At,o.Phase,DateTime.Now);else ReminderEngine.Cancel(book,o.RuleId,o.At);});_reminderCardKey="";RefreshReminderCard();}catch{b.Content="保存失败，请重试";}};actions.Children.Add(b);
-                    }
-                    list.Children.Add(actions);
+                        try
+                        {
+                            if(label=="查看详情") { OpenPlanner(!item.Calendar);_plannerWindow?.OpenItem(item.Id,o.At);return; }
+                            button.IsEnabled=false;
+                            await _reminders.ChangeAsync(b=>{if(label=="知道了")ReminderEngine.Acknowledge(b,o.RuleId,o.At,o.Phase);else if(label=="稍后10分钟")ReminderEngine.Snooze(b,o.RuleId,o.At,o.Phase,DateTime.Now);else ReminderEngine.Cancel(b,o.RuleId,o.At);});
+                            _reminderCardKey="";RefreshReminderCard();
+                        }
+                        catch { button.Content="保存失败，重试";button.IsEnabled=true; }
+                    };
+                    Grid.SetColumn(button,n);actions.Children.Add(button);
                 }
-                panel.Children.Add(new ScrollViewer{Content=list,MaxHeight=350,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});
+                list.Children.Add(actions);
+                if((quick?capsules.Count:pending.Count)>1)list.Children.Add(new Border{Height=1,Background=PlannerTheme.Line,Margin=new Thickness(0,14,0,14)});
             }
-            _reminderCard.Content=new Border{Child=panel,Background=Brushes.White,CornerRadius=new CornerRadius(12),BorderBrush=PlannerTheme.Line,BorderThickness=new Thickness(1)};
+            var first=capsules.FirstOrDefault();var firstItem=book.Items.FirstOrDefault(i=>i.Id==first?.RuleId);
+            string summary=firstItem!=null?$"{ReminderEngine.Label(firstItem)} · {first!.At:HH:mm}"+(capsules.Count>1?$"  〔{capsules.Count}〕":""):"提醒";
+            _reminderCard.Present(summary,list,quick,!quick||_quickReminderExpanded);
         }
-        foreach(var remaining in _capsuleRemaining)remaining.Text.Text=$"{remaining.At:HH:mm} · {PlannerWindow.Remaining(remaining.At)}";
-        _reminderCard.Show();_reminderCard.UpdateLayout();
-        var work=GetQuickActionsWorkArea();var alpha=GetPetImageAlphaBoundsInWindow();double w=_reminderCard.ActualWidth,h=_reminderCard.ActualHeight;
-        var position=ReminderPlacement.Resolve(new DesktopRectangle(Left+alpha.Left,Top+alpha.Top,alpha.Width,alpha.Height),work,w,h);
-        if(pending.Count>0)
-        {
-            double center=Left+alpha.Left+alpha.Width/2,bottom=Top+alpha.Bottom;
-            if(MediaControls.IsVisible&&MediaControls.Opacity>0.05){Point island=MediaControls.TranslatePoint(new Point(MediaControls.ActualWidth/2,MediaControls.ActualHeight),this);center=Left+island.X;bottom=Math.Max(bottom,Top+island.Y);}
-            double y=bottom+6;if(y+h>work.Bottom)y=Top+alpha.Top-h-6;
-            position=new DesktopRectangle(Numeric.Clamp(center-w/2,work.Left,Math.Max(work.Left,work.Right-w)),Numeric.Clamp(y,work.Top,Math.Max(work.Top,work.Bottom-h)),w,h);
-        }
-        _reminderCard.Left=position.Left;_reminderCard.Top=position.Top;
-        if(pending.Count>0)
+        UpdateQuickReminderTimes();
+        PositionReminderCard();_reminderCard.Show();_reminderCard.UpdateLayout();PositionReminderCard();
+        if(!quick)
         {
             _plannerAlarmTopmost ??= AcquireTransientTopmost();
             if(fresh)ReminderAudio.Play(book.Preferences);
             if(!book.Preferences.Sound)ReminderAudio.Stop();
             if(book.Preferences.Animation)PlayPlannerAnimation();else StopPlannerAnimation();
         }
+    }
+    private void UpdateQuickReminderTimes()
+    {
+        foreach(var entry in _capsuleRemaining)
+        {
+            double minutes=Math.Max(0,Math.Ceiling((entry.At-DateTime.Now).TotalMinutes));
+            string remaining=minutes<=0?"时间到了":$"还有{minutes:0}分钟";
+            entry.Text.Text=entry.Text.Tag is true?$"{entry.At:HH:mm} · {remaining}":remaining;
+        }
+    }
+    private bool _positioningReminder;
+    private void PositionReminderCard()
+    {
+        if(_reminderCard==null||_isClosing||_positioningReminder)return;
+        _positioningReminder=true;
+        try
+        {
+            var work=GetQuickActionsWorkArea();var alpha=GetPetImageAlphaBoundsInWindow();
+            var pet=new DesktopRectangle(Left+alpha.Left,Top+alpha.Top,alpha.Width,alpha.Height);
+            var target=ReminderPlacement.Resolve(pet,work,_reminderCard.Width,Math.Max(18,_reminderCard.TargetHeight),2);
+            // Eight DIPs of shadow inset + two DIPs outside = ten visible DIPs.
+            bool above=target.Bottom<=pet.Top;
+            double available=above?pet.Top-work.Top-2:work.Bottom-pet.Bottom-2;
+            _reminderCard.LimitHeight(available);
+            double actual=Math.Min(_reminderCard.MaxHeight,Math.Max(18,_reminderCard.ActualHeight));
+            _reminderCard.Left=target.Left;
+            _reminderCard.Top=above?target.Bottom-actual:target.Top;
+        }
+        finally { _positioningReminder=false; }
     }
     private void PlayPlannerAnimation()
     {

@@ -1,11 +1,15 @@
 namespace LuoTianyiPet.Core;
 public static class ReminderPlacement
 {
-    public static DesktopRectangle Resolve(DesktopRectangle pet,DesktopRectangle work,double width,double height)
+    public static DesktopRectangle Resolve(DesktopRectangle pet,DesktopRectangle work,double width,double height,double gap=10)
     {
         width=Math.Min(width,work.Width);height=Math.Min(height,work.Height);
-        var candidates=new[]{(pet.Right+10,pet.Top-height-10),(pet.Left-width-10,pet.Top-height-10),(pet.Right+10,pet.Bottom+10),(pet.Left-width-10,pet.Bottom+10),(pet.Right+10,pet.Top),(pet.Left-width-10,pet.Top),(pet.Left,pet.Top-height-10),(pet.Left,pet.Bottom+10)};
-        foreach(var (x,y) in candidates)if(x>=work.Left&&y>=work.Top&&x+width<=work.Right&&y+height<=work.Bottom)return new(x,y,width,height);
-        return new(Numeric.Clamp(pet.Right+10,work.Left,work.Right-width),Numeric.Clamp(pet.Top-height-10,work.Top,work.Bottom-height),width,height);
+        double x=Numeric.Clamp(pet.Left+(pet.Width-width)/2,work.Left,work.Right-width);
+        double below=work.Bottom-pet.Bottom-gap,above=pet.Top-work.Top-gap;
+        bool placeBelow=below>=height || below>=above;
+        double available=Math.Max(0,placeBelow?below:above);
+        height=Math.Min(height,available);
+        double y=placeBelow?pet.Bottom+gap:pet.Top-gap-height;
+        return new(x,Numeric.Clamp(y,work.Top,work.Bottom-height),width,height);
     }
 }

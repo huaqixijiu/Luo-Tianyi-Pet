@@ -43,7 +43,7 @@ internal sealed partial class PlannerWindow : Window
         Closed+=(_,_)=>{_clock.Stop();_service.Changed-=OnChanged;};Render();
     }
     public void Navigate(bool alarm){_alarm=alarm;_manage=false;_editing=false;Render();Show();Activate();}
-    internal void OpenItem(Guid id){var item=_service.Book.Items.FirstOrDefault(i=>i.Id==id);if(item!=null){Navigate(!item.Calendar);Edit(item,item.Calendar);}}
+    internal void OpenItem(Guid id,DateTime? occurrence=null){var item=_service.Book.Items.FirstOrDefault(i=>i.Id==id);if(item!=null){_date=(occurrence??item.Start).Date;_occurrenceDate=occurrence??item.Start;_details=true;Navigate(!item.Calendar);Edit(item,item.Calendar);}}
     private void OnChanged(){if(!_editing)Render();}
     private async Task Execute(Action<ReminderBook> action){try{await _service.ChangeAsync(action);_status.Text="已保存到本机";}catch{_status.Text="保存失败，原数据保留。";throw;}}
     private static TextBlock Text(string value,double size=14)=>new(){Text=value,FontSize=size,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(3),Foreground=size<=12?PlannerTheme.Muted:PlannerTheme.Ink};
